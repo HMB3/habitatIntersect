@@ -1,7 +1,7 @@
-sdmgen : a pacakge for rapidly estimating multiple species ranges and
+A pipeline for rapidly estimating multiple species ranges and
 habitat suitability
 ================
-March 2020
+March 2021
 
   
 
