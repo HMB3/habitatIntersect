@@ -48,8 +48,8 @@ To install, run :
 ```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## The package should import all the required packages
-devtools::install_github("HMB3/sdmgen")
-library(sdmgen)
+devtools::install_github("HMB3/North_east_NSW_fire_recovery")
+library(North_east_NSW_fire_recovery)
 sapply(sdmgen_packages, require, character.only = TRUE)
 
 ```
