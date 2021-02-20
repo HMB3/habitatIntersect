@@ -1,7 +1,7 @@
 ---
 title: "sdmgen : a package for rapidly estimating multiple species ranges and habitat suitability"
 authors: "Hugh Burley, John Baumgartner, Linda Beaumont"
-date: "March 2020"
+date: "March 2021"
 output:
   github_document:
   toc: true   
@@ -47,7 +47,7 @@ To install, run :
 
 ```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## The package should import all the required packges
+## The package should import all the required packages
 devtools::install_github("HMB3/sdmgen")
 library(sdmgen)
 sapply(sdmgen_packages, require, character.only = TRUE)
