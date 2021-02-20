@@ -8,9 +8,8 @@ March 2020
 The text and code below summarises a workflow in R that can be used to
 relatively rapidly assess the environmental range of a species within
 Australia, from downloading occurrence records, through to creating maps
-of predicted climatic suitability across Australia at 1km\*1km
-resolution. An example of this work is published in Science of the Total
-Environment ::
+of predicted climatic suitability across Australia. An example of this 
+work is published in Science of the Total Environment ::
 
   
 
@@ -37,17 +36,10 @@ sapply(sdmgen_packages, require, character.only = TRUE)
 
 # Background
 
-This code was developed at Macquarie University in Sydney, as part of
-the ‘which plant where’ project (<https://www.whichplantwhere.com.au/>).
-The aim was to create a pipeline to rapidly assess the climatic
-suitability of large suites of horticultural plant species under climate
-change predictions. All over the world, local governments are increasing
-their investment in urban greening interventions, yet there is little
-consideration of whether the current palette of species for these
-plantings will be resilient to climate change. This pipeline was created
-to assess the distribution of climatically suitable habitat, now and in
-the future, for the tree species most commonly grown by nurseries and
-planted across Australia’s urban landscapes. However, it can be used to
+This code is being developed at UNSW, as part of a project investigating
+Invertebrate conservation in the North East Forests of New South Wales.
+The is to create a pipeline that rapidly assesses the habitate suitability 
+of large suites of species under current condictions. It could be used to
 assess the distribution of any species (e.g. bats, reptiles, etc).
 
   
