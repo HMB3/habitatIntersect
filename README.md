@@ -38,8 +38,8 @@ sapply(sdmgen_packages, require, character.only = TRUE)
 
 This code is being developed at UNSW, as part of a project investigating
 Invertebrate conservation in the North East Forests of New South Wales.
-The is to create a pipeline that rapidly assesses the habitate suitability 
-of large suites of species under current condictions. It could be used to
+The is to create a pipeline that rapidly assesses the habitat suitability 
+of large suites of species under current conditions. It could be used to
 assess the distribution of any species (e.g. bats, reptiles, etc).
 
   
@@ -69,7 +69,7 @@ analysis_spp
     ## [5] "Acacia decurrens"
 
 The species list is supplied to a series of functions to calculate
-enviromnetal ranges and habitat suitability. The initial functions
+environmental ranges and habitat suitability. The initial functions
 download all species records from the Atlas and living Australia
 (<https://www.ala.org.au/>) and the Global Biodiversity Information
 Facility (GBIF, <https://www.gbif.org/>). The species data are
