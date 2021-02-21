@@ -80,7 +80,6 @@ Suggests:
     dplyr,
     ENMeval,
     exactextractr,
-    flexdashboard,
     gdalUtils,
     GGally,
     ggmap,
