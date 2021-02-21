@@ -1,4 +1,4 @@
-Package: sdmgen
+Package: North_east_NSW_fire_recovery
 Title: Rapidly estimate species ranges and habit sutiability
 Version: 1.0
 Authors@R: person("Hugh", "Burley", email = "hugh.burley@gmail.com", role = c("aut", "cre"))

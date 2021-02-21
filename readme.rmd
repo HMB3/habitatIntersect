@@ -50,7 +50,6 @@ To install, run :
 ## The package should import all the required packages
 ## Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jre1.8.0_281')
 devtools::install_github("HMB3/North_east_NSW_fire_recovery")
-
 library(North_east_NSW_fire_recovery)
 sapply(sdmgen_packages, require, character.only = TRUE)
 
