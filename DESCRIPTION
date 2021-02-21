@@ -14,7 +14,6 @@ Encoding: UTF-8
 LazyData: true
 Imports: 
   ALA4R,  
-  betareg,   
   ConR,  
   CoordinateCleaner, 
   data.table, 
@@ -37,7 +36,6 @@ Imports:
   kgc,
   lattice,  
   latticeExtra,
-  latticeExtra,  
   magrittr,
   maptools,
   mgcv, 
@@ -74,7 +72,6 @@ Imports:
   writexl   
 Suggests: 
     ALA4R,
-    betareg,
     ConR,
     CoordinateCleaner,
     data.table,
@@ -97,7 +94,6 @@ Suggests:
     kgc,
     lattice,
     latticeExtra,
-    latticeExtra,
     magrittr,
     maptools,
     mgcv,
@@ -108,7 +104,6 @@ Suggests:
     raster,
     rasterVis,
     RColorBrewer,
-    readr,
     readr,
     reshape2,
     rgbif,
