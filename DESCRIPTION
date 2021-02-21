@@ -15,7 +15,6 @@ LazyData: true
 Imports: 
   ALA4R,  
   betareg,   
-  Cairo, 
   ConR,  
   CoordinateCleaner, 
   data.table, 
@@ -76,7 +75,6 @@ Imports:
 Suggests: 
     ALA4R,
     betareg,
-    Cairo,
     ConR,
     CoordinateCleaner,
     data.table,
