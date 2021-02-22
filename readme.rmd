@@ -143,7 +143,7 @@ download_GBIF_all_species(species_list  = analysis_spp,
 download_ALA_all_species(species_list  = analysis_spp,
                          your_email    = 'hugh.burley@gmail.com',
                          download_path = "./data/ALA/",
-                         ala_temp_dir  = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
+                         ala_temp_dir  = 'C:/Users/user/Temp/RtmpCmco7x',
                          download_limit = 20000)
 
 ``` 
