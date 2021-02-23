@@ -1,6 +1,6 @@
 ---
-title: "sdmgen : a package for rapidly estimating multiple species ranges and habitat suitability"
-authors: "Hugh Burley, Shawn Laffan, Linda Beaumont"
+title: "nenswniche : a package for rapidly estimating multiple species ranges and habitat suitability"
+authors: "Hugh Burley, Shawn Laffan, Adrian Fisher"
 date: "March 2021"
 output:
   github_document:
@@ -64,9 +64,9 @@ sapply(sdmgen_packages, require, character.only = TRUE)
 
 This code is being developed at UNSW, as part of a project investigating
 Invertebrate conservation in the North East Forests of New South Wales.
-The is to create a pipeline that rapidly assesses the habitat suitability 
+The aim is to create a pipeline that rapidly assesses the habitat suitability 
 of large suites of species under current conditions. It could be used to
-assess the distribution of any species (e.g. bats, reptiles, etc).
+assess the distribution of any species (e.g. plants, reptiles, etc).
 
 \
 
@@ -77,13 +77,13 @@ assess the distribution of any species (e.g. bats, reptiles, etc).
 The backbone of the R workflow is a list of (taxonomically Ridgey-Didge!) species names 
 that we supply. The analysis is designed to process data for one species at a time, 
 allowing species results to be updated as required. We can demonstrate the workflow 
-using a sample of 3 plant species from the Stoten publication above. 
+using a sample of ~40 insect species that are found in the forest of North Eastern NSW. 
 
 \
 
 ```{r message=FALSE, echo=TRUE, warning=FALSE, eval=TRUE}
 
-## Use the first 3 plant species in the Stoten list
+## Use a list 
 data("insect.spp")
 analysis_spp <- str_trim(insect.spp)
 analysis_spp <- insect.spp
@@ -95,8 +95,7 @@ analysis_spp
 The species list is supplied to a series of functions to calculate enviromnetal ranges and habitat 
 suitability. The initial functions download all species records from the Atlas and living Australia
 (https://www.ala.org.au/) and the Global Biodiversity Information Facility (GBIF, https://www.gbif.org/). 
-The species data are downloaded as individual .Rdata files to the specified folders, which must exist first, 
-without returning anything.
+The species data are downloaded as individual .Rdata files to the specified folders, which must exist first, without returning anything.
 
 \
 
@@ -143,7 +142,7 @@ download_GBIF_all_species(species_list  = analysis_spp,
 download_ALA_all_species(species_list  = analysis_spp,
                          your_email    = 'hugh.burley@gmail.com',
                          download_path = "./data/ALA/",
-                         ala_temp_dir  = 'C:/Users/user/Temp/RtmpCmco7x',
+                         ala_temp_dir  = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
                          download_limit = 20000)
 
 ``` 
@@ -154,8 +153,9 @@ download_ALA_all_species(species_list  = analysis_spp,
 
 \
 
-This pipeline was developed using worldclim climate raster data, but it can take any set of 
-climate rasters. The spatial data used to develop the workflow are on google drive - put this 
+This pipeline combines occurrence points with raster data. It was developed using worldclim 
+climate raster data, but it can take any set of rasters. The spatial data used to develop 
+the workflow are on google drive - put this 
 folder in your 'data' project folder:
 https://drive.google.com/open?id=1T5ET5MUX3-lkqiN5nNL3SZZagoJlEOal. 
 
@@ -183,7 +183,7 @@ sp::plot(worldclim_climate[["bio1"]])
 ## Download global raster for minimum temperature
 ## https://drive.google.com/open?id=1mQHVmYxSMw_cw1iGvfU9M7Pq6Kl6nz-C
 worldclim_climate = raster::stack(
-  file.path('./data/worldclim/world/current',
+  file.path('./data/worldclim2/res_30s/bioclim',
             sprintf('bio_%02d', 1:19)))
 
 worldclim_annual_temp <- worldclim_climate[[1]]
@@ -196,6 +196,45 @@ The next function in the workflow combines ALA and GBIF records, filtering them 
 and recorded after 1950. The climate (i.e. raster) data used can be any worldclim layer. It then trims 
 the occurrence records to those inside the raster boundaries (i.e. species records in the ocean
 according to the Raster boundaries will be excluded).
+
+\
+
+
+```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+## Combine ALA data, and filter to records on land taken > 1950
+## The climate data is the worldclim version 2.0
+## Also, add a switch for the 1km filter - we don't want to do this anymore, too few records
+ALA.LAND = combine_ala_records(species_list      = analysis_spp,
+                               records_path      = "./data/ALA/",
+                               records_extension = "_ALA_records.RData",
+                               record_type       = "ALA",
+                               keep_cols         = ALA_keep,
+                               world_raster      = worldclim_annual_temp)
+
+## Combine GBIF data and filter to records on land taken > 1950
+GBIF.LAND = combine_gbif_records(species_list      = analysis_spp,
+                                 records_path      = "./data/GBIF/",
+                                 records_extension = "_GBIF_records.RData",
+                                 record_type       = "GBIF",
+                                 keep_cols         = gbif_keep,
+                                 world_raster      =  worldclim_annual_temp)
+
+``` 
+
+
+# STEP 2a :: Create background points
+
+\
+
+To estiamte habitat suitability, we need to have as many species records as possible that
+have the same spatial bias as the species we are analysing (REF). The simplest way to do this 
+is to use species of the same type of organism we are analysing. 
+
+Given there are only ~100 species in this anlaysis, we need more taxa to generate background points.
+We're analysing insects, so we can get ALL the insect records from the ALA. A background point is 
+simply then a geographic records (lat/lon) for any species we are NOT analysing.
+
 
 \
 
