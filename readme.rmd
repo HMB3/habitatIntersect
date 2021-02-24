@@ -159,18 +159,6 @@ the workflow are on google drive - put this
 folder in your 'data' project folder:
 https://drive.google.com/open?id=1T5ET5MUX3-lkqiN5nNL3SZZagoJlEOal. 
 
-We can also get some global climate data from the worldclim website using raster::getData:
-
-\
-
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
-
-## Download global raster for minimum temperature 
-worldclim_climate     <- raster::getData('worldclim', var = 'bio', res = 2.5, path = './data/')
-worldclim_annual_temp <- raster::stack("./data/wc2-5/bio1.bil")
-sp::plot(worldclim_climate[["bio1"]])
-
-``` 
 
 \
 
@@ -184,7 +172,7 @@ sp::plot(worldclim_climate[["bio1"]])
 ## https://drive.google.com/open?id=1mQHVmYxSMw_cw1iGvfU9M7Pq6Kl6nz-C
 worldclim_climate = raster::stack(
   file.path('./data/worldclim2/res_30s/bioclim',
-            sprintf('bio_%02d', 1:19)))
+            sprintf('wc2.1_30s_bio_%d.tif', 1:19)))
 
 worldclim_annual_temp <- worldclim_climate[[1]]
 
@@ -193,9 +181,7 @@ worldclim_annual_temp <- worldclim_climate[[1]]
 \
 
 The next function in the workflow combines ALA and GBIF records, filtering them to records on land, 
-and recorded after 1950. The climate (i.e. raster) data used can be any worldclim layer. It then trims 
-the occurrence records to those inside the raster boundaries (i.e. species records in the ocean
-according to the Raster boundaries will be excluded).
+and recorded after 1950. We then trims the occurrence records to those inside the raster boundaries (i.e. species records in the ocean according to the Raster boundaries will be excluded).
 
 \
 
@@ -240,8 +226,7 @@ simply then a geographic records (lat/lon) for any species we are NOT analysing.
 
 ```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Combine ALA data, and filter to records on land taken > 1950
-## The climate data is the worldclim version 1.0
+## Make a new function here that prcoesses the background points
 ALA.LAND = combine_ala_records(species_list      = analysis_spp,
                                records_path      = "./data/ALA/",
                                records_extension = "_ALA_records.RData",
@@ -337,7 +322,7 @@ COMBO.RASTER.CONVERT = combine_records_extract(ala_df          = ALA.LAND,
                                                env_vars        = env_variables,
                                                worldclim_grids = TRUE,
                                                save_data       = FALSE,
-                                               save_run        = "TEST_BATS")
+                                               save_run        = "TEST_INSECTS")
 
 ``` 
 
