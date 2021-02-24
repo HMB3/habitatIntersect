@@ -13,8 +13,8 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
   keep_md: true
-  theme: united           # Many options for theme, this one is my favorite.
-highlight: tango        # Specifies the syntax highlighting style
+  theme: united     
+highlight: tango        
 css: styles.css
 revealjs::revealjs_presentation:
   dev: 'svg'
@@ -168,7 +168,7 @@ https://drive.google.com/open?id=1T5ET5MUX3-lkqiN5nNL3SZZagoJlEOal.
 
 ```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Download global raster for minimum temperature
+## Use worldclim 2 data
 ## https://drive.google.com/open?id=1mQHVmYxSMw_cw1iGvfU9M7Pq6Kl6nz-C
 worldclim_climate = raster::stack(
   file.path('./data/worldclim2/res_30s/bioclim',
@@ -215,32 +215,22 @@ GBIF.LAND = combine_gbif_records(species_list      = analysis_spp,
 
 To estiamte habitat suitability, we need to have as many species records as possible that
 have the same spatial bias as the species we are analysing (REF). The simplest way to do this 
-is to use species of the same type of organism we are analysing. 
+is to use species of the same type of organism we are analysing (in this case, insects.) 
 
-Given there are only ~100 species in this anlaysis, we need more taxa to generate background points.
+Given there are only ~100 species in our anlaysis, we need more taxa to generate background points.
 We're analysing insects, so we can get ALL the insect records from the ALA. A background point is 
-simply then a geographic records (lat/lon) for any species we are NOT analysing.
-
+simply then any geographic record (lat/lon) for a species other than the species we are 
+analysing.
 
 \
 
 ```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Make a new function here that prcoesses the background points
-ALA.LAND = combine_ala_records(species_list      = analysis_spp,
-                               records_path      = "./data/ALA/",
-                               records_extension = "_ALA_records.RData",
-                               record_type       = "ALA",
-                               keep_cols         = ALA_keep,
-                               world_raster      = worldclim_annual_temp)
-
-## Combine GBIF data and filter to records on land taken > 1950
-GBIF.LAND = combine_gbif_records(species_list      = analysis_spp,
-                                 records_path      = "./data/GBIF/",
-                                 records_extension = "_GBIF_records.RData",
-                                 record_type       = "GBIF",
-                                 keep_cols         = gbif_keep,
-                                 world_raster      =  worldclim_annual_temp)
+ALA.BG = combine_background_record(species_list      = analysis_spp,
+                                   record_type       = "ALA_BACKGROUND",
+                                   keep_cols         = ALA_keep,
+                                   world_raster      = worldclim_annual_temp)
 
 ``` 
 
@@ -313,13 +303,18 @@ the biolclim variables (i.e. bio1-bio19)
 COMBO.RASTER.CONVERT = combine_records_extract(ala_df          = ALA.LAND,
                                                gbif_df         = GBIF.LAND,
                                                urban_df        = 'NONE',
-                                               thin_records    = TRUE,
+                                               thin_records    = FALSE,
                                                template_raster = template_raster_1km_WGS84,
                                                world_raster    = worldclim_climate,
                                                prj             = CRS("+init=epsg:4326"),
                                                species_list    = analysis_spp,
+                                               
+                                               ## These two will need to change
+                                               ## Specify them in the code
                                                biocl_vars      = bioclim_variables,
                                                env_vars        = env_variables,
+                                               
+                                               ## This might need to change too
                                                worldclim_grids = TRUE,
                                                save_data       = FALSE,
                                                save_run        = "TEST_INSECTS")
@@ -583,8 +578,8 @@ scen_list <- c('AC', 'CC', 'HG', 'GF', 'MC', 'NO')
 ## For all the scenarios in the list
 for(scen in scen_list)
   
-## Download each to the specified folder, for EG 2070   
-message('Get the worldclim data for ', scen)
+  ## Download each to the specified folder, for EG 2070   
+  message('Get the worldclim data for ', scen)
 raster::getData('CMIP5', 
                 var   = 'bio', 
                 res   = 2.5, 

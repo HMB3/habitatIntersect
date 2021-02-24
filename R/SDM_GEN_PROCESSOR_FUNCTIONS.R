@@ -6,6 +6,9 @@
 ## Below are the functions used to estiamte species ranges and prepare occurrence data for SDM analysis
 
 
+'%!in%' <- function(x,y)!('%in%'(x,y))
+
+
 ## GBIF download ----
 
 
@@ -142,9 +145,6 @@ download_ALA_all_species = function (species_list, your_email, download_path, al
     ## create a dummy file
     dummy = data.frame()
     save (dummy, file = file_name)
-    
-    ## Then check the spelling...incorrect nomenclature will return NULL result
-    
     dir.create(ala_temp_dir)
     
     if (is.null(ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"', sep = ""),
@@ -153,7 +153,6 @@ download_ALA_all_species = function (species_list, your_email, download_path, al
       ## Now, append the species which had incorrect nomenclature to the skipped list
       print (paste ("Possible incorrect nomenclature", sp.n, "skipping"))
       nomenclature = paste ("Possible incorrect nomenclature |", sp.n)
-      #skip.spp.list <- c(skip.spp.list, nomenclature)
       next
       
     }
@@ -165,7 +164,6 @@ download_ALA_all_species = function (species_list, your_email, download_path, al
       ## now append the species which had no records to the skipped list
       print (paste ("No ALA records for", sp.n, "skipping"))
       records = paste ("No ALA records |", sp.n)
-      #skip.spp.list <- c(skip.spp.list, records)
       next
       
     }
