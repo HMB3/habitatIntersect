@@ -227,10 +227,11 @@ analysing.
 ```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Make a new function here that prcoesses the background points
-ALA.BG = combine_background_record(species_list      = analysis_spp,
-                                   record_type       = "ALA_BACKGROUND",
-                                   keep_cols         = ALA_keep,
-                                   world_raster      = worldclim_annual_temp)
+ALA.BG = combine_background_records(background_df     = insect_background_records,
+                                    species_list      = analysis_spp,
+                                    record_type       = "ALA_BACKGROUND",
+                                    keep_cols         = ALA_keep,
+                                    world_raster      = worldclim_annual_temp)
 
 ``` 
 
