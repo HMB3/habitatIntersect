@@ -95,7 +95,8 @@ analysis_spp
 The species list is supplied to a series of functions to calculate enviromnetal ranges and habitat 
 suitability. The initial functions download all species records from the Atlas and living Australia
 (https://www.ala.org.au/) and the Global Biodiversity Information Facility (GBIF, https://www.gbif.org/). 
-The species data are downloaded as individual .Rdata files to the specified folders, which must exist first, without returning anything.
+The species data are downloaded as individual .Rdata files to the specified folders, which must exist first, 
+without returning anything.
 
 \
 
@@ -133,11 +134,6 @@ expect these folders (a typical R project structure), create them if they don't 
 
 ```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Download GBIF occurrence data for each species
-download_GBIF_all_species(species_list  = analysis_spp,
-                          download_path = "./data/GBIF/",
-                          download_limit = 20000)
-
 ## Download ALA occurrence data for each species
 download_ALA_all_species(species_list  = analysis_spp,
                          your_email    = 'hugh.burley@gmail.com',
@@ -153,16 +149,13 @@ download_ALA_all_species(species_list  = analysis_spp,
 
 \
 
-This pipeline combines occurrence points with raster data. It was developed using worldclim 
-climate raster data, but it can take any set of rasters. The spatial data used to develop 
-the workflow are on google drive - put this 
-folder in your 'data' project folder:
-https://drive.google.com/open?id=1T5ET5MUX3-lkqiN5nNL3SZZagoJlEOal. 
-
+This pipeline combines species occurrence points with raster data. It was developed using worldclim 
+climate raster data, but it can take any set of rasters. 1km worldclim grids for current conditions 
+are also available here:
 
 \
 
-1km worldclim grids for current conditions are also available here: https://drive.google.com/open?id=1mQHVmYxSMw_cw1iGvfU9M7Pq6Kl6nz-C
+https://drive.google.com/open?id=1T5ET5MUX3-lkqiN5nNL3SZZagoJlEOal. 
 
 \
 
@@ -180,8 +173,8 @@ worldclim_annual_temp <- worldclim_climate[[1]]
 
 \
 
-The next function in the workflow combines ALA and GBIF records, filtering them to records on land, 
-and recorded after 1950. We then trims the occurrence records to those inside the raster boundaries (i.e. species records in the ocean according to the Raster boundaries will be excluded).
+Next we filter the records to those taken after 1950, and those inside the raster boundaries 
+(i.e. species records in the ocean according to the raster boundaries will be excluded).
 
 \
 
@@ -198,14 +191,6 @@ ALA.LAND = combine_ala_records(species_list      = analysis_spp,
                                keep_cols         = ALA_keep,
                                world_raster      = worldclim_annual_temp)
 
-## Combine GBIF data and filter to records on land taken > 1950
-GBIF.LAND = combine_gbif_records(species_list      = analysis_spp,
-                                 records_path      = "./data/GBIF/",
-                                 records_extension = "_GBIF_records.RData",
-                                 record_type       = "GBIF",
-                                 keep_cols         = gbif_keep,
-                                 world_raster      =  worldclim_annual_temp)
-
 ``` 
 
 
@@ -213,21 +198,21 @@ GBIF.LAND = combine_gbif_records(species_list      = analysis_spp,
 
 \
 
-To estiamte habitat suitability, we need to have as many species records as possible that
+To estimate habitat suitability, we need to have as many species records as possible that
 have the same spatial bias as the species we are analysing (REF). The simplest way to do this 
 is to use species of the same type of organism we are analysing (in this case, insects.) 
 
-Given there are only ~100 species in our anlaysis, we need more taxa to generate background points.
-We're analysing insects, so we can get ALL the insect records from the ALA. A background point is 
+Given there are only ~100 species in our analysis, we need more taxa to generate background points.
+We're analyzing insects, so we can get ALL the insect records from the ALA. A background point is 
 simply then any geographic record (lat/lon) for a species other than the species we are 
-analysing.
+analyzing.
 
 \
 
 ```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Make a new function here that prcoesses the background points
-ALA.BG = combine_background_records(background_df     = insect_background_records,
+## Make a new function here that processes the background points
+ALA.BG = combine_background_records(background_df     = insect_data_standard_columns,
                                     species_list      = analysis_spp,
                                     record_type       = "ALA_BACKGROUND",
                                     keep_cols         = ALA_keep,
@@ -316,7 +301,7 @@ COMBO.RASTER.CONVERT = combine_records_extract(ala_df          = ALA.LAND,
                                                env_vars        = env_variables,
                                                
                                                ## This might need to change too
-                                               worldclim_grids = TRUE,
+                                               worldclim_divide = TRUE,
                                                save_data       = FALSE,
                                                save_run        = "TEST_INSECTS")
 
@@ -355,6 +340,7 @@ COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.CONVERT,
                                   centroids  = 5000,   
                                   save_run   = "TEST_SPECIES",
                                   save_data  = FALSE)
+
 ``` 
 
 \
@@ -376,6 +362,7 @@ SPATIAL.CLEAN = check_spatial_outliers(all_df       = COORD.CLEAN,
                                        clean_path   = './data/GBIF/Check_plots/',
                                        spatial_mult = 10,
                                        prj          = CRS("+init=epsg:4326"))
+
 ``` 
 
 \

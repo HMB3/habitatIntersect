@@ -52,7 +52,6 @@ download_GBIF_all_species = function(species_list, download_path, download_limit
       ## this is slow, but it works for now
       print (paste ("Possible incorrect nomenclature", sp.n, "skipping"))
       nomenclature = paste ("Possible incorrect nomenclature |", sp.n)
-      #skip.spp.list <- c(skip.spp.list, nomenclature)
       next
       
     }
@@ -63,7 +62,6 @@ download_GBIF_all_species = function(species_list, download_path, download_limit
       ## now append the species which had no records to the skipped list
       print (paste ("No GBIF records for", sp.n, "skipping"))
       records = paste ("No GBIF records |", sp.n)
-      #skip.spp.list <- c(skip.spp.list, records)
       next
       
     }
@@ -170,7 +168,10 @@ download_ALA_all_species = function (species_list, your_email, download_path, al
     
     ## Download ALL records from ALA ::
     message("Downloading ALA records for ", sp.n, " using ALA4R :: occurrences")
-    ALA = ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"',sep=""), download_reason_id = 7, email = your_email)
+    ALA = ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"',sep=""), 
+                             download_reason_id = 7, 
+                             email  = your_email,
+                             fields = ALA_keep_cols)
     ALA = ALA[["data"]]
     
     cat("Synonyms returned for :: ", sp.n, unique(ALA$scientificName), sep="\n")
@@ -581,6 +582,140 @@ combine_gbif_records = function(species_list, records_path, records_extension, r
 
 
 
+## Cleaning ALA background records -----
+
+
+#' Clean the background points for niche analysis
+#'
+#' This function cleans all backgroud data from ALA into one file
+#' @param species_list       Character Vector - List of species already downloaded
+#' @param background_df      Data frame - Records from the ALA/GBIF
+#' @param record_type        Adds a column to the data frame for the data source, EG ALA
+#' @param keep_cols          The columns we want to keep - a character list created by you
+#' @param world_raster       An Raster file of the enviro conditions used (assumed to be global)
+#' @export
+combine_background_records = function(background_df, species_list,
+                                      record_type,   keep_cols, world_raster) {
+  
+  
+  ## Create the searchTaxon column - check how to put the data in here
+  background_df <- background_df %>% mutate(searchTaxon = scientificName)
+  
+  ## First restrict the background points to species not on the target list
+  background_df <- background_df[!background_df$searchTaxon %in% species_list, ]
+  
+  ## The standardise the column names
+  names(background_df)[names(background_df) == 'decimalLatitude']  <- 'lat'
+  names(background_df)[names(background_df) == 'decimalLongitude'] <- 'lon'
+  
+  ## Catalogue number
+  if("catalogueNumber" %in% colnames(background_df)) {
+    message ("Renaming catalogueNumber column to catalogNumber")
+    names(background_df)[names(background_df) == 'catalogueNumber'] <- 'catalogNumber'
+    
+  }
+  
+  if (!is.character(background_df$catalogNumber)) {
+    background_df$catalogNumber = as.character(background_df$catalogNumber)
+    
+  }
+  
+  ## Record id
+  if('recordID' %in% colnames(background_df)) {
+    message ("Renaming recordID column to id")
+    names(background_df)[names(background_df) == 'recordID'] <- 'id'
+    
+  }
+  
+  if(!is.character(background_df["id"])) {
+    background_df["id"] <- as.character(background_df["id"])
+  }
+  
+  ## Choose only the desired columns
+  background_df = background_df %>%
+    dplyr::select(one_of(keep_cols))
+  warnings()
+  
+  ## This is a list of columns in different ALA files which have weird characters
+  background_df["year"]  = as.numeric(unlist(background_df["year"]))
+  background_df["month"] = as.numeric(unlist(background_df["month"]))
+  background_df["id"]    = as.character(unlist(background_df["id"]))
+  
+  ## What names get returned?
+  sort(names(background_df))
+  TRIM <- background_df %>%
+    dplyr::select(dplyr::one_of(keep_cols))
+  
+  dim(TRIM)
+  sort(names(TRIM))
+  
+  ## FILTER RECORDS TO THOSE WITH COORDINATES, AND AFTER 1950
+  ## Now filter the ALA records using conditions which are not too restrictive
+  CLEAN <- TRIM %>%
+    
+    ## Note that these filters are very forgiving...
+    ## Unless we include the NAs, very few records are returned!
+    filter(!is.na(lon) & !is.na(lat),
+           year >= 1950 & !is.na(year))
+  
+  ## How many records were removed by filtering?
+  message(nrow(TRIM) - nrow(CLEAN), " records removed")
+  message(round((nrow(CLEAN))/nrow(TRIM)*100, 2),
+          " % records retained using spatially valid records")
+  
+  ## Can use WORLDCIM rasters to get only records where wordlclim data is.
+  message('Removing ALA points outside raster bounds for ', length(species_list),
+          ' species')
+  
+  ## Now get the XY centroids of the unique 1km * 1km WORLDCLIM blocks where ALA records are found
+  ## Get cell number(s) of WORLDCLIM raster from row and/or column numbers. Cell numbers start at 1 in the upper left corner,
+  ## and increase from left to right, and then from top to bottom. The last cell number equals the number of raster cell
+  xy <- cellFromXY(world_raster, CLEAN[c("lon", "lat")]) %>%
+    
+    ## get the unique raster cells
+    unique %>%
+    
+    ## Get coordinates of the center of raster cells for a row, column, or cell number of WORLDCLIM raster
+    xyFromCell(world_raster, .) %>% na.omit()
+  
+  ## For some reason, we need to convert the xy coords to a spatial points data frame, in order to avoid this error:
+  ## 'NAs introduced by coercion to integer range'
+  xy <- SpatialPointsDataFrame(coords = xy, data = as.data.frame(xy),
+                               proj4string = CRS("+proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs"))
+  
+  ## Now extract the temperature values for the unique 1km centroids which contain ALA data
+  ## Then track which values of Z are on land or not
+  class(xy)
+  z      = raster::extract(world_raster, xy)
+  onland = z %>% is.na %>%  `!` # %>% xy[.,]  cells on land or not
+  
+  ## Finally, filter the cleaned ALA data to only those points on land.
+  ## This is achieved with the final [onland]
+  LAND.POINTS = filter(CLEAN, cellFromXY(world_raster,   CLEAN[c("lon", "lat")]) %in%
+                         unique(cellFromXY(world_raster, CLEAN[c("lon", "lat")]))[onland])
+  
+  ## how many records were on land?
+  records.ocean = nrow(CLEAN) - nrow(LAND.POINTS)
+  dim(LAND.POINTS)
+  length(unique(LAND.POINTS$searchTaxon))
+  
+  ## Add a source column
+  LAND.POINTS$SOURCE = record_type
+  message(round((nrow(LAND.POINTS)/nrow(CLEAN))*100, 2),
+          " % records retained using spatially valid records")
+  
+  ## save data
+  dim(LAND.POINTS)
+  length(unique(LAND.POINTS$searchTaxon))
+  gc()
+  
+  return(LAND.POINTS)
+  
+}
+
+
+
+
 
 ## Extract environmental values for occurrence records -----
 
@@ -589,7 +724,7 @@ combine_gbif_records = function(species_list, records_path, records_extension, r
 #' It assumes that both files come from the previous GBIF/ALA combine function.
 #' @param ala_df             Data frame of ALA records
 #' @param gbif_df            Data frame of GBIF records
-#' @param urban_df           Data frame of Urban records (only used if you have urban data, e.g. I-naturalist)
+#' @param site_df           Data frame of site records (only used if you have site data, e.g. I-naturalist)
 #' @param species_list       List of species analysed, used to cut the dataframe down
 #' @param thin_records       Do you want to thin the records out? If so, it will be 1 record per 1km*1km grid cell
 #' @param template_raster    A global R Raster used to thin records to 1 record per 1km grid cell
@@ -597,7 +732,7 @@ combine_gbif_records = function(species_list, records_path, records_extension, r
 #' @param prj                The projection system used. Currently, needs to be WGS84
 #' @param biocl_vars         The variables used - eg the standard bioclim names (https://www.worldclim.org/).
 #' @param env_vars           The actual variable names (e.g. bio1 = rainfall, etc.) Only needed for worldlcim
-#' @param worldclim_grids    Are you using worldclim stored as long intergers? If so, divide by 10.
+#' @param worldclim_divide    Are you using worldclim stored as long intergers? If so, divide by 10.
 #' @param save_data          Do you want to save the data frame?
 #' @param data_path          The file path used for saving the data frame
 #' @param save_run           A run name to append to the data frame (e.g. bat species, etc.). Useful for multiple runs.
@@ -606,8 +741,8 @@ combine_gbif_records = function(species_list, records_path, records_extension, r
 
 combine_records_extract = function(ala_df,
                                    gbif_df,
-                                   urban_df,
-                                   add_urban,
+                                   site_df,
+                                   add_site,
                                    species_list,
                                    template_raster,
                                    thin_records,
@@ -615,7 +750,7 @@ combine_records_extract = function(ala_df,
                                    prj,
                                    biocl_vars,
                                    env_vars,
-                                   worldclim_grids,
+                                   worldclim_divide,
                                    save_data,
                                    data_path,
                                    save_run) {
@@ -629,15 +764,15 @@ combine_records_extract = function(ala_df,
   message(length(unique(GBIF.ALA.COMBO$searchTaxon)))
   length(unique(GBIF.ALA.COMBO$scientificName))
   
-  ## If Urban = TRUE
-  if(urban_df != 'NONE') {
+  ## If site = TRUE
+  if(site_df != 'NONE') {
     
-    urban_cols     <- intersect(names(GBIF.ALA.COMBO), names(urban_df))
-    urban_df       <- dplyr::select(urban_df, urban_cols)
-    GBIF.ALA.COMBO <- bind_rows(GBIF.ALA.COMBO, urban_df)
+    site_cols     <- intersect(names(GBIF.ALA.COMBO), names(site_df))
+    site_df       <- dplyr::select(site_df, site_cols)
+    GBIF.ALA.COMBO <- bind_rows(GBIF.ALA.COMBO, site_df)
     
   } else {
-    message('Dont add urban data' )
+    message('Dont add site data' )
   }
   
   ## CHECK TAXONOMY RETURNED BY ALA USING TAXONSTAND
@@ -691,7 +826,7 @@ combine_records_extract = function(ala_df,
   
   ## Change the raster values here: See http://worldclim.org/formats1 for description of the interger conversion.
   ## All worldclim temperature variables were multiplied by 10, so then divide by 10 to reverse it.
-  if (worldclim_grids == TRUE) {
+  if (worldclim_divide == TRUE) {
     
     ## Convert the worldclim grids
     message('Processing worldclim 1.0 data, divide the rasters by 10')
@@ -728,12 +863,12 @@ combine_records_extract = function(ala_df,
 
 
 
-## Extract environmental values for urban occurrence records -----
+## Extract environmental values for site occurrence records -----
 
 
 #' This function takes a data frame from Ubran sources (e.g. I-naturalist), and extracts enviro values.
-#' It assumes that the urban dataframe has these columns : species, lat, lon, Country, INVENTORY, SOURCE
-#' @param urban_df           Data.frame of Urban records (only used if you have urban data, e.g. I-naturalist)
+#' It assumes that the site dataframe has these columns : species, lat, lon, Country, INVENTORY, SOURCE
+#' @param site_df           Data.frame of site records (only used if you have site data, e.g. I-naturalist)
 #' @param species_list       Character string - List of species analysed, used to cut the dataframe down
 #' @param thin_records       Do you want to thin the records out? If so, it will be 1 record per 1km*1km grid cell
 #' @param template_raster    A global R Raster used to thin records to 1 record per 1km grid cell
@@ -741,13 +876,13 @@ combine_records_extract = function(ala_df,
 #' @param prj                The projection system used. Currently, needs to be WGS84
 #' @param biocl_vars         The variables used - eg the standard bioclim names (https://www.worldclim.org/).
 #' @param env_vars           The actual anmes of the variables (e.g. bio1 = rainfall, etc.) Only needed for worldlcim
-#' @param worldclim_grids    Are you using worldclim stored as long intergers? If so, divide by 10.
+#' @param worldclim_divide    Are you using worldclim stored as long intergers? If so, divide by 10.
 #' @param save_data          Do you want to save the data frame?
 #' @param data_path          The file path used for saving the data frame
 #' @param save_run           Character string - run name to append to the data frame (e.g. bat species, etc.). Useful for multiple runs.
-#' @return                   Data frame of all urban records, with global enviro conditions for each record location (i.e. lat/lon)
+#' @return                   Data frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)
 #' @export
-urban_records_extract = function(urban_df,
+site_records_extract = function(site_df,
                                  species_list,
                                  thin_records,
                                  template_raster,
@@ -755,57 +890,57 @@ urban_records_extract = function(urban_df,
                                  prj,
                                  biocl_vars,
                                  env_vars,
-                                 worldclim_grids,
+                                 worldclim_divide,
                                  save_data,
                                  data_path,
                                  save_run) {
   
   ## Get just the species list
-  URBAN.XY = urban_df[urban_df$searchTaxon %in% species_list, ]
+  site.XY = site_df[site_df$searchTaxon %in% species_list, ]
   message('Extracting raster values for ',
-          length(unique(URBAN.XY$searchTaxon)), ' urban species across ',
-          length(unique(URBAN.XY$INVENTORY)),   ' Councils ')
+          length(unique(site.XY$searchTaxon)), ' site species across ',
+          length(unique(site.XY$INVENTORY)),   ' Councils ')
   
   ## Create points: the 'over' function seems to need geographic coordinates for this data...
-  URBAN.XY   = SpatialPointsDataFrame(coords      = URBAN.XY[c("lon", "lat")],
-                                      data        = URBAN.XY,
+  site.XY   = SpatialPointsDataFrame(coords      = site.XY[c("lon", "lat")],
+                                      data        = site.XY,
                                       proj4string = prj)
   
   if(thin_records == TRUE) {
     
     ## The length needs to be the same
-    length(unique(URBAN.XY$searchTaxon))
-    URBAN.XY.SPLIT.ALL <- split(URBAN.XY, URBAN.XY$searchTaxon)
-    occurrence_cells_all  <- lapply(URBAN.XY.SPLIT.ALL, function(x) cellFromXY(template_raster, x))
+    length(unique(site.XY$searchTaxon))
+    site.XY.SPLIT.ALL <- split(site.XY, site.XY$searchTaxon)
+    occurrence_cells_all  <- lapply(site.XY.SPLIT.ALL, function(x) cellFromXY(template_raster, x))
     
     ## Check with a message, but could check with a fail
     message('Split prodcues ', length(occurrence_cells_all), ' data frames for ', length(species_list), ' species')
     
     ## Now get just one record within each 10*10km cell.
-    URBAN.XY.1KM <- mapply(function(x, cells) {
+    site.XY.1KM <- mapply(function(x, cells) {
       x[!duplicated(cells), ]
-    }, URBAN.XY.SPLIT.ALL, occurrence_cells_all, SIMPLIFY = FALSE) %>% do.call(rbind, .)
+    }, site.XY.SPLIT.ALL, occurrence_cells_all, SIMPLIFY = FALSE) %>% do.call(rbind, .)
     
     ## Check to see we have 19 variables + the species for the standard predictors, and 19 for all predictors
-    message(round(nrow(URBAN.XY.1KM)/nrow(URBAN.XY)*100, 2), " % records retained at 1km resolution")
+    message(round(nrow(site.XY.1KM)/nrow(site.XY)*100, 2), " % records retained at 1km resolution")
     
     ## Create points: the 'over' function seems to need geographic coordinates for this data...
-    COMBO.POINTS = URBAN.XY.1KM[c("lon", "lat")]
+    COMBO.POINTS = site.XY.1KM[c("lon", "lat")]
     
   } else {
     message('dont thin the records out' )
-    COMBO.POINTS = URBAN.XY
+    COMBO.POINTS = site.XY
   }
   
   ## Bioclim variables
   ## Extract raster data
   message('Extracting raster values for ', length(species_list), ' species in the set ', "'", save_run, "'")
   message(projection(COMBO.POINTS));message(projection(world_raster))
-  dim(COMBO.POINTS);dim(URBAN.XY.1KM)
+  dim(COMBO.POINTS);dim(site.XY.1KM)
   
   ## Extract the raster values
   COMBO.RASTER <- raster::extract(world_raster, COMBO.POINTS) %>%
-    cbind(as.data.frame(URBAN.XY.1KM), .)
+    cbind(as.data.frame(site.XY.1KM), .)
   
   ## Group rename the columns
   setnames(COMBO.RASTER, old = biocl_vars, new = env_vars)
@@ -813,7 +948,7 @@ urban_records_extract = function(urban_df,
   
   ## Change the raster values here: See http://worldclim.org/formats1 for description of the interger conversion.
   ## All worldclim temperature variables were multiplied by 10, so then divide by 10 to reverse it.
-  if (worldclim_grids == TRUE) {
+  if (worldclim_divide == TRUE) {
     
     ## Convert the worldclim grids
     message('Processing worldclim 1.0 data, divide the rasters by 10')
@@ -866,7 +1001,7 @@ urban_records_extract = function(urban_df,
 #' @param save_run           Character string - run name to append to the data frame, useful for multiple runs.
 #' @param save_data          Logical or character - do you want to save the data frame?
 #' @param data_path          Character string - The file path used for saving the data frame
-#' @return                   Data.frame of all urban records, with global enviro conditions for each record location (i.e. lat/lon)
+#' @return                   Data.frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)
 #' @export
 coord_clean_records = function(records,
                                capitals,
@@ -972,14 +1107,14 @@ coord_clean_records = function(records,
 #' It uses the CoordinateCleaner package https://cran.r-project.org/web/packages/CoordinateCleaner/index.html.
 #' It assumes that the input dfs are those returned by the coord_clean_records function
 #' @param all_df             Data.frame. DF of all species records returned by the coord_clean_records function
-#' @param urban_df           Data.frame of Urban records (only used if you have urban data, e.g. I-naturalist)
+#' @param site_df           Data.frame of site records (only used if you have site data, e.g. I-naturalist)
 #' @param land_shp           R object. Shapefile of the worlds land (e.g. https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-land/)
 #' @param clean_path         Character string -  The file path used for saving the checks
 #' @param spatial_mult       Numeric. The multiplier of the interquartile range (method == 'quantile', see ?cc_outl)
 #' @return                   Data.frame of species records, with spatial outlier T/F flag for each record
 #' @export
 check_spatial_outliers = function(all_df,
-                                  urban_df,
+                                  site_df,
                                   land_shp,
                                   clean_path,
                                   spatial_mult,
@@ -1174,20 +1309,20 @@ check_spatial_outliers = function(all_df,
     
   }
   
-  ## Could add the species in urban records in here
-  if(urban_df == TRUE) {
+  ## Could add the species in site records in here
+  if(site_df == TRUE) {
     
     ##
-    message('Combine the Spatially cleaned data with the Urban data' )
+    message('Combine the Spatially cleaned data with the site data' )
     SPAT.FLAG   <- SPAT.FLAG %>% filter(SPAT_OUT == TRUE)
-    SPAT.FLAG   <- bind_rows(SPAT.FLAG, urban_df)
+    SPAT.FLAG   <- bind_rows(SPAT.FLAG, site_df)
     SPAT.TRUE   <- SpatialPointsDataFrame(coords      = SPAT.FLAG[c("lon", "lat")],
                                           data        = SPAT.FLAG,
                                           proj4string = prj)
     message('Cleaned ', paste0(unique(SPAT.TRUE$SOURCE), sep = ' '), ' records')
     
   } else {
-    message('Dont add urban data' )
+    message('Dont add site data' )
     SPAT.TRUE <- SPAT.FLAG %>% filter(SPAT_OUT == TRUE)
   }
   
@@ -1207,7 +1342,7 @@ check_spatial_outliers = function(all_df,
 #' It uses the AOO.computing function in the ConR package https://cran.r-project.org/web/packages/ConR/index.html
 #' It assumes that the input df is that returned by the check_spatial_outliers function
 #' @param coord_df           Data.frame. DF of all species records returned by the coord_clean_records function
-#' @param aus_df             Data.frame of Urban records (only used if you have urban data, e.g. I-naturalist)
+#' @param aus_df             Data.frame of site records (only used if you have site data, e.g. I-naturalist)
 #' @param world_shp          .Rds object. Shapefile of the worlds land (e.g. https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-land/)
 #' @param kop_shp            .Rds object. Shapefile of the worlds koppen zones (e.g. https://www.climond.org/Koppen.aspx)
 #' @param species_list       Character string - List of species analysed, used to cut the dataframe down
@@ -1537,10 +1672,10 @@ plot_range_histograms = function(coord_df,
     DF       <- coord_df[coord_df$searchTaxon %in% spp , ]
     DF.OCC   <- subset(coord_df, searchTaxon == spp & SOURCE != "INVENTORY")
     
-    ## Create a new field RANGE, which is either URBAN or NATURAL
+    ## Create a new field RANGE, which is either site or NATURAL
     coord_spp <- coord_df %>%
       filter(searchTaxon == spp) %>%
-      mutate(RANGE = ifelse(SOURCE != "INVENTORY", "NATURAL", "URBAN"))
+      mutate(RANGE = ifelse(SOURCE != "INVENTORY", "NATURAL", "site"))
     
     ## Start PNG device
     message('Writing global convex hulls for ', spp)
@@ -1658,7 +1793,7 @@ plot_range_histograms = function(coord_df,
       
       ## Change the colors
       scale_fill_manual(values = c('NATURAL' = 'coral2',
-                                   'URBAN'   = 'gainsboro'), na.value = "grey") +
+                                   'site'   = 'gainsboro'), na.value = "grey") +
       
       ggtitle(paste0("Worldclim rain niches for ", spp)) +
       
