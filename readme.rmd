@@ -63,10 +63,9 @@ sapply(sdmgen_packages, require, character.only = TRUE)
 # Background
 
 This code is being developed at UNSW, as part of a project investigating
-Invertebrate conservation in the North East Forests of New South Wales.
-The aim is to create a pipeline that rapidly assesses the habitat suitability 
-of large suites of species under current conditions. It could be used to
-assess the distribution of any species (e.g. plants, reptiles, etc).
+the impacts of the 2019/2020 bush fires on Insects in the North East Forests 
+of New South Wales. The aim is to create a pipeline that rapidly assesses 
+the habitat suitability of large suites of species under current environmental conditions. 
 
 \
 
@@ -188,7 +187,7 @@ ALA.LAND = combine_ala_records(species_list      = analysis_spp,
                                records_path      = "./data/ALA/",
                                records_extension = "_ALA_records.RData",
                                record_type       = "ALA",
-                               keep_cols         = ALA_keep,
+                               keep_cols         = ALA_keep_cols,
                                world_raster      = worldclim_annual_temp)
 
 ``` 
@@ -199,23 +198,23 @@ ALA.LAND = combine_ala_records(species_list      = analysis_spp,
 \
 
 To estimate habitat suitability, we need to have as many species records as possible that
-have the same spatial bias as the species we are analysing (REF). The simplest way to do this 
-is to use species of the same type of organism we are analysing (in this case, insects.) 
+have the same spatial bias as the taxa we are analysing (REF). The simplest way to do this 
+is to use species of the same type of organism we are analysing (in this case, insects). 
 
-Given there are only ~100 species in our analysis, we need more taxa to generate background points.
+Given there are only ~100 species in our analysis, we need mnay more taxa to generate enough background points.
 We're analyzing insects, so we can get ALL the insect records from the ALA. A background point is 
-simply then any geographic record (lat/lon) for a species other than the species we are 
-analyzing.
+simply then any geographic record (lat/lon) for a species, other than the species we are 
+analysing.
 
 \
 
 ```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Make a new function here that processes the background points
-ALA.BG = combine_background_records(background_df     = insect_data_standard_columns,
+ALA.BG = combine_background_records(background_df     = head(insect_data_standard_columns, 10000),
                                     species_list      = analysis_spp,
                                     record_type       = "ALA_BACKGROUND",
-                                    keep_cols         = ALA_keep,
+                                    keep_cols         = ALA_keep_cols,
                                     world_raster      = worldclim_annual_temp)
 
 ``` 

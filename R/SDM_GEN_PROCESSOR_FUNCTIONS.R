@@ -597,7 +597,6 @@ combine_gbif_records = function(species_list, records_path, records_extension, r
 combine_background_records = function(background_df, species_list,
                                       record_type,   keep_cols, world_raster) {
   
-  
   ## Create the searchTaxon column - check how to put the data in here
   background_df <- background_df %>% mutate(searchTaxon = scientificName)
   
@@ -605,8 +604,12 @@ combine_background_records = function(background_df, species_list,
   background_df <- background_df[!background_df$searchTaxon %in% species_list, ]
   
   ## The standardise the column names
-  names(background_df)[names(background_df) == 'decimalLatitude']  <- 'lat'
-  names(background_df)[names(background_df) == 'decimalLongitude'] <- 'lon'
+  background_df <- background_df %>% 
+    
+    mutate(lat = decimalLatitude,
+           lon = decimalLongitude,
+           lat = as.numeric(lat),
+           lon = as.numeric(lon)) %>% as.data.frame()
   
   ## Catalogue number
   if("catalogueNumber" %in% colnames(background_df)) {
@@ -664,19 +667,21 @@ combine_background_records = function(background_df, species_list,
           " % records retained using spatially valid records")
   
   ## Can use WORLDCIM rasters to get only records where wordlclim data is.
-  message('Removing ALA points outside raster bounds for ', length(species_list),
-          ' species')
+  message('Removing ALA points outside raster bounds for ', length(species_list), ' species')
   
   ## Now get the XY centroids of the unique 1km * 1km WORLDCLIM blocks where ALA records are found
   ## Get cell number(s) of WORLDCLIM raster from row and/or column numbers. Cell numbers start at 1 in the upper left corner,
   ## and increase from left to right, and then from top to bottom. The last cell number equals the number of raster cell
+  latcoord <- CLEAN %>% select(lat)
+  loncoord <- CLEAN %>% select(lon)
+  
+  ## get the unique raster cells
   xy <- cellFromXY(world_raster, CLEAN[c("lon", "lat")]) %>%
-    
-    ## get the unique raster cells
     unique %>%
     
     ## Get coordinates of the center of raster cells for a row, column, or cell number of WORLDCLIM raster
-    xyFromCell(world_raster, .) %>% na.omit()
+    xyFromCell(world_raster, .) %>%
+    na.omit()
   
   ## For some reason, we need to convert the xy coords to a spatial points data frame, in order to avoid this error:
   ## 'NAs introduced by coercion to integer range'
@@ -684,14 +689,15 @@ combine_background_records = function(background_df, species_list,
                                proj4string = CRS("+proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs"))
   
   ## Now extract the temperature values for the unique 1km centroids which contain ALA data
-  ## Then track which values of Z are on land or not
   class(xy)
-  z      = raster::extract(world_raster, xy)
+  z   = raster::extract(world_raster, xy)
+  
+  ## Then track which values of Z are on land or not
   onland = z %>% is.na %>%  `!` # %>% xy[.,]  cells on land or not
   
   ## Finally, filter the cleaned ALA data to only those points on land.
   ## This is achieved with the final [onland]
-  LAND.POINTS = filter(CLEAN, cellFromXY(world_raster,   CLEAN[c("lon", "lat")]) %in%
+  LAND.POINTS = filter(CLEAN, cellFromXY(world_raster, CLEAN[c("lon", "lat")]) %in%
                          unique(cellFromXY(world_raster, CLEAN[c("lon", "lat")]))[onland])
   
   ## how many records were on land?
