@@ -730,7 +730,6 @@ combine_background_records = function(background_df, species_list,
 #' This function combines occurrence files from ALA and GBIF into one table, and extracts enviro values.
 #' It assumes that both files come from the previous GBIF/ALA combine function.
 #' @param ala_df             Data frame of ALA records
-#' @param gbif_df            Data frame of GBIF records
 #' @param site_df           Data frame of site records (only used if you have site data, e.g. I-naturalist)
 #' @param species_list       List of species analysed, used to cut the dataframe down
 #' @param thin_records       Do you want to thin the records out? If so, it will be 1 record per 1km*1km grid cell
@@ -747,7 +746,6 @@ combine_background_records = function(background_df, species_list,
 #' @export
 
 combine_records_extract = function(ala_df,
-                                   gbif_df,
                                    site_df,
                                    add_site,
                                    species_list,
@@ -763,68 +761,64 @@ combine_records_extract = function(ala_df,
                                    save_run) {
   
   ## Get just the Common columns
-  common.cols    = intersect(names(gbif_df), names(ala_df))
-  GBIF.ALA.COMBO = bind_rows(gbif_df, ala_df)
-  GBIF.ALA.COMBO = GBIF.ALA.COMBO %>%
-    dplyr::select(one_of(common.cols))
-  
-  message(length(unique(GBIF.ALA.COMBO$searchTaxon)))
-  length(unique(GBIF.ALA.COMBO$scientificName))
+  ALA.COMBO = ala_df
+
+  message(length(unique(ALA.COMBO$searchTaxon)))
+  length(unique(ALA.COMBO$scientificName))
   
   ## If site = TRUE
   if(site_df != 'NONE') {
     
-    site_cols     <- intersect(names(GBIF.ALA.COMBO), names(site_df))
-    site_df       <- dplyr::select(site_df, site_cols)
-    GBIF.ALA.COMBO <- bind_rows(GBIF.ALA.COMBO, site_df)
+    site_cols <- intersect(names(ALA.COMBO), names(site_df))
+    site_df   <- dplyr::select(site_df, site_cols)
+    ALA.COMBO <- bind_rows(ALA.COMBO, site_df)
     
   } else {
     message('Dont add site data' )
   }
   
-  ## CHECK TAXONOMY RETURNED BY ALA USING TAXONSTAND
-  GBIF.ALA.MATCH = GBIF.ALA.COMBO
-  
+  ## CHECK TAXONOMY RETURNED BY ALA USING TAXONSTAND?
+
   ## Create points: the 'over' function seems to need geographic coordinates for this data...
-  GBIF.ALA.84   = SpatialPointsDataFrame(coords      = GBIF.ALA.MATCH[c("lon", "lat")],
-                                         data        = GBIF.ALA.MATCH,
+  GBIF.ALA.84   = SpatialPointsDataFrame(coords      = ALA.COMBO[c("lon", "lat")],
+                                         data        = ALA.COMBO,
                                          proj4string = prj)
   
   if(thin_records == TRUE) {
     
     ## The length needs to be the same
     length(unique(GBIF.ALA.84$searchTaxon))
-    GBIF.ALA.84.SPLIT.ALL <- split(GBIF.ALA.84, GBIF.ALA.84$searchTaxon)
-    occurrence_cells_all  <- lapply(GBIF.ALA.84.SPLIT.ALL, function(x) cellFromXY(template_raster, x))
+    GBIF.ALA.84 <- split(GBIF.ALA.84, GBIF.ALA.84$searchTaxon)
+    occurrence_cells_all  <- lapply(GBIF.ALA.84, function(x) cellFromXY(template_raster, x))
     
     ## Check with a message, but could check with a fail
     message('Split prodcues ', length(occurrence_cells_all), ' data frames for ', length(species_list), ' species')
     
     ## Now get just one record within each 1*1km cell.
-    GBIF.ALA.84.1KM <- mapply(function(x, cells) {
+    GBIF.ALA.84.THIN <- mapply(function(x, cells) {
       x[!duplicated(cells), ]
-    }, GBIF.ALA.84.SPLIT.ALL, occurrence_cells_all, SIMPLIFY = FALSE) %>% do.call(rbind, .)
+    }, GBIF.ALA.84, occurrence_cells_all, SIMPLIFY = FALSE) %>% do.call(rbind, .)
     
     ## Check to see we have 19 variables + the species for the standard predictors, and 19 for all predictors
-    message(round(nrow(GBIF.ALA.84.1KM)/nrow(GBIF.ALA.84)*100, 2), " % records retained at 1km resolution")
+    message(round(nrow(GBIF.ALA.84.THIN)/nrow(GBIF.ALA.84)*100, 2), " % records retained at 1km resolution")
     
     ## Create points: the 'over' function seems to need geographic coordinates for this data...
-    COMBO.POINTS   = GBIF.ALA.84.1KM[c("lon", "lat")]
+    COMBO.POINTS   = GBIF.ALA.84.THIN[c("lon", "lat")]
     
   } else {
     message('dont thin the records out' )
-    COMBO.POINTS = GBIF.ALA.84
+    COMBO.POINTS     = GBIF.ALA.84[c("lon", "lat")]
+    GBIF.ALA.84.THIN = GBIF.ALA.84
   }
   
   ## Bioclim variables
   ## Extract raster data
   message('Extracting raster values for ', length(species_list), ' species in the set ', "'", save_run, "'")
   message(projection(COMBO.POINTS));message(projection(world_raster))
-  dim(COMBO.POINTS);dim(GBIF.ALA.84.1KM)
-  
+
   ## Extract the raster values
   COMBO.RASTER <- raster::extract(world_raster, COMBO.POINTS) %>%
-    cbind(as.data.frame(GBIF.ALA.84.1KM), .)
+    cbind(as.data.frame(GBIF.ALA.84.THIN), .)
   
   ## Group rename the columns
   ## This relies on the bioclim order, it must be the same
@@ -890,17 +884,17 @@ combine_records_extract = function(ala_df,
 #' @return                   Data frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)
 #' @export
 site_records_extract = function(site_df,
-                                 species_list,
-                                 thin_records,
-                                 template_raster,
-                                 world_raster,
-                                 prj,
-                                 biocl_vars,
-                                 env_vars,
-                                 worldclim_divide,
-                                 save_data,
-                                 data_path,
-                                 save_run) {
+                                species_list,
+                                thin_records,
+                                template_raster,
+                                world_raster,
+                                prj,
+                                biocl_vars,
+                                env_vars,
+                                worldclim_divide,
+                                save_data,
+                                data_path,
+                                save_run) {
   
   ## Get just the species list
   site.XY = site_df[site_df$searchTaxon %in% species_list, ]
@@ -910,8 +904,8 @@ site_records_extract = function(site_df,
   
   ## Create points: the 'over' function seems to need geographic coordinates for this data...
   site.XY   = SpatialPointsDataFrame(coords      = site.XY[c("lon", "lat")],
-                                      data        = site.XY,
-                                      proj4string = prj)
+                                     data        = site.XY,
+                                     proj4string = prj)
   
   if(thin_records == TRUE) {
     
