@@ -271,6 +271,7 @@ combine_ala_records = function(species_list, records_path, records_extension,
       if('coordinateUncertaintyinMetres' %in% colnames(d)) {
         message ("Renaming recordID column to id")
         names(d)[names(d) == 'coordinateUncertaintyinMetres'] <- 'coordinateUncertaintyInMetres'
+        d[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(d["coordinateUncertaintyInMetres"]))
         
       }
       
@@ -299,7 +300,7 @@ combine_ala_records = function(species_list, records_path, records_extension,
       
       ## This is a list of columns in different ALA files which have weird characters
       message ('Formatting numeric occurrence data for ', x)
-      d[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(d["coordinateUncertaintyInMetres"]))
+      # d[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(d["coordinateUncertaintyInMetres"]))
       d["year"]  = as.numeric(unlist(d["year"]))
       d["month"] = as.numeric(unlist(d["month"]))
       d["id"]    = as.character(unlist(d["id"]))
