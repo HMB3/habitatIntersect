@@ -834,7 +834,7 @@ combine_records_extract = function(ala_df,
     
     COMBO.RASTER.CONVERT = as.data.table(COMBO.RASTER)
     COMBO.RASTER.CONVERT[, (env_variables [c(1:11)]) := lapply(.SD, function(x)
-      x / 10 ), .SDcols = env_variables [c(1:11)]]
+      x / 10 ), .SDcols  = env_variables   [c(1:11)]]
     COMBO.RASTER.CONVERT = as.data.frame(COMBO.RASTER.CONVERT)
     
   } else {
@@ -854,6 +854,7 @@ combine_records_extract = function(ala_df,
     
     ## save .rds file for the next session
     saveRDS(COMBO.RASTER.CONVERT, paste0(data_path, 'COMBO_RASTER_CONVERT_',  save_run, '.rds'))
+    return(COMBO.RASTER.CONVERT)
     
   } else {
     return(COMBO.RASTER.CONVERT)
@@ -1893,7 +1894,6 @@ prepare_sdm_table = function(coord_df,
   message(round(nrow(coord_df)/nrow(coord_df)*100, 2), " % records retained")
   message(table(coord_df$coord_summary))
   
-  ## RESTRICT DATA TABLE TO ONE RECORD PER 1KM GRID CELL
   ## Create a table with all the variables needed for SDM analysis
   message('Preparing SDM table for ', length(unique(coord_df$searchTaxon)),
           ' species in the set ', "'", save_run, "'",
@@ -2076,9 +2076,9 @@ prepare_sdm_table = function(coord_df,
   if(read_background == TRUE) {
     
     Message('Read in background data for taxa analaysed')
-    background.points = readRDS(paste0(data_path, BG_points)) %>%
-      .[, -(27:28)]
-    background.points = background.points[!background.points$searchTaxon %in% species_list, ]
+    # background.points = readRDS(paste0(data_path, BG_points)) %>%
+    #   .[, -(27:28)]
+    background = background.points[!background.points$searchTaxon %in% species_list, ]
     
     ## The BG points step needs to be ironed out.
     ## For some analysis, we need to do other taxa (e.g. animals)

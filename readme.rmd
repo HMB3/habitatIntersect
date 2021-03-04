@@ -285,6 +285,7 @@ the biolclim variables (i.e. bio1-bio19)
 ```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Combine GBIF and ALA data, and extract environmental values
+## Note that the climate values are too small 
 COMBO.RASTER.CONVERT = combine_records_extract(ala_df          = ALA.LAND,
                                                site_df         = 'NONE',
                                                thin_records    = FALSE,
@@ -293,15 +294,36 @@ COMBO.RASTER.CONVERT = combine_records_extract(ala_df          = ALA.LAND,
                                                prj             = CRS("+init=epsg:4326"),
                                                species_list    = analysis_spp,
                                                
-                                               ## These two will need to change
+                                               ## These two will need to change.
                                                ## Specify them in the code
                                                biocl_vars      = bioclim_variables,
                                                env_vars        = env_variables,
                                                
                                                ## This might need to change too
-                                               worldclim_divide = TRUE,
-                                               save_data        = FALSE,
-                                               save_run         = "TEST_INSECTS")
+                                               worldclim_divide = FALSE,
+                                               save_data        = TRUE,
+                                               save_run         = "TEST_INSECTS",
+                                               data_path        = "./output/results/")
+
+
+BG.RASTER = combine_records_extract(ala_df          = ALA.BG,
+                                    site_df         = 'NONE',
+                                    thin_records    = FALSE,
+                                    template_raster = template_raster_1km_WGS84,
+                                    world_raster    = worldclim_climate,
+                                    prj             = CRS("+init=epsg:4326"),
+                                    species_list    = unique(ALA.BG$searchTaxon),
+                                    
+                                    ## These two will need to change.
+                                    ## Specify them in the code
+                                    biocl_vars      = bioclim_variables,
+                                    env_vars        = env_variables,
+                                    
+                                    ## This might need to change too
+                                    worldclim_divide = FALSE,
+                                    save_data        = TRUE,
+                                    save_run         = "BG_TEST_INSECTS",
+                                    data_path        = "./output/results/")
 
 ``` 
 
@@ -320,16 +342,18 @@ https://www.climond.org/Core/Authenticated/KoppenGeiger.aspx
 The next stage of the workflow use a series of cleaning functions to automate the removal 
 of records for each species which are outliers. Doing this manually is extremely tedious, 
 and although errors will be made, automation is preferable across large suites of taxa. 
-runs a series of cleaning steps. The first cleaning function takes a data frame of all 
-species records, and flag records as institutional or spatial outliers. This function 
-uses the CoordinateCleaner package: 
-https://cran.r-project.org/web/packages/CoordinateCleaner/index.html. It assumes that the 
-records data.frame is that returned by the combine_records_extract function.
+The first cleaning function takes a data frame of all species records, and flag records 
+as institutional or spatial outliers. This function uses the CoordinateCleaner package: 
+https://cran.r-project.org/web/packages/CoordinateCleaner/index.html. It takes the 
+records data.frame is that returned by the combine_records_extract function above.
 
 \
 
 ```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
 
+## Just create a background points version for each step 
+
+## COMBO.RASTER.CONVERT = readRDS('./output/results/COMBO_RASTER_CONVERT_TEST_INSECTS.rds')
 ## Flag records as institutional or spatial outliers
 COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.CONVERT,
                                   capitals   = 10000,  
@@ -352,9 +376,10 @@ It assumes that the input dfs are those returned by the coord_clean_records func
 ```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Flag spatial outliers
+## This one doesn't quite work - it doesn't loop over the figures
 SPATIAL.CLEAN = check_spatial_outliers(all_df       = COORD.CLEAN,
                                        land_shp     = LAND,
-                                       urban_df     = FALSE, 
+                                       site_df      = FALSE, 
                                        clean_path   = './data/GBIF/Check_plots/',
                                        spatial_mult = 10,
                                        prj          = CRS("+init=epsg:4326"))
@@ -424,7 +449,8 @@ SDM.SPAT.OCC.BG = prepare_sdm_table(coord_df        = COORD.CLEAN,
                                     species_list    = unique(COORD.CLEAN$searchTaxon),
                                     sdm_table_vars  = sdm_table_vars,
                                     save_run        = "INSECT_EG",
-                                    read_background = FALSE,
+                                    read_background = TRUE,
+                                    background      = ALA.BG,
                                     save_data       = FALSE,
                                     save_shp        = FALSE)
 
