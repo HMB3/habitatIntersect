@@ -306,24 +306,26 @@ COMBO.RASTER.CONVERT = combine_records_extract(ala_df          = ALA.LAND,
                                                data_path        = "./output/results/")
 
 
-BG.RASTER = combine_records_extract(ala_df          = ALA.BG,
-                                    site_df         = 'NONE',
-                                    thin_records    = FALSE,
-                                    template_raster = template_raster_1km_WGS84,
-                                    world_raster    = worldclim_climate,
-                                    prj             = CRS("+init=epsg:4326"),
-                                    species_list    = unique(ALA.BG$searchTaxon),
-                                    
-                                    ## These two will need to change.
-                                    ## Specify them in the code
-                                    biocl_vars      = bioclim_variables,
-                                    env_vars        = env_variables,
-                                    
-                                    ## This might need to change too
-                                    worldclim_divide = FALSE,
-                                    save_data        = TRUE,
-                                    save_run         = "BG_TEST_INSECTS",
-                                    data_path        = "./output/results/")
+
+BG.RASTER.CONVERT    = combine_records_extract(ala_df          = ALA.BG,
+                                               site_df         = 'NONE',
+                                               thin_records    = FALSE,
+                                               template_raster = template_raster_1km_WGS84,
+                                               world_raster    = worldclim_climate,
+                                               prj             = CRS("+init=epsg:4326"),
+                                               species_list    = unique(ALA.BG$searchTaxon),
+                                               
+                                               ## These two will need to change.
+                                               ## Specify them in the code
+                                               biocl_vars      = bioclim_variables,
+                                               env_vars        = env_variables,
+                                               
+                                               ## This might need to change too
+                                               worldclim_divide = FALSE,
+                                               save_data        = TRUE,
+                                               save_run         = "BG_TEST_INSECTS",
+                                               data_path        = "./output/results/")
+
 
 ``` 
 
