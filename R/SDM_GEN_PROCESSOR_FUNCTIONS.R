@@ -593,10 +593,13 @@ combine_gbif_records = function(species_list, records_path, records_extension, r
 #' @param background_df      Data frame - Records from the ALA/GBIF
 #' @param record_type        Adds a column to the data frame for the data source, EG ALA
 #' @param keep_cols          The columns we want to keep - a character list created by you
-#' @param world_raster       An Raster file of the enviro conditions used (assumed to be global)
+#' @param world_raster       A Raster file of the enviro conditions used (assumed to be global)
+#' @param save_data          Save the data?
+#' @param save_run           Name the save run
 #' @export
 combine_background_records = function(background_df, species_list,
-                                      record_type,   keep_cols, world_raster) {
+                                      record_type,   keep_cols, world_raster, data_path,
+                                      save_data,     save_run) {
   
   ## Create the searchTaxon column - check how to put the data in here
   background_df <- background_df %>% mutate(searchTaxon = scientificName)
@@ -714,10 +717,19 @@ combine_background_records = function(background_df, species_list,
   ## save data
   dim(LAND.POINTS)
   length(unique(LAND.POINTS$searchTaxon))
+  
+  ## save data
+  if(save_data == TRUE) {
+    
+    ## save .rds file for the next session
+    saveRDS(LAND.POINTS, paste0(data_path, 'ALA_BG_CONVERT_',  save_run, '.rds'))
+    return(LAND.POINTS)
+    
+  } else {
+    return(LAND.POINTS)
+  }
   gc()
-  
   return(LAND.POINTS)
-  
 }
 
 
