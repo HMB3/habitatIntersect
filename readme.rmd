@@ -85,7 +85,7 @@ using a sample of ~40 insect species that are found in the forest of North Easte
 
 ## Use a list 
 data("insect.spp")
-analysis_spp <- str_trim(all.insect.spp)
+analysis_spp <- str_trim(insect.spp) %>% na.omit()
 analysis_spp
 
 ```
@@ -184,7 +184,7 @@ Next we filter the records to those taken after 1950, and those inside the raste
 ## The climate data is the worldclim version 2.0
 ## Also, add a switch for the 1km filter - we don't want to do this anymore, too few records
 ALA.LAND = combine_ala_records(species_list      = analysis_spp,
-                               records_path      = "./data/ALA/",
+                               records_path      = "./data/ALA/Insects/",
                                records_extension = "_ALA_records.RData",
                                record_type       = "ALA",
                                keep_cols         = common_cols,
@@ -213,10 +213,10 @@ the species we are analysing.
 ```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Make a new function here that processes the background points
-ALA.BG = combine_background_records(background_df  = insect_data_standard_columns,
+ALA.BG = combine_background_records(background_df  = insect_data_standard_columns_5th,
                                     species_list   = analysis_spp,
                                     record_type    = "ALA_BACKGROUND",
-                                    keep_cols      = ALA_keep_cols,
+                                    keep_cols      = common_cols,
                                     world_raster   = worldclim_annual_temp,
                                     save_data      = TRUE,
                                     save_run       = "TEST_INSECTS",
