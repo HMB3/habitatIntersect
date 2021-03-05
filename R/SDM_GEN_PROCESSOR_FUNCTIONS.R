@@ -82,9 +82,9 @@ download_GBIF_all_species = function(species_list, download_path, download_limit
       GBIF <- occ_data(taxonKey = key, limit = GBIF.download.limit)
       GBIF <- as.data.frame(GBIF$data)
       
-      cat("Synonyms returned for :: ",  sp.n, unique(GBIF$scientificName), sep = "\n")
-      cat("Names returned for :: ",     sp.n, unique(GBIF$name),           sep = "\n")
-      cat("Takonkeys returned for :: ", sp.n, unique(GBIF$taxonKey),       sep = "\n")
+      # cat("Synonyms returned for :: ",  sp.n, unique(GBIF$scientificName), sep = "\n")
+      # cat("Names returned for :: ",     sp.n, unique(GBIF$name),           sep = "\n")
+      # cat("Takonkeys returned for :: ", sp.n, unique(GBIF$taxonKey),       sep = "\n")
       
       ## Could also only use the key searched, but that could knock out a lot of species
       message(dim(GBIF[1]), " Records returned for ", sp.n)
@@ -136,9 +136,9 @@ download_ALA_all_species = function (species_list, your_email, download_path, al
     ## If it's already downloaded, skip
     if (file.exists (file_name)) {
       
-      print (paste ("file exists for species", sp.n, "skipping"))
-      next
-      
+    } else {
+      message(paste ("file exists for species", sp.n, "skipping"))
+      cat(sp.n)
     }
     ## create a dummy file
     dummy = data.frame()
@@ -147,12 +147,9 @@ download_ALA_all_species = function (species_list, your_email, download_path, al
     
     if (is.null(ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"', sep = ""),
                                    download_reason_id = 7, email = your_email)$data) == TRUE) {
-      
-      ## Now, append the species which had incorrect nomenclature to the skipped list
-      print (paste ("Possible incorrect nomenclature", sp.n, "skipping"))
-      nomenclature = paste ("Possible incorrect nomenclature |", sp.n)
-      next
-      
+    } else {
+      message(paste ("Possible incorrect nomenclature", sp.n, "skipping"))
+      cat(sp.n)
     }
     
     ## Skip species with no records
@@ -162,26 +159,25 @@ download_ALA_all_species = function (species_list, your_email, download_path, al
       ## now append the species which had no records to the skipped list
       print (paste ("No ALA records for", sp.n, "skipping"))
       records = paste ("No ALA records |", sp.n)
-      next
       
+    } else {
+      message(paste ("No ALA records |", sp.n))
+      cat(sp.n)
     }
     
     ## Download ALL records from ALA ::
     message("Downloading ALA records for ", sp.n, " using ALA4R :: occurrences")
     ALA = ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"',sep=""), 
                              download_reason_id = 7, 
-                             email  = your_email,
-                             fields = ALA_keep_cols)
+                             email  = your_email)
     ALA = ALA[["data"]]
     
-    cat("Synonyms returned for :: ", sp.n, unique(ALA$scientificName), sep="\n")
+    # cat("Synonyms returned for :: ", sp.n, unique(ALA$scientificName), sep="\n")
     message(dim(ALA[1]), " Records returned for ", sp.n)
     
     ## Save records to .Rdata file
     save(ALA, file = file_name)
-    
   }
-  
 }
 
 
