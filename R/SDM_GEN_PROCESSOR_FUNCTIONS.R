@@ -158,7 +158,6 @@ download_ALA_all_species = function (species_list, your_email, download_path, al
       
       ## now append the species which had no records to the skipped list
       print (paste ("No ALA records for", sp.n, "skipping"))
-      records = paste ("No ALA records |", sp.n)
       
     } else {
       message(paste ("No ALA records |", sp.n))
