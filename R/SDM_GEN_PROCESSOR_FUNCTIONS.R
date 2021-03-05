@@ -621,10 +621,8 @@ combine_background_records = function(background_df, species_list,
     names(background_df)[names(background_df) == 'catalogueNumber'] <- 'catalogNumber'
     
   }
-  
   if (!is.character(background_df$catalogNumber)) {
     background_df$catalogNumber = as.character(background_df$catalogNumber)
-    
   }
   
   ## Record id
@@ -633,7 +631,6 @@ combine_background_records = function(background_df, species_list,
     names(background_df)[names(background_df) == 'recordID'] <- 'id'
     
   }
-  
   if(!is.character(background_df["id"])) {
     background_df["id"] <- as.character(background_df["id"])
   }
@@ -728,8 +725,8 @@ combine_background_records = function(background_df, species_list,
   } else {
     return(LAND.POINTS)
   }
-  gc()
   return(LAND.POINTS)
+  gc()
 }
 
 
@@ -850,7 +847,6 @@ combine_records_extract = function(ala_df,
     COMBO.RASTER.CONVERT = as.data.frame(COMBO.RASTER.CONVERT)
     
   } else {
-    
     message('Do not divide the rasters')
     COMBO.RASTER.CONVERT = COMBO.RASTER
   }
@@ -973,7 +969,6 @@ site_records_extract = function(site_df,
     COMBO.RASTER.CONVERT = as.data.frame(COMBO.RASTER.CONVERT)
     
   } else {
-    
     message('Not rocessing worldclim data, dont divide the rasters')
     COMBO.RASTER.CONVERT = COMBO.RASTER
   }
@@ -989,13 +984,9 @@ site_records_extract = function(site_df,
     
     ## save .rds file for the next session
     saveRDS(COMBO.RASTER.CONVERT, paste0(data_path, 'COMBO_RASTER_CONVERT_',  save_run, '.rds'))
-    
   } else {
-    
     return(COMBO.RASTER.CONVERT)
-    
   }
-  ## get rid of some memory
   gc()
 }
 
@@ -1031,7 +1022,6 @@ coord_clean_records = function(records,
   records$CC.OBS <- gsub(" ",     "_",  records$CC.OBS, perl = TRUE)
   length(records$CC.OBS);length(unique(records$CC.OBS))
   records$species = records$searchTaxon
-  
   
   ## Rename the columns to fit the CleanCoordinates format and create a tibble.
   TIB.GBIF <- records %>% dplyr::rename(coord_spp        = searchTaxon,
@@ -1093,19 +1083,13 @@ coord_clean_records = function(records,
   message(round(nrow(CLEAN.TRUE)/nrow(COORD.CLEAN)*100, 2), " % records retained")
   message(table(COORD.CLEAN$coord_summary))
   
-  
   if(save_data == TRUE) {
-    
     ## save .rds file for the next session
     saveRDS(COORD.CLEAN, paste0(data_path, 'COORD_CLEAN_', save_run, '.rds'))
-    
   } else {
-    
     message('Return the cleaned occurrence data to the global environment')   ##
     return(COORD.CLEAN)
-    
   }
-  
 }
 
 
@@ -1339,9 +1323,7 @@ check_spatial_outliers = function(all_df,
     message('Dont add site data' )
     SPAT.TRUE <- SPAT.FLAG %>% filter(SPAT_OUT == TRUE)
   }
-  
   return(SPAT.TRUE)
-  
 }
 
 
@@ -1391,9 +1373,9 @@ calc_1km_niches = function(coord_df,
   
   ## Use a projected, rather than geographic, coordinate system
   ## Not sure why, but this is needed for the spatial overlay step
-  AUS.WGS      = spTransform(country_shp,  prj)
-  LAND.WGS     = spTransform(world_shp,    prj)
-  KOP.WGS      = spTransform(kop_shp,      prj)
+  AUS.WGS   = spTransform(country_shp,  prj)
+  LAND.WGS  = spTransform(world_shp,    prj)
+  KOP.WGS   = spTransform(kop_shp,      prj)
   
   ## Intersect the points with the Global koppen file
   message('Intersecting points with shapefiles for ', length(species_list), ' species')
@@ -1444,8 +1426,6 @@ calc_1km_niches = function(coord_df,
       ## Also, need to figure out how to make the aggregating column generic (species, genus, etc.)
       ## currently it only works hard-wired........
       niche_estimate(DF = NICHE.GLO.DF, colname = x)
-      
-      ## Would be good to remove the duplicate columns here.....
       
     }) %>%
     
@@ -1529,9 +1509,7 @@ calc_1km_niches = function(coord_df,
     
     ## Finally, create one dataframe for all niches
     bind_rows
-  
   head(GBIF.AOO)
-  
   
   ## Now join on the geographic range and glasshouse data
   identical(nrow(GBIF.AOO), nrow(GLOB.NICHE))
@@ -1551,7 +1529,6 @@ calc_1km_niches = function(coord_df,
     message(' Return niches to the environment for ', length(species_list), ' species analysed')
     return(GLOB.NICHE)
   }
-  
 }
 
 
@@ -1629,9 +1606,7 @@ niche_estimate = function (DF,
                     c(min, max, median, mode, mean, range, q05, q95,  q95_q05, q98_q02)
                     
                   },
-                  
                   colname
-                  
   )
   
   ## Concatenate output
@@ -1651,7 +1626,6 @@ niche_estimate = function (DF,
   
   ## return the summary of niche width and median
   return (summary)
-  
 }
 
 
@@ -1862,9 +1836,7 @@ plot_range_histograms = function(coord_df,
     ## Print the plot and close the device
     print(rain.box + ggtitle(paste0("Worldclim rain niches for ", spp)))
     dev.off()
-    
   }
-  
 }
 
 
@@ -1918,7 +1890,6 @@ prepare_sdm_table = function(coord_df,
   COMBO.RASTER.ALL  <- coord_df %>%
     dplyr::select(one_of(sdm_table_vars))
   
-  
   ## Create a spatial points object, and change to a projected system to calculate distance more accurately
   ## This is the mollweide projection used for the SDMs
   coordinates(COMBO.RASTER.ALL)    <- ~lon+lat
@@ -1927,7 +1898,6 @@ prepare_sdm_table = function(coord_df,
   
   ## Don't filter the data again to be 1 record per 1km, that has already happened
   SDM.DATA.ALL <- COMBO.RASTER.ALL
-  
   
   ## TRY CLEANING FILTERED DATA FOR SPATIAL OUTLIERS
   ## The cc_outl function has been tweaked and sped up.
@@ -2008,7 +1978,6 @@ prepare_sdm_table = function(coord_df,
     
     ## Finally, bind all the rows together
     bind_rows
-  
   gc()
   
   ## How many species are flagged as spatial outliers?
@@ -2113,15 +2082,11 @@ prepare_sdm_table = function(coord_df,
     
     ## Save .rds file of the occurrence and BG points for the next session
     saveRDS(SDM.SPAT.OCC.BG, paste0(data_path, 'SDM_SPAT_OCC_BG_',  save_run, '.rds'))
-    
   } else {
     message('Return the occurrence + Background data to the global environment')   ##
     return(SDM.SPAT.OCC.BG)
   }
-  
-  ## get rid of some memory
   gc()
-  
 }
 
 

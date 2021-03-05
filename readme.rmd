@@ -65,7 +65,8 @@ sapply(sdmgen_packages, require, character.only = TRUE)
 This code is being developed at UNSW, as part of a project investigating
 the impacts of the 2019/2020 bush fires on Insects in the North East Forests 
 of New South Wales. The aim is to create a pipeline that rapidly assesses 
-the habitat suitability of large suites of species under current environmental conditions. 
+the habitat suitability of the threatened insect species under current 
+environmental conditions. 
 
 \
 
@@ -84,8 +85,7 @@ using a sample of ~40 insect species that are found in the forest of North Easte
 
 ## Use a list 
 data("insect.spp")
-analysis_spp <- str_trim(insect.spp)
-analysis_spp <- insect.spp
+analysis_spp <- str_trim(all.insect.spp)
 analysis_spp
 
 ```
@@ -136,7 +136,7 @@ expect these folders (a typical R project structure), create them if they don't 
 ## Download ALA occurrence data for each species
 download_ALA_all_species(species_list  = analysis_spp,
                          your_email    = 'hugh.burley@gmail.com',
-                         download_path = "./data/ALA/",
+                         download_path = "./data/ALA/Insects/",
                          ala_temp_dir  = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
                          download_limit = 20000)
 
@@ -187,7 +187,7 @@ ALA.LAND = combine_ala_records(species_list      = analysis_spp,
                                records_path      = "./data/ALA/",
                                records_extension = "_ALA_records.RData",
                                record_type       = "ALA",
-                               keep_cols         = ALA_keep_cols,
+                               keep_cols         = common_cols,
                                world_raster      = worldclim_annual_temp)
 
 ``` 
@@ -199,12 +199,14 @@ ALA.LAND = combine_ala_records(species_list      = analysis_spp,
 
 To estimate habitat suitability, we need to have as many species records as possible that
 have the same spatial bias as the taxa we are analysing (REF). The simplest way to do this 
-is to use species of the same type of organism we are analysing (in this case, insects). 
+is to use species of the same type of organism we are analysing (in this case, insects).
 
-Given there are only ~100 species in our analysis, we need mnay more taxa to generate enough background points.
-We're analyzing insects, so we can get ALL the insect records from the ALA. A background point is 
-simply then any geographic record (lat/lon) for a species, other than the species we are 
-analysing.
+\
+
+Given there are only ~100 species in our analysis, we need mnay more taxa to generate enough 
+background points.We're analyzing insects, so we can get ALL the insect records from the ALA. 
+A background point is simply then any geographic record (lat/lon) for a species, other than 
+the species we are analysing.
 
 \
 
@@ -218,10 +220,9 @@ ALA.BG = combine_background_records(background_df  = insect_data_standard_column
                                     world_raster   = worldclim_annual_temp,
                                     save_data      = TRUE,
                                     save_run       = "TEST_INSECTS",
-                                    data_path      = "./output/results/")
+                                    data_path      = "./data/ALA/Background_points/Insects/")
 
 ``` 
-
 
 \
 
@@ -270,7 +271,7 @@ https://drive.google.com/open?id=1mQHVmYxSMw_cw1iGvfU9M7Pq6Kl6nz-C
 
 ```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## This raster has nodata for the ocean, 1 for land, 1km*1Km resolution in WGS84
+## This raster has no data for the ocean, 1 for land, 1km*1Km resolution in WGS84
 template_raster_1km_WGS84 = raster("./data/world_koppen/template_1km_WGS84.tif")
 
 ```
@@ -309,7 +310,7 @@ COMBO.RASTER.CONVERT = combine_records_extract(ala_df          = ALA.LAND,
                                                data_path        = "./output/results/")
 
 
-
+## Combine the  
 BG.RASTER.CONVERT    = combine_records_extract(ala_df          = ALA.BG,
                                                site_df         = 'NONE',
                                                thin_records    = FALSE,

@@ -107,6 +107,25 @@ ALA_keep <- c(## TAXONOMY
   "eventID")
 
 
+common_cols <- c('searchTaxon',     
+                 'scientificName', 
+                 'species',         
+                 'genus',           
+                 'family',          
+                 'basisOfRecord',   
+                 'locality',       
+                 'institutionCode', 
+                 'id',              
+                 'catalogNumber',   
+                 'lat',             
+                 'lon',             
+                 'country',         
+                 'year',           
+                 'month',           
+                 'eventDate')
+
+
+
 
 
 ## 2). CREATE RASTER LISTS ===========================================================================================
