@@ -250,14 +250,19 @@ combine_ala_records = function(species_list, records_path, records_extension,
       names(d)[names(d) == 'latitude']  <- 'lat'
       names(d)[names(d) == 'longitude'] <- 'lon'
       
-      ##  standardi[sz]e catnum colname
+      ##  standardi[sz]e catalogue number colname
+      message ("Renaming catalogueNumber column to catalogNumber for ", x)
       if("catalogueNumber" %in% colnames(d)) {
         message ("Renaming catalogueNumber column to catalogNumber")
-        names(d)[names(d) == 'catalogueNumber'] <- 'catalogNumber'
-        
+        d <- d %>% 
+          mutate(catalogNumber = catalogueNumber) #names(d)[names(d) == 'catalogueNumber'] <- 'catalogNumber'
       }
       
       if (!is.character(d$catalogNumber)) {
+        d$catalogNumber = as.character(d$catalogNumber)
+      }
+      
+      if (!is.integer(d$catalogNumber)) {
         d$catalogNumber = as.character(d$catalogNumber)
         
       }

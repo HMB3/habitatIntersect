@@ -85,7 +85,7 @@ using a sample of ~40 insect species that are found in the forest of North Easte
 
 ## Use a list 
 data("insect.spp")
-analysis_spp <- str_trim(insect.spp) %>% na.omit()
+analysis_spp <- str_trim(all.insect.plant.spp) %>% na.omit()
 analysis_spp
 
 ```
@@ -136,7 +136,7 @@ expect these folders (a typical R project structure), create them if they don't 
 ## Download ALA occurrence data for each species
 download_ALA_all_species(species_list  = analysis_spp,
                          your_email    = 'hugh.burley@gmail.com',
-                         download_path = "./data/ALA/Insects/",
+                         download_path = "./data/ALA/Plants/",
                          ala_temp_dir  = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
                          download_limit = 20000)
 
@@ -187,7 +187,7 @@ ALA.LAND = combine_ala_records(species_list      = analysis_spp,
                                records_path      = "./data/ALA/Insects/",
                                records_extension = "_ALA_records.RData",
                                record_type       = "ALA",
-                               keep_cols         = common_cols,
+                               keep_cols         = ALA_keep,
                                world_raster      = worldclim_annual_temp)
 
 ``` 
