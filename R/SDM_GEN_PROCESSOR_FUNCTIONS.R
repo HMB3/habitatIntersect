@@ -148,7 +148,7 @@ download_ALA_all_species = function (species_list, your_email, download_path, al
     if (is.null(ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"', sep = ""),
                                    download_reason_id = 7, email = your_email)$data) == TRUE) {
     } else {
-      message(paste ("Possible incorrect nomenclature", sp.n, "skipping"))
+      message(paste ("Possible incorrect nomenclature for ", sp.n))
       cat(sp.n)
     }
     
@@ -157,10 +157,9 @@ download_ALA_all_species = function (species_list, your_email, download_path, al
                                 download_reason_id = 7, email = your_email)$data) <= 2) {
       
       ## now append the species which had no records to the skipped list
-      print (paste ("No ALA records for", sp.n, "skipping"))
+      message(paste ("No ALA records for", sp.n, "skipping"))
       
     } else {
-      message(paste ("No ALA records |", sp.n))
       cat(sp.n)
     }
     
