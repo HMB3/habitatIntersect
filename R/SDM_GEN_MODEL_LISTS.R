@@ -18,7 +18,7 @@ gbif_keep <- c(## TAXONOMY
   "taxonKey",
   "genus",
   "family",
-  
+
   ## CULTIVATION
   "cloc",
   "basisOfRecord",
@@ -28,13 +28,13 @@ gbif_keep <- c(## TAXONOMY
   "datasetName",
   "habitat",
   "eventRemarks",
-  
+
   ## RECORD ID
   "recordedBy",
   "identifiedBy",
   "gbifID",
   "catalogNumber",
-  
+
   ## PLACE/TIME
   "lat",
   "lon",
@@ -63,7 +63,7 @@ ALA_keep <- c(## TAXONOMY
   "rank",
   "genus",
   "family",
-  
+
   ## CULTIVATION
   "occCultivatedEscapee",
   "basisOfRecord",
@@ -74,7 +74,7 @@ ALA_keep <- c(## TAXONOMY
   "habitat",
   "eventRemarks",
   "taxonomicQuality",
-  
+
   ## RECORD ID
   "recordedBy",
   "id",
@@ -84,7 +84,7 @@ ALA_keep <- c(## TAXONOMY
   "occurrenceID",
   "basisOfRecord",
   "institutionCode",
-  
+
   ## PLACE/TIME
   "lat",
   "lon",
@@ -146,7 +146,7 @@ env_variables = c("Annual_mean_temp",
                   "Mean_temp_dry_qu",
                   "Mean_temp_warm_qu",
                   "Mean_temp_cold_qu",
-                  
+
                   "Annual_precip",
                   "Precip_wet_month",
                   "Precip_dry_month",
@@ -167,7 +167,7 @@ bioclim_variables = c('bio_01',
                       'bio_09',
                       'bio_10',
                       'bio_11',
-                      
+
                       ## Rainfall
                       'bio_12',
                       'bio_13',
@@ -181,11 +181,11 @@ bioclim_variables = c('bio_01',
 
 ## Names of the sdm data table ---
 sdm_table_vars <- c('searchTaxon', 'lon', 'lat', 'SOURCE',
-                    
+
                     'Annual_mean_temp',     'Mean_diurnal_range',  'Isothermality', 'Temp_seasonality',
                     'Max_temp_warm_month',  'Min_temp_cold_month', 'Temp_annual_range', 'Mean_temp_wet_qu',
                     'Mean_temp_dry_qu',     'Mean_temp_warm_qu',   'Mean_temp_cold_qu',
-                    
+
                     'Annual_precip',        'Precip_wet_month',    'Precip_dry_month',  'Precip_seasonality',
                     'Precip_wet_qu',        'Precip_dry_qu',       'Precip_warm_qu',    'Precip_col_qu')
 
@@ -195,7 +195,7 @@ sdm_table_vars <- c('searchTaxon', 'lon', 'lat', 'SOURCE',
 bs_predictors <- c("Annual_mean_temp",    "Mean_diurnal_range",  "Isothermality",      "Temp_seasonality",
                    "Max_temp_warm_month", "Min_temp_cold_month", "Temp_annual_range",
                    "Mean_temp_warm_qu",   "Mean_temp_cold_qu",
-                   
+
                    "Annual_precip",       "Precip_wet_month",   "Precip_dry_month",    "Precip_seasonality",
                    "Precip_wet_qu",       "Precip_dry_qu")
 
@@ -213,12 +213,12 @@ scen_2070 = c("mc85bi70", "no85bi70", "ac85bi70", "cc85bi70", "gf85bi70", "hg85b
 results_columns = c("searchTaxon",        ## From the ALA/ GBIF download code
                     "Origin",             ## native/extoic : from Anthony Manea's spreadsheet, affected by taxonomy....
                     "Family",             ## From Anthony Manea's spreadsheet, will be affected by taxonomy....
-                    
+
                     "Maxent_records",     ## No. records used in the SDM
                     "Aus_records",        ## No. AUS records     :: from the R workflow
                     "AOO",                ## Global Area of occurrence
                     "KOP_count",          ## Number of koppen zones each species is found in...
-                    
+
                     "Number_var",        ## No. maxent variables :: from Maxent code
                     "Var_pcont",         ## Maxent Variable with highest permutation importance
                     "Per_cont",          ## The permutaiton importance of that variable
@@ -231,6 +231,7 @@ results_columns = c("searchTaxon",        ## From the ALA/ GBIF download code
                     "Logistic_threshold",
                     "Omission_rate"             ## Maxent threshold)
 )
+<<<<<<< HEAD
 
 
 ## List of SDM packages ----
@@ -262,7 +263,8 @@ sdmgen_packages <-  c("ff",
                       "parallel",
                       "ALA4R",               
                       "stringr",              
-                      "Taxonstand",           
+                      "Taxonstand",
+                      "textclean",
                       "CoordinateCleaner",    
                       "gsubfn",               
                       "PerformanceAnalytics",
@@ -298,3 +300,5 @@ sdmgen_packages <-  c("ff",
                       "ggpubr",              
                       "GGally",             
                       "maptools")
+=======
+>>>>>>> parent of 60a305f... Update SDM_GEN_PROCESSOR_FUNCTIONS.R
