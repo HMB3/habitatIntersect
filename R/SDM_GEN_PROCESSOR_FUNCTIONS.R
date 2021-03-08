@@ -124,59 +124,61 @@ download_ALA_all_species = function (species_list,
   
   ## for every species in the list
   ## sp.n = species_list[1]
-  for(sp.n in species_list){
-    
-    ## If the temp directory doesn't exist, create it
-    if(!dir.exists(ala_temp_dir)) {
-      message('Creating ', ala_temp_dir)
-      dir.create(ala_temp_dir) } else {
-        message('temp ALA directory already exists')}
-    
-    lsid <- ALA4R::specieslist(sp.n)$taxonConceptLsid
+  for(sp.n in species_list) {
     
     ## First, check if the f*&%$*# file exists
     file_name = paste0(download_path, sp.n, "_ALA_records.RData")
     
     ## If it's already downloaded, skip
-    if (file.exists (file_name)) {
-      print (paste ("file exists for species", sp.n, "skipping"))
-      next
-    }
-    ## create a dummy file
-    dummy = data.frame()
-    save (dummy, file = file_name)
-    
-    ## Then check the spelling...incorrect nomenclature will return NULL result
-    dir.create(ala_temp_dir)
-    if (is.null(ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"', sep = ""),
-                                   download_reason_id = 7, email = your_email)$data) == TRUE) {
+    if (!file.exists (file_name)) {
       
-      ## Now, append the species which had incorrect nomenclature to the skipped list
-      print (paste ("Possible incorrect nomenclature", sp.n, "skipping"))
-      next
-    }
-    
-    ## Skip species with no records
-    if (nrow(ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"',sep=""),
-                                download_reason_id = 7, email = your_email)$data) <= 2) {
+      ## If the temp directory doesn't exist, create it
+      if(!dir.exists(ala_temp_dir)) {
+        message('Creating ', ala_temp_dir)
+        dir.create(ala_temp_dir) } else {
+          message('temp ALA directory already exists')}
       
-      ## now append the species which had no records to the skipped list
-      print (paste ("No ALA records for", sp.n, "skipping"))
-      records = paste ("No ALA records |", sp.n)
-      next
+      lsid <- ALA4R::specieslist(sp.n)$taxonConceptLsid
+      
+      ## create a dummy file
+      dummy = data.frame()
+      save (dummy, file = file_name)
+      
+      ## Then check the spelling...incorrect nomenclature will return NULL result
+      dir.create(ala_temp_dir)
+      if (is.null(ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"', sep = ""),
+                                     download_reason_id = 7, email = your_email)$data) == TRUE) {
+        
+        ## Now, append the species which had incorrect nomenclature to the skipped list
+        print (paste ("Possible incorrect nomenclature", sp.n, "skipping"))
+        next
+      }
+      
+      ## Skip species with no records
+      if (nrow(ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"',sep=""),
+                                  download_reason_id = 7, email = your_email)$data) <= 2) {
+        
+        ## now append the species which had no records to the skipped list
+        print (paste ("No ALA records for", sp.n, "skipping"))
+        records = paste ("No ALA records |", sp.n)
+        next
+      }
+      
+      ## Download ALL records from ALA ::
+      message("Downloading ALA records for ", sp.n, " using ALA4R :: occurrences")
+      ALA = ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"',sep=""), download_reason_id = 7, email = your_email)
+      ALA = ALA[["data"]]
+      message(nrow(ALA), " Records returned for ", sp.n)
+      
+      ## Save records to .Rdata file
+      save(ALA, file = file_name)
+      gc()
+      
+    } else {
+      message('temp ALA directory already exists')
     }
-    
-    ## Download ALL records from ALA ::
-    message("Downloading ALA records for ", sp.n, " using ALA4R :: occurrences")
-    ALA = ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"',sep=""), download_reason_id = 7, email = your_email)
-    ALA = ALA[["data"]]
-    message(nrow(ALA), " Records returned for ", sp.n)
-    
-    ## Save records to .Rdata file
-    save(ALA, file = file_name)
-    gc()
   }
-}
+} 
 
 
 
