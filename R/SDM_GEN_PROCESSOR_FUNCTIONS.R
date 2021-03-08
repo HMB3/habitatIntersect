@@ -115,103 +115,66 @@ download_GBIF_all_species = function(species_list, download_path, download_limit
 #' @export
 download_ALA_all_species = function (species_list, 
                                      your_email, 
-                                     records_path, 
-                                     records_extension,
+                                     download_path, 
                                      ala_temp_dir, 
                                      download_limit) {
   
   ## create variables
   download_limit  = 200000
   
-  ##
-  # download = list.files(records_path, pattern = ".RData")
-  # length(download)
-  # 
-  # ## Now these lists are getting too long for the combine step.
-  # ## Restrict them to just the strings that partially match the  species list for each run
-  # spp.download <- paste(species_list, records_extension, sep = "")
-  # download     = download[download %in% spp.download ]
-  
   ## for every species in the list
   ## sp.n = species_list[1]
-  for(sp.n in species_list) {
+  for(sp.n in species_list){
     
-    ## Get the ID?
-    ## create a dummy file
-    # if(!dir.exists(ala_temp_dir)) {
-    message('Creating temp ALA directory')
-    dummy = data.frame()
-    save(dummy, file = file_name)
-    dir.create(ala_temp_dir, overwrite) 
-    # } else {
-    #   message('temp ALA directory already exists')}
+    ## If the temp directory doesn't exist, create it
+    if(!dir.exists(ala_temp_dir)) {
+      message('Creating ', ala_temp_dir)
+      dir.create(ala_temp_dir) } else {
+        message('temp ALA directory already exists')}
     
-    # lsid <- ALA4R::specieslist(sp.n)$taxonConceptLsid
+    lsid <- ALA4R::specieslist(sp.n)$taxonConceptLsid
     
-    ## First, check if the f*&%$*g file exists
-    file_name = paste0(records_path, sp.n, "_ALA_records.RData")
+    ## First, check if the f*&%$*# file exists
+    file_name = paste0(download_path, sp.n, "_ALA_records.RData")
     
     ## If it's already downloaded, skip
     if (file.exists (file_name)) {
-      
-      print(paste ("file exists for species", sp.n, "skipping"))
+      print (paste ("file exists for species", sp.n, "skipping"))
       next
-      
     }
+    ## create a dummy file
+    dummy = data.frame()
+    save (dummy, file = file_name)
     
-<<<<<<< HEAD
-    if(is.null(ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"', sep = ""),
-                                  download_reason_id = 7, email = your_email)$data) == TRUE) {
-      
-      print(paste ("file exists for species", sp.n, "skipping"))
-      next
-=======
+    ## Then check the spelling...incorrect nomenclature will return NULL result
+    dir.create(ala_temp_dir)
     if (is.null(ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"', sep = ""),
                                    download_reason_id = 7, email = your_email)$data) == TRUE) {
-    } else {
-      message(paste ("Possible incorrect nomenclature", sp.n, "skipping"))
-      cat(sp.n)
->>>>>>> parent of 60a305f... Update SDM_GEN_PROCESSOR_FUNCTIONS.R
+      
+      ## Now, append the species which had incorrect nomenclature to the skipped list
+      print (paste ("Possible incorrect nomenclature", sp.n, "skipping"))
+      next
     }
-    # } else {
-    #   message(paste ("Possible incorrect nomenclature for ", sp.n))
-    #   cat(sp.n)
-    # }
     
     ## Skip species with no records
     if (nrow(ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"',sep=""),
                                 download_reason_id = 7, email = your_email)$data) <= 2) {
       
       ## now append the species which had no records to the skipped list
-<<<<<<< HEAD
-      print(paste ("No ALA records for", sp.n, "skipping"))
-      next
-=======
       print (paste ("No ALA records for", sp.n, "skipping"))
-      
-    } else {
-      message(paste ("No ALA records |", sp.n))
-      cat(sp.n)
->>>>>>> parent of 60a305f... Update SDM_GEN_PROCESSOR_FUNCTIONS.R
+      records = paste ("No ALA records |", sp.n)
+      next
     }
     
-    # } else {
-    #   cat(sp.n)
-    # }
-    # 
     ## Download ALL records from ALA ::
-    print("Downloading ALA records for ", sp.n, " using ALA4R :: occurrences")
-    ALA = ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"',sep=""), 
-                             download_reason_id = 7, 
-                             email  = your_email)
+    message("Downloading ALA records for ", sp.n, " using ALA4R :: occurrences")
+    ALA = ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"',sep=""), download_reason_id = 7, email = your_email)
     ALA = ALA[["data"]]
-    
-    # cat("Synonyms returned for :: ", sp.n, unique(ALA$scientificName), sep="\n")
-    message(dim(ALA[1]), " Records returned for ", sp.n)
+    message(nrow(ALA), " Records returned for ", sp.n)
     
     ## Save records to .Rdata file
     save(ALA, file = file_name)
-  } 
+  }
 }
 
 
