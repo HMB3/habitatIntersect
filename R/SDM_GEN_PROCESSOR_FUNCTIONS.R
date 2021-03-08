@@ -174,6 +174,7 @@ download_ALA_all_species = function (species_list,
     
     ## Save records to .Rdata file
     save(ALA, file = file_name)
+    gc()
   }
 }
 

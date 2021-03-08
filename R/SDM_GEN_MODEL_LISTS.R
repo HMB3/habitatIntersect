@@ -231,7 +231,7 @@ results_columns = c("searchTaxon",        ## From the ALA/ GBIF download code
                     "Logistic_threshold",
                     "Omission_rate"             ## Maxent threshold)
 )
-<<<<<<< HEAD
+
 
 
 ## List of SDM packages ----
@@ -300,5 +300,4 @@ sdmgen_packages <-  c("ff",
                       "ggpubr",              
                       "GGally",             
                       "maptools")
-=======
->>>>>>> parent of 60a305f... Update SDM_GEN_PROCESSOR_FUNCTIONS.R
+

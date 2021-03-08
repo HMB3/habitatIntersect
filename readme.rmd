@@ -85,7 +85,7 @@ using a sample of ~40 insect species that are found in the forest of North Easte
 
 ## Use a list 
 data("insect.spp")
-analysis_spp <- str_trim(all.insect.families)
+analysis_spp <- str_trim(insect_data_families)
 analysis_spp
 
 ```
