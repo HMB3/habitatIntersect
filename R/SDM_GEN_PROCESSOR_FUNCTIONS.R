@@ -120,7 +120,7 @@ download_ALA_all_species = function (species_list, your_email, download_path, al
   
   ## for every species in the list
   ## sp.n = species_list[1]
-  for(sp.n in species_list){
+  for(sp.n in species_list) {
     
     ## Get the ID?
     if(!dir.exists(ala_temp_dir)) {
@@ -130,51 +130,51 @@ download_ALA_all_species = function (species_list, your_email, download_path, al
     
     lsid <- ALA4R::specieslist(sp.n)$taxonConceptLsid
     
-    ## First, check if the f*&%$*# file exists
+    ## First, check if the f*&%$*g file exists
     file_name = paste0(download_path, sp.n, "_ALA_records.RData")
     
     ## If it's already downloaded, skip
-    if (file.exists (file_name)) {
+    if (!file.exists (file_name)) {
       
+      ## create a dummy file
+      dummy = data.frame()
+      save (dummy, file = file_name)
+      dir.create(ala_temp_dir)
+      
+      if (is.null(ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"', sep = ""),
+                                     download_reason_id = 7, email = your_email)$data) == TRUE) {
+      } else {
+        message(paste ("Possible incorrect nomenclature for ", sp.n))
+        cat(sp.n)
+      }
+      
+      ## Skip species with no records
+      if (nrow(ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"',sep=""),
+                                  download_reason_id = 7, email = your_email)$data) <= 2) {
+        
+        ## now append the species which had no records to the skipped list
+        message(paste ("No ALA records for", sp.n, "skipping"))
+        
+      } else {
+        cat(sp.n)
+      }
+      
+      ## Download ALL records from ALA ::
+      message("Downloading ALA records for ", sp.n, " using ALA4R :: occurrences")
+      ALA = ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"',sep=""), 
+                               download_reason_id = 7, 
+                               email  = your_email)
+      ALA = ALA[["data"]]
+      
+      # cat("Synonyms returned for :: ", sp.n, unique(ALA$scientificName), sep="\n")
+      message(dim(ALA[1]), " Records returned for ", sp.n)
+      
+      ## Save records to .Rdata file
+      save(ALA, file = file_name)
     } else {
       message(paste ("file exists for species", sp.n, "skipping"))
       cat(sp.n)
     }
-    ## create a dummy file
-    dummy = data.frame()
-    save (dummy, file = file_name)
-    dir.create(ala_temp_dir)
-    
-    if (is.null(ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"', sep = ""),
-                                   download_reason_id = 7, email = your_email)$data) == TRUE) {
-    } else {
-      message(paste ("Possible incorrect nomenclature for ", sp.n))
-      cat(sp.n)
-    }
-    
-    ## Skip species with no records
-    if (nrow(ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"',sep=""),
-                                download_reason_id = 7, email = your_email)$data) <= 2) {
-      
-      ## now append the species which had no records to the skipped list
-      message(paste ("No ALA records for", sp.n, "skipping"))
-      
-    } else {
-      cat(sp.n)
-    }
-    
-    ## Download ALL records from ALA ::
-    message("Downloading ALA records for ", sp.n, " using ALA4R :: occurrences")
-    ALA = ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"',sep=""), 
-                             download_reason_id = 7, 
-                             email  = your_email)
-    ALA = ALA[["data"]]
-    
-    # cat("Synonyms returned for :: ", sp.n, unique(ALA$scientificName), sep="\n")
-    message(dim(ALA[1]), " Records returned for ", sp.n)
-    
-    ## Save records to .Rdata file
-    save(ALA, file = file_name)
   }
 }
 
@@ -227,13 +227,9 @@ combine_ala_records = function(species_list, records_path, records_extension,
       ## Load each file - check if some are already dataframes
       d <- get(load(f))
       if (length(class(d)) > 1) {
-        
         d <- d[["data"]]
-        
       } else {
-        
         d = d
-        
       }
       
       ## Check if the dataframes have data
@@ -770,7 +766,7 @@ combine_records_extract = function(ala_df,
   
   ## Get just the Common columns
   ALA.COMBO = ala_df
-
+  
   message(length(unique(ALA.COMBO$searchTaxon)))
   length(unique(ALA.COMBO$scientificName))
   
@@ -786,7 +782,7 @@ combine_records_extract = function(ala_df,
   }
   
   ## CHECK TAXONOMY RETURNED BY ALA USING TAXONSTAND?
-
+  
   ## Create points: the 'over' function seems to need geographic coordinates for this data...
   GBIF.ALA.84   = SpatialPointsDataFrame(coords      = ALA.COMBO[c("lon", "lat")],
                                          data        = ALA.COMBO,
@@ -823,7 +819,7 @@ combine_records_extract = function(ala_df,
   ## Extract raster data
   message('Extracting raster values for ', length(species_list), ' species in the set ', "'", save_run, "'")
   message(projection(COMBO.POINTS));message(projection(world_raster))
-
+  
   ## Extract the raster values
   COMBO.RASTER <- raster::extract(world_raster, COMBO.POINTS) %>%
     cbind(as.data.frame(GBIF.ALA.84.THIN), .)

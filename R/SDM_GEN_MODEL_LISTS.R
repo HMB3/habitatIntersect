@@ -86,8 +86,6 @@ ALA_keep <- c(## TAXONOMY
   "institutionCode",
   
   ## PLACE/TIME
-  "latitude",
-  "longitude",
   "lat",
   "lon",
   "coordinateUncertaintyInMetres",
