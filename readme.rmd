@@ -45,7 +45,7 @@ https://www.sciencedirect.com/science/article/pii/S0048969719323289#f0030
 
 To install, run :
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## The package should import all the required packages
 ## Sys.setenv(JAVA_HOME = "C:\\Program Files (x86)\\Java\\jre1.8.0_231")
@@ -84,7 +84,7 @@ North Eastern NSW.
 
 \
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=TRUE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=TRUE}
 
 ## Use a list
 data('insect_data_families')
@@ -102,7 +102,7 @@ without returning anything.
 
 \
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## The functions expect these folders,
 ALA_dir     <- './data/ALA'
@@ -163,7 +163,7 @@ https://drive.google.com/open?id=1T5ET5MUX3-lkqiN5nNL3SZZagoJlEOal.
 
 \
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Use worldclim 2 data
 ## https://drive.google.com/open?id=1mQHVmYxSMw_cw1iGvfU9M7Pq6Kl6nz-C
@@ -183,7 +183,7 @@ Next we filter the records to those taken after 1950, and those inside the raste
 \
 
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Combine ALA data, and filter to records on land taken > 1950
 ## The climate data is the worldclim version 2.0
@@ -211,7 +211,7 @@ This takes ages in R.....
 
 \
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Set the Molleweide projection
 sp_epsg54009 <- '+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0'
@@ -242,7 +242,7 @@ https://drive.google.com/open?id=1mQHVmYxSMw_cw1iGvfU9M7Pq6Kl6nz-C
 
 \
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## This raster has no data for the ocean, 1 for land, 1km*1Km resolution in WGS84
 template_raster_1km_WGS84 = raster("./data/world_koppen/template_1km_WGS84.tif")
@@ -259,7 +259,7 @@ the biolclim variables (i.e. bio1-bio19)
 
 \
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Combine GBIF and ALA data, and extract environmental values
 ## Note that the climate values are too small 
@@ -279,28 +279,7 @@ COMBO.RASTER.CONVERT = combine_records_extract(ala_df          = ALA.LAND,
                                                ## This might need to change too
                                                worldclim_divide = FALSE,
                                                save_data        = TRUE,
-                                               save_run         = "TEST_INSECTS",
-                                               data_path        = "./output/results/")
-
-
-## Combine the  
-BG.RASTER.CONVERT    = combine_records_extract(ala_df          = ALA.BG,
-                                               site_df         = 'NONE',
-                                               thin_records    = FALSE,
-                                               template_raster = template_raster_1km_WGS84,
-                                               world_raster    = worldclim_climate,
-                                               prj             = CRS("+init=epsg:4326"),
-                                               species_list    = unique(ALA.BG$searchTaxon),
-                                               
-                                               ## These two will need to change.
-                                               ## Specify them in the code
-                                               biocl_vars      = bioclim_variables,
-                                               env_vars        = env_variables,
-                                               
-                                               ## This might need to change too
-                                               worldclim_divide = FALSE,
-                                               save_data        = TRUE,
-                                               save_run         = "BG_TEST_INSECTS",
+                                               save_run         = "TEST_INSECTS_FAMILY",
                                                data_path        = "./output/results/")
 
 
@@ -328,7 +307,7 @@ records data.frame is that returned by the combine_records_extract function abov
 
 \
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Just create a background points version for each step 
 
@@ -352,7 +331,7 @@ It assumes that the input dfs are those returned by the coord_clean_records func
 
 \
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Flag spatial outliers
 ## This one doesn't quite work - it doesn't loop over the figures
@@ -374,7 +353,7 @@ It assumes that the input df is that returned by the check_spatial_outliers func
 
 \
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Estimate climate niches using species records
 GLOB.NICHE = calc_1km_niches(coord_df     = SPATIAL.CLEAN,
@@ -385,7 +364,7 @@ GLOB.NICHE = calc_1km_niches(coord_df     = SPATIAL.CLEAN,
                              species_list = analysis_spp,
                              env_vars     = env_variables,
                              cell_size    = 2,
-                             save_run     = "Stoten_EG",
+                             save_run     = "TEST_INSECTS_FAMILY",
                              data_path    = "./output/results/",
                              save_data    = TRUE)
 
@@ -400,7 +379,7 @@ prepared by the check_spatial_outliers function
 
 \
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Plot species ranges using histograms and convex hulls for rainfall and temperature distributions
 plot_range_histograms(coord_df     = SPATIAL.CLEAN,
@@ -421,7 +400,7 @@ background points from other taxa, if specified. In this example for bats, we'll
 
 \
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Final dataset is a spatial points dataframe in the Mollwiede projection
 SDM.SPAT.OCC.BG = prepare_sdm_table(coord_df        = COORD.CLEAN,
@@ -429,7 +408,7 @@ SDM.SPAT.OCC.BG = prepare_sdm_table(coord_df        = COORD.CLEAN,
                                     sdm_table_vars  = sdm_table_vars,
                                     save_run        = "INSECT_EG",
                                     read_background = TRUE,
-                                    background      = ALA.BG,
+                                    background      = FALSE,
                                     save_data       = FALSE,
                                     save_shp        = FALSE)
 
@@ -448,7 +427,7 @@ and projection (Mollweide) as the analysis data. This step takes ages...
 
 \
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Use gdal to create a template raster in the mollweide projection, using one of the bioclim layers
 template_raster_1km_mol <- gdalwarp("./data/wc2-5/bio1.bil",
@@ -474,7 +453,7 @@ https://drive.google.com/open?id=1mQHVmYxSMw_cw1iGvfU9M7Pq6Kl6nz-C
 \
 
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Download the template and koppen rasters from google drive
 ## https://drive.google.com/open?id=1mQHVmYxSMw_cw1iGvfU9M7Pq6Kl6nz-C
@@ -533,7 +512,7 @@ across Australia ().
 
 \
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Create a table of maxent results
 ## This function aggregates the results for models that ran successfully
@@ -559,7 +538,7 @@ The Stoten publication uses climate projections under six global circulation mod
 \
 
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## List of scenarios that we used in the Stoten article
 scen_list <- c('AC', 'CC', 'HG', 'GF', 'MC', 'NO')
@@ -585,7 +564,7 @@ Or, we can load in some 1km*1km Worldclim rasters for current environmental cond
 
 \
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## 1km*1km Worldclim rasters for current environmental conditions can be found here:
 ## https://drive.google.com/open?id=1B14Jdv_NK2iWnmsqCxlKcEXkKIqwmRL_
@@ -603,7 +582,7 @@ Note that this step is quite memory heavy, and is best run with 32GB of RAM.
 
 \
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Create a local projection for mapping : Australian Albers
 gc()
@@ -668,7 +647,7 @@ Google drive:
 \
 
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Can't use the .rda, must use the file path
 areal_unit_vec <- shapefile_vector_from_raster(shp_file = SUA,
@@ -697,7 +676,7 @@ function. Note that this step is quite memory heavy, and is best run with 32GB o
 
 \
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Combine GCM predictions and calculate gain and loss for 2030 
 ## Then loop over the species folders and climate scenarios
