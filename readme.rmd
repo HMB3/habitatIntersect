@@ -74,17 +74,21 @@ environmental conditions.
 
 \
 
-The backbone of the R workflow is a list of (taxonomically Ridgey-Didge!) species names 
+The backbone of the R workflow is a list of (taxonomically Ridgey-Didge!) Taxa names 
 that we supply. The analysis is designed to process data for one species at a time, 
-allowing species results to be updated as required. We can demonstrate the workflow 
-using a sample of ~40 insect species that are found in the forest of North Eastern NSW. 
+allowing species results to be updated as required. Unfortunately, Australia's insects
+are not very well sampled....so we can analyse at the family level.
+
+Let's use all the insect famlies that were found in 1993 surveys of the forest of 
+North Eastern NSW. 
 
 \
 
 ```{r message=FALSE, echo=TRUE, warning=FALSE, eval=TRUE}
 
-## Use a list 
-analysis_spp <- str_trim(insect_data_families)
+## Use a list
+data('insect_data_families')
+analysis_spp <- str_trim(insect_data_families) %>% .[!is.na(.)] 
 analysis_spp
 
 ```
@@ -130,7 +134,7 @@ expect these folders (a typical R project structure), create them if they don't 
 
 \
 
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Download ALA occurrence data for each species
 ## For some reason, this temporary directory needed to be created...
@@ -190,38 +194,6 @@ ALA.LAND = combine_ala_records(species_list      = analysis_spp,
                                record_type       = "ALA",
                                keep_cols         = ALA_keep,
                                world_raster      = worldclim_annual_temp)
-
-``` 
-
-
-# STEP 2a :: Create background points
-
-\
-
-To estimate habitat suitability, we need to have as many species records as possible that
-have the same spatial bias as the taxa we are analysing (REF). The simplest way to do this 
-is to use species of the same type of organism we are analysing (in this case, insects).
-
-\
-
-Given there are only ~100 species in our analysis, we need mnay more taxa to generate enough 
-background points.We're analyzing insects, so we can get ALL the insect records from the ALA. 
-A background point is simply then any geographic record (lat/lon) for a species, other than 
-the species we are analysing.
-
-\
-
-```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
-
-## Make a new function here that processes the background points
-ALA.BG = combine_background_records(background_df  = insect_data_standard_columns_5th,
-                                    species_list   = analysis_spp,
-                                    record_type    = "ALA_BACKGROUND",
-                                    keep_cols      = common_cols,
-                                    world_raster   = worldclim_annual_temp,
-                                    save_data      = TRUE,
-                                    save_run       = "TEST_INSECTS",
-                                    data_path      = "./data/ALA/Background_points/Insects/")
 
 ``` 
 
