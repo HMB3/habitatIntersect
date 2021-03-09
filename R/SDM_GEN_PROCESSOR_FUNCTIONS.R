@@ -175,7 +175,7 @@ download_ALA_all_species = function (species_list,
       gc()
       
     } else {
-      message('temp ALA directory already exists')
+      message('ALA records for ', sp.n, ' Already downloaded')
     }
   }
 } 

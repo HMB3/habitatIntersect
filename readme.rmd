@@ -84,7 +84,6 @@ using a sample of ~40 insect species that are found in the forest of North Easte
 ```{r message=FALSE, echo=TRUE, warning=FALSE, eval=TRUE}
 
 ## Use a list 
-data("insect.spp")
 analysis_spp <- str_trim(insect_data_families)
 analysis_spp
 
@@ -134,6 +133,7 @@ expect these folders (a typical R project structure), create them if they don't 
 ```{r message=FALSE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Download ALA occurrence data for each species
+## For some reason, this temporary directory needed to be created...
 ## dir.create('C:/Users/hughb/AppData/Local/Temp/RtmpyijnUR')
 download_ALA_all_species(species_list  = analysis_spp,
                          your_email    = 'hugh.burley@gmail.com',
