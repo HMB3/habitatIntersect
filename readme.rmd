@@ -264,7 +264,7 @@ the biolclim variables (i.e. bio1-bio19)
 ## Combine GBIF and ALA data, and extract environmental values
 ## Note that the climate values are too small 
 COMBO.RASTER.CONVERT = combine_records_extract(ala_df          = ALA.LAND,
-                                               site_df         = 'NONE',
+                                               site_df         = all_insect_site_df,
                                                thin_records    = FALSE,
                                                template_raster = template_raster_1km_WGS84,
                                                world_raster    = worldclim_climate,
@@ -372,8 +372,8 @@ GLOB.NICHE = calc_1km_niches(coord_df     = SPATIAL.CLEAN,
 
 \
 
-We can also plot the environmental ranges of each species. The next cleaning function takes 
-a data frame of all species records, and plots histograms and convex hulls for 
+We can also plot the environmental ranges of each species. The next cleaning function 
+takes a data frame of all species records, and plots histograms and convex hulls for 
 each species in global environmental space. It assumes that the input df is that 
 prepared by the check_spatial_outliers function
 

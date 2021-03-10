@@ -776,7 +776,7 @@ combine_records_extract = function(ala_df,
   if(site_df != 'NONE') {
     
     site_cols <- intersect(names(ALA.COMBO), names(site_df))
-    site_df   <- dplyr::select(site_df, site_cols)
+    site_df   <- dplyr::select(site_df, all_of(site_cols))
     ALA.COMBO <- bind_rows(ALA.COMBO, site_df)
     
   } else {
