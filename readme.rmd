@@ -88,8 +88,8 @@ North Eastern NSW.
 
 ## Use a list
 data('insect_data_families')
-# analysis_spp <- str_trim(insect_data_families) 
-analysis_spp <- all.insect.families
+analysis_spp <- str_trim(insect_data_families) 
+#analysis_spp <- all.insect.families
 analysis_spp
 
 ```
