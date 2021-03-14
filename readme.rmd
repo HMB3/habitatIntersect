@@ -88,7 +88,8 @@ North Eastern NSW.
 
 ## Use a list
 data('insect_data_families')
-analysis_spp <- str_trim(all.insect.families) %>% .[!is.na(.)] 
+# analysis_spp <- str_trim(insect_data_families) 
+analysis_spp <- all.insect.families
 analysis_spp
 
 ```
@@ -145,11 +146,19 @@ expect these folders (a typical R project structure), create them if they don't 
 #                          ala_temp_dir  = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
 #                          download_limit = 20000)
 
-download_ALA_all_families(species_list  = analysis_spp,
-                          your_email    = 'hugh.burley@gmail.com',
-                          download_path = "./data/ALA/Insects/Family/",
-                          ala_temp_dir  = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
-                          download_limit = 20000)
+## Get some extra columns from the ALA with environmental data
+## This could be better organized by getting the column names by 'category' - enviro, land context, etc
+ala_env_cols = ala_fields("occurrence_stored",as_is = TRUE)$description[231:389]
+
+
+## Now download the data for all the families
+download_ALA_all_families(species_list   = analysis_spp,
+                          your_email     = 'hugh.burley@gmail.com',
+                          download_path  = "./data/ALA/Insects/Family/",
+                          ala_temp_dir   = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
+                          download_limit = 20000,
+                          extra_cols     = ala_env_cols,
+                          quality_cols   = 'all')
 
 ``` 
 

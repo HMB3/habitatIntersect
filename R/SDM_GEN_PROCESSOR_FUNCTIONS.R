@@ -87,7 +87,7 @@ download_GBIF_all_species = function(species_list, download_path, download_limit
       # cat("Takonkeys returned for :: ", sp.n, unique(GBIF$taxonKey),       sep = "\n")
       
       ## Could also only use the key searched, but that could knock out a lot of species
-      message(dim(GBIF[1]), " Records returned for ", sp.n)
+      message(nrow(GBIF), " Records returned for ", sp.n)
       
       ## Save records to .Rdata file
       save(GBIF, file = file_name)
@@ -173,7 +173,7 @@ download_ALA_all_species = function (species_list, your_email, download_path, al
     ALA = ALA[["data"]]
     
     # cat("Synonyms returned for :: ", sp.n, unique(ALA$scientificName), sep="\n")
-    message(dim(ALA[1]), " Records returned for ", sp.n)
+    message(nrow(ALA), " Records returned for ", sp.n)
     
     ## Save records to .Rdata file
     save(ALA, file = file_name)
@@ -416,7 +416,7 @@ combine_ala_records = function(species_list, records_path, records_extension,
     TRIM <- ALL%>%
       dplyr::select(dplyr::one_of(keep_cols))
     
-    dim(TRIM)
+    nrow(TRIM)
     sort(names(TRIM))
     
     ## What are the unique species?
@@ -470,17 +470,17 @@ combine_ala_records = function(species_list, records_path, records_extension,
                            unique(cellFromXY(world_raster, CLEAN[c("lon", "lat")]))[onland])
     
     ## how many records were on land?
-    records.ocean = dim(CLEAN)[1] - dim(LAND.POINTS)[1]
-    dim(LAND.POINTS)
+    records.ocean = nrow(CLEAN) - nrow(LAND.POINTS)
+    nrow(LAND.POINTS)
     length(unique(LAND.POINTS$searchTaxon))
     
     ## Add a source column
     LAND.POINTS$SOURCE = record_type
-    message(round((dim(LAND.POINTS)[1])/dim(CLEAN)[1]*100, 2),
+    message(round((nrow(LAND.POINTS))/nrow(CLEAN)*100, 2),
             " % records retained using spatially valid records")
     
     ## save data
-    dim(LAND.POINTS)
+    nrow(LAND.POINTS)
     length(unique(LAND.POINTS$searchTaxon))
     
     ## get rid of some memory
@@ -573,11 +573,11 @@ combine_gbif_records = function(species_list, records_path, records_extension, r
   if (nrow(ALL.POINTS) > 0) {
     
     ## What proportion of the dataset has no lat/lon? Need to check this so we know the latest download is working
-    formatC(dim(ALL.POINTS)[1], format = "e", digits = 2)
-    (sum(is.na(ALL.POINTS$lat))            + dim(subset(ALL.POINTS, year < 1950))[1])/dim(ALL.POINTS)[1]*100
+    formatC(nrow(ALL.POINTS), format = "e", digits = 2)
+    (sum(is.na(ALL.POINTS$lat))            + nrow(subset(ALL.POINTS, year < 1950)))/nrow(ALL.POINTS)*100
     
     ## Almost none of the GBIF data has no scientificName. This is the right field to use for matching taxonomy
-    (sum(is.na(ALL.POINTS$scientificName)) + dim(subset(ALL.POINTS, scientificName == ""))[1])/dim(ALL.POINTS)[1]*100
+    (sum(is.na(ALL.POINTS$scientificName)) + nrow(subset(ALL.POINTS, scientificName == "")))/nrow(ALL.POINTS)*100
     
     
     ## Now get just the columns we want to keep.
@@ -588,7 +588,7 @@ combine_gbif_records = function(species_list, records_path, records_extension, r
     
     ## Just get the newly downloaded species
     GBIF.TRIM = GBIF.TRIM[GBIF.TRIM$searchTaxon %in% species_list, ]
-    formatC(dim(GBIF.TRIM)[1], format = "e", digits = 2)
+    formatC(nrow(GBIF.TRIM), format = "e", digits = 2)
     
     ## What are the unique species?
     length(unique(GBIF.TRIM$species))
@@ -648,7 +648,7 @@ combine_gbif_records = function(species_list, records_path, records_extension, r
     records.ocean = nrow(GBIF.CLEAN) - nrow(LAND.POINTS)  ## 91575 records are in the ocean
     
     ## Print the dataframe dimensions to screen
-    dim(LAND.POINTS)
+    nrow(LAND.POINTS)
     length(unique(LAND.POINTS$searchTaxon))
     
     ## Add a source column
@@ -740,7 +740,7 @@ combine_background_records = function(background_df, species_list,
   TRIM <- background_df %>%
     dplyr::select(dplyr::one_of(keep_cols))
   
-  dim(TRIM)
+  nrow(TRIM)
   sort(names(TRIM))
   
   ## FILTER RECORDS TO THOSE WITH COORDINATES, AND AFTER 1950
@@ -793,7 +793,7 @@ combine_background_records = function(background_df, species_list,
   
   ## how many records were on land?
   records.ocean = nrow(CLEAN) - nrow(LAND.POINTS)
-  dim(LAND.POINTS)
+  nrow(LAND.POINTS)
   length(unique(LAND.POINTS$searchTaxon))
   
   ## Add a source column
@@ -802,7 +802,7 @@ combine_background_records = function(background_df, species_list,
           " % records retained using spatially valid records")
   
   ## save data
-  dim(LAND.POINTS)
+  nrow(LAND.POINTS)
   length(unique(LAND.POINTS$searchTaxon))
   
   ## save data
@@ -1036,7 +1036,7 @@ site_records_extract = function(site_df,
   ## Extract raster data
   message('Extracting raster values for ', length(species_list), ' species in the set ', "'", save_run, "'")
   message(projection(COMBO.POINTS));message(projection(world_raster))
-  dim(COMBO.POINTS);dim(site.XY.1KM)
+  nrow(COMBO.POINTS);nrow(site.XY.1KM)
   
   ## Extract the raster values
   COMBO.RASTER <- raster::extract(world_raster, COMBO.POINTS) %>%
@@ -1288,7 +1288,7 @@ check_spatial_outliers = function(all_df,
     timetk::tk_tbl()
   
   ## Check
-  dim(SDM.COORDS)
+  nrow(SDM.COORDS)
   head(SDM.COORDS)
   class(SDM.COORDS)
   summary(SDM.COORDS$decimallongitude)
@@ -1322,7 +1322,7 @@ check_spatial_outliers = function(all_df,
       
       ## Run the spatial outlier detection
       message("Running spatial outlier detection for ", x)
-      message(dim(f)[1], " records for ", x)
+      message(nrow(f), " records for ", x)
       sp.flag <- cc_outl(f,
                          lon     = "decimallongitude",
                          lat     = "decimallatitude",
@@ -1348,7 +1348,7 @@ check_spatial_outliers = function(all_df,
   
   ## Join the data back on
   SPAT.FLAG = join(as.data.frame(test.geo), SPAT.OUT) ## Join means the skipped spp are left out
-  dim(SPAT.FLAG)
+  nrow(SPAT.FLAG)
   
   ## Try plotting the points which are outliers for a subset of spp and label them
   ## Get the first 10 spp
@@ -1564,8 +1564,8 @@ calc_1km_niches = function(coord_df,
   
   ## Check
   message(round(nrow(AUS.NICHE)/nrow(GLOB.NICHE)*100, 2), " % species have records in Australia")
-  dim(GLOB.NICHE)
-  dim(AUS.NICHE)
+  nrow(GLOB.NICHE)
+  nrow(AUS.NICHE)
   
   ## 5). CALCULATE AREA OF OCCUPANCY
   
@@ -2002,7 +2002,7 @@ prepare_sdm_table = function(coord_df,
   length(SDM.DATA.ALL$SPOUT.OBS);length(unique(SDM.DATA.ALL$SPOUT.OBS))
   
   ## Check dimensions
-  dim(SDM.DATA.ALL)
+  nrow(SDM.DATA.ALL)
   length(unique(SDM.DATA.ALL$searchTaxon))
   length(unique(SDM.DATA.ALL$SPOUT.OBS))
   unique(SDM.DATA.ALL$SOURCE)
