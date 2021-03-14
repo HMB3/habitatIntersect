@@ -190,7 +190,7 @@ download_ALA_all_species = function (species_list, your_email, download_path, al
 #'
 #' This function downloads family occurrence files from ALA (https://www.ala.org.au/).
 #' It assumes that the species list supplied is taxonomically correct.
-#' It downloads the species without returning anything
+#' It downloads the species to fiel without returning anything to the global environment
 #'
 #' @param species_list   Character vector - List of species binomials to download
 #' @param download_path  Character string - File path for species downloads
