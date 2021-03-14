@@ -6,6 +6,7 @@
 ## Below are the functions used to estiamte species ranges and prepare occurrence data for SDM analysis
 
 
+## Helper functions ----
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
 
