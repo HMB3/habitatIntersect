@@ -195,9 +195,10 @@ download_ALA_all_species = function (species_list, your_email, download_path, al
 #'
 #' @param species_list   Character vector - List of species binomials to download
 #' @param download_path  Character string - File path for species downloads
+#' @param extra_cols    Character - extra ALA columns, eg environmental vatriables
+#' @param quality_cols  Character - quality ALA columns, eg spatial accuracy
 #' @param download_limit Numeric - How many records can be downloaded at one time? Set by server
-#' @export extra_cols    Character - extra ALA columns, eg environmental vatriables
-#' @export quality_cols  Character - quality ALA columns, eg spatial accuracy
+#' @export 
 download_ALA_all_families = function (species_list, 
                                       your_email, 
                                       download_path, 
