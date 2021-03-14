@@ -123,6 +123,11 @@ common_cols <- c('searchTaxon',
                  'eventDate')
 
 
+## Createa a table of all the ALA columns
+ALA_columns     <- ala_fields("occurrence_stored",as_is = TRUE)$description[231:395]
+ALA_env_columns <- ALA_columns$description[230:395]
+
+
 
 
 
