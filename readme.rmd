@@ -79,8 +79,9 @@ that we supply. The analysis is designed to process data for one species at a ti
 allowing species results to be updated as required. Unfortunately, Australia's insects
 are not very well sampled....so we can analyse at the family level.
 
-Let's use all the insect famlies that were found in 1993 surveys of the forest of 
-North Eastern NSW. 
+\
+
+Let's use all the insect famlies that we think might be threatned by the 2019/2020 fires. 
 
 \
 
@@ -89,7 +90,7 @@ North Eastern NSW.
 ## Use a list
 data('insect_data_families')
 data('all.insect.families')
-analysis_spp <- str_trim(insect_data_families) 
+analysis_spp <- str_trim(target.insect.spp) 
 # analysis_spp <- all.insect.families
 analysis_spp
 
@@ -141,15 +142,21 @@ expect these folders (a typical R project structure), create them if they don't 
 ## Download ALA occurrence data for each species
 ## For some reason, this temporary directory needed to be created...
 ## dir.create('C:/Users/hughb/AppData/Local/Temp/RtmpyijnUR')
-# download_ALA_all_species(species_list  = analysis_spp,
-#                          your_email    = 'hugh.burley@gmail.com',
-#                          download_path = "./data/ALA/Insects/Species",
-#                          ala_temp_dir  = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
-#                          download_limit = 20000)
 
 ## Get some extra columns from the ALA with environmental data
 ## This could be better organized by getting the column names by 'category' - enviro, land context, etc
 ala_env_cols = ala_fields("occurrence_stored",as_is = TRUE)$description[231:389]
+
+
+##
+download_ALA_all_species(species_list  = analysis_spp,
+                         your_email    = 'hugh.burley@gmail.com',
+                         download_path = "./data/ALA/Insects/Species/",
+                         ala_temp_dir  = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
+                         download_limit = 20000,
+                         extra_cols     = ala_env_cols,
+                         quality_cols   = 'all')
+
 
 
 ## Now download the data for all the families
