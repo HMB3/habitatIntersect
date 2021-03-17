@@ -195,10 +195,11 @@ download_ALA_all_species = function (species_list, your_email, download_path, al
 #'
 #' @param species_list   Character vector - List of species binomials to download
 #' @param download_path  Character string - File path for species downloads
-#' @param extra_cols    Character - extra ALA columns, eg environmental vatriables
-#' @param quality_cols  Character - quality ALA columns, eg spatial accuracy
+#' @param extra_cols     Character - extra ALA columns, eg environmental vatriables
+#' @param quality_cols   Character - quality ALA columns, eg spatial accuracy
 #' @param download_limit Numeric - How many records can be downloaded at one time? Set by server
-#' @export 
+#' @return               Data frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)
+#' @export
 download_ALA_all_families = function (species_list, 
                                       your_email, 
                                       download_path, 
@@ -871,7 +872,7 @@ combine_records_extract = function(ala_df,
   if(site_df != 'NONE') {
     
     site_cols <- intersect(names(ALA.COMBO), names(site_df))
-    site_df   <- dplyr::select(site_df, site_cols)
+    site_df   <- dplyr::select(site_df, all_of(site_cols))
     ALA.COMBO <- bind_rows(ALA.COMBO, site_df)
     
   } else {
@@ -946,6 +947,12 @@ combine_records_extract = function(ala_df,
   ## Print the dataframe dimensions to screen :: format to recognise millions, hundreds of thousands, etc.
   COMBO.RASTER.CONVERT = completeFun(COMBO.RASTER.CONVERT, env_vars[1])
   
+  
+  ## Create points: the 'over' function seems to need geographic coordinates for this data...
+  COMBO.RASTER.CONVERT.SPDF = SpatialPointsDataFrame(coords      = COMBO.RASTER.CONVERT[c("lon", "lat")],
+                                                     data        = COMBO.RASTER.CONVERT,
+                                                     proj4string = prj)
+  
   message(length(unique(COMBO.RASTER.CONVERT$searchTaxon)),
           ' species processed of ', length(species_list), ' original species')
   
@@ -954,6 +961,13 @@ combine_records_extract = function(ala_df,
     
     ## save .rds file for the next session
     saveRDS(COMBO.RASTER.CONVERT, paste0(data_path, 'COMBO_RASTER_CONVERT_',  save_run, '.rds'))
+    
+    ## save .shp for future refrence
+    writeOGR(obj    = COMBO.RASTER.CONVERT.SPDF,
+             dsn    = "./output/results/CLEAN_GBIF",
+             layer  = paste0('SPAT_OUT_CHECK_', save_run),
+             driver = "ESRI Shapefile", overwrite_layer = TRUE)  
+    
     return(COMBO.RASTER.CONVERT)
     
   } else {
@@ -1880,7 +1894,6 @@ plot_range_histograms = function(coord_df,
       ## Add themes
       theme(axis.title.x     = element_text(colour = "black", size = 35),
             axis.text.x      = element_text(size = 25),
-            
             axis.title.y     = element_text(colour = "black", size = 35),
             axis.text.y      = element_text(size = 25),
             
@@ -1915,7 +1928,6 @@ plot_range_histograms = function(coord_df,
       ## Add themes
       theme(axis.title.x     = element_text(colour = 'black', size = 25),
             axis.text.x      = element_blank(),
-            
             axis.title.y     = element_text(colour = 'black', size = 35),
             axis.text.y      = element_text(size = 25),
             

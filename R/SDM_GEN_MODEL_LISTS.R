@@ -53,6 +53,15 @@ gbif_keep <- c(## TAXONOMY
 
 
 
+## ALA Enviro cols ----
+## Createa a table of all the ALA columns
+ALA_columns     <- ala_fields("occurrence_stored",as_is = TRUE)$description[231:395]
+load("D:/North_east_NSW_fire_recovery/data/ALA/Insects/Family/Cyclotornidae_ALA_records.RData")
+names(ALA)[58:215]
+
+
+
+
 ## ALA columns to keep ----
 ALA_keep <- c(## TAXONOMY
   "searchTaxon",
@@ -90,11 +99,10 @@ ALA_keep <- c(## TAXONOMY
   "lon",
   "coordinateUncertaintyInMetres",
   "coordinateUncertaintyInMeters",
-  "zeroCoordinates",
   "country",
   "state",
   "IBRA7Regions",
-  "IBRA.7.Subregions",
+  "IBRA7Subregions",
   "localGovernmentAreas",
   "locality",
   "geodeticDatum",
@@ -102,7 +110,19 @@ ALA_keep <- c(## TAXONOMY
   "month",
   "day",
   "eventDate",
-  "eventID")
+  "eventID",
+  
+  ## Quality
+  "zeroCoordinates",
+  "zeroLatitude",
+  "zeroLongitude",
+  "coordinatesCentreOfCountry",
+  "countryCoordinateMismatch",
+  "invertedCoordinates",
+  "inferredDuplicateRecord",
+  
+  ## Enviro
+  names(ALA)[58:215])
 
 
 common_cols <- c('searchTaxon',     
@@ -123,9 +143,6 @@ common_cols <- c('searchTaxon',
                  'eventDate')
 
 
-## Createa a table of all the ALA columns
-ALA_columns     <- ala_fields("occurrence_stored",as_is = TRUE)$description[231:395]
-ALA_env_columns <- ALA_columns$description[230:395]
 
 
 
