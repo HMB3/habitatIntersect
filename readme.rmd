@@ -90,7 +90,7 @@ Let's use all the insect famlies that we think might be threatned by the 2019/20
 ## Use a list
 data('insect_data_families')
 data('all.insect.families')
-analysis_spp <- str_trim(target.insect.spp) 
+analysis_spp <- str_trim(insect_data_families) 
 # analysis_spp <- all.insect.families
 analysis_spp
 
@@ -158,15 +158,14 @@ download_ALA_all_species(species_list  = analysis_spp,
                          quality_cols   = 'all')
 
 
-
 ## Now download the data for all the families
-download_ALA_all_families(species_list   = analysis_spp,
-                          your_email     = 'hugh.burley@gmail.com',
-                          download_path  = "./data/ALA/Insects/Family/",
-                          ala_temp_dir   = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
-                          download_limit = 20000,
-                          extra_cols     = ala_env_cols,
-                          quality_cols   = 'all')
+# download_ALA_all_families(species_list   = analysis_spp,
+#                           your_email     = 'hugh.burley@gmail.com',
+#                           download_path  = "./data/ALA/Insects/Family/",
+#                           ala_temp_dir   = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
+#                           download_limit = 20000,
+#                           extra_cols     = ala_env_cols,
+#                           quality_cols   = 'all')
 
 ``` 
 
@@ -217,7 +216,12 @@ ALA.LAND = combine_ala_records(species_list      = analysis_spp,
                                records_extension = "_ALA_records.RData",
                                record_type       = "ALA",
                                keep_cols         = ALA_keep,
-                               world_raster      = worldclim_annual_temp)
+                               world_raster      = worldclim_annual_temp, 
+                               save_data         = TRUE,
+                               save_run          = "ALL_INSECT_FAMILIES",
+                               data_path         = "./output/results/")
+
+
 
 ``` 
 
@@ -289,7 +293,7 @@ the biolclim variables (i.e. bio1-bio19)
 ## Note that the climate values are too small 
 COMBO.RASTER.CONVERT = combine_records_extract(ala_df          = ALA.LAND,
                                                site_df         = all_insect_site_df,
-                                               thin_records    = FALSE,
+                                               thin_records    = TRUE,
                                                template_raster = template_raster_1km_WGS84,
                                                world_raster    = worldclim_climate,
                                                prj             = CRS("+init=epsg:4326"),

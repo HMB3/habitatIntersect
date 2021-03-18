@@ -22,7 +22,9 @@
 #' @param download_path  Character string - File path for species downloads
 #' @param download_limit Numeric - How many records can be downloaded at one time? Set by server
 #' @export
-download_GBIF_all_species = function(species_list, download_path, download_limit) {
+download_GBIF_all_species = function(species_list, 
+                                     download_path, 
+                                     download_limit) {
   
   ## create variables
   GBIF.download.limit = download_limit
@@ -308,8 +310,12 @@ download_ALA_all_families = function (species_list,
 #' @param keep_cols          The columns we want to keep - a character list created by you
 #' @param world_raster       An Raster file of the enviro conditions used (assumed to be global)
 #' @export
-combine_ala_records = function(species_list, records_path, records_extension,
-                               record_type, keep_cols, world_raster) {
+combine_ala_records = function(species_list, 
+                               records_path, 
+                               records_extension,
+                               record_type, 
+                               keep_cols, 
+                               world_raster) {
   
   ##
   download = list.files(records_path, pattern = ".RData")
@@ -387,6 +393,8 @@ combine_ala_records = function(species_list, records_path, records_extension,
       
       ## Create the searchTaxon column - check how to put the data in here
       message ('Formatting occurrence data for ', x)
+      d <- mutate()
+      
       d[,"searchTaxon"] = x
       d[,"searchTaxon"] = gsub(records_extension, "", d[,"searchTaxon"])
       
@@ -527,7 +535,12 @@ combine_ala_records = function(species_list, records_path, records_extension,
 #' @param keep_cols          The columns we want to keep - a character list created by you
 #' @param world_raster       An Raster file of the enviro conditions used (assumed to be global)
 #' @export
-combine_gbif_records = function(species_list, records_path, records_extension, record_type, keep_cols, world_raster) {
+combine_gbif_records = function(species_list, 
+                                records_path, 
+                                records_extension, 
+                                record_type, 
+                                keep_cols, 
+                                world_raster) {
   
   download = list.files(records_path, pattern = ".RData")
   length(download)
@@ -700,9 +713,14 @@ combine_gbif_records = function(species_list, records_path, records_extension, r
 #' @param save_data          Save the data?
 #' @param save_run           Name the save run
 #' @export
-combine_background_records = function(background_df, species_list,
-                                      record_type,   keep_cols, world_raster, data_path,
-                                      save_data,     save_run) {
+combine_background_records = function(background_df, 
+                                      species_list,
+                                      record_type,   
+                                      keep_cols, 
+                                      world_raster, 
+                                      data_path,
+                                      save_data,     
+                                      save_run) {
   
   ## Create the searchTaxon column - check how to put the data in here
   background_df <- background_df %>% mutate(searchTaxon = scientificName)
