@@ -90,7 +90,7 @@ Let's use all the insect famlies that we think might be threatned by the 2019/20
 ## Use a list
 data('insect_data_families')
 data('all.insect.families')
-analysis_spp <- str_trim(insect_data_families) 
+analysis_spp <- str_trim(target.insect.genera) 
 # analysis_spp <- all.insect.families
 analysis_spp
 
@@ -156,6 +156,15 @@ download_ALA_all_species(species_list  = analysis_spp,
                          download_limit = 20000,
                          extra_cols     = ala_env_cols,
                          quality_cols   = 'all')
+
+
+download_ALA_all_genera(species_list  = analysis_spp,
+                        your_email    = 'hugh.burley@gmail.com',
+                        download_path = "./data/ALA/Insects/Genus/",
+                        ala_temp_dir  = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
+                        download_limit = 20000,
+                        extra_cols     = ala_env_cols,
+                        quality_cols   = 'all')
 
 
 ## Now download the data for all the families
