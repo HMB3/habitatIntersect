@@ -584,8 +584,6 @@ combine_ala_records = function(species_list,
       
       ## Create the searchTaxon column - check how to put the data in here
       message ('Formatting occurrence data for ', x)
-      d <- mutate()
-      
       d[,"searchTaxon"] = x
       d[,"searchTaxon"] = gsub(records_extension, "", d[,"searchTaxon"])
       
@@ -1068,7 +1066,6 @@ combine_background_records = function(background_df,
 
 combine_records_extract = function(ala_df,
                                    site_df,
-                                   keep_cols,
                                    add_site,
                                    species_list,
                                    template_raster,
@@ -1102,7 +1099,6 @@ combine_records_extract = function(ala_df,
   ## CHECK TAXONOMY RETURNED BY ALA USING TAXONSTAND?
   
   ## Create points: the 'over' function seems to need geographic coordinates for this data...
-  ALA.COMBO   = ALA.COMBO %>% dplyr::select(site_df, all_of(keep_cols))
   GBIF.ALA.84 = SpatialPointsDataFrame(coords      = ALA.COMBO[c("lon", "lat")],
                                          data        = ALA.COMBO,
                                          proj4string = prj)

@@ -90,8 +90,13 @@ Let's use all the insect famlies that we think might be threatned by the 2019/20
 ## Use a list
 data('insect_data_families')
 data('all.insect.families')
+data('all.insect.genera')
+data('all.insect.species')
+
+data('target.insect.spp')
+data('target.insect.genera')
+
 analysis_spp <- str_trim(target.insect.genera) 
-# analysis_spp <- all.insect.families
 analysis_spp
 
 ```
@@ -226,8 +231,6 @@ ALA.LAND = combine_ala_records(species_list      = analysis_spp,
                                record_type       = "ALA",
                                keep_cols         = ALA_keep,
                                world_raster      = worldclim_annual_temp)
-
-
 
 ``` 
 
