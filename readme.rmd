@@ -221,14 +221,11 @@ Next we filter the records to those taken after 1950, and those inside the raste
 ## Also, add a switch for the 1km filter - we don't want to do this anymore, too few records
 data('ALA_keep')
 ALA.LAND = combine_ala_records(species_list      = analysis_spp,
-                               records_path      = "./data/ALA/Insects/Family/",
+                               records_path      = "./data/ALA/Insects/Genus/",
                                records_extension = "_ALA_records.RData",
                                record_type       = "ALA",
                                keep_cols         = ALA_keep,
-                               world_raster      = worldclim_annual_temp, 
-                               save_data         = TRUE,
-                               save_run          = "ALL_INSECT_FAMILIES",
-                               data_path         = "./output/results/")
+                               world_raster      = worldclim_annual_temp)
 
 
 
@@ -302,7 +299,7 @@ the biolclim variables (i.e. bio1-bio19)
 ## Note that the climate values are too small 
 COMBO.RASTER.CONVERT = combine_records_extract(ala_df          = ALA.LAND,
                                                site_df         = all_insect_site_df,
-                                               thin_records    = TRUE,
+                                               thin_records    = FALSE,
                                                template_raster = template_raster_1km_WGS84,
                                                world_raster    = worldclim_climate,
                                                prj             = CRS("+init=epsg:4326"),
@@ -316,7 +313,7 @@ COMBO.RASTER.CONVERT = combine_records_extract(ala_df          = ALA.LAND,
                                                ## This might need to change too
                                                worldclim_divide = FALSE,
                                                save_data        = TRUE,
-                                               save_run         = "TEST_INSECTS_FAMILY",
+                                               save_run         = "TARGET_INSECT_GENERA",
                                                data_path        = "./output/results/")
 
 

@@ -1068,6 +1068,7 @@ combine_background_records = function(background_df,
 
 combine_records_extract = function(ala_df,
                                    site_df,
+                                   keep_cols,
                                    add_site,
                                    species_list,
                                    template_raster,
@@ -1101,7 +1102,8 @@ combine_records_extract = function(ala_df,
   ## CHECK TAXONOMY RETURNED BY ALA USING TAXONSTAND?
   
   ## Create points: the 'over' function seems to need geographic coordinates for this data...
-  GBIF.ALA.84   = SpatialPointsDataFrame(coords      = ALA.COMBO[c("lon", "lat")],
+  ALA.COMBO   = ALA.COMBO %>% dplyr::select(site_df, all_of(keep_cols))
+  GBIF.ALA.84 = SpatialPointsDataFrame(coords      = ALA.COMBO[c("lon", "lat")],
                                          data        = ALA.COMBO,
                                          proj4string = prj)
   
@@ -1182,10 +1184,10 @@ combine_records_extract = function(ala_df,
     saveRDS(COMBO.RASTER.CONVERT, paste0(data_path, 'COMBO_RASTER_CONVERT_',  save_run, '.rds'))
     
     ## save .shp for future refrence
-    writeOGR(obj    = COMBO.RASTER.CONVERT.SPDF,
-             dsn    = "./output/results/CLEAN_GBIF",
-             layer  = paste0('SPAT_OUT_CHECK_', save_run),
-             driver = "ESRI Shapefile", overwrite_layer = TRUE)  
+    # writeOGR(obj    = COMBO.RASTER.CONVERT.SPDF,
+    #          dsn    = "./output/results/CLEAN_GBIF",
+    #          layer  = paste0('SPAT_OUT_CHECK_', save_run),
+    #          driver = "ESRI Shapefile", overwrite_layer = TRUE)  
     
     return(COMBO.RASTER.CONVERT)
     

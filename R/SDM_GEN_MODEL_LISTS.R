@@ -119,10 +119,10 @@ ALA_keep <- c(## TAXONOMY
   "coordinatesCentreOfCountry",
   "countryCoordinateMismatch",
   "invertedCoordinates",
-  "inferredDuplicateRecord",
-  
-  ## Enviro
-  names(ALA)[58:215])
+  "inferredDuplicateRecord")
+
+## Enviro
+# names(ALA)[58:215])
 
 
 common_cols <- c('searchTaxon',     
