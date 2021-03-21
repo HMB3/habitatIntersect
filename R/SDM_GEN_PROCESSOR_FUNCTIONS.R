@@ -537,14 +537,12 @@ combine_ala_records = function(species_list,
         d <- d[["data"]]
         
       } else {
+        
         d = d
+        
       }
       
-      ## Choose only the desired columns
-      d = d %>%
-        dplyr::select(one_of(keep_cols))
-      
-      ## Check if the data frames have data
+      ## Check if the dataframes have data
       if (nrow(d) <= 2) {
         
         ## If the species has < 2 records, escape the loop
@@ -554,33 +552,35 @@ combine_ala_records = function(species_list,
       }
       
       ##  type standardisation
-      # d <- d %>% mutate(lon = longitude,
-      #                   lat = latitude)
-      
       names(d)[names(d) == 'latitude']  <- 'lat'
       names(d)[names(d) == 'longitude'] <- 'lon'
       
-      ##  standardise catnum colname
-      # if("catalogueNumber" %in% colnames(d)) {
-      #   message ("Renaming catalogueNumber column to catalogNumber")
-      #   names(d)[names(d) == 'catalogueNumber'] <- 'catalogNumber'}
-      # 
-      # if (!is.character(d$catalogNumber)) {
-      #   d$catalogNumber = as.character(d$catalogNumber)}
-      # 
-      # if (!is.integer(d$catalogNumber)) {
-      #   d$catalogNumber = as.character(d$catalogNumber)}
+      ##  standardi[sz]e catnum colname
+      if("catalogueNumber" %in% colnames(d)) {
+        message ("Renaming catalogueNumber column to catalogNumber")
+        names(d)[names(d) == 'catalogueNumber'] <- 'catalogNumber'
+        
+      }
       
-      ## Standardise catnum colname
+      if (!is.character(d$catalogNumber)) {
+        d$catalogNumber = as.character(d$catalogNumber)
+        
+      }
+      
+      ## standardi[sz]e catnum colname
       if('coordinateUncertaintyinMetres' %in% colnames(d)) {
         message ("Renaming recordID column to id")
         names(d)[names(d) == 'coordinateUncertaintyinMetres'] <- 'coordinateUncertaintyInMetres'
-        d[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(d["coordinateUncertaintyInMetres"]))}
+        d[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(d["coordinateUncertaintyInMetres"]))
+        
+      }
       
-      ## Standardize columns
+      ## standardi[sz]e catnum colname
       if('recordID' %in% colnames(d)) {
         message ("Renaming recordID column to id")
-        names(d)[names(d) == 'recordID'] <- 'id'}
+        names(d)[names(d) == 'recordID'] <- 'id'
+        
+      }
       
       ## Create the searchTaxon column - check how to put the data in here
       message ('Formatting occurrence data for ', x)
@@ -591,9 +591,9 @@ combine_ala_records = function(species_list,
         d["id"] <- as.character(d["id"])
       }
       
-      # ## Choose only the desired columns
-      # d = d %>%
-      #   dplyr::select(one_of(keep_cols))
+      ## Choose only the desired columns
+      d = d %>%
+        dplyr::select(one_of(keep_cols))
       
       ## Then print warnings
       warnings()
@@ -601,10 +601,9 @@ combine_ala_records = function(species_list,
       ## This is a list of columns in different ALA files which have weird characters
       message ('Formatting numeric occurrence data for ', x)
       # d[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(d["coordinateUncertaintyInMetres"]))
-      # d["eventDate"] = as.character(unlist(d["eventDate"]))
-      d["year"]      = as.numeric(unlist(d["year"]))
-      d["month"]     = as.numeric(unlist(d["month"]))
-      d["id"]        = as.character(unlist(d["id"]))
+      d["year"]  = as.numeric(unlist(d["year"]))
+      d["month"] = as.numeric(unlist(d["month"]))
+      d["id"]    = as.character(unlist(d["id"]))
       
       return(d)
       
@@ -617,13 +616,16 @@ combine_ala_records = function(species_list,
   gc()
   
   ## Just get the newly downloaded species
-  TRIM  = ALL[ALL$searchTaxon %in% species_list, ]
+  ALL = ALL[ALL$searchTaxon %in% species_list, ]
   length(unique(ALL$searchTaxon))
   
-  if (nrow(TRIM ) > 0) {
+  if (nrow(ALL) > 0) {
     
     ## What names get returned?
-    message(sort(names(TRIM)))
+    sort(names(ALL))
+    TRIM <- ALL%>%
+      dplyr::select(dplyr::one_of(keep_cols))
+    
     nrow(TRIM)
     sort(names(TRIM))
     
