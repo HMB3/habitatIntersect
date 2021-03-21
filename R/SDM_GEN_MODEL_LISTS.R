@@ -95,10 +95,9 @@ ALA_keep <- c(## TAXONOMY
   "institutionCode",
 
   ## PLACE/TIME
-  "lat",
-  "lon",
+  "latitude",
+  "lonitude",
   "coordinateUncertaintyInMetres",
-  "coordinateUncertaintyInMeters",
   "country",
   "state",
   "IBRA7Regions",

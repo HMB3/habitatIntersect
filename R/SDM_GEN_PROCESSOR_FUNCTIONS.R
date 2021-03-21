@@ -540,6 +540,9 @@ combine_ala_records = function(species_list,
         d = d
       }
       
+      ## Choose only the desired columns
+      d = d %>%
+        dplyr::select(one_of(keep_cols))
       
       ## Check if the data frames have data
       if (nrow(d) <= 2) {
@@ -551,19 +554,22 @@ combine_ala_records = function(species_list,
       }
       
       ##  type standardisation
+      # d <- d %>% mutate(lon = longitude,
+      #                   lat = latitude)
+      
       names(d)[names(d) == 'latitude']  <- 'lat'
       names(d)[names(d) == 'longitude'] <- 'lon'
       
       ##  standardise catnum colname
-      if("catalogueNumber" %in% colnames(d)) {
-        message ("Renaming catalogueNumber column to catalogNumber")
-        names(d)[names(d) == 'catalogueNumber'] <- 'catalogNumber'}
-      
-      if (!is.character(d$catalogNumber)) {
-        d$catalogNumber = as.character(d$catalogNumber)}
-      
-      if (!is.integer(d$catalogNumber)) {
-        d$catalogNumber = as.character(d$catalogNumber)}
+      # if("catalogueNumber" %in% colnames(d)) {
+      #   message ("Renaming catalogueNumber column to catalogNumber")
+      #   names(d)[names(d) == 'catalogueNumber'] <- 'catalogNumber'}
+      # 
+      # if (!is.character(d$catalogNumber)) {
+      #   d$catalogNumber = as.character(d$catalogNumber)}
+      # 
+      # if (!is.integer(d$catalogNumber)) {
+      #   d$catalogNumber = as.character(d$catalogNumber)}
       
       ## Standardise catnum colname
       if('coordinateUncertaintyinMetres' %in% colnames(d)) {
@@ -585,9 +591,9 @@ combine_ala_records = function(species_list,
         d["id"] <- as.character(d["id"])
       }
       
-      ## Choose only the desired columns
-      d = d %>%
-        dplyr::select(one_of(keep_cols))
+      # ## Choose only the desired columns
+      # d = d %>%
+      #   dplyr::select(one_of(keep_cols))
       
       ## Then print warnings
       warnings()
@@ -611,16 +617,13 @@ combine_ala_records = function(species_list,
   gc()
   
   ## Just get the newly downloaded species
-  ALL = ALL[ALL$searchTaxon %in% species_list, ]
+  TRIM  = ALL[ALL$searchTaxon %in% species_list, ]
   length(unique(ALL$searchTaxon))
   
-  if (nrow(ALL) > 0) {
+  if (nrow(TRIM ) > 0) {
     
     ## What names get returned?
-    sort(names(ALL))
-    TRIM <- ALL %>%
-      dplyr::select(dplyr::one_of(keep_cols))
-    
+    message(sort(names(TRIM)))
     nrow(TRIM)
     sort(names(TRIM))
     
