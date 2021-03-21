@@ -537,12 +537,11 @@ combine_ala_records = function(species_list,
         d <- d[["data"]]
         
       } else {
-        
         d = d
-        
       }
       
-      ## Check if the dataframes have data
+      
+      ## Check if the data frames have data
       if (nrow(d) <= 2) {
         
         ## If the species has < 2 records, escape the loop
@@ -555,32 +554,27 @@ combine_ala_records = function(species_list,
       names(d)[names(d) == 'latitude']  <- 'lat'
       names(d)[names(d) == 'longitude'] <- 'lon'
       
-      ##  standardi[sz]e catnum colname
+      ##  standardise catnum colname
       if("catalogueNumber" %in% colnames(d)) {
         message ("Renaming catalogueNumber column to catalogNumber")
-        names(d)[names(d) == 'catalogueNumber'] <- 'catalogNumber'
-        
-      }
+        names(d)[names(d) == 'catalogueNumber'] <- 'catalogNumber'}
       
       if (!is.character(d$catalogNumber)) {
-        d$catalogNumber = as.character(d$catalogNumber)
-        
-      }
+        d$catalogNumber = as.character(d$catalogNumber)}
       
-      ## standardi[sz]e catnum colname
+      if (!is.integer(d$catalogNumber)) {
+        d$catalogNumber = as.character(d$catalogNumber)}
+      
+      ## Standardise catnum colname
       if('coordinateUncertaintyinMetres' %in% colnames(d)) {
         message ("Renaming recordID column to id")
         names(d)[names(d) == 'coordinateUncertaintyinMetres'] <- 'coordinateUncertaintyInMetres'
-        d[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(d["coordinateUncertaintyInMetres"]))
-        
-      }
+        d[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(d["coordinateUncertaintyInMetres"]))}
       
-      ## standardi[sz]e catnum colname
+      ## Standardize columns
       if('recordID' %in% colnames(d)) {
         message ("Renaming recordID column to id")
-        names(d)[names(d) == 'recordID'] <- 'id'
-        
-      }
+        names(d)[names(d) == 'recordID'] <- 'id'}
       
       ## Create the searchTaxon column - check how to put the data in here
       message ('Formatting occurrence data for ', x)
@@ -601,9 +595,10 @@ combine_ala_records = function(species_list,
       ## This is a list of columns in different ALA files which have weird characters
       message ('Formatting numeric occurrence data for ', x)
       # d[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(d["coordinateUncertaintyInMetres"]))
-      d["year"]  = as.numeric(unlist(d["year"]))
-      d["month"] = as.numeric(unlist(d["month"]))
-      d["id"]    = as.character(unlist(d["id"]))
+      # d["eventDate"] = as.character(unlist(d["eventDate"]))
+      d["year"]      = as.numeric(unlist(d["year"]))
+      d["month"]     = as.numeric(unlist(d["month"]))
+      d["id"]        = as.character(unlist(d["id"]))
       
       return(d)
       
@@ -623,7 +618,7 @@ combine_ala_records = function(species_list,
     
     ## What names get returned?
     sort(names(ALL))
-    TRIM <- ALL%>%
+    TRIM <- ALL %>%
       dplyr::select(dplyr::one_of(keep_cols))
     
     nrow(TRIM)
@@ -1100,8 +1095,8 @@ combine_records_extract = function(ala_df,
   
   ## Create points: the 'over' function seems to need geographic coordinates for this data...
   GBIF.ALA.84 = SpatialPointsDataFrame(coords      = ALA.COMBO[c("lon", "lat")],
-                                         data        = ALA.COMBO,
-                                         proj4string = prj)
+                                       data        = ALA.COMBO,
+                                       proj4string = prj)
   
   if(thin_records == TRUE) {
     

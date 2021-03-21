@@ -87,7 +87,7 @@ ALA_keep <- c(## TAXONOMY
   ## RECORD ID
   "recordedBy",
   "id",
-  "catalogNumber",
+  # "catalogNumber",
   "identificationID",
   "identifiedBy",
   "occurrenceID",
@@ -109,7 +109,7 @@ ALA_keep <- c(## TAXONOMY
   "year",
   "month",
   "day",
-  "eventDate",
+  # "eventDate",
   "eventID",
   
   ## Quality
