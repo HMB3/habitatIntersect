@@ -544,7 +544,6 @@ combine_ala_records = function(species_list,
         ## If the species has < 2 records, escape the loop
         print (paste ("No occurrence records for ", x, " skipping "))
         return (d)
-        
       }
       
       ##  type standardisation
@@ -553,30 +552,26 @@ combine_ala_records = function(species_list,
       
       ##  standardi[sz]e catnum colname
       if("catalogueNumber" %in% colnames(d)) {
-        message ("Renaming catalogueNumber column to catalogNumber")
-        names(d)[names(d) == 'catalogueNumber'] <- 'catalogNumber'
-        
+        # message ("Renaming catalogueNumber column to catalogNumber")
+        # names(d)[names(d) == 'catalogueNumber'] <- 'catalogNumber'
+        d <- d %>% select(-catalogueNumber)
       }
       
-      if (!is.character(d$catalogNumber)) {
-        d$catalogNumber = as.character(d$catalogNumber)
-        
-      }
+      # if (!is.character(d$catalogNumber)) {
+      #   d$catalogNumber = as.character(d$catalogNumber)
+      #   
+      # }
       
       ## standardi[sz]e catnum colname
       if('coordinateUncertaintyinMetres' %in% colnames(d)) {
         message ("Renaming recordID column to id")
         names(d)[names(d) == 'coordinateUncertaintyinMetres'] <- 'coordinateUncertaintyInMetres'
-        d[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(d["coordinateUncertaintyInMetres"]))
-        
-      }
+        d[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(d["coordinateUncertaintyInMetres"]))}
       
       ## standardi[sz]e catnum colname
       if('recordID' %in% colnames(d)) {
         message ("Renaming recordID column to id")
-        names(d)[names(d) == 'recordID'] <- 'id'
-        
-      }
+        names(d)[names(d) == 'recordID'] <- 'id'}
       
       ## Create the searchTaxon column - check how to put the data in here
       message ('Formatting occurrence data for ', x)
@@ -584,8 +579,7 @@ combine_ala_records = function(species_list,
       d[,"searchTaxon"] = gsub(records_extension, "", d[,"searchTaxon"])
       
       if(!is.character(d["id"])) {
-        d["id"] <- as.character(d["id"])
-      }
+        d["id"] <- as.character(d["id"])}
       
       ## Choose only the desired columns
       d = d %>%
@@ -601,9 +595,7 @@ combine_ala_records = function(species_list,
       d["month"] = as.numeric(unlist(d["month"]))
       d["id"]    = as.character(unlist(d["id"]))
       
-      return(d)
-      
-    }) %>%
+      return(d) }) %>%
     
     ## Finally, bind all the rows together
     bind_rows
@@ -619,7 +611,7 @@ combine_ala_records = function(species_list,
     
     ## What names get returned?
     sort(names(ALL))
-    TRIM <- ALL%>%
+    TRIM <- ALL %>%
       dplyr::select(dplyr::one_of(keep_cols))
     
     nrow(TRIM)
@@ -643,8 +635,7 @@ combine_ala_records = function(species_list,
             " % records retained using spatially valid records")
     
     ## Can use WORLDCIM rasters to get only records where wordlclim data is.
-    message('Removing ALA points outside raster bounds for ', length(species_list),
-            ' species')
+    message('Removing ALA points outside raster bounds for ', length(species_list), ' species')
     
     ## Now get the XY centroids of the unique 1km * 1km WORLDCLIM blocks where ALA records are found
     ## Get cell number(s) of WORLDCLIM raster from row and/or column numbers. Cell numbers start at 1 in the upper left corner,
