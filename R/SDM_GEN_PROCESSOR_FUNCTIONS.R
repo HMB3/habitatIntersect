@@ -595,9 +595,12 @@ combine_ala_records = function(species_list,
       d["month"] = as.numeric(unlist(d["month"]))
       d["id"]    = as.character(unlist(d["id"]))
       
-      return(d) }) %>%
+      # d <- d %>% select(-catalogueNumber)
+      return(d) 
+    }) %>%
     
     ## Finally, bind all the rows together
+    message('combining ALA data for all taxa')
     bind_rows
   
   ## Clear the garbage
@@ -609,20 +612,12 @@ combine_ala_records = function(species_list,
   
   if (nrow(ALL) > 0) {
     
-    ## What names get returned?
-    sort(names(ALL))
-    TRIM <- ALL %>%
-      dplyr::select(dplyr::one_of(keep_cols))
-    
-    nrow(TRIM)
-    sort(names(TRIM))
-    
     ## What are the unique species?
-    (sum(is.na(TRIM$scientificName)) + nrow(subset(TRIM, scientificName == "")))/nrow(TRIM)*100
+    (sum(is.na(ALL$scientificName)) + nrow(subset(ALL, scientificName == "")))/nrow(ALL)*100
     
     ## 3). FILTER RECORDS TO THOSE WITH COORDINATES, AND AFTER 1950
     ## Now filter the ALA records using conditions which are not too restrictive
-    CLEAN <- TRIM %>%
+    CLEAN <- ALL %>%
       
       ## Note that these filters are very forgiving...
       ## Unless we include the NAs, very few records are returned!
@@ -1397,6 +1392,8 @@ coord_clean_records = function(records,
   if(save_data == TRUE) {
     ## save .rds file for the next session
     saveRDS(COORD.CLEAN, paste0(data_path, 'COORD_CLEAN_', save_run, '.rds'))
+    return(COORD.CLEAN)
+    
   } else {
     message('Return the cleaned occurrence data to the global environment')   ##
     return(COORD.CLEAN)

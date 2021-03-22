@@ -375,11 +375,12 @@ records data.frame is that returned by the combine_records_extract function abov
 ## COMBO.RASTER.SUBSET <- COMBO.RASTER.CONVERT %>% select(-one_of(env_cols))
 ## saveRDS(COMBO.RASTER.SUBSET, './output/results/COMBO_RASTER_SUBSET_TARGET_INSECT_FAMILIES.rds')
 ## Flag records as institutional or spatial outliers
-COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.FAM,
+COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.CONVERT,
                                   capitals   = 10000,  
                                   centroids  = 5000,   
-                                  save_run   = "TEST_SPECIES",
-                                  save_data  = FALSE)
+                                  save_data  = TRUE,
+                                  save_run   = "TARGET_INSECT_SPECIES",
+                                  data_path  = "./output/results/")
 
 ``` 
 
