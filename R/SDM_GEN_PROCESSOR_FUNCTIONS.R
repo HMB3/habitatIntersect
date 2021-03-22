@@ -533,13 +533,9 @@ combine_ala_records = function(species_list,
       ## Load each file - check if some are already dataframes
       d <- get(load(f))
       if (length(class(d)) > 1) {
-        
         d <- d[["data"]]
-        
       } else {
-        
         d = d
-        
       }
       
       ## Check if the dataframes have data
@@ -1177,13 +1173,14 @@ combine_records_extract = function(ala_df,
   if(save_data == TRUE) {
     
     ## save .rds file for the next session
-    saveRDS(COMBO.RASTER.CONVERT, paste0(data_path, 'COMBO_RASTER_CONVERT_',  save_run, '.rds'))
+    saveRDS(COMBO.RASTER.CONVERT, paste0(data_path, 'COMBO_RASTER_CONVERT_', save_run, '.rds'))
     
-    ## save .shp for future refrence
-    # writeOGR(obj    = COMBO.RASTER.CONVERT.SPDF,
-    #          dsn    = "./output/results/CLEAN_GBIF",
-    #          layer  = paste0('SPAT_OUT_CHECK_', save_run),
-    #          driver = "ESRI Shapefile", overwrite_layer = TRUE)  
+    ## save .shp for future reference
+    writeOGR(obj    = COMBO.RASTER.CONVERT.SPDF,
+             dsn    = paste0(getwd(), "/output/results/"),
+             layer  = paste0('COMBO_RASTER_CONVERT_', save_run),
+             driver = "ESRI Shapefile", 
+             overwrite_layer = TRUE)
     
     return(COMBO.RASTER.CONVERT)
     

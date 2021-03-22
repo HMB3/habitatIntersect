@@ -91,14 +91,14 @@ Let's use all the insect famlies that we think might be threatened by the 2019/2
 data('insect_data_families')
 data('all.insect.families')
 data('all.insect.genera')
-data('all.insect.species')
+data('all.insect.spp')
 
 data('target.insect.spp')
 data('target.insect.genera')
 data('target.insect.families')
 data('all.insect.plant.spp')
 
-analysis_spp <- str_trim(target.insect.spp) 
+analysis_spp <- str_trim(all.insect.plant.spp) 
 analysis_spp
 
 ```
@@ -228,6 +228,7 @@ Next we filter the records to those taken after 1950, and those inside the raste
 ## Also, add a switch for the 1km filter - we don't want to do this anymore, too few records
 data('ALA_keep')
 
+
 ## Combine Family ALA data
 ALA.LAND.FAM = combine_ala_records(species_list      = analysis_spp,
                                    records_path      = "./data/ALA/Insects/Family/",
@@ -324,7 +325,7 @@ the biolclim variables (i.e. bio1-bio19)
 ## Note that the climate values are too small 
 COMBO.RASTER.FAM = combine_records_extract(ala_df          = ALA.LAND.FAM,
                                            site_df         = all_insect_site_df_families,
-                                           thin_records    = TRUE,
+                                           thin_records    = FALSE,
                                            template_raster = template_raster_1km_WGS84,
                                            world_raster    = worldclim_climate,
                                            prj             = CRS("+init=epsg:4326"),
@@ -370,9 +371,11 @@ records data.frame is that returned by the combine_records_extract function abov
 
 ## Just create a background points version for each step 
 
-## COMBO.RASTER.CONVERT = readRDS('./output/results/COMBO_RASTER_CONVERT_ALA_INSECT_FAMILIES.rds')
+## COMBO.RASTER.CONVERT = readRDS('./output/results/COMBO_RASTER_CONVERT_TARGET_INSECT_SPECIES.rds')
+## COMBO.RASTER.SUBSET <- COMBO.RASTER.CONVERT %>% select(-one_of(env_cols))
+## saveRDS(COMBO.RASTER.SUBSET, './output/results/COMBO_RASTER_SUBSET_TARGET_INSECT_FAMILIES.rds')
 ## Flag records as institutional or spatial outliers
-COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.CONVERT,
+COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.FAM,
                                   capitals   = 10000,  
                                   centroids  = 5000,   
                                   save_run   = "TEST_SPECIES",
