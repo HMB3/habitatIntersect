@@ -373,7 +373,7 @@ records data.frame is that returned by the combine_records_extract function abov
 
 ## COMBO.RASTER.CONVERT = readRDS('./output/results/COMBO_RASTER_CONVERT_TARGET_INSECT_SPECIES.rds')
 ## COMBO.RASTER.SUBSET <- COMBO.RASTER.CONVERT %>% select(-one_of(env_cols))
-## saveRDS(COMBO.RASTER.SUBSET, './output/results/COMBO_RASTER_SUBSET_TARGET_INSECT_FAMILIES.rds')
+## write_rds(COMBO.RASTER.SUBSET, './output/results/COMBO_RASTER_SUBSET_ALL_INSECT_FAMILIES.rds', "gz", compression = 9L)
 ## Flag records as institutional or spatial outliers
 COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.CONVERT,
                                   capitals   = 10000,  
@@ -401,7 +401,8 @@ It assumes that the input dfs are those returned by the coord_clean_records func
 SPATIAL.CLEAN = check_spatial_outliers(all_df       = COORD.CLEAN,
                                        land_shp     = LAND,
                                        site_df      = FALSE, 
-                                       clean_path   = './data/GBIF/Check_plots/',
+                                       clean_path   = './data/ALA/Check_Plots/',
+                                       plot_points  = FALSE,
                                        spatial_mult = 10,
                                        prj          = CRS("+init=epsg:4326"))
 
@@ -427,7 +428,7 @@ GLOB.NICHE = calc_1km_niches(coord_df     = SPATIAL.CLEAN,
                              species_list = analysis_spp,
                              env_vars     = env_variables,
                              cell_size    = 2,
-                             save_run     = "TEST_INSECTS_FAMILY",
+                             save_run     = "ALL_INSECTS_SPECIES",
                              data_path    = "./output/results/",
                              save_data    = TRUE)
 

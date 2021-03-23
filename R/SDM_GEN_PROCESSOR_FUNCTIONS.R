@@ -1011,7 +1011,9 @@ combine_background_records = function(background_df,
   if(save_data == TRUE) {
     
     ## save .rds file for the next session
-    saveRDS(LAND.POINTS, paste0(data_path, 'ALA_BG_CONVERT_',  save_run, '.rds'))
+    write_rds(LAND.POINTS, 
+              paste0(data_path, 'ALA_BG_CONVERT_', save_run, '.rds'), 
+              "gz", compression = 9L)
     return(LAND.POINTS)
     
   } else {
@@ -1159,7 +1161,9 @@ combine_records_extract = function(ala_df,
   if(save_data == TRUE) {
     
     ## save .rds file for the next session
-    saveRDS(COMBO.RASTER.CONVERT, paste0(data_path, 'COMBO_RASTER_CONVERT_', save_run, '.rds'))
+    write_rds(COMBO.RASTER.CONVERT, 
+              paste0(data_path, 'COMBO_RASTER_CONVERT_', save_run, '.rds'), 
+              "gz", compression = 9L)
     
     ## save .shp for future reference
     writeOGR(obj    = COMBO.RASTER.CONVERT.SPDF,
@@ -1289,7 +1293,9 @@ site_records_extract = function(site_df,
   if(save_data == TRUE) {
     
     ## save .rds file for the next session
-    saveRDS(COMBO.RASTER.CONVERT, paste0(data_path, 'COMBO_RASTER_CONVERT_',  save_run, '.rds'))
+    write_rds(COMBO.RASTER.CONVERT, 
+              paste0(data_path, 'COMBO_RASTER_CONVERT_', save_run, '.rds'), 
+              "gz", compression = 9L)
   } else {
     return(COMBO.RASTER.CONVERT)
   }
@@ -1391,7 +1397,10 @@ coord_clean_records = function(records,
   
   if(save_data == TRUE) {
     ## save .rds file for the next session
-    saveRDS(COORD.CLEAN, paste0(data_path, 'COORD_CLEAN_', save_run, '.rds'))
+    write_rds(COORD.CLEAN, 
+              paste0(data_path, 'COORD_CLEAN_', save_run, '.rds'), 
+              "gz", compression = 9L)
+    
     return(COORD.CLEAN)
     
   } else {
@@ -1423,10 +1432,13 @@ check_spatial_outliers = function(all_df,
                                   site_df,
                                   land_shp,
                                   clean_path,
+                                  plot_points,
                                   spatial_mult,
                                   prj) {
   
   ## Try plotting the points which are outliers for a subset of spp and label them
+  if(plot_points == TRUE) {
+  
   ALL.PLOT = SpatialPointsDataFrame(coords      = all_df[c("lon", "lat")],
                                     data        = all_df,
                                     proj4string = prj)
@@ -1442,7 +1454,7 @@ check_spatial_outliers = function(all_df,
   AUS.84 = AUS %>%
     spTransform(prj)
   
-  ## spp = spat.taxa[1]
+  ## spp = plot.taxa[1]
   plot.taxa <- as.character(unique(CLEAN.PLOT$searchTaxon))
   for (spp in plot.taxa) {
     
@@ -1450,7 +1462,7 @@ check_spatial_outliers = function(all_df,
     CLEAN.PLOT.PI = CLEAN.PLOT[ which(CLEAN.PLOT$searchTaxon == spp), ]
     
     message("plotting occ data for ", spp, ", ",
-            nrow(CLEAN.PLOT.PI), " records flagged as either ",
+            nrow(CLEAN.PLOT.PI), " records flagged as ",
             unique(CLEAN.PLOT.PI$coord_summary))
     
     ## Plot true and false points for the world
@@ -1460,30 +1472,34 @@ check_spatial_outliers = function(all_df,
     png(sprintf("%s%s_%s", clean_path, spp, "global_check_cc.png"),
         16, 10, units = 'in', res = 500)
     
-    par(mfrow = c(1,2))
-    plot(LAND.84, main = paste0(nrow(subset(ALL.PLOT, coord_summary == FALSE)),
-                                " Global clean_coord 'FALSE' points for ", spp),
-         lwd = 0.01, asp = 1, col = 'grey', bg = 'sky blue')
+    par(mfrow = c(1,1))
+    # plot(LAND.84, main = paste0(nrow(subset(CLEAN.PLOT.PI, coord_summary == FALSE)),
+    #                             " Global clean_coord 'FALSE' points for ", spp),
+    #      lwd = 0.01, asp = 1, col = 'grey', bg = 'sky blue')
+    # 
+    # points(CLEAN.PLOT.PI,
+    #        pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
+    #        xlab = "", ylab = "", asp = 1,
+    #        col = factor(ALL.PLOT$coord_summary))
+    
+    ## Plot true and false points for the world
+    ## Black == FALSE
+    ## Red   == TRUE
+    plot(AUS.84, main = paste0(nrow(subset(CLEAN.PLOT.PI, coord_summary == FALSE)),
+                               " Global clean_coord 'FALSE' points for ", spp),
+         lwd = 0.01, asp = 1, bg = 'sky blue', col = 'grey')
     
     points(CLEAN.PLOT.PI,
            pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
            xlab = "", ylab = "", asp = 1,
            col = factor(ALL.PLOT$coord_summary))
     
-    ## Plot true and false points for the world
-    ## Black == FALSE
-    ## Red   == TRUE
-    plot(AUS.84, main = paste0(nrow(subset(ALL.PLOT, coord_summary == FALSE)),
-                               " Global clean_coord 'FALSE' points for ", spp),
-         lwd = 0.01, asp = 1, bg = 'sky blue', col = 'grey')
-    
-    points(ALL.PLOT,
-           pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
-           xlab = "", ylab = "", asp = 1,
-           col = factor(ALL.PLOT$coord_summary))
-    
     dev.off()
     
+  }
+  
+  } else {
+    message('Do not create maps of each species coord clean records')   ##
   }
   
   ## Create a tibble to supply to coordinate cleaner
@@ -1570,11 +1586,13 @@ check_spatial_outliers = function(all_df,
   
   ## Try plotting the points which are outliers for a subset of spp and label them
   ## Get the first 10 spp
-  ## spp = spat.taxa[1]
+  if(plot_points == TRUE) {
+    
   spat.taxa <- as.character(unique(SPAT.FLAG$searchTaxon))
   for (spp in spat.taxa) {
     
     ## Plot a subset of taxa
+    ## spp = spat.taxa[1]
     SPAT.PLOT <- SPAT.FLAG %>% filter(searchTaxon == spp) %>%
       SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
                              data        = .,
@@ -1590,15 +1608,15 @@ check_spatial_outliers = function(all_df,
     png(sprintf("%s%s_%s", clean_path, spp, "global_spatial_outlier_check.png"),
         16, 10, units = 'in', res = 500)
     
-    par(mfrow = c(1,2))
-    plot(LAND.84, main = paste0(nrow(subset(SPAT.PLOT, SPAT_OUT == FALSE)),
-                                " Spatial outlier 'FALSE' points for ", spp),
-         lwd = 0.01, asp = 1, col = 'grey', bg = 'sky blue')
-    
-    points(SPAT.PLOT,
-           pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
-           xlab = "", ylab = "", asp = 1,
-           col = factor(SPAT.PLOT$SPAT_OUT))
+    par(mfrow = c(1,1))
+    # plot(LAND.84, main = paste0(nrow(subset(SPAT.PLOT, SPAT_OUT == FALSE)),
+    #                             " Spatial outlier 'FALSE' points for ", spp),
+    #      lwd = 0.01, asp = 1, col = 'grey', bg = 'sky blue')
+    # 
+    # points(SPAT.PLOT,
+    #        pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
+    #        xlab = "", ylab = "", asp = 1,
+    #        col = factor(SPAT.PLOT$SPAT_OUT))
     
     ## Plot true and false points for the world
     ## Black == FALSE
@@ -1612,7 +1630,10 @@ check_spatial_outliers = function(all_df,
            col = factor(SPAT.PLOT$SPAT_OUT))
     
     dev.off()
-    
+  }
+  
+  } else {
+    message('Do not create maps of each species spatial clean records')   ##
   }
   
   ## Could add the species in site records in here
@@ -1830,7 +1851,10 @@ calc_1km_niches = function(coord_df,
     ## save .rds file for the next session
     message('Writing 1km resolution niche and raster data for ',
             length(species_list), ' species in the set ', "'", save_run, "'")
-    saveRDS(GLOB.NICHE, paste0(data_path, 'GLOBAL_NICHES_',  save_run, '.rds'))
+    
+    write_rds(GLOB.NICHE, 
+              paste0(data_path, 'GLOBAL_NICHES_', save_run, '.rds'), 
+              "gz", compression = 9L)
     return(GLOB.NICHE)
     
   } else {
@@ -2387,7 +2411,9 @@ prepare_sdm_table = function(coord_df,
   if(save_data == TRUE) {
     
     ## Save .rds file of the occurrence and BG points for the next session
-    saveRDS(SDM.SPAT.OCC.BG, paste0(data_path, 'SDM_SPAT_OCC_BG_',  save_run, '.rds'))
+    write_rds(SDM.SPAT.OCC.BG, 
+              paste0(data_path, 'SDM_SPAT_OCC_BG_', save_run, '.rds'), 
+              "gz", compression = 9L)
   } else {
     message('Return the occurrence + Background data to the global environment')   ##
     return(SDM.SPAT.OCC.BG)
