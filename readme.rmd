@@ -397,7 +397,7 @@ It assumes that the input dfs are those returned by the coord_clean_records func
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Flag spatial outliers
-## This one doesn't quite work - it doesn't loop over the figures
+## This one doesn't quite work - it doesn't loop over the figures :
 SPATIAL.CLEAN = check_spatial_outliers(all_df       = COORD.CLEAN,
                                        land_shp     = LAND,
                                        site_df      = FALSE, 
