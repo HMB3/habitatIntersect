@@ -98,7 +98,7 @@ data('target.insect.genera')
 data('target.insect.families')
 data('all.insect.plant.spp')
 
-analysis_spp <- str_trim(all.insect.plant.spp) 
+analysis_spp <- str_trim(insect_data_families) 
 analysis_spp
 
 ```
@@ -373,12 +373,12 @@ records data.frame is that returned by the combine_records_extract function abov
 
 ## COMBO.RASTER.CONVERT = readRDS('./output/results/COMBO_RASTER_CONVERT_TARGET_INSECT_SPECIES.rds')
 ## COMBO.RASTER.SUBSET <- COMBO.RASTER.CONVERT %>% select(-one_of(env_cols))
-## write_rds(COMBO.RASTER.SUBSET, './output/results/COMBO_RASTER_SUBSET_ALL_INSECT_FAMILIES.rds', "gz", compression = 9L)
+## readr::write_rds(COMBO.RASTER.SUBSET, './output/results/SUBSET_ALL_INSECT_FAMILIES.rds', "gz", compression = 9L)
 ## Flag records as institutional or spatial outliers
-COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.CONVERT,
+COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.SUBSET,
                                   capitals   = 10000,  
                                   centroids  = 5000,   
-                                  save_data  = TRUE,
+                                  save_data  = FALSE,
                                   save_run   = "TARGET_INSECT_SPECIES",
                                   data_path  = "./output/results/")
 
