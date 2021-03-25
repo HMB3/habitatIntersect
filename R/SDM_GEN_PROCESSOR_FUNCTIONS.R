@@ -37,7 +37,7 @@ download_GBIF_all_species = function(species_list,
     file_name = paste0(download_path, sp.n, "_GBIF_records.RData")
     
     ## If it's already downloaded, skip
-    if (file.exists (file_name)) {
+    if (file.exists(file_name)) {
       
       print(paste ("file exists for species", sp.n, "skipping"))
       next
@@ -539,12 +539,11 @@ combine_ala_records = function(species_list,
       }
       
       ## Check if the dataframes have data
-      if (nrow(d) <= 2) {
+      if (nrow(d) >= 2) {
         
         ## If the species has < 2 records, escape the loop
-        print (paste ("No occurrence records for ", x, " skipping "))
-        return (d)
-      }
+        print (paste ("Sufficient occurrence records for ", x, " processing "))
+ 
       
       ##  type standardisation
       names(d)[names(d) == 'latitude']  <- 'lat'
@@ -555,6 +554,10 @@ combine_ala_records = function(species_list,
         # message ("Renaming catalogueNumber column to catalogNumber")
         # names(d)[names(d) == 'catalogueNumber'] <- 'catalogNumber'
         d <- d %>% select(-catalogueNumber)
+      }
+      
+      if("eventDate" %in% colnames(d)) {
+        d <- d %>% select(-eventDate)
       }
       
       # if (!is.character(d$catalogNumber)) {
@@ -596,12 +599,15 @@ combine_ala_records = function(species_list,
       d["id"]    = as.character(unlist(d["id"]))
       
       # d <- d %>% select(-catalogueNumber)
-      return(d) 
+      #return(d)
+      } else {
+        message('No ALA dat for ', x, ' skipping')
+      }
+      return(d)
     }) %>%
     
     ## Finally, bind all the rows together
-    message('combining ALA data for all taxa')
-    bind_rows
+    bind_rows()
   
   ## Clear the garbage
   gc()
@@ -612,12 +618,22 @@ combine_ala_records = function(species_list,
   
   if (nrow(ALL) > 0) {
     
+    ## What names get returned?
+    sort(names(ALL))
+    TRIM <- ALL #%>%
+      #dplyr::select(dplyr::one_of(keep_cols))
+    
+    dim(TRIM)
+    sort(names(TRIM))
+    
+    
     ## What are the unique species?
-    (sum(is.na(ALL$scientificName)) + nrow(subset(ALL, scientificName == "")))/nrow(ALL)*100
+    (sum(is.na(TRIM$scientificName)) + nrow(subset(TRIM, scientificName == "")))/nrow(TRIM)*100
+    
     
     ## 3). FILTER RECORDS TO THOSE WITH COORDINATES, AND AFTER 1950
     ## Now filter the ALA records using conditions which are not too restrictive
-    CLEAN <- ALL %>%
+    CLEAN <- TRIM %>%
       
       ## Note that these filters are very forgiving...
       ## Unless we include the NAs, very few records are returned!

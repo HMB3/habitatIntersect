@@ -51,6 +51,7 @@ To install, run :
 ## Sys.setenv(JAVA_HOME = "C:\\Program Files (x86)\\Java\\jre1.8.0_231")
 ## Sys.setenv(JAVA_HOME = 'C:\\Program Files\\Java\\jre1.8.0_281')
 devtools::install_github("HMB3/nenswniche")
+data('sdmgen_packages')
 library(nenswniche)
 sapply(sdmgen_packages, require, character.only = TRUE)
 
@@ -81,7 +82,7 @@ are not very well sampled....so we can analyse at the family level.
 
 \
 
-Let's use all the insect famlies that we think might be threatened by the 2019/2020 fires. 
+Let's use all the insect families that we think might be threatened by the 2019/2020 fires. 
 
 \
 
@@ -98,7 +99,7 @@ data('target.insect.genera')
 data('target.insect.families')
 data('all.insect.plant.spp')
 
-analysis_spp <- str_trim(insect_data_families) 
+analysis_spp <- str_trim(all.insect.spp) 
 analysis_spp
 
 ```
