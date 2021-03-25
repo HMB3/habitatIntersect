@@ -127,5 +127,5 @@ Remotes:
     johnbaums/rmaxent,
     johnbaums/things
 URL: https://github.com/HMB3/North_east_NSW_fire_recovery
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 VignetteBuilder: knitr
