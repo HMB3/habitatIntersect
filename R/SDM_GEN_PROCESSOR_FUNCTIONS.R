@@ -543,63 +543,63 @@ combine_ala_records = function(species_list,
         
         ## If the species has < 2 records, escape the loop
         print (paste ("Sufficient occurrence records for ", x, " processing "))
- 
-      
-      ##  type standardisation
-      names(d)[names(d) == 'latitude']  <- 'lat'
-      names(d)[names(d) == 'longitude'] <- 'lon'
-      
-      ##  standardi[sz]e catnum colname
-      if("catalogueNumber" %in% colnames(d)) {
-        # message ("Renaming catalogueNumber column to catalogNumber")
-        # names(d)[names(d) == 'catalogueNumber'] <- 'catalogNumber'
-        d <- d %>% select(-catalogueNumber)
-      }
-      
-      if("eventDate" %in% colnames(d)) {
-        d <- d %>% select(-eventDate)
-      }
-      
-      # if (!is.character(d$catalogNumber)) {
-      #   d$catalogNumber = as.character(d$catalogNumber)
-      #   
-      # }
-      
-      ## standardi[sz]e catnum colname
-      if('coordinateUncertaintyinMetres' %in% colnames(d)) {
-        message ("Renaming recordID column to id")
-        names(d)[names(d) == 'coordinateUncertaintyinMetres'] <- 'coordinateUncertaintyInMetres'
-        d[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(d["coordinateUncertaintyInMetres"]))}
-      
-      ## standardi[sz]e catnum colname
-      if('recordID' %in% colnames(d)) {
-        message ("Renaming recordID column to id")
-        names(d)[names(d) == 'recordID'] <- 'id'}
-      
-      ## Create the searchTaxon column - check how to put the data in here
-      message ('Formatting occurrence data for ', x)
-      d[,"searchTaxon"] = x
-      d[,"searchTaxon"] = gsub(records_extension, "", d[,"searchTaxon"])
-      
-      if(!is.character(d["id"])) {
-        d["id"] <- as.character(d["id"])}
-      
-      ## Choose only the desired columns
-      d = d %>%
-        dplyr::select(one_of(keep_cols))
-      
-      ## Then print warnings
-      warnings()
-      
-      ## This is a list of columns in different ALA files which have weird characters
-      message ('Formatting numeric occurrence data for ', x)
-      # d[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(d["coordinateUncertaintyInMetres"]))
-      d["year"]  = as.numeric(unlist(d["year"]))
-      d["month"] = as.numeric(unlist(d["month"]))
-      d["id"]    = as.character(unlist(d["id"]))
-      
-      # d <- d %>% select(-catalogueNumber)
-      #return(d)
+        
+        
+        ##  type standardisation
+        names(d)[names(d) == 'latitude']  <- 'lat'
+        names(d)[names(d) == 'longitude'] <- 'lon'
+        
+        ##  standardi[sz]e catnum colname
+        if("catalogueNumber" %in% colnames(d)) {
+          # message ("Renaming catalogueNumber column to catalogNumber")
+          # names(d)[names(d) == 'catalogueNumber'] <- 'catalogNumber'
+          d <- d %>% select(-catalogueNumber)
+        }
+        
+        if("eventDate" %in% colnames(d)) {
+          d <- d %>% select(-eventDate)
+        }
+        
+        # if (!is.character(d$catalogNumber)) {
+        #   d$catalogNumber = as.character(d$catalogNumber)
+        #   
+        # }
+        
+        ## standardi[sz]e catnum colname
+        if('coordinateUncertaintyinMetres' %in% colnames(d)) {
+          message ("Renaming recordID column to id")
+          names(d)[names(d) == 'coordinateUncertaintyinMetres'] <- 'coordinateUncertaintyInMetres'
+          d[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(d["coordinateUncertaintyInMetres"]))}
+        
+        ## standardi[sz]e catnum colname
+        if('recordID' %in% colnames(d)) {
+          message ("Renaming recordID column to id")
+          names(d)[names(d) == 'recordID'] <- 'id'}
+        
+        ## Create the searchTaxon column - check how to put the data in here
+        message ('Formatting occurrence data for ', x)
+        d[,"searchTaxon"] = x
+        d[,"searchTaxon"] = gsub(records_extension, "", d[,"searchTaxon"])
+        
+        if(!is.character(d["id"])) {
+          d["id"] <- as.character(d["id"])}
+        
+        ## Choose only the desired columns
+        d = d %>%
+          dplyr::select(one_of(keep_cols))
+        
+        ## Then print warnings
+        warnings()
+        
+        ## This is a list of columns in different ALA files which have weird characters
+        message ('Formatting numeric occurrence data for ', x)
+        # d[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(d["coordinateUncertaintyInMetres"]))
+        d["year"]  = as.numeric(unlist(d["year"]))
+        d["month"] = as.numeric(unlist(d["month"]))
+        d["id"]    = as.character(unlist(d["id"]))
+        
+        # d <- d %>% select(-catalogueNumber)
+        #return(d)
       } else {
         message('No ALA dat for ', x, ' skipping')
       }
@@ -621,7 +621,7 @@ combine_ala_records = function(species_list,
     ## What names get returned?
     sort(names(ALL))
     TRIM <- ALL #%>%
-      #dplyr::select(dplyr::one_of(keep_cols))
+    #dplyr::select(dplyr::one_of(keep_cols))
     
     dim(TRIM)
     sort(names(TRIM))
@@ -1235,7 +1235,7 @@ site_records_extract = function(site_df,
   site.XY = site_df[site_df$searchTaxon %in% species_list, ]
   message('Extracting raster values for ',
           length(unique(site.XY$searchTaxon)), ' site species across ',
-          length(unique(site.XY$INVENTORY)),   ' Councils ')
+          nrow(site.XY),   ' Sites')
   
   ## Create points: the 'over' function seems to need geographic coordinates for this data...
   site.XY   = SpatialPointsDataFrame(coords      = site.XY[c("lon", "lat")],
@@ -1265,7 +1265,8 @@ site_records_extract = function(site_df,
     
   } else {
     message('dont thin the records out' )
-    COMBO.POINTS = site.XY
+    COMBO.POINTS = site.XY[c("lon", "lat")]
+    site.XY.1KM  = site.XY
   }
   
   ## Bioclim variables
@@ -1454,66 +1455,66 @@ check_spatial_outliers = function(all_df,
   
   ## Try plotting the points which are outliers for a subset of spp and label them
   if(plot_points == TRUE) {
-  
-  ALL.PLOT = SpatialPointsDataFrame(coords      = all_df[c("lon", "lat")],
-                                    data        = all_df,
-                                    proj4string = prj)
-  
-  CLEAN.TRUE = subset(all_df, coord_summary == TRUE)
-  CLEAN.PLOT = SpatialPointsDataFrame(coords      = CLEAN.TRUE[c("lon", "lat")],
-                                      data        = CLEAN.TRUE,
+    
+    ALL.PLOT = SpatialPointsDataFrame(coords      = all_df[c("lon", "lat")],
+                                      data        = all_df,
                                       proj4string = prj)
-  
-  ## Create global and australian shapefile in the local coordinate system
-  LAND.84 = land_shp %>%
-    spTransform(prj)
-  AUS.84 = AUS %>%
-    spTransform(prj)
-  
-  ## spp = plot.taxa[1]
-  plot.taxa <- as.character(unique(CLEAN.PLOT$searchTaxon))
-  for (spp in plot.taxa) {
     
-    ## Plot a subset of taxa
-    CLEAN.PLOT.PI = CLEAN.PLOT[ which(CLEAN.PLOT$searchTaxon == spp), ]
+    CLEAN.TRUE = subset(all_df, coord_summary == TRUE)
+    CLEAN.PLOT = SpatialPointsDataFrame(coords      = CLEAN.TRUE[c("lon", "lat")],
+                                        data        = CLEAN.TRUE,
+                                        proj4string = prj)
     
-    message("plotting occ data for ", spp, ", ",
-            nrow(CLEAN.PLOT.PI), " records flagged as ",
-            unique(CLEAN.PLOT.PI$coord_summary))
+    ## Create global and australian shapefile in the local coordinate system
+    LAND.84 = land_shp %>%
+      spTransform(prj)
+    AUS.84 = AUS %>%
+      spTransform(prj)
     
-    ## Plot true and false points for the world
-    ## Black == FALSE
-    ## Red   == TRUE
-    message('Writing map of global coord clean records for ', spp)
-    png(sprintf("%s%s_%s", clean_path, spp, "global_check_cc.png"),
-        16, 10, units = 'in', res = 500)
+    ## spp = plot.taxa[1]
+    plot.taxa <- as.character(unique(CLEAN.PLOT$searchTaxon))
+    for (spp in plot.taxa) {
+      
+      ## Plot a subset of taxa
+      CLEAN.PLOT.PI = CLEAN.PLOT[ which(CLEAN.PLOT$searchTaxon == spp), ]
+      
+      message("plotting occ data for ", spp, ", ",
+              nrow(CLEAN.PLOT.PI), " records flagged as ",
+              unique(CLEAN.PLOT.PI$coord_summary))
+      
+      ## Plot true and false points for the world
+      ## Black == FALSE
+      ## Red   == TRUE
+      message('Writing map of global coord clean records for ', spp)
+      png(sprintf("%s%s_%s", clean_path, spp, "global_check_cc.png"),
+          16, 10, units = 'in', res = 500)
+      
+      par(mfrow = c(1,1))
+      # plot(LAND.84, main = paste0(nrow(subset(CLEAN.PLOT.PI, coord_summary == FALSE)),
+      #                             " Global clean_coord 'FALSE' points for ", spp),
+      #      lwd = 0.01, asp = 1, col = 'grey', bg = 'sky blue')
+      # 
+      # points(CLEAN.PLOT.PI,
+      #        pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
+      #        xlab = "", ylab = "", asp = 1,
+      #        col = factor(ALL.PLOT$coord_summary))
+      
+      ## Plot true and false points for the world
+      ## Black == FALSE
+      ## Red   == TRUE
+      plot(AUS.84, main = paste0(nrow(subset(CLEAN.PLOT.PI, coord_summary == FALSE)),
+                                 " Global clean_coord 'FALSE' points for ", spp),
+           lwd = 0.01, asp = 1, bg = 'sky blue', col = 'grey')
+      
+      points(CLEAN.PLOT.PI,
+             pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
+             xlab = "", ylab = "", asp = 1,
+             col = factor(ALL.PLOT$coord_summary))
+      
+      dev.off()
+      
+    }
     
-    par(mfrow = c(1,1))
-    # plot(LAND.84, main = paste0(nrow(subset(CLEAN.PLOT.PI, coord_summary == FALSE)),
-    #                             " Global clean_coord 'FALSE' points for ", spp),
-    #      lwd = 0.01, asp = 1, col = 'grey', bg = 'sky blue')
-    # 
-    # points(CLEAN.PLOT.PI,
-    #        pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
-    #        xlab = "", ylab = "", asp = 1,
-    #        col = factor(ALL.PLOT$coord_summary))
-    
-    ## Plot true and false points for the world
-    ## Black == FALSE
-    ## Red   == TRUE
-    plot(AUS.84, main = paste0(nrow(subset(CLEAN.PLOT.PI, coord_summary == FALSE)),
-                               " Global clean_coord 'FALSE' points for ", spp),
-         lwd = 0.01, asp = 1, bg = 'sky blue', col = 'grey')
-    
-    points(CLEAN.PLOT.PI,
-           pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
-           xlab = "", ylab = "", asp = 1,
-           col = factor(ALL.PLOT$coord_summary))
-    
-    dev.off()
-    
-  }
-  
   } else {
     message('Do not create maps of each species coord clean records')   ##
   }
@@ -1604,50 +1605,50 @@ check_spatial_outliers = function(all_df,
   ## Get the first 10 spp
   if(plot_points == TRUE) {
     
-  spat.taxa <- as.character(unique(SPAT.FLAG$searchTaxon))
-  for (spp in spat.taxa) {
+    spat.taxa <- as.character(unique(SPAT.FLAG$searchTaxon))
+    for (spp in spat.taxa) {
+      
+      ## Plot a subset of taxa
+      ## spp = spat.taxa[1]
+      SPAT.PLOT <- SPAT.FLAG %>% filter(searchTaxon == spp) %>%
+        SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
+                               data        = .,
+                               proj4string = prj)
+      
+      message("plotting occ data for ", spp, ", ",
+              nrow(SPAT.PLOT ), " records")
+      
+      ## Plot true and false points for the world
+      ## Black == FALSE
+      ## Red   == TRUE
+      message('Writing map of global coord clean records for ', spp)
+      png(sprintf("%s%s_%s", clean_path, spp, "global_spatial_outlier_check.png"),
+          16, 10, units = 'in', res = 500)
+      
+      par(mfrow = c(1,1))
+      # plot(LAND.84, main = paste0(nrow(subset(SPAT.PLOT, SPAT_OUT == FALSE)),
+      #                             " Spatial outlier 'FALSE' points for ", spp),
+      #      lwd = 0.01, asp = 1, col = 'grey', bg = 'sky blue')
+      # 
+      # points(SPAT.PLOT,
+      #        pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
+      #        xlab = "", ylab = "", asp = 1,
+      #        col = factor(SPAT.PLOT$SPAT_OUT))
+      
+      ## Plot true and false points for the world
+      ## Black == FALSE
+      ## Red   == TRUE
+      plot(AUS.84, main = paste0("Australian points for ", spp),
+           lwd = 0.01, asp = 1, bg = 'sky blue', col = 'grey')
+      
+      points(SPAT.PLOT,
+             pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
+             xlab = "", ylab = "", asp = 1,
+             col = factor(SPAT.PLOT$SPAT_OUT))
+      
+      dev.off()
+    }
     
-    ## Plot a subset of taxa
-    ## spp = spat.taxa[1]
-    SPAT.PLOT <- SPAT.FLAG %>% filter(searchTaxon == spp) %>%
-      SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
-                             data        = .,
-                             proj4string = prj)
-    
-    message("plotting occ data for ", spp, ", ",
-            nrow(SPAT.PLOT ), " records")
-    
-    ## Plot true and false points for the world
-    ## Black == FALSE
-    ## Red   == TRUE
-    message('Writing map of global coord clean records for ', spp)
-    png(sprintf("%s%s_%s", clean_path, spp, "global_spatial_outlier_check.png"),
-        16, 10, units = 'in', res = 500)
-    
-    par(mfrow = c(1,1))
-    # plot(LAND.84, main = paste0(nrow(subset(SPAT.PLOT, SPAT_OUT == FALSE)),
-    #                             " Spatial outlier 'FALSE' points for ", spp),
-    #      lwd = 0.01, asp = 1, col = 'grey', bg = 'sky blue')
-    # 
-    # points(SPAT.PLOT,
-    #        pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
-    #        xlab = "", ylab = "", asp = 1,
-    #        col = factor(SPAT.PLOT$SPAT_OUT))
-    
-    ## Plot true and false points for the world
-    ## Black == FALSE
-    ## Red   == TRUE
-    plot(AUS.84, main = paste0("Australian points for ", spp),
-         lwd = 0.01, asp = 1, bg = 'sky blue', col = 'grey')
-    
-    points(SPAT.PLOT,
-           pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
-           xlab = "", ylab = "", asp = 1,
-           col = factor(SPAT.PLOT$SPAT_OUT))
-    
-    dev.off()
-  }
-  
   } else {
     message('Do not create maps of each species spatial clean records')   ##
   }
@@ -2220,20 +2221,20 @@ prepare_sdm_table = function(coord_df,
   sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
   
   ## Just add clean_df to this step
-  coord_df <- subset(coord_df, coord_summary == TRUE)
-  message(round(nrow(coord_df)/nrow(coord_df)*100, 2), " % records retained")
-  message(table(coord_df$coord_summary))
+  coord_clean <- subset(coord_df, coord_summary == TRUE)
+  message(round(nrow(coord_clean)/nrow(coord_df)*100, 2), " % records retained")
+  message(table(coord_clean$coord_summary))
   
   ## Create a table with all the variables needed for SDM analysis
-  message('Preparing SDM table for ', length(unique(coord_df$searchTaxon)),
+  message('Preparing SDM table for ', length(unique(coord_clean$searchTaxon)),
           ' species in the set ', "'", save_run, "'",
-          'using ', unique(coord_df$SOURCE), ' data')
+          'using ', unique(coord_clean$SOURCE), ' data')
   
   ## Select only the columns needed. This also needs to use the variable names
-  coord_df         <- coord_df[coord_df$searchTaxon %in% species_list, ]
-  length(unique(coord_df$searchTaxon))
+  coord_clean         <- coord_clean[coord_clean$searchTaxon %in% species_list, ]
+  length(unique(coord_clean$searchTaxon))
   
-  COMBO.RASTER.ALL  <- coord_df %>%
+  COMBO.RASTER.ALL  <- coord_clean %>%
     dplyr::select(one_of(sdm_table_vars))
   
   ## Create a spatial points object, and change to a projected system to calculate distance more accurately
@@ -2249,7 +2250,7 @@ prepare_sdm_table = function(coord_df,
   ## The cc_outl function has been tweaked and sped up.
   
   ## Create a unique identifier for spatial cleaning.
-  ## This is used for automated cleaing of the records, and also saving shapefiles
+  ## This is used for automated cleaning of the records, and also saving shapefiles
   ## But this will not be run for all species linearly.
   ## So, it probably needs to be a combination of species and number
   SDM.DATA.ALL$SPOUT.OBS <- 1:nrow(SDM.DATA.ALL)
@@ -2386,9 +2387,9 @@ prepare_sdm_table = function(coord_df,
   ## Write the shapefile out
   if(save_shp == TRUE) {
     
-    ## save .shp for future refrence
+    ## save .shp for future reference
     writeOGR(obj    = SPAT.OUT.SPDF,
-             dsn    = "./data/ANALYSIS/CLEAN_GBIF",
+             dsn    = paste0(getwd(), "/output/results/"),
              layer  = paste0('SPAT_OUT_CHECK_', save_run),
              driver = "ESRI Shapefile", overwrite_layer = TRUE)
     

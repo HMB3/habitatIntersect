@@ -88,7 +88,7 @@ Let's use all the insect families that we think might be threatened by the 2019/
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=TRUE}
 
-## Use lists of taxa at all levels
+## Create lists of all taxa that we will model at all levels
 data('insect_data_families')
 data('all.insect.families')
 data('all.insect.genera')
@@ -323,7 +323,27 @@ the biolclim variables (i.e. bio1-bio19)
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Combine GBIF and ALA data, and extract environmental values
-## Note that the climate values are too small 
+## Note that the climate values are too small
+SITE.RASTER = site_records_extract(site_df         = all_insect_site_df_species,
+                                   thin_records    = FALSE,
+                                   template_raster = template_raster_1km_WGS84,
+                                   world_raster    = worldclim_climate,
+                                   prj             = CRS("+init=epsg:4326"),
+                                   species_list    = analysis_spp,
+                                   
+                                   ## These two will need to change.
+                                   ## Specify them in the code
+                                   biocl_vars      = bioclim_variables,
+                                   env_vars        = env_variables,
+                                   
+                                   ## This might need to change too
+                                   worldclim_divide = FALSE,
+                                   save_data        = FALSE,
+                                   save_run         = "TARGET_INSECT_FAMILIES",
+                                   data_path        = "./output/results/")
+
+
+
 COMBO.RASTER.FAM = combine_records_extract(ala_df          = ALA.LAND.FAM,
                                            site_df         = all_insect_site_df_families,
                                            thin_records    = FALSE,
@@ -339,7 +359,7 @@ COMBO.RASTER.FAM = combine_records_extract(ala_df          = ALA.LAND.FAM,
                                            
                                            ## This might need to change too
                                            worldclim_divide = FALSE,
-                                           save_data        = TRUE,
+                                           save_data        = FALSE,
                                            save_run         = "TARGET_INSECT_FAMILIES",
                                            data_path        = "./output/results/")
 
@@ -376,7 +396,7 @@ records data.frame is that returned by the combine_records_extract function abov
 ## COMBO.RASTER.SUBSET <- COMBO.RASTER.CONVERT %>% select(-one_of(env_cols))
 ## readr::write_rds(COMBO.RASTER.SUBSET, './output/results/SUBSET_ALL_INSECT_FAMILIES.rds', "gz", compression = 9L)
 ## Flag records as institutional or spatial outliers
-COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.SUBSET,
+COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.SPP,
                                   capitals   = 10000,  
                                   centroids  = 5000,   
                                   save_data  = FALSE,
@@ -429,15 +449,15 @@ GLOB.NICHE = calc_1km_niches(coord_df     = SPATIAL.CLEAN,
                              species_list = analysis_spp,
                              env_vars     = env_variables,
                              cell_size    = 2,
+                             save_data    = TRUE,
                              save_run     = "ALL_INSECTS_SPECIES",
-                             data_path    = "./output/results/",
-                             save_data    = TRUE)
+                             data_path    = "./output/results/")
 
 ``` 
 
 \
 
-We can also plot the environmental ranges of each species. The next cleaning function 
+We can also plot the environmental ranges of each species. This function 
 takes a data frame of all species records, and plots histograms and convex hulls for 
 each species in global environmental space. It assumes that the input df is that 
 prepared by the check_spatial_outliers function
@@ -472,10 +492,9 @@ SDM.SPAT.OCC.BG = prepare_sdm_table(coord_df        = COORD.CLEAN,
                                     species_list    = unique(COORD.CLEAN$searchTaxon),
                                     sdm_table_vars  = sdm_table_vars,
                                     save_run        = "INSECT_EG",
-                                    read_background = TRUE,
-                                    background      = FALSE,
-                                    save_data       = FALSE,
-                                    save_shp        = FALSE)
+                                    read_background = FALSE,
+                                    save_data       = TRUE,
+                                    save_shp        = TRUE)
 
 ``` 
 
