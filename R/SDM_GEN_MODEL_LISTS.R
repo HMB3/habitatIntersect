@@ -56,7 +56,6 @@ gbif_keep <- c(## TAXONOMY
 ## ALA Enviro cols ----
 ## Createa a table of all the ALA columns
 ALA_columns     <- ala_fields("occurrence_stored",as_is = TRUE)$description[231:395]
-# load("./data/ALA/Insects/Family/Cyclotornidae_ALA_records.RData")
 names(ALA)[58:215]
 
 
