@@ -13,7 +13,7 @@
 ## GBIF download ----
 
 
-#' Download species occurrence files from GBIF
+#' Download species occurrence files from GBIF.
 #'
 #' This function downloads species occurrence files from GBIF (https://www.gbif.org/).
 #' It assumes that the species list supplied is taxonomically correct (haha!).
@@ -303,7 +303,7 @@ download_ALA_all_genera = function (species_list,
 #'
 #' @param species_list   Character vector - List of species binomials to download
 #' @param download_path  Character string - File path for species downloads
-#' @param extra_cols     Character - extra ALA columns, eg environmental vatriables
+#' @param extra_cols     Character - extra ALA columns, eg environmental vatriables 
 #' @param quality_cols   Character - quality ALA columns, eg spatial accuracy
 #' @param download_limit Numeric - How many records can be downloaded at one time? Set by server
 #' @return               Data frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)
@@ -316,7 +316,7 @@ download_ALA_all_families = function (species_list,
                                       extra_cols,
                                       quality_cols) {
   
-  ## create variables
+  ## Set download limit
   download_limit  = 200000
   
   ## for every species in the list
@@ -889,7 +889,7 @@ combine_gbif_records = function(species_list,
 
 #' Clean the background points for niche analysis
 #'
-#' This function cleans all backgroud data from ALA into one file
+#' This function cleans all backgroud data from ALA into one file.
 #' @param species_list       Character Vector - List of species already downloaded
 #' @param background_df      Data frame - Records from the ALA/GBIF
 #' @param record_type        Adds a column to the data frame for the data source, EG ALA
@@ -1044,10 +1044,10 @@ combine_background_records = function(background_df,
 ## Extract environmental values for occurrence records -----
 
 
-#' This function combines occurrence files from ALA and GBIF into one table, and extracts enviro values.
+#' This function combines occurrence files from ALA and GBIF into one table, & extracts enviro values.
 #' It assumes that both files come from the previous GBIF/ALA combine function.
 #' @param ala_df             Data frame of ALA records
-#' @param site_df           Data frame of site records (only used if you have site data, e.g. I-naturalist)
+#' @param site_df            Data frame of site records (only used if you have site data, e.g. I-naturalist)
 #' @param species_list       List of species analysed, used to cut the dataframe down
 #' @param thin_records       Do you want to thin the records out? If so, it will be 1 record per 1km*1km grid cell
 #' @param template_raster    A global R Raster used to thin records to 1 record per 1km grid cell
@@ -1055,7 +1055,7 @@ combine_background_records = function(background_df,
 #' @param prj                The projection system used. Currently, needs to be WGS84
 #' @param biocl_vars         The variables used - eg the standard bioclim names (https://www.worldclim.org/).
 #' @param env_vars           The actual variable names (e.g. bio1 = rainfall, etc.) Only needed for worldlcim
-#' @param worldclim_divide    Are you using worldclim stored as long intergers? If so, divide by 10.
+#' @param worldclim_divide   Are you using worldclim stored as long intergers? If so, divide by 10.
 #' @param save_data          Do you want to save the data frame?
 #' @param data_path          The file path used for saving the data frame
 #' @param save_run           A run name to append to the data frame (e.g. bat species, etc.). Useful for multiple runs.
@@ -1075,6 +1075,7 @@ combine_records_extract = function(ala_df,
                                    worldclim_divide,
                                    save_data,
                                    data_path,
+                                   project_path,
                                    save_run) {
   
   ## Get just the Common columns
@@ -1180,11 +1181,11 @@ combine_records_extract = function(ala_df,
               "gz", compression = 9L)
     
     ## save .shp for future reference
+    setwd(data_path)
     writeOGR(obj    = COMBO.RASTER.CONVERT.SPDF,
-             dsn    = paste0(getwd(), "/output/results/"),
+             dsn    = ".",
              layer  = paste0('COMBO_RASTER_CONVERT_', save_run),
-             driver = "ESRI Shapefile", 
-             overwrite_layer = TRUE)
+             driver = "ESRI Shapefile", overwrite_layer = TRUE)
     
     return(COMBO.RASTER.CONVERT)
     
@@ -1192,6 +1193,7 @@ combine_records_extract = function(ala_df,
     return(COMBO.RASTER.CONVERT)
   }
   gc()
+  setwd(project_path)
 }
 
 
@@ -1202,15 +1204,15 @@ combine_records_extract = function(ala_df,
 
 #' This function takes a data frame from Ubran sources (e.g. I-naturalist), and extracts enviro values.
 #' It assumes that the site dataframe has these columns : species, lat, lon, Country, INVENTORY, SOURCE
-#' @param site_df           Data.frame of site records (only used if you have site data, e.g. I-naturalist)
+#' @param site_df            Data.frame of site records (only used if you have site data, e.g. I-naturalist)
 #' @param species_list       Character string - List of species analysed, used to cut the dataframe down
 #' @param thin_records       Do you want to thin the records out? If so, it will be 1 record per 1km*1km grid cell
 #' @param template_raster    A global R Raster used to thin records to 1 record per 1km grid cell
 #' @param world_raster       An global R Raster of the enviro conditions used to extract values for all records
 #' @param prj                The projection system used. Currently, needs to be WGS84
 #' @param biocl_vars         The variables used - eg the standard bioclim names (https://www.worldclim.org/).
-#' @param env_vars           The actual anmes of the variables (e.g. bio1 = rainfall, etc.) Only needed for worldlcim
-#' @param worldclim_divide    Are you using worldclim stored as long intergers? If so, divide by 10.
+#' @param env_vars           The actual names of the variables (e.g. bio1 = rainfall, etc.) Only needed for worldlcim
+#' @param worldclim_divide   Are you using worldclim stored as long intergers? If so, divide by 10.
 #' @param save_data          Do you want to save the data frame?
 #' @param data_path          The file path used for saving the data frame
 #' @param save_run           Character string - run name to append to the data frame (e.g. bat species, etc.). Useful for multiple runs.
@@ -1437,7 +1439,7 @@ coord_clean_records = function(records,
 #' It uses the CoordinateCleaner package https://cran.r-project.org/web/packages/CoordinateCleaner/index.html.
 #' It assumes that the input dfs are those returned by the coord_clean_records function
 #' @param all_df             Data.frame. DF of all species records returned by the coord_clean_records function
-#' @param site_df           Data.frame of site records (only used if you have site data, e.g. I-naturalist)
+#' @param site_df            Data.frame of site records (only used if you have site data, e.g. I-naturalist)
 #' @param land_shp           R object. Shapefile of the worlds land (e.g. https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-land/)
 #' @param clean_path         Character string -  The file path used for saving the checks
 #' @param spatial_mult       Numeric. The multiplier of the interquartile range (method == 'quantile', see ?cc_outl)
@@ -1690,7 +1692,7 @@ check_spatial_outliers = function(all_df,
 #' @param cell_size          Numeric. Value indicating the grid size in decimal degrees used for estimating Area of Occupancy (see ?AOO.computing)
 #' @param save_run           Character string - run name to append to the data frame, useful for multiple runs.
 #' @param save_data          Logical - do you want to save the data frame?
-#' @param data_path          Character string - The file path used for saving the data frame
+#' @param data_path          Character string - The file path used for saving the data frame.
 #' @export
 calc_1km_niches = function(coord_df,
                            prj,
@@ -2191,8 +2193,8 @@ plot_range_histograms = function(coord_df,
 ## Create SDM table ----
 
 
-#' This function takes a data frame of all species records,
-#' And prepares a table in the 'species with data' (swd) format for modelling uses the Maxent algorithm.
+#' This function takes a data frame of all species records and :
+#' prepares a table in the 'species with data' (swd) format for modelling uses the Maxent algorithm.
 #' It assumes that the input df is that returned by the coord_clean_records function
 #' @param coord_df           Data.frame. DF of all species records returned by the coord_clean_records function
 #' @param species_list       Character string - the species analysed
@@ -2213,7 +2215,8 @@ prepare_sdm_table = function(coord_df,
                              save_shp,
                              read_background,
                              save_data,
-                             data_path) {
+                             data_path,
+                             project_path) {
   
   ## Define Mollweide here. This is hard-wired, not user supplied
   sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
@@ -2342,7 +2345,7 @@ prepare_sdm_table = function(coord_df,
   SPAT.FLAG <- join(as.data.frame(SDM.DATA.ALL), SPAT.OUT,
                     by = c("SPOUT.OBS", "searchTaxon") ,
                     type = "left", match = "first")
-  message('Is the order or records identical after joining?',
+  message('Is the order or records identical after joining? ',
           identical(SDM.DATA.ALL$searchTaxon, SPAT.FLAG$searchTaxon))
   
   ## Check the join is working
@@ -2386,8 +2389,9 @@ prepare_sdm_table = function(coord_df,
   if(save_shp == TRUE) {
     
     ## save .shp for future reference
+    setwd(data_path)
     writeOGR(obj    = SPAT.OUT.SPDF,
-             dsn    = paste0(getwd(), "/output/results/"),
+             dsn    = ".",
              layer  = paste0('SPAT_OUT_CHECK_', save_run),
              driver = "ESRI Shapefile", overwrite_layer = TRUE)
     
@@ -2434,6 +2438,7 @@ prepare_sdm_table = function(coord_df,
     return(SDM.SPAT.OCC.BG)
   }
   gc()
+  setwd(project_path)
 }
 
 

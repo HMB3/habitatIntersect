@@ -324,23 +324,23 @@ the biolclim variables (i.e. bio1-bio19)
 
 ## Combine GBIF and ALA data, and extract environmental values
 ## Note that the climate values are too small
-SITE.RASTER = site_records_extract(site_df         = all_insect_site_df_species,
-                                   thin_records    = FALSE,
-                                   template_raster = template_raster_1km_WGS84,
-                                   world_raster    = worldclim_climate,
-                                   prj             = CRS("+init=epsg:4326"),
-                                   species_list    = analysis_spp,
-                                   
-                                   ## These two will need to change.
-                                   ## Specify them in the code
-                                   biocl_vars      = bioclim_variables,
-                                   env_vars        = env_variables,
-                                   
-                                   ## This might need to change too
-                                   worldclim_divide = FALSE,
-                                   save_data        = FALSE,
-                                   save_run         = "TARGET_INSECT_FAMILIES",
-                                   data_path        = "./output/results/")
+# SITE.RASTER = site_records_extract(site_df         = all_insect_site_df_species,
+#                                    thin_records    = FALSE,
+#                                    template_raster = template_raster_1km_WGS84,
+#                                    world_raster    = worldclim_climate,
+#                                    prj             = CRS("+init=epsg:4326"),
+#                                    species_list    = analysis_spp,
+#                                    
+#                                    ## These two will need to change.
+#                                    ## Specify them in the code
+#                                    biocl_vars      = bioclim_variables,
+#                                    env_vars        = env_variables,
+#                                    
+#                                    ## This might need to change too
+#                                    worldclim_divide = FALSE,
+#                                    save_data        = FALSE,
+#                                    save_run         = "TARGET_INSECT_FAMILIES",
+#                                    data_path        = "./output/results/")
 
 
 
@@ -361,7 +361,8 @@ COMBO.RASTER.SPP = combine_records_extract(ala_df          = ALA.LAND.SPP,
                                            worldclim_divide = FALSE,
                                            save_data        = FALSE,
                                            save_run         = "TARGET_INSECT_FAMILIES",
-                                           data_path        = "./output/results/")
+                                           data_path        = "./output/results/",
+                                           project_path     = 'F:/North_east_NSW_fire_recovery')
 
 
 ``` 
@@ -478,7 +479,8 @@ plot_range_histograms(coord_df     = SPATIAL.CLEAN,
 
 \
 
-The final step in the workflow before modelling is to create at table we can use for species distribution modelling. This function takes a data frame of all species records, and prepares a table in the 'species 
+The final step in the workflow before modelling is to create at table we can use for species distribution modelling. 
+This function takes a data frame of all species records, and prepares a table in the 'species 
 with data' (swd) format for modelling uses the Maxent algorithm. It assumes that the input df is that 
 returned by the coord_clean_records function. There is a switch in the function, that adds additional 
 background points from other taxa, if specified. In this example for bats, we'll just use the species supplied
@@ -488,13 +490,15 @@ background points from other taxa, if specified. In this example for bats, we'll
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Final dataset is a spatial points dataframe in the Mollwiede projection
-SDM.SPAT.OCC.BG = prepare_sdm_table(coord_df        = COORD.CLEAN,
+SDM.SPAT.OCC.BG = prepare_sdm_table(coord_df        = head(COORD.CLEAN, 100),
                                     species_list    = unique(COORD.CLEAN$searchTaxon),
                                     sdm_table_vars  = sdm_table_vars,
-                                    save_run        = "INSECT_EG",
+                                    save_run        = "ALL_PLANT_SPP",
                                     read_background = FALSE,
                                     save_data       = TRUE,
-                                    save_shp        = TRUE)
+                                    save_shp        = TRUE,
+                                    data_path       = paste0(getwd(), '/output/results/'),
+                                    project_path    = 'F:/North_east_NSW_fire_recovery')
 
 ``` 
 

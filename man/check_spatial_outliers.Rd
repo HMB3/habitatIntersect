@@ -10,9 +10,10 @@ It assumes that the input dfs are those returned by the coord_clean_records func
 \usage{
 check_spatial_outliers(
   all_df,
-  urban_df,
+  site_df,
   land_shp,
   clean_path,
+  plot_points,
   spatial_mult,
   prj
 )
@@ -20,7 +21,7 @@ check_spatial_outliers(
 \arguments{
 \item{all_df}{Data.frame. DF of all species records returned by the coord_clean_records function}
 
-\item{urban_df}{Data.frame of Urban records (only used if you have urban data, e.g. I-naturalist)}
+\item{site_df}{Data.frame of site records (only used if you have site data, e.g. I-naturalist)}
 
 \item{land_shp}{R object. Shapefile of the worlds land (e.g. https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-land/)}
 

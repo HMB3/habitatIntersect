@@ -29,7 +29,7 @@ coord_clean_records(
 \item{save_data}{Logical or character - do you want to save the data frame?}
 }
 \value{
-Data.frame of all urban records, with global enviro conditions for each record location (i.e. lat/lon)
+Data.frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)
 }
 \description{
 This function takes a data frame of all species records, and flag records as institutional or spatial outliers.

@@ -36,11 +36,11 @@ calc_1km_niches(
 
 \item{save_run}{Character string - run name to append to the data frame, useful for multiple runs.}
 
-\item{data_path}{Character string - The file path used for saving the data frame}
+\item{data_path}{Character string - The file path used for saving the data frame.}
 
 \item{save_data}{Logical - do you want to save the data frame?}
 
-\item{aus_df}{Data.frame of Urban records (only used if you have urban data, e.g. I-naturalist)}
+\item{aus_df}{Data.frame of site records (only used if you have site data, e.g. I-naturalist)}
 }
 \description{
 This function takes a data frame of all species records,
