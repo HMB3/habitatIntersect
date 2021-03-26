@@ -344,8 +344,8 @@ SITE.RASTER = site_records_extract(site_df         = all_insect_site_df_species,
 
 
 
-COMBO.RASTER.FAM = combine_records_extract(ala_df          = ALA.LAND.FAM,
-                                           site_df         = all_insect_site_df_families,
+COMBO.RASTER.SPP = combine_records_extract(ala_df          = ALA.LAND.SPP,
+                                           site_df         = all_insect_site_df_species,
                                            thin_records    = FALSE,
                                            template_raster = template_raster_1km_WGS84,
                                            world_raster    = worldclim_climate,

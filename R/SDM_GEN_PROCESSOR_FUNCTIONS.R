@@ -619,15 +619,7 @@ combine_ala_records = function(species_list,
   if (nrow(ALL) > 0) {
     
     ## What names get returned?
-    sort(names(ALL))
-    TRIM <- ALL #%>%
-    #dplyr::select(dplyr::one_of(keep_cols))
-    
-    dim(TRIM)
-    sort(names(TRIM))
-    
-    
-    ## What are the unique species?
+    TRIM <- ALL
     (sum(is.na(TRIM$scientificName)) + nrow(subset(TRIM, scientificName == "")))/nrow(TRIM)*100
     
     
@@ -637,8 +629,11 @@ combine_ala_records = function(species_list,
       
       ## Note that these filters are very forgiving...
       ## Unless we include the NAs, very few records are returned!
-      filter(!is.na(lon) & !is.na(lat),
-             year >= 1950 & !is.na(year))
+      filter(!is.na(lon) & !is.na(lat)) %>%
+      filter(lon < 180 & lat > -90) %>%
+      filter(lon < 180 & lat > -90) %>%
+      filter(year >= 1950) %>%
+      filter(!is.na(year))
     
     ## How many records were removed by filtering?
     message(nrow(TRIM) - nrow(CLEAN), " records removed")
@@ -815,8 +810,11 @@ combine_gbif_records = function(species_list,
       
       ## Note that these filters are very forgiving...
       ## Unless we include the NAs, very few records are returned!
-      filter(!is.na(lon) & !is.na(lat),
-             year >= 1950 & !is.na(year))
+      filter(!is.na(lon) & !is.na(lat)) %>%
+      filter(lon < 180 & lat > -90) %>%
+      filter(lon < 180 & lat > -90) %>%
+      filter(year >= 1950) %>%
+      filter(!is.na(year))
     
     ## How many species are there?
     names(GBIF.CLEAN)
@@ -1280,7 +1278,7 @@ site_records_extract = function(site_df,
     cbind(as.data.frame(site.XY.1KM), .)
   
   ## Group rename the columns
-  setnames(COMBO.RASTER, old = biocl_vars, new = env_vars)
+  setnames(COMBO.RASTER, old = names(world_raster), new = env_vars) 
   COMBO.RASTER <- COMBO.RASTER %>% dplyr::select(-lat.1, -lon.1)
   
   ## Change the raster values here: See http://worldclim.org/formats1 for description of the interger conversion.
@@ -1292,7 +1290,7 @@ site_records_extract = function(site_df,
     
     COMBO.RASTER.CONVERT = as.data.table(COMBO.RASTER)
     COMBO.RASTER.CONVERT[, (env_variables [c(1:11)]) := lapply(.SD, function(x)
-      x / 10 ), .SDcols = env_variables [c(1:11)]]
+      x / 10 ), .SDcols  = env_variables [c(1:11)]]
     COMBO.RASTER.CONVERT = as.data.frame(COMBO.RASTER.CONVERT)
     
   } else {
