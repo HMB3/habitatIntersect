@@ -557,7 +557,7 @@ combine_ala_records = function(species_list,
         }
         
         if("eventDate" %in% colnames(d)) {
-          d <- d %>% select(-eventDate)
+          d <- d %>% dplyr::select(-eventDate)
         }
         
         # if (!is.character(d$catalogNumber)) {
@@ -979,8 +979,8 @@ combine_background_records = function(background_df,
   ## Now get the XY centroids of the unique 1km * 1km WORLDCLIM blocks where ALA records are found
   ## Get cell number(s) of WORLDCLIM raster from row and/or column numbers. Cell numbers start at 1 in the upper left corner,
   ## and increase from left to right, and then from top to bottom. The last cell number equals the number of raster cell
-  latcoord <- CLEAN %>% select(lat)
-  loncoord <- CLEAN %>% select(lon)
+  latcoord <- CLEAN %>% dplyr::select(lat)
+  loncoord <- CLEAN %>% dplyr::select(lon)
   
   ## get the unique raster cells
   xy <- cellFromXY(world_raster, CLEAN[c("lon", "lat")]) %>%
@@ -1313,6 +1313,7 @@ site_records_extract = function(site_df,
     write_rds(COMBO.RASTER.CONVERT, 
               paste0(data_path, 'COMBO_RASTER_CONVERT_', save_run, '.rds'), 
               "gz", compression = 9L)
+    return(COMBO.RASTER.CONVERT)
   } else {
     return(COMBO.RASTER.CONVERT)
   }
@@ -2433,6 +2434,7 @@ prepare_sdm_table = function(coord_df,
     write_rds(SDM.SPAT.OCC.BG, 
               paste0(data_path, 'SDM_SPAT_OCC_BG_', save_run, '.rds'), 
               "gz", compression = 9L)
+    return(SDM.SPAT.OCC.BG)
   } else {
     message('Return the occurrence + Background data to the global environment')   ##
     return(SDM.SPAT.OCC.BG)

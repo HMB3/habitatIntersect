@@ -50,9 +50,9 @@ To install, run :
 ## The package should import all the required packages
 ## Sys.setenv(JAVA_HOME = "C:\\Program Files (x86)\\Java\\jre1.8.0_231")
 ## Sys.setenv(JAVA_HOME = 'C:\\Program Files\\Java\\jre1.8.0_281')
-devtools::install_github("HMB3/nenswniche")
-data('sdmgen_packages')
+# devtools::install_github("HMB3/nenswniche")
 library(nenswniche)
+data('sdmgen_packages')
 sapply(sdmgen_packages, require, character.only = TRUE)
 
 ```
@@ -99,7 +99,7 @@ data('target.insect.genera')
 data('target.insect.families')
 data('all.insect.plant.spp')
 
-analysis_spp <- str_trim(all.insect.spp) 
+analysis_spp <- str_trim(all.insect.families) 
 analysis_spp
 
 ```
@@ -231,30 +231,30 @@ data('ALA_keep')
 
 
 ## Combine Family ALA data
-ALA.LAND.FAM = combine_ala_records(species_list      = analysis_spp,
-                                   records_path      = "./data/ALA/Insects/Family/",
-                                   records_extension = "_ALA_records.RData",
-                                   record_type       = "ALA",
-                                   keep_cols         = ALA_keep,
-                                   world_raster      = worldclim_annual_temp)
+ALA.LAND.FAM <- combine_ala_records(species_list      = analysis_spp,
+                                    records_path      = "./data/ALA/Insects/Family/",
+                                    records_extension = "_ALA_records.RData",
+                                    record_type       = "ALA",
+                                    keep_cols         = ALA_keep,
+                                    world_raster      = worldclim_annual_temp)
 
 
 ## Combine Genus ALA data
-ALA.LAND.GEN = combine_ala_records(species_list      = analysis_spp,
-                                   records_path      = "./data/ALA/Insects/Genus/",
-                                   records_extension = "_ALA_records.RData",
-                                   record_type       = "ALA",
-                                   keep_cols         = ALA_keep,
-                                   world_raster      = worldclim_annual_temp)
+ALA.LAND.GEN <- combine_ala_records(species_list      = analysis_spp,
+                                    records_path      = "./data/ALA/Insects/Genus/",
+                                    records_extension = "_ALA_records.RData",
+                                    record_type       = "ALA",
+                                    keep_cols         = ALA_keep,
+                                    world_raster      = worldclim_annual_temp)
 
 
 ## Combine Species ALA data
-ALA.LAND.SPP = combine_ala_records(species_list      = analysis_spp,
-                                   records_path      = "./data/ALA/Insects/Species/",
-                                   records_extension = "_ALA_records.RData",
-                                   record_type       = "ALA",
-                                   keep_cols         = ALA_keep,
-                                   world_raster      = worldclim_annual_temp)
+ALA.LAND.SPP <- combine_ala_records(species_list      = analysis_spp,
+                                    records_path      = "./data/ALA/Insects/Species/",
+                                    records_extension = "_ALA_records.RData",
+                                    record_type       = "ALA",
+                                    keep_cols         = ALA_keep,
+                                    world_raster      = worldclim_annual_temp)
 
 ``` 
 
@@ -324,28 +324,8 @@ the biolclim variables (i.e. bio1-bio19)
 
 ## Combine GBIF and ALA data, and extract environmental values
 ## Note that the climate values are too small
-# SITE.RASTER = site_records_extract(site_df         = all_insect_site_df_species,
-#                                    thin_records    = FALSE,
-#                                    template_raster = template_raster_1km_WGS84,
-#                                    world_raster    = worldclim_climate,
-#                                    prj             = CRS("+init=epsg:4326"),
-#                                    species_list    = analysis_spp,
-#                                    
-#                                    ## These two will need to change.
-#                                    ## Specify them in the code
-#                                    biocl_vars      = bioclim_variables,
-#                                    env_vars        = env_variables,
-#                                    
-#                                    ## This might need to change too
-#                                    worldclim_divide = FALSE,
-#                                    save_data        = FALSE,
-#                                    save_run         = "TARGET_INSECT_FAMILIES",
-#                                    data_path        = "./output/results/")
-
-
-
-COMBO.RASTER.SPP = combine_records_extract(ala_df          = ALA.LAND.SPP,
-                                           site_df         = all_insect_site_df_species,
+COMBO.RASTER.SPP = combine_records_extract(ala_df          = ALA.LAND.GEN,
+                                           site_df         = all_insect_site_df_genera,
                                            thin_records    = FALSE,
                                            template_raster = template_raster_1km_WGS84,
                                            world_raster    = worldclim_climate,
@@ -397,7 +377,7 @@ records data.frame is that returned by the combine_records_extract function abov
 ## COMBO.RASTER.SUBSET <- COMBO.RASTER.CONVERT %>% select(-one_of(env_cols))
 ## readr::write_rds(COMBO.RASTER.SUBSET, './output/results/SUBSET_ALL_INSECT_FAMILIES.rds', "gz", compression = 9L)
 ## Flag records as institutional or spatial outliers
-COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.SPP,
+COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.GEN,
                                   capitals   = 10000,  
                                   centroids  = 5000,   
                                   save_data  = FALSE,
@@ -490,7 +470,7 @@ background points from other taxa, if specified. In this example for bats, we'll
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Final dataset is a spatial points dataframe in the Mollwiede projection
-SDM.SPAT.OCC.BG = prepare_sdm_table(coord_df        = head(COORD.CLEAN, 100),
+SDM.SPAT.OCC.BG = prepare_sdm_table(coord_df        = COORD.CLEAN,
                                     species_list    = unique(COORD.CLEAN$searchTaxon),
                                     sdm_table_vars  = sdm_table_vars,
                                     save_run        = "ALL_PLANT_SPP",
@@ -564,7 +544,11 @@ minimum number of predictors remains.
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-run_sdm_analysis(species_list            = analysis_spp[1:3],
+## SDM.SPAT.OCC.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_SPP.rds')
+## SDM.SPAT.OCC.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_PLANT_SPP.rds')
+## SDM.SPAT.OCC.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_SPP.rds')
+## SDM.SPAT.OCC.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_SPP.rds')
+run_sdm_analysis(species_list            = analysis_spp,
                  maxent_dir              = 'output/maxent/full_models',     
                  bs_dir                  = 'output/maxent/back_sel_models',
                  sdm_df                  = SDM.SPAT.OCC.BG,
