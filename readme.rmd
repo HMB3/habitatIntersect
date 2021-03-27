@@ -153,7 +153,7 @@ expect these folders (a typical R project structure), create them if they don't 
 
 ## Get some extra columns from the ALA with environmental data
 ## This could be better organized by getting the column names by 'category' - enviro, land context, etc
-ala_env_cols = ala_fields("occurrence_stored",as_is = TRUE)$description[231:389]
+ala_env_cols = ala_fields("occurrence_stored", as_is = TRUE)$description[231:389]
 
 
 ##

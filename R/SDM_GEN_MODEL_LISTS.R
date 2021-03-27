@@ -55,8 +55,8 @@ gbif_keep <- c(## TAXONOMY
 
 ## ALA Enviro cols ----
 ## Createa a table of all the ALA columns
-ALA_columns     <- ala_fields("occurrence_stored",as_is = TRUE)$description[231:395]
-names(ALA)[58:215]
+# ALA_columns     <- ala_fields("occurrence_stored",as_is = TRUE)$description[231:395]
+# names(ALA)[58:215]
 
 
 
