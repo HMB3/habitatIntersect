@@ -32,7 +32,7 @@ word_document:
 
 \
 
-The text and code below summarises a workflow in R that can be used to relatively rapidly assess the environmental range of a species within Australia, from downloading occurrence records, through to creating maps of predicted climatic suitability across Australia at 1km*1km resolution. An example of this work is published in Science of the Total Environment ::
+The text and code below summarises a workflow in R that can be used to relatively rapidly assess the environmental range of a species within Australia, from downloading occurrence records, through to creating maps of predicted climatic suitability across Australia at 1km*1km resolution. An example of this work is published in the journal Science of the Total Environment ::
 
 \
 

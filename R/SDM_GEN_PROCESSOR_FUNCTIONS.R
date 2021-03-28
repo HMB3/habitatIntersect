@@ -195,7 +195,7 @@ download_ALA_all_species = function (species_list,
 
 
 
-## ALA download Genus Records ----
+## ALA download Genus Records -----
 
 
 #' Download species occurrence files from the Atlas of Living Australia (ALA)
