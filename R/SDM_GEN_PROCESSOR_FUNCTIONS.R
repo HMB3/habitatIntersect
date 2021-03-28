@@ -2336,9 +2336,9 @@ prepare_sdm_table = function(coord_df,
   
   ## FILTER DATA TO REMOVE SPATIAL OUTLIERS
   ## Join data :: Best to use the 'OBS' column here
-  message('Is the order or records identical before joining?',
+  message('Is the order of records identical before joining?',
           identical(nrow(SDM.COORDS), nrow(SPAT.OUT)))
-  message('Is the order or records identical after joining?',
+  message('Is the order of records identical after joining?',
           identical(SDM.DATA.ALL$searchTaxon, SPAT.OUT$searchTaxon))
   length(unique(SPAT.OUT$searchTaxon))
   
@@ -2346,7 +2346,7 @@ prepare_sdm_table = function(coord_df,
   SPAT.FLAG <- join(as.data.frame(SDM.DATA.ALL), SPAT.OUT,
                     by = c("SPOUT.OBS", "searchTaxon") ,
                     type = "left", match = "first")
-  message('Is the order or records identical after joining? ',
+  message('Is the order of records identical after joining? ',
           identical(SDM.DATA.ALL$searchTaxon, SPAT.FLAG$searchTaxon))
   
   ## Check the join is working
