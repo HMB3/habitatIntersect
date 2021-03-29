@@ -553,7 +553,7 @@ combine_ala_records = function(species_list,
         if("catalogueNumber" %in% colnames(d)) {
           # message ("Renaming catalogueNumber column to catalogNumber")
           # names(d)[names(d) == 'catalogueNumber'] <- 'catalogNumber'
-          d <- d %>% select(-catalogueNumber)
+          d <- d %>% dplyr::select(-catalogueNumber)
         }
         
         if("eventDate" %in% colnames(d)) {
