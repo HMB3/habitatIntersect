@@ -726,7 +726,7 @@ combine_gbif_records = function(species_list,
     ## Pipe the list into lapply
     lapply(function(x) {
       
-      ## x = download[1]
+      ## x = download[10]
       ## Create a character string of each .RData file
       f <- sprintf(paste0(records_path, "%s"), x)
       
@@ -753,8 +753,16 @@ combine_gbif_records = function(species_list,
         message ('Formatting occurrence data for ', x)
         searchtax <- gsub(records_extension, "",    x)
         
+        ## Filter the data for each species
+        message('filter records for ', searchtax)
         d <- d %>% mutate(searchTaxon = searchtax) %>%
-          dplyr::select(one_of(keep_cols))
+          dplyr::select(one_of(keep_cols)) %>% 
+          
+          filter(!is.na(lon) & !is.na(lat)) %>%
+          filter(lon < 180 & lat > -90) %>%
+          filter(lon < 180 & lat > -90) %>%
+          filter(year >= 1950) %>%
+          filter(!is.na(year))
         
       } else {
         message('No ALA dat for ', x, ' skipping')
@@ -794,15 +802,7 @@ combine_gbif_records = function(species_list,
     ## FILTER RECORDS TO THOSE WITH COORDINATES, AND AFTER 1950
     
     ## Now filter the GBIF records using conditions which are not too restrictive
-    GBIF.CLEAN <- GBIF.TRIM %>%
-      
-      ## Note that these filters are very forgiving...
-      ## Unless we include the NAs, very few records are returned!
-      filter(!is.na(lon) & !is.na(lat)) %>%
-      filter(lon < 180 & lat > -90) %>%
-      filter(lon < 180 & lat > -90) %>%
-      filter(year >= 1950) %>%
-      filter(!is.na(year))
+    GBIF.CLEAN <- GBIF.TRIM 
     
     ## How many species are there?
     names(GBIF.CLEAN)
@@ -812,11 +812,12 @@ combine_gbif_records = function(species_list,
     
     ## Can use WORLDCIM rasters to get only records where wordlclim data is.
     message('Removing GBIF points in the ocean for ', length(species_list), ' species')
+    xy_mat <- GBIF.CLEAN %>% dplyr::select(lon, lat) %>% as.matrix()
     
     ## Now get the XY centroids of the unique 1km * 1km WORLDCLIM blocks where GBIF records are found
     ## Get cell number(s) of WORLDCLIM raster from row and/or column numbers. Cell numbers start at 1 in the upper left corner,
     ## and increase from left to right, and then from top to bottom. The last cell number equals the number of raster cells
-    xy <- cellFromXY(world_raster, GBIF.CLEAN[c("lon", "lat")]) %>%
+    xy <- cellFromXY(world_raster, xy_mat) %>%
       
       ## get the unique raster cells
       unique %>%
@@ -840,8 +841,10 @@ combine_gbif_records = function(species_list,
     
     ## Finally, filter the cleaned GBIF data to only those points on land.
     ## This is achieved with the final [onland]
-    LAND.POINTS = filter(GBIF.CLEAN, cellFromXY(world_raster, GBIF.CLEAN[c("lon", "lat")]) %in%
-                           unique(cellFromXY(world_raster,    GBIF.CLEAN[c("lon", "lat")]))[onland])
+    land_mat <- GBIF.CLEAN %>% dplyr::select(lon, lat) %>% as.matrix()
+    
+    LAND.POINTS = filter(GBIF.CLEAN, cellFromXY(world_raster, xy_mat) %in%
+                           unique(cellFromXY(world_raster,    xy_mat))[onland])
     
     ## how many records were on land?
     records.ocean = nrow(GBIF.CLEAN) - nrow(LAND.POINTS)  ## 91575 records are in the ocean
