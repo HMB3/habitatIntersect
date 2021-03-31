@@ -338,7 +338,8 @@ COMBO.RASTER.FAM = combine_records_extract(ala_df          = ALA.LAND.FAM,
                                            env_vars        = env_variables,
                                            
                                            ## This might need to change too
-                                           worldclim_divide = FALSE,
+                                           raster_divide    = FALSE,
+                                           raster_denom     = 10, 
                                            save_data        = FALSE,
                                            save_run         = "TARGET_INSECT_FAMILIES",
                                            data_path        = "./output/results/",

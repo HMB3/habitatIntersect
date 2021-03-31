@@ -721,7 +721,7 @@ combine_gbif_records = function(species_list,
   download     <- download[download %in% spp.download ]
   message('downloaded species ', length(download), ' analyzed species ', length(species_list))
   
-  ALL.POINTS <- download[1:3] %>%
+  ALL.POINTS <- download %>%
     
     ## Pipe the list into lapply
     lapply(function(x) {
@@ -778,12 +778,9 @@ combine_gbif_records = function(species_list,
     ## Almost none of the GBIF data has no scientificName. This is the right field to use for matching taxonomy
     (sum(is.na(ALL.POINTS$scientificName)) + nrow(subset(ALL.POINTS, scientificName == "")))/nrow(ALL.POINTS)*100
     
-    
     ## Now get just the columns we want to keep.
     GBIF.TRIM <- ALL.POINTS %>%
       dplyr::select(one_of(keep_cols))
-    names(GBIF.TRIM)
-    gc()
     
     ## Just get the newly downloaded species
     GBIF.TRIM = GBIF.TRIM[GBIF.TRIM$searchTaxon %in% species_list, ]
@@ -862,14 +859,10 @@ combine_gbif_records = function(species_list,
     gc()
     
   } else {
-    
     message('No GBIF data for this taxon, creating empty datframe to bind to GBIF data')
     LAND.POINTS  = setNames(data.frame(matrix(ncol = length(keep_cols), nrow = 0)), keep_cols)
-    
   }
-  
   return(LAND.POINTS)
-  
 }
 
 
@@ -1046,7 +1039,7 @@ combine_background_records = function(background_df,
 #' @param prj                The projection system used. Currently, needs to be WGS84
 #' @param biocl_vars         The variables used - eg the standard bioclim names (https://www.worldclim.org/).
 #' @param env_vars           The actual variable names (e.g. bio1 = rainfall, etc.) Only needed for worldlcim
-#' @param worldclim_divide   Are you using worldclim stored as long intergers? If so, divide by 10.
+#' @param raster_divide   Are you using worldclim stored as long intergers? If so, divide by 10.
 #' @param save_data          Do you want to save the data frame?
 #' @param data_path          The file path used for saving the data frame
 #' @param save_run           A run name to append to the data frame (e.g. bat species, etc.). Useful for multiple runs.
@@ -1063,7 +1056,8 @@ combine_records_extract = function(ala_df,
                                    prj,
                                    biocl_vars,
                                    env_vars,
-                                   worldclim_divide,
+                                   raster_divide,
+                                   raster_denom,
                                    save_data,
                                    data_path,
                                    project_path,
@@ -1101,7 +1095,8 @@ combine_records_extract = function(ala_df,
     occurrence_cells_all  <- lapply(GBIF.ALA.84, function(x) cellFromXY(template_raster, x))
     
     ## Check with a message, but could check with a fail
-    message('Split prodcues ', length(occurrence_cells_all), ' data frames for ', length(species_list), ' species')
+    message('Split prodcues ', length(occurrence_cells_all), 
+            ' data frames for ', length(species_list), ' species')
     
     ## Now get just one record within each 1*1km cell.
     GBIF.ALA.84.THIN <- mapply(function(x, cells) {
@@ -1136,14 +1131,14 @@ combine_records_extract = function(ala_df,
   
   ## Change the raster values here: See http://worldclim.org/formats1 for description of the interger conversion.
   ## All worldclim temperature variables were multiplied by 10, so then divide by 10 to reverse it.
-  if (worldclim_divide == TRUE) {
+  if (raster_divide == TRUE) {
     
     ## Convert the worldclim grids
-    message('Processing worldclim 1.0 data, divide the rasters by 10')
+    message('Processing bioclim data, divide the rasters by 10')
     
     COMBO.RASTER.CONVERT = as.data.table(COMBO.RASTER)
     COMBO.RASTER.CONVERT[, (env_variables [c(1:11)]) := lapply(.SD, function(x)
-      x / 10 ), .SDcols  = env_variables   [c(1:11)]]
+      x / raster_denom ), .SDcols  = env_variables   [c(1:11)]]
     COMBO.RASTER.CONVERT = as.data.frame(COMBO.RASTER.CONVERT)
     
   } else {
@@ -1151,7 +1146,8 @@ combine_records_extract = function(ala_df,
     COMBO.RASTER.CONVERT = COMBO.RASTER
   }
   
-  ## Print the dataframe dimensions to screen :: format to recognise millions, hundreds of thousands, etc.
+  ## Print the dataframe dimensions to screen :: 
+  ## format to recognize millions, hundreds of thousands, etc.
   COMBO.RASTER.CONVERT = completeFun(COMBO.RASTER.CONVERT, env_vars[1])
   
   
@@ -1203,7 +1199,7 @@ combine_records_extract = function(ala_df,
 #' @param prj                The projection system used. Currently, needs to be WGS84
 #' @param biocl_vars         The variables used - eg the standard bioclim names (https://www.worldclim.org/).
 #' @param env_vars           The actual names of the variables (e.g. bio1 = rainfall, etc.) Only needed for worldlcim
-#' @param worldclim_divide   Are you using worldclim stored as long intergers? If so, divide by 10.
+#' @param raster_divide   Are you using worldclim stored as long intergers? If so, divide by 10.
 #' @param save_data          Do you want to save the data frame?
 #' @param data_path          The file path used for saving the data frame
 #' @param save_run           Character string - run name to append to the data frame (e.g. bat species, etc.). Useful for multiple runs.
@@ -1217,7 +1213,8 @@ site_records_extract = function(site_df,
                                 prj,
                                 biocl_vars,
                                 env_vars,
-                                worldclim_divide,
+                                raster_divide,
+                                raster_denom,
                                 save_data,
                                 data_path,
                                 save_run) {
@@ -1276,14 +1273,14 @@ site_records_extract = function(site_df,
   
   ## Change the raster values here: See http://worldclim.org/formats1 for description of the interger conversion.
   ## All worldclim temperature variables were multiplied by 10, so then divide by 10 to reverse it.
-  if (worldclim_divide == TRUE) {
+  if (raster_divide == TRUE) {
     
     ## Convert the worldclim grids
     message('Processing worldclim 1.0 data, divide the rasters by 10')
     
     COMBO.RASTER.CONVERT = as.data.table(COMBO.RASTER)
     COMBO.RASTER.CONVERT[, (env_variables [c(1:11)]) := lapply(.SD, function(x)
-      x / 10 ), .SDcols  = env_variables [c(1:11)]]
+      x / raster_denom ), .SDcols  = env_variables [c(1:11)]]
     COMBO.RASTER.CONVERT = as.data.frame(COMBO.RASTER.CONVERT)
     
   } else {
