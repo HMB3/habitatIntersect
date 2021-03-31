@@ -841,8 +841,6 @@ combine_gbif_records = function(species_list,
     
     ## Finally, filter the cleaned GBIF data to only those points on land.
     ## This is achieved with the final [onland]
-    land_mat <- GBIF.CLEAN %>% dplyr::select(lon, lat) %>% as.matrix()
-    
     LAND.POINTS = filter(GBIF.CLEAN, cellFromXY(world_raster, xy_mat) %in%
                            unique(cellFromXY(world_raster,    xy_mat))[onland])
     
