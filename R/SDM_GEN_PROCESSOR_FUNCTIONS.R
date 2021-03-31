@@ -544,26 +544,18 @@ combine_ala_records = function(species_list,
         ## If the species has < 2 records, escape the loop
         print (paste ("Sufficient occurrence records for ", x, " processing "))
         
-        
         ##  type standardisation
         names(d)[names(d) == 'latitude']  <- 'lat'
         names(d)[names(d) == 'longitude'] <- 'lon'
         
         ##  standardi[sz]e catnum colname
         if("catalogueNumber" %in% colnames(d)) {
-          # message ("Renaming catalogueNumber column to catalogNumber")
-          # names(d)[names(d) == 'catalogueNumber'] <- 'catalogNumber'
           d <- d %>% dplyr::select(-catalogueNumber)
         }
         
         if("eventDate" %in% colnames(d)) {
           d <- d %>% dplyr::select(-eventDate)
         }
-        
-        # if (!is.character(d$catalogNumber)) {
-        #   d$catalogNumber = as.character(d$catalogNumber)
-        #   
-        # }
         
         ## standardi[sz]e catnum colname
         if('coordinateUncertaintyinMetres' %in% colnames(d)) {
@@ -598,8 +590,6 @@ combine_ala_records = function(species_list,
         d["month"] = as.numeric(unlist(d["month"]))
         d["id"]    = as.character(unlist(d["id"]))
         
-        # d <- d %>% select(-catalogueNumber)
-        #return(d)
       } else {
         message('No ALA dat for ', x, ' skipping')
       }
@@ -693,9 +683,7 @@ combine_ala_records = function(species_list,
     message('No ALA dat for this set of taxa, creating empty datframe to other data')
     LAND.POINTS  = setNames(data.frame(matrix(ncol = length(keep), nrow = 0)), keep)
   }
-  
   return(LAND.POINTS)
-  
 }
 
 
@@ -730,10 +718,10 @@ combine_gbif_records = function(species_list,
   ## Now these lists are getting too long for the combine step.
   ## Restrict them to just the strings that partially match the  species list for each run
   spp.download <- paste(species_list, records_extension, sep = "")
-  download     = download[download %in% spp.download ]
+  download     <- download[download %in% spp.download ]
   message('downloaded species ', length(download), ' analyzed species ', length(species_list))
   
-  ALL.POINTS <- download %>%
+  ALL.POINTS <- download[1:3] %>%
     
     ## Pipe the list into lapply
     lapply(function(x) {
@@ -743,39 +731,42 @@ combine_gbif_records = function(species_list,
       f <- sprintf(paste0(records_path, "%s"), x)
       
       ## Load each file
+      message('Reading GBIF data for ', x)
       d <- get(load(f))
       
-      ## Now drop the columns which we don't need
-      message ('Reading GBIF data for ', x)
-      
-      ## Check if the dataframes have data
-      if (nrow(d) <= 2) {
+      ## Check if the data frames have data
+      if (nrow(d) >= 2) {
         
-        ## If the species has < 2 records, escape the loop
-        print (paste ("No GBIF records for ", x, " skipping "))
-        return (d)
+        # if(!is.character(dat$gbifID)) {
+        #   d$gbifID <- as.character(d$gbifID)
+        # }
         
+        if("gbifID" %in% colnames(d)) {
+          d <- d %>% dplyr::select(-gbifID)
+        }
+        
+        ## Need to print the object within the loop
+        names(d)[names(d) == 'decimalLatitude']  <- 'lat'
+        names(d)[names(d) == 'decimalLongitude'] <- 'lon'
+        
+        ## Create the searchTaxon column - check how to put the data in here
+        message ('Formatting occurrence data for ', x)
+        searchtax <- gsub(records_extension, "",    x)
+        
+        d <- d %>% mutate(searchTaxon = searchtax) %>%
+          dplyr::select(one_of(keep_cols))
+        
+      } else {
+        message('No ALA dat for ', x, ' skipping')
       }
-      
-      dat <- data.frame(searchTaxon = x, d[, colnames(d) %in% keep_cols],
-                        stringsAsFactors = FALSE)
-      
-      if(!is.character(dat$gbifID)) {
-        
-        dat$gbifID <- as.character(dat$gbifID)
-        
-      }
-      
-      ## Need to print the object within the loop
-      names(dat)[names(dat) == 'decimalLatitude']  <- 'lat'
-      names(dat)[names(dat) == 'decimalLongitude'] <- 'lon'
-      dat$searchTaxon = gsub("_GBIF_records.RData", "", dat$searchTaxon)
-      return(dat)
-      
+      return(d)
     }) %>%
     
     ## Finally, bind all the rows together
-    bind_rows
+    bind_rows()
+  
+  ## Clear the garbage
+  gc()
   
   ## If there is GBIF data
   if (nrow(ALL.POINTS) > 0) {
@@ -789,7 +780,7 @@ combine_gbif_records = function(species_list,
     
     
     ## Now get just the columns we want to keep.
-    GBIF.TRIM <- ALL.POINTS%>%
+    GBIF.TRIM <- ALL.POINTS %>%
       dplyr::select(one_of(keep_cols))
     names(GBIF.TRIM)
     gc()

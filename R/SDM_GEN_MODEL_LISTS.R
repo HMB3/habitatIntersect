@@ -32,7 +32,6 @@ gbif_keep <- c(## TAXONOMY
   ## RECORD ID
   "recordedBy",
   "identifiedBy",
-  "gbifID",
   "catalogNumber",
 
   ## PLACE/TIME

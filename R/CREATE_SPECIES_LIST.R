@@ -24,6 +24,12 @@ target.insect.genera = read_excel('./data/Taxonomy/Habitat_fire_recovery_inverte
   .$Genus %>% as.character() %>% unique() %>% str_trim() %>% .[!is.na(.)]
 
 
+##
+gbif.plant.spp = read_excel('./data/Taxonomy/Euro_plants.xlsx',
+                            sheet = 'Plants') %>%
+  .$Species %>% as.character() %>% unique() %>% str_trim() %>% .[!is.na(.)]
+
+
 
 
 
