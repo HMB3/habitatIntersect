@@ -56,9 +56,10 @@ install_github('johnbaums/things')
 install_github('johnbaums/rmaxent')
 install_github('traitecoevo/taxonlookup')
 
-## Main package
+## Main package 
 devtools::install_github("HMB3/nenswniche")
 
+## Load packages 
 library(nenswniche)
 data('sdmgen_packages')
 ipak(sdmgen_packages)
