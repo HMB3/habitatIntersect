@@ -7,7 +7,22 @@
 
 
 ## Helper functions ----
+
+
+## % in
 '%!in%' <- function(x,y)!('%in%'(x,y))
+
+
+## Ipak
+ipak <- function(pkg){
+  
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  
+  if (length(new.pkg))
+    install.packages(new.pkg, dependencies = TRUE, repos="https://cran.csiro.au/")
+  
+  sapply(pkg, require, character.only = TRUE)
+}
 
 
 ## GBIF download ----
@@ -1084,9 +1099,10 @@ combine_records_extract = function(ala_df,
   ## CHECK TAXONOMY RETURNED BY ALA USING TAXONSTAND?
   
   ## Create points: the 'over' function seems to need geographic coordinates for this data...
-  GBIF.ALA.84 = SpatialPointsDataFrame(coords      = ALA.COMBO[c("lon", "lat")],
-                                       data        = ALA.COMBO,
-                                       proj4string = prj)
+  ALA.COMBO.POINTS <- ALA.COMBO %>% dplyr::select(lon, lat) %>% as.matrix()
+  GBIF.ALA.84      <- SpatialPointsDataFrame(coords      = ALA.COMBO.POINTS,
+                                             data        = ALA.COMBO,
+                                             proj4string = prj)
   
   if(thin_records == TRUE) {
     
@@ -1105,15 +1121,15 @@ combine_records_extract = function(ala_df,
     }, GBIF.ALA.84, occurrence_cells_all, SIMPLIFY = FALSE) %>% do.call(rbind, .)
     
     ## Check to see we have 19 variables + the species for the standard predictors, and 19 for all predictors
-    message(round(nrow(GBIF.ALA.84.THIN)/nrow(GBIF.ALA.84)*100, 2), " % records retained at 1km resolution")
+    message(round(nrow(GBIF.ALA.84.THIN)/nrow(ALA.COMBO)*100, 2), " % records retained at 1km resolution")
     
     ## Create points: the 'over' function seems to need geographic coordinates for this data...
-    COMBO.POINTS   = GBIF.ALA.84.THIN[c("lon", "lat")]
+    COMBO.POINTS <- GBIF.ALA.84.THIN %>% as.data.frame() %>% dplyr::select(lon, lat) %>% as.matrix()
     
   } else {
     message('dont thin the records out' )
-    COMBO.POINTS     = GBIF.ALA.84[c("lon", "lat")]
-    GBIF.ALA.84.THIN = GBIF.ALA.84
+    COMBO.POINTS     <- GBIF.ALA.84 %>% as.data.frame() %>% dplyr::select(lon, lat) %>% as.matrix()
+    GBIF.ALA.84.THIN <- GBIF.ALA.84
   }
   
   ## Bioclim variables
@@ -1150,10 +1166,11 @@ combine_records_extract = function(ala_df,
   ## Print the dataframe dimensions to screen :: 
   ## format to recognize millions, hundreds of thousands, etc.
   COMBO.RASTER.CONVERT = completeFun(COMBO.RASTER.CONVERT, env_vars[1])
+  COMBO.RASTER.POINTS  <- COMBO.RASTER.CONVERT %>% dplyr::select(lon, lat) %>% as.matrix()
   
   
   ## Create points: the 'over' function seems to need geographic coordinates for this data...
-  COMBO.RASTER.CONVERT.SPDF = SpatialPointsDataFrame(coords      = COMBO.RASTER.CONVERT[c("lon", "lat")],
+  COMBO.RASTER.CONVERT.SPDF = SpatialPointsDataFrame(coords      = COMBO.RASTER.POINTS,
                                                      data        = COMBO.RASTER.CONVERT,
                                                      proj4string = prj)
   
