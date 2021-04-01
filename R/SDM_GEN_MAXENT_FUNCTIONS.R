@@ -76,16 +76,16 @@ run_sdm_analysis = function(species_list,
     file.create(file.path(dir_name, "in_progress.txt"))
 
     ## Print the taxa being processed to screen
-    if(species %in% SDM.SPAT.OCC.BG$searchTaxon) {
+    if(species %in% sdm_df$searchTaxon) {
       message('Doing ', species)
 
       ## Subset the records to only the taxa being processed
-      occurrence <- subset(SDM.SPAT.OCC.BG, searchTaxon == species)
+      occurrence <- subset(sdm_df, searchTaxon == species)
       message('Using ', nrow(occurrence), ' occ records from ', unique(occurrence$SOURCE))
 
       ## Now get the background points. These can come from any species, other than the modelled species.
       ## However, they should be limited to the same SOURCE as the occ data
-      background <- subset(SDM.SPAT.OCC.BG, searchTaxon != species)
+      background <- subset(sdm_df, searchTaxon != species)
       message('Using ', nrow(background), ' background records from ', unique(background$SOURCE))
 
       ## Finally fit the models using FIT_MAXENT_TARG_BG. Also use tryCatch to skip any exceptions

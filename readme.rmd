@@ -108,7 +108,7 @@ data('target.insect.genera')
 data('target.insect.families')
 data('all.insect.plant.spp')
 
-analysis_taxa <- str_trim(target.insect.spp) 
+analysis_taxa <- str_trim(target.insect.genera) 
 analysis_taxa
 
 ```
@@ -607,15 +607,14 @@ minimum number of predictors remains.
 
 
 
-## Bind genera datasets together
-SDM.SPAT.OCC.GENERA.BG = bind_rows()
+## Due to site data, we probably have enouugh background records
 
 
 ##
 run_sdm_analysis(species_list            = analysis_taxa,
                  maxent_dir              = 'output/maxent/full_models',     
                  bs_dir                  = 'output/maxent/back_sel_models',
-                 sdm_df                  = SDM.SPAT.OCC.BG,
+                 sdm_df                  = SDM.TARG.INS.GEN.BG,
                  sdm_predictors          = bs_predictors,
                  backwards_sel           = TRUE,      
                  template_raster         = template_raster_1km_mol,
