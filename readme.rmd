@@ -108,7 +108,7 @@ data('target.insect.genera')
 data('target.insect.families')
 data('all.insect.plant.spp')
 
-analysis_taxa <- str_trim(target.insect.genera) 
+analysis_taxa <- str_trim(all.insect.plant.spp) 
 analysis_taxa
 
 ```
@@ -596,8 +596,10 @@ minimum number of predictors remains.
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## SDM.ALL.INS.SPP.BG  = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_SPP.rds')
-## SDM.TARG.INS.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_INSECT_SPECIES.rds')
+## SDM.ALL.INS.SPP.BG   = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_SPP.rds')
+## SDM.TARG.INS.SPP.BG  = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_INSECT_SPECIES.rds')
+## SDM.ALL.PLANT.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_PLANT_SPP.rds')
+
 
 ## SDM.ALL.INS.GEN.BG  = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_GENERA.rds')
 ## SDM.TARG.INS.GEN.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_INSECT_GENERA.rds')
@@ -607,14 +609,23 @@ minimum number of predictors remains.
 
 
 
-## Due to site data, we probably have enouugh background records
+## To Do :
+## 1). Search Errors - which ones are real?
+## 3). Delete error folders
+## 4). Re-Run
+## 5). Get Gerry and Ryan to check the taxonomy
 
 
-##
-run_sdm_analysis(species_list            = analysis_taxa,
+## Clean up the folders which have failed
+
+data('AUS')
+data('Koppen_zones')
+data('Koppen_1975_1km')
+data('bs_predictors')
+run_sdm_analysis(species_list            = rev(analysis_taxa),
                  maxent_dir              = 'output/maxent/full_models',     
                  bs_dir                  = 'output/maxent/back_sel_models',
-                 sdm_df                  = SDM.TARG.INS.GEN.BG,
+                 sdm_df                  = SDM.ALL.PLANT.SPP.BG,
                  sdm_predictors          = bs_predictors,
                  backwards_sel           = TRUE,      
                  template_raster         = template_raster_1km_mol,
