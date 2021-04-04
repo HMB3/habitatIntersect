@@ -74,22 +74,22 @@ QLD.insect.sites.ALA <-  QLD.insects %>%
          basisOfRecord   = Coll_Method) %>% 
   
   ## Change this to the order of the clean columns   
-  select(searchTaxon, one_of(site_cols))
+  dplyr::select(searchTaxon, one_of(site_cols))
 
 
 ## What are these data sets? Are they the field data from 1993?
 names(QLD.insects)
 
 
-QLD.insect.genera     <- QLD.insects %>% select(Genus)  %>% distinct() %>% .$Genus
-QLD.insect.family     <- QLD.insects %>% select(Family) %>% distinct() %>% .$Family
+QLD.insect.genera     <- QLD.insects %>% dplyr::select(Genus)  %>% distinct() %>% .$Genus
+QLD.insect.family     <- QLD.insects %>% dplyr::select(Family) %>% distinct() %>% .$Family
 QLD.insect.spp        <- QLD.insects %>% mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>% 
-  select(searchTaxon) %>% distinct() %>% .$searchTaxon
+  dplyr::select(searchTaxon) %>% distinct() %>% .$searchTaxon
 
 
-QLD.insect.plants.genus <- QLD.insects %>% select(Host_Genus) %>% distinct() %>% .$Host_Genus %>% .[!is.na(.)]
+QLD.insect.plants.genus <- QLD.insects %>% dplyr::select(Host_Genus) %>% distinct() %>% .$Host_Genus %>% .[!is.na(.)]
 QLD.insect.plants       <- QLD.insects %>% mutate(searchTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
-  select(searchTaxon) %>% distinct() %>% .$searchTaxon %>% 
+  dplyr::select(searchTaxon) %>% distinct() %>% .$searchTaxon %>% 
   gsub(' NA', '', .,) %>% gsub(' sp.', '', .,) %>% gsub('NA', '', .,) %>% unique()
 
 
@@ -116,19 +116,19 @@ NSW.insect.sites.ALA <-  NSW.insects %>%
          basisOfRecord   = Coll_Method) %>% 
   
   ## Change this to the order of the clean columns   
-  select(searchTaxon, one_of(site_cols))
+  dplyr::select(searchTaxon, one_of(site_cols))
 
 
 ## 
-NSW.insect.genera <- NSW.insects %>% select(Genus)  %>% distinct() %>% .$Genus
-NSW.insect.family <- NSW.insects %>% select(Family) %>% distinct() %>% .$Family
+NSW.insect.genera <- NSW.insects %>% dplyr::select(Genus)  %>% distinct() %>% .$Genus
+NSW.insect.family <- NSW.insects %>% dplyr::select(Family) %>% distinct() %>% .$Family
 NSW.insect.spp    <- NSW.insects %>% mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>% 
-  select(searchTaxon) %>% distinct() %>% .$searchTaxon
+  dplyr::select(searchTaxon) %>% distinct() %>% .$searchTaxon
 
 
-NSW.insect.plants.genus <- NSW.insects %>% select(Host_Genus) %>% distinct() %>% .$Host_Genus %>% .[!is.na(.)]
+NSW.insect.plants.genus <- NSW.insects %>% dplyr::select(Host_Genus) %>% distinct() %>% .$Host_Genus %>% .[!is.na(.)]
 NSW.insect.plants       <- NSW.insects %>% mutate(searchTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
-  select(searchTaxon) %>% distinct() %>% .$searchTaxon %>% 
+  dplyr::select(searchTaxon) %>% distinct() %>% .$searchTaxon %>% 
   gsub(' NA', '', .,) %>% gsub(' sp.', '', .,) %>% gsub('NA', '', .,) %>% unique()
 
 
@@ -157,18 +157,18 @@ VIC.insect.sites.ALA <-  VIC.insects %>%
          basisOfRecord   = Coll_Method) %>% 
   
   ## Change this to the order of the clean columns   
-  select(searchTaxon, one_of(site_cols))
+  dplyr::select(searchTaxon, one_of(site_cols))
 
 
-VIC.insect.genera <- VIC.insects %>% select(Genus)  %>% distinct() %>% .$Genus
-VIC.insect.family <- VIC.insects %>% select(Family) %>% distinct() %>% .$Family
+VIC.insect.genera <- VIC.insects %>% dplyr::select(Genus)  %>% distinct() %>% .$Genus
+VIC.insect.family <- VIC.insects %>% dplyr::select(Family) %>% distinct() %>% .$Family
 VIC.insect.spp    <- VIC.insects %>% mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>% 
-  select(searchTaxon) %>% distinct() %>% .$searchTaxon
+  dplyr::select(searchTaxon) %>% distinct() %>% .$searchTaxon
 
 
-VIC.insect.plants.genus <- VIC.insects %>% select(Host_Genus) %>% distinct() %>% .$Host_Genus %>% .[!is.na(.)]
+VIC.insect.plants.genus <- VIC.insects %>% dplyr::select(Host_Genus) %>% distinct() %>% .$Host_Genus %>% .[!is.na(.)]
 VIC.insect.plants <- VIC.insects %>% mutate(searchTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
-  select(searchTaxon) %>% distinct() %>% .$searchTaxon %>% 
+  dplyr::select(searchTaxon) %>% distinct() %>% .$searchTaxon %>% 
   gsub(' NA', '', .,) %>% gsub(' sp.', '', .,) %>% gsub('NA', '', .,) %>% unique()
 
 
@@ -197,19 +197,19 @@ TAS.insect.sites.ALA <-  TAS.insects %>%
          basisOfRecord   = Coll_Method) %>% 
   
   ## Change this to the order of the clean columns   
-  select(searchTaxon, one_of(site_cols))
+  dplyr::select(searchTaxon, one_of(site_cols))
 
 
 ## 
-TAS.insect.genera  <- TAS.insects %>% select(Genus)  %>% distinct() %>% .$Genus
-TAS.insect.family  <- TAS.insects %>% select(Family) %>% distinct() %>% .$Family
+TAS.insect.genera  <- TAS.insects %>% dplyr::select(Genus)  %>% distinct() %>% .$Genus
+TAS.insect.family  <- TAS.insects %>% dplyr::select(Family) %>% distinct() %>% .$Family
 TAS.insect.spp     <- TAS.insects %>% mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>% 
-  select(searchTaxon) %>% distinct() %>% .$searchTaxon
+  dplyr::select(searchTaxon) %>% distinct() %>% .$searchTaxon
 
 
-TAS.insect.plants.genus <- TAS.insects %>% select(Host_Genus) %>% distinct() %>% .$Host_Genus %>% .[!is.na(.)]
+TAS.insect.plants.genus <- TAS.insects %>% dplyr::select(Host_Genus) %>% distinct() %>% .$Host_Genus %>% .[!is.na(.)]
 TAS.insect.plants <- TAS.insects %>% mutate(searchTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
-  select(searchTaxon) %>% distinct() %>% .$searchTaxon %>% 
+  dplyr::select(searchTaxon) %>% distinct() %>% .$searchTaxon %>% 
   gsub(' NA', '', .,) %>% gsub(' sp.', '', .,) %>% gsub('NA', '', .,) %>% unique()
 
 
@@ -238,19 +238,19 @@ SA.insect.sites.ALA <-  SA.insects %>%
          basisOfRecord   = Coll_Method) %>% 
   
   ## Change this to the order of the clean columns   
-  select(searchTaxon, one_of(site_cols))
+  dplyr::select(searchTaxon, one_of(site_cols))
 
 
 ##
-SA.insect.genera  <- SA.insects %>% select(Genus)  %>% distinct() %>% .$Genus
-SA.insect.family  <- SA.insects %>% select(Family) %>% distinct() %>% .$Family
+SA.insect.genera  <- SA.insects %>% dplyr::select(Genus)  %>% distinct() %>% .$Genus
+SA.insect.family  <- SA.insects %>% dplyr::select(Family) %>% distinct() %>% .$Family
 SA.insect.spp     <- SA.insects %>% mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>% 
-  select(searchTaxon) %>% distinct() %>% .$searchTaxon
+  dplyr::select(searchTaxon) %>% distinct() %>% .$searchTaxon
 
 
-SA.insect.plants.genus <- SA.insects %>% select(Host_Genus) %>% distinct() %>% .$Host_Genus %>% .[!is.na(.)]
+SA.insect.plants.genus <- SA.insects %>% dplyr::select(Host_Genus) %>% distinct() %>% .$Host_Genus %>% .[!is.na(.)]
 SA.insect.plants <- SA.insects %>% mutate(searchTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
-  select(searchTaxon) %>% distinct() %>% .$searchTaxon %>% 
+  dplyr::select(searchTaxon) %>% distinct() %>% .$searchTaxon %>% 
   gsub(' NA', '', .,) %>% gsub(' sp.', '', .,) %>% gsub('NA', '', .,) %>% unique()
 
 
@@ -279,19 +279,19 @@ WA.insect.sites.ALA <-  WA.insects %>%
          basisOfRecord   = Coll_Method) %>% 
   
   ## Change this to the order of the clean columns   
-  select(searchTaxon, one_of(site_cols))
+  dplyr::select(searchTaxon, one_of(site_cols))
 
 
 ##
-WA.insect.genera <- WA.insects %>% select(Genus)  %>% distinct() %>% .$Genus
-WA.insect.family <- WA.insects %>% select(Family) %>% distinct() %>% .$Family
+WA.insect.genera <- WA.insects %>% dplyr::select(Genus)  %>% distinct() %>% .$Genus
+WA.insect.family <- WA.insects %>% dplyr::select(Family) %>% distinct() %>% .$Family
 WA.insect.spp    <- WA.insects %>% mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>% 
-  select(searchTaxon) %>% distinct() %>% .$searchTaxon
+  dplyr::select(searchTaxon) %>% distinct() %>% .$searchTaxon
 
 
-WA.insect.plants.genus <- WA.insects %>% select(Host_Genus) %>% distinct() %>% .$Host_Genus %>% .[!is.na(.)]
+WA.insect.plants.genus <- WA.insects %>% dplyr::select(Host_Genus) %>% distinct() %>% .$Host_Genus %>% .[!is.na(.)]
 WA.insect.plants <- WA.insects %>% mutate(searchTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
-  select(searchTaxon) %>% distinct() %>% .$searchTaxon %>% 
+  dplyr::select(searchTaxon) %>% distinct() %>% .$searchTaxon %>% 
   gsub(' NA', '', .,) %>% gsub(' sp.', '', .,) %>% gsub('NA', '', .,) %>% unique()
 
 
@@ -319,20 +319,20 @@ NT.insect.sites.ALA <-  NT.insects %>%
          basisOfRecord   = Coll_Method) %>% 
   
   ## Change this to the order of the clean columns   
-  select(searchTaxon, one_of(site_cols))
+  dplyr::select(searchTaxon, one_of(site_cols))
 
 
 ## 
-NT.insect.genera <- NT.insects %>% select(Genus) %>% distinct() %>% .$Genus
-NT.insect.family <- NT.insects %>% select(Family) %>% distinct() %>% .$Family
+NT.insect.genera <- NT.insects %>% dplyr::select(Genus) %>% distinct() %>% .$Genus
+NT.insect.family <- NT.insects %>% dplyr::select(Family) %>% distinct() %>% .$Family
 NT.insect.spp    <- NT.insects %>% mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>% 
-  select(searchTaxon) %>% distinct() %>% .$searchTaxon
+  dplyr::select(searchTaxon) %>% distinct() %>% .$searchTaxon
 
 
 ## 
-NT.insect.plants.genus <- NT.insects %>% select(Host_Genus) %>% distinct() %>% .$Host_Genus %>% .[!is.na(.)]
+NT.insect.plants.genus <- NT.insects %>% dplyr::select(Host_Genus) %>% distinct() %>% .$Host_Genus %>% .[!is.na(.)]
 NT.insect.plants <- NT.insects %>% mutate(searchTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
-  select(searchTaxon) %>% distinct() %>% .$searchTaxon %>% 
+  dplyr::select(searchTaxon) %>% distinct() %>% .$searchTaxon %>% 
   gsub(' NA', '', .,) %>% gsub(' sp.', '', .,) %>% gsub('NA', '', .,) %>% unique()
 
 
@@ -361,20 +361,20 @@ ACT.insect.sites.ALA <-  ACT.insects %>%
          basisOfRecord   = Coll_Method) %>% 
   
   ## Change this to the order of the clean columns   
-  select(searchTaxon, one_of(site_cols))
+  dplyr::select(searchTaxon, one_of(site_cols))
 
 
 ## 
-ACT.insect.genera <- ACT.insects %>% select(Genus)  %>% distinct() %>% .$Genus
-ACT.insect.family <- ACT.insects %>% select(Family) %>% distinct() %>% .$Family
+ACT.insect.genera <- ACT.insects %>% dplyr::select(Genus)  %>% distinct() %>% .$Genus
+ACT.insect.family <- ACT.insects %>% dplyr::select(Family) %>% distinct() %>% .$Family
 ACT.insect.spp    <- ACT.insects %>% mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>% 
-  select(searchTaxon) %>% distinct() %>% .$searchTaxon
+  dplyr::select(searchTaxon) %>% distinct() %>% .$searchTaxon
 
 
 ## 
-ACT.insect.plants.genus <- ACT.insects %>% select(Host_Genus) %>% distinct() %>% .$Host_Genus %>% .[!is.na(.)]
+ACT.insect.plants.genus <- ACT.insects %>% dplyr::select(Host_Genus) %>% distinct() %>% .$Host_Genus %>% .[!is.na(.)]
 ACT.insect.plants <- ACT.insects %>% mutate(searchTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
-  select(searchTaxon) %>% distinct() %>% .$searchTaxon %>% 
+  dplyr::select(searchTaxon) %>% distinct() %>% .$searchTaxon %>% 
   gsub(' NA', '', .,) %>% gsub(' sp.', '', .,) %>% gsub('NA', '', .,) %>% unique()
 
 
@@ -468,12 +468,12 @@ all_insect_site_df_species <- bind_rows(QLD.insect.sites.ALA,
 
 ## Genera
 all_insect_site_df_genera <- all_insect_site_df_species  %>%
-  select(-searchTaxon) %>% 
-  rename(searchTaxon = genus) %>% select(searchTaxon, everything())
+  dplyr::select(-searchTaxon) %>% 
+  rename(searchTaxon = genus) %>% dplyr::select(searchTaxon, everything())
 
 all_insect_site_df_families <- all_insect_site_df_species %>%
-  select(-searchTaxon) %>% 
-  rename(searchTaxon = family) %>% select(searchTaxon, everything())
+  dplyr::select(-searchTaxon) %>% 
+  rename(searchTaxon = family) %>% dplyr::select(searchTaxon, everything())
 
 
 ## Create target species lists
