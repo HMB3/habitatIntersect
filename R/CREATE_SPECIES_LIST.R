@@ -40,7 +40,10 @@ gbif.plant.spp = read_excel('./data/Taxonomy/Euro_plants.xlsx',
 ## Common cols between SITES and ALA
 site_cols <- c("genus", 
                "species", 
-               "family", 
+               "family",
+               "Host_Genus",
+               "Host_species",
+               "plantTaxon",
                "lat", 
                "lon", 
                "country", 
@@ -72,6 +75,8 @@ QLD.insect.sites.ALA <-  QLD.insects %>%
          recordedBy      = Collector,
          state           = State_Prov,
          basisOfRecord   = Coll_Method) %>% 
+  
+  mutate(plantTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
   
   ## Change this to the order of the clean columns   
   dplyr::select(searchTaxon, one_of(site_cols))
@@ -115,6 +120,8 @@ NSW.insect.sites.ALA <-  NSW.insects %>%
          state           = State_Prov,
          basisOfRecord   = Coll_Method) %>% 
   
+  mutate(plantTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
+  
   ## Change this to the order of the clean columns   
   dplyr::select(searchTaxon, one_of(site_cols))
 
@@ -156,6 +163,8 @@ VIC.insect.sites.ALA <-  VIC.insects %>%
          state           = State_Prov,
          basisOfRecord   = Coll_Method) %>% 
   
+  mutate(plantTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
+  
   ## Change this to the order of the clean columns   
   dplyr::select(searchTaxon, one_of(site_cols))
 
@@ -196,6 +205,8 @@ TAS.insect.sites.ALA <-  TAS.insects %>%
          state           = State_Prov,
          basisOfRecord   = Coll_Method) %>% 
   
+  mutate(plantTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
+  
   ## Change this to the order of the clean columns   
   dplyr::select(searchTaxon, one_of(site_cols))
 
@@ -235,7 +246,9 @@ SA.insect.sites.ALA <-  SA.insects %>%
          institutionCode = Inst_Code,
          recordedBy      = Collector,
          state           = State_Prov,
-         basisOfRecord   = Coll_Method) %>% 
+         basisOfRecord   = Coll_Method) %>%
+  
+  mutate(plantTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
   
   ## Change this to the order of the clean columns   
   dplyr::select(searchTaxon, one_of(site_cols))
@@ -276,7 +289,9 @@ WA.insect.sites.ALA <-  WA.insects %>%
          institutionCode = Inst_Code,
          recordedBy      = Collector,
          state           = State_Prov,
-         basisOfRecord   = Coll_Method) %>% 
+         basisOfRecord   = Coll_Method) %>%
+  
+  mutate(plantTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
   
   ## Change this to the order of the clean columns   
   dplyr::select(searchTaxon, one_of(site_cols))
@@ -317,6 +332,8 @@ NT.insect.sites.ALA <-  NT.insects %>%
          recordedBy      = Collector,
          state           = State_Prov,
          basisOfRecord   = Coll_Method) %>% 
+  
+  mutate(plantTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
   
   ## Change this to the order of the clean columns   
   dplyr::select(searchTaxon, one_of(site_cols))
@@ -359,6 +376,8 @@ ACT.insect.sites.ALA <-  ACT.insects %>%
          recordedBy      = Collector,
          state           = State_Prov,
          basisOfRecord   = Coll_Method) %>% 
+  
+  mutate(plantTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
   
   ## Change this to the order of the clean columns   
   dplyr::select(searchTaxon, one_of(site_cols))
@@ -471,14 +490,23 @@ all_insect_site_df_genera <- all_insect_site_df_species  %>%
   dplyr::select(-searchTaxon) %>% 
   rename(searchTaxon = genus) %>% dplyr::select(searchTaxon, everything())
 
+## Families
 all_insect_site_df_families <- all_insect_site_df_species %>%
-  dplyr::select(-searchTaxon) %>% 
+  dplyr::select(-searchTaxon)  %>% 
   rename(searchTaxon = family) %>% dplyr::select(searchTaxon, everything())
 
 
-## Create target species lists
+## Target families
 target.insect.families <- all_insect_site_df_species  %>% 
   .[.$searchTaxon %in% target.insect.spp, ] %>% .$family %>% unique() %>% str_trim() %>% .[!is.na(.)]
+
+
+## Target host plants
+target.host.plants <- all_insect_site_df_species  %>% 
+  .[.$searchTaxon %in% target.insect.spp, ] %>% .$plantTaxon %>% 
+  unique() %>% str_trim() %>% 
+  gsub('sp.', '', .,)  %>% gsub(' NA', '', .,) %>% gsub('NA ', '', .,) %>% 
+  .[!is.na(.)]
 
 
 ## How big is this df?
