@@ -619,10 +619,11 @@ minimum number of predictors remains.
 
 ## Clean up the folders which have failed
 
-data('AUS')
+#data('AUS')
 data('Koppen_zones')
 data('Koppen_1975_1km')
 data('bs_predictors')
+data('LAND')
 run_sdm_analysis(species_list            = rev(analysis_taxa),
                  maxent_dir              = 'output/maxent/full_models',     
                  bs_dir                  = 'output/maxent/back_sel_models',
@@ -683,35 +684,7 @@ sdm.results.dir <- MAXENT.RESULTS$results_dir
 
 ``` 
 
-\
 
-Now we need some future climate projections. We can download raster Worldclim data using the raster package.
-The Stoten publication uses climate projections under six global circulation models (create a table here) :
-
-\
-
-
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
-
-## List of scenarios that we used in the Stoten article
-scen_list <- c('AC', 'CC', 'HG', 'GF', 'MC', 'NO')
-
-## For all the scenarios in the list
-for(scen in scen_list)
-  
-  ## Download each to the specified folder, for EG 2070   
-  message('Get the worldclim data for ', scen)
-raster::getData('CMIP5', 
-                var   = 'bio', 
-                res   = 2.5, 
-                rcp   = 85, 
-                model = scen, 
-                year  = 70,
-                path = './data/worldclim/world/2070')
-
-``` 
-
-\
 
 Or, we can load in some 1km*1km Worldclim rasters for current environmental conditions :
 
@@ -721,8 +694,9 @@ Or, we can load in some 1km*1km Worldclim rasters for current environmental cond
 
 ## 1km*1km Worldclim rasters for current environmental conditions can be found here:
 ## https://drive.google.com/open?id=1B14Jdv_NK2iWnmsqCxlKcEXkKIqwmRL_
+## These need to projected into Australian Albers
 aus.grids.current <- stack(
-  file.path('./data/worldclim/aus/current', 
+  file.path('./data/worldclim2/aus/current', 
             sprintf('bio_%02d.tif', 1:19)))
 
 ``` 
@@ -744,30 +718,29 @@ aus_albers <- CRS('+proj=aea +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=132 +x_0=0 +y
 
 ## Create 2070 sdm map projections
 tryCatch(
-  project_maxent_grids_mess(country_shp   = AUS, 
-                            world_shp     = LAND,   
-                            country_prj   = CRS("+init=EPSG:3577"),
-                            world_prj     = CRS("+init=epsg:4326"),
-                            local_prj     = aus_albers,
-                            
-                            scen_list     = scen_2070, 
-                            species_list  = map_spp,    
-                            maxent_path   = './output/maxent/back_sel_models/',
-                            climate_path  = './data/worldclim/aus/',               
-                            
-                            grid_names    = env_variables,             
-                            time_slice    = 70,                       
-                            current_grids = aus.grids.current,         
-                            create_mess   = TRUE,
-                            OSGeo_path    = 'C:/OSGeo4W64/OSGeo4W.bat', 
-                            nclust        = 1),
+  project_maxent_current_grids_mess(country_shp   = AUS, 
+                                    world_shp     = LAND,   
+                                    country_prj   = CRS("+init=EPSG:3577"),
+                                    world_prj     = CRS("+init=epsg:4326"),
+                                    local_prj     = aus_albers,
+                                    
+                                    species_list  = map_spp,    
+                                    maxent_path   = './output/maxent/back_sel_models/',
+                                    climate_path  = './data/worldclim/aus/',               
+                                    
+                                    grid_names    = env_variables,             
+                                    time_slice    = 70,                       
+                                    current_grids = aus.grids.current,         
+                                    create_mess   = TRUE,
+                                    OSGeo_path    = 'C:/OSGeo4W64/OSGeo4W.bat', 
+                                    nclust        = 1),
   
   ## If the species fails, write a fail message to file
   error = function(cond) {
     
     ## This will write the error message inside the text file, but it won't include the species
-    file.create(file.path("output/maxent/back_sel_models/mapping_failed_2070.txt"))
-    cat(cond$message, file = file.path("output/maxent/back_sel_models/mapping_failed_2070.txt"))
+    file.create(file.path("output/maxent/back_sel_models/mapping_failed_current.txt"))
+    cat(cond$message, file = file.path("output/maxent/back_sel_models/mapping_failed_current.txt"))
     warning(cond$message)
     
   })
