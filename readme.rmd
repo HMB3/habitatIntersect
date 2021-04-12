@@ -703,7 +703,7 @@ Or, we can load in some 1km*1km Worldclim rasters for current environmental cond
 ## These need to projected into Australian Albers
 aus.grids.current <- stack(
   file.path('./data/worldclim2/aus/current', 
-            sprintf('bio_%02d.tif', 1:19)))
+            sprintf('bio_%d_AUSGDA.tif', 1:19)))
 
 ``` 
 
@@ -735,7 +735,6 @@ tryCatch(
                                     climate_path  = './data/worldclim/aus/',               
                                     
                                     grid_names    = env_variables,             
-                                    time_slice    = 70,                       
                                     current_grids = aus.grids.current,         
                                     create_mess   = TRUE,
                                     OSGeo_path    = 'C:/OSGeo4W64/OSGeo4W.bat', 
