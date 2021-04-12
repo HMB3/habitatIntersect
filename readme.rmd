@@ -47,17 +47,23 @@ To install, run :
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## The package should import all the required packages
-## Sys.setenv(JAVA_HOME = "C:\\Program Files (x86)\\Java\\jre1.8.0_231")
-## Sys.setenv(JAVA_HOME = 'C:\\Program Files\\Java\\jre1.8.0_281')
+## Function to install packages
+ipak <- function(pkg){
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if (length(new.pkg))
+    install.packages(new.pkg, dependencies = TRUE, repos="https://cran.csiro.au/")
+  sapply(pkg, require, character.only = TRUE)
+}
 
-## These packages are needed
-install_github('johnbaums/things')
-install_github('johnbaums/rmaxent')
-install_github('traitecoevo/taxonlookup')
+
+## These packages are not on cran, but are needed
+# library(devtools)
+# install_github('johnbaums/things')
+# install_github('johnbaums/rmaxent')
+# install_github('traitecoevo/taxonlookup')
 
 ## Main package 
-devtools::install_github("HMB3/nenswniche")
+# devtools::install_github("HMB3/nenswniche")
 
 ## Load packages 
 library(nenswniche)
