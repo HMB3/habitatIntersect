@@ -16,7 +16,8 @@ combine_records_extract(
   prj,
   biocl_vars,
   env_vars,
-  worldclim_divide,
+  raster_divide,
+  raster_denom,
   save_data,
   data_path,
   project_path,
@@ -42,7 +43,7 @@ combine_records_extract(
 
 \item{env_vars}{The actual variable names (e.g. bio1 = rainfall, etc.) Only needed for worldlcim}
 
-\item{worldclim_divide}{Are you using worldclim stored as long intergers? If so, divide by 10.}
+\item{raster_divide}{Are you using worldclim stored as long intergers? If so, divide by 10.}
 
 \item{save_data}{Do you want to save the data frame?}
 
