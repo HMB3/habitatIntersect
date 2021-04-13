@@ -115,7 +115,7 @@ data('target.insect.families')
 data('target.host.plants')
 data('all.insect.plant.spp')
 
-analysis_taxa <- str_trim(target.host.plants) 
+analysis_taxa <- str_trim(target.host.plants)
 analysis_taxa
 
 ```

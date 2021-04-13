@@ -32,7 +32,6 @@ gbif_keep <- c(## TAXONOMY
   ## RECORD ID
   "recordedBy",
   "identifiedBy",
-  "catalogNumber",
 
   ## PLACE/TIME
   "lat",
@@ -45,7 +44,6 @@ gbif_keep <- c(## TAXONOMY
   "year",
   "month",
   "day",
-  "eventDate",
   "eventID")
 
 

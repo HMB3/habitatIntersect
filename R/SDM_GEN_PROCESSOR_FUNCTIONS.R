@@ -752,36 +752,43 @@ combine_gbif_records = function(species_list,
       ## Check if the data frames have data
       if (nrow(d) >= 2) {
         
-        # if(!is.character(dat$gbifID)) {
-        #   d$gbifID <- as.character(d$gbifID)
-        # }
-        
-        if("gbifID" %in% colnames(d)) {
-          d <- d %>% dplyr::select(-gbifID)
+        if("decimalLatitude" %in% colnames(d)) {
+          
+          if("gbifID" %in% colnames(d)) {
+            d <- d %>% dplyr::select(-gbifID)
+          }
+          
+          if("eventDate" %in% colnames(d)) {
+            d <- d %>% dplyr::select(-eventDate)
+          }
+          
+          ## Need to print the object within the loop
+          names(d)[names(d) == 'decimalLatitude']  <- 'lat'
+          names(d)[names(d) == 'decimalLongitude'] <- 'lon'
+          
+          ## Create the searchTaxon column - check how to put the data in here
+          message ('Formatting occurrence data for ', x)
+          searchtax <- gsub(records_extension, "",    x)
+          
+          ## Filter the data for each species
+          message('filter records for ', searchtax)
+          d <- d %>% mutate(searchTaxon = searchtax) %>%
+            dplyr::select(one_of(keep_cols)) %>% 
+            
+            filter(!is.na(lon) & !is.na(lat)) %>%
+            filter(lon < 180 & lat > -90) %>%
+            filter(lon < 180 & lat > -90) %>%
+            filter(year >= 1950) %>%
+            filter(!is.na(year))
+          
+        } else {
+          message('No location data for ', x, ' skipping')
         }
         
-        ## Need to print the object within the loop
-        names(d)[names(d) == 'decimalLatitude']  <- 'lat'
-        names(d)[names(d) == 'decimalLongitude'] <- 'lon'
-        
-        ## Create the searchTaxon column - check how to put the data in here
-        message ('Formatting occurrence data for ', x)
-        searchtax <- gsub(records_extension, "",    x)
-        
-        ## Filter the data for each species
-        message('filter records for ', searchtax)
-        d <- d %>% mutate(searchTaxon = searchtax) %>%
-          dplyr::select(one_of(keep_cols)) %>% 
-          
-          filter(!is.na(lon) & !is.na(lat)) %>%
-          filter(lon < 180 & lat > -90) %>%
-          filter(lon < 180 & lat > -90) %>%
-          filter(year >= 1950) %>%
-          filter(!is.na(year))
-        
       } else {
-        message('No ALA dat for ', x, ' skipping')
+        message('No GBIF dat for ', x, ' skipping')
       }
+      
       return(d)
     }) %>%
     
