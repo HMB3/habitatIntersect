@@ -156,7 +156,7 @@ project_maxent_current_grids_mess = function(country_shp,   world_shp,
               p <- levelplot(raster, margin = FALSE, scales = list(draw = FALSE),
                              at = seq(minValue(raster), maxValue(raster), len = 100),
                              colorkey = list(height = 0.6),
-                             main = gsub('_', ' ', sprintf('Current_mess_for_%s (%s)', raster_name, species))) +
+                             main = gsub('_', ' ', sprintf(' Current_mess_for_%s (%s)', raster_name, species))) +
                 
                 latticeExtra::layer(sp.polygons(country_poly), data = list(country_poly = country_poly))  ## need list() for polygon
               
@@ -181,7 +181,7 @@ project_maxent_current_grids_mess = function(country_shp,   world_shp,
                         overwrite = TRUE)
             
           } else {
-            message(species, 'Current MESS file already saved')
+            message(species, ' Current MESS file already saved')
           }
           
           ## Now mask out novel environments
@@ -200,7 +200,7 @@ project_maxent_current_grids_mess = function(country_shp,   world_shp,
                                                     "_current_not_novel"), overwrite = TRUE)
           
           } else {
-            message(species, 'Current un-novel environments file already saved')
+            message(species, ' Current un-novel environments file already saved')
           }
           
           ## If we're on windows, use the GDAL .bat file
@@ -232,7 +232,7 @@ project_maxent_current_grids_mess = function(country_shp,   world_shp,
                      layer  = paste0(species, "_current_novel_polygon"),
                      driver = "ESRI Shapefile", overwrite_layer = TRUE)
           } else {
-            message('Current MESS maps already saved to polygons for ', species)
+            message(' Current MESS maps already saved to polygons for ', species)
           }
           
           ## Create a SpatialLines object that indicates novel areas (this will be overlaid)
@@ -271,7 +271,7 @@ project_maxent_current_grids_mess = function(country_shp,   world_shp,
                             col.regions = colorRampPalette(rev(brewer.pal(11, 'Spectral'))),
                             
                             ## Give each plot a name: the third panel is the GCM
-                            names.attr = c('Australian records', 'Current'),
+                            names.attr = c('Australian records', ' Current'),
                             colorkey   = list(height = 0.5, width = 3), xlab = '', ylab = '',
                             main       = list(gsub('_', ' ', species), font = 4, cex = 2)) +
                     
@@ -285,7 +285,7 @@ project_maxent_current_grids_mess = function(country_shp,   world_shp,
             dev.off()
             
           } else {
-            message('Current MESS panel maps already created for ', species)
+            message(' Current MESS panel maps already created for ', species)
           }
         }
       } else {
@@ -469,7 +469,7 @@ project_maxent_grids_mess = function(country_shp,   world_shp,
               p <- levelplot(raster, margin = FALSE, scales = list(draw = FALSE),
                              at = seq(minValue(raster), maxValue(raster), len = 100),
                              colorkey = list(height = 0.6),
-                             main = gsub('_', ' ', sprintf('Current_mess_for_%s (%s)', raster_name, species))) +
+                             main = gsub('_', ' ', sprintf(' Current_mess_for_%s (%s)', raster_name, species))) +
 
                 latticeExtra::layer(sp.polygons(country_poly), data = list(country_poly = country_poly))  ## need list() for polygon
 
@@ -494,7 +494,7 @@ project_maxent_grids_mess = function(country_shp,   world_shp,
                         overwrite = TRUE)
 
           } else {
-            message(species, 'Current MESS file already saved')
+            message(species, ' Current MESS file already saved')
           }
 
           ## Now mask out novel environments
@@ -631,7 +631,7 @@ project_maxent_grids_mess = function(country_shp,   world_shp,
                        layer  = paste0(species, "_current_novel_polygon"),
                        driver = "ESRI Shapefile", overwrite_layer = TRUE)
             } else {
-              message('Current MESS maps already saved to polygons for ', species)
+              message(' Current MESS maps already saved to polygons for ', species)
             }
 
             ## Check if the future MESS shapefile exists?
@@ -691,7 +691,7 @@ project_maxent_grids_mess = function(country_shp,   world_shp,
                               col.regions = colorRampPalette(rev(brewer.pal(11, 'Spectral'))),
 
                               ## Give each plot a name: the third panel is the GCM
-                              names.attr = c('Australian records', 'Current'),
+                              names.attr = c('Australian records', ' Current'),
                               colorkey   = list(height = 0.5, width = 3), xlab = '', ylab = '',
                               main       = list(gsub('_', ' ', species), font = 4, cex = 2)) +
 
@@ -706,7 +706,7 @@ project_maxent_grids_mess = function(country_shp,   world_shp,
               dev.off()
 
             } else {
-              message('Current MESS panel maps already created for ', species)
+              message(' Current MESS panel maps already created for ', species)
             }
 
           }
@@ -774,7 +774,7 @@ project_maxent_grids_mess = function(country_shp,   world_shp,
                             col.regions = colorRampPalette(rev(brewer.pal(11, 'Spectral'))),
 
                             ## Give each plot a name: the third panel is the GCM
-                            names.attr = c('Australian records', 'Current',
+                            names.attr = c('Australian records', ' Current',
                                            sprintf('%s, 20%s, RCP8.5', scen_name, time_slice)),
                             colorkey   = list(height = 0.5, width = 3), xlab = '', ylab = '',
                             main       = list(gsub('_', ' ', species), font = 4, cex = 2)) +
@@ -1225,7 +1225,7 @@ sdm_area_cell_count = function(unit_shp, country_shp,
 
             ## Replace REG_CODE_7 = areal_unit_vec
             d <- as.data.frame(stack(current_suit_thresh, combo_suit_4GCM)[]) %>%
-              setNames(c('current', 'future')) %>%
+              setNames(c(' Current', 'future')) %>%
               mutate(!!agg_var := areal_unit_vec,
                      cell_number = seq_len(ncell(current_suit_thresh))) %>%
               as.tbl

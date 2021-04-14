@@ -701,6 +701,10 @@ aus.grids.current <- stack(
   file.path('./data/worldclim2/aus/current', 
             sprintf('bio_%d_AUSGDA.tif', 1:19)))
 
+# study.grids.current <- stack(
+#   file.path('./data/worldclim2/aus/current', 
+#             sprintf('bio_%d_AUSGDA.tif', 1:19)))
+
 ``` 
 
 \
