@@ -763,8 +763,10 @@ combine_gbif_records = function(species_list,
           }
           
           ## Need to print the object within the loop
-          names(d)[names(d) == 'decimalLatitude']  <- 'lat'
-          names(d)[names(d) == 'decimalLongitude'] <- 'lon'
+          # names(d)[names(d) == 'decimalLatitude']  <- 'lat'
+          # names(d)[names(d) == 'decimalLongitude'] <- 'lon'
+          d <- d %>% rename(lat = decimalLatitude,
+                            lon = decimalLongitude)
           
           ## Create the searchTaxon column - check how to put the data in here
           message ('Formatting occurrence data for ', x)
@@ -1464,6 +1466,7 @@ check_spatial_outliers = function(all_df,
                                   land_shp,
                                   clean_path,
                                   plot_points,
+                                  record_limit,
                                   spatial_mult,
                                   prj) {
   
@@ -1572,7 +1575,7 @@ check_spatial_outliers = function(all_df,
   
   ## Watch out here - this sorting could cause problems for the order of the data frame once it's stitched back together
   ## If we we use spp to join the data back together, will it preserve the order?
-  LUT.100K = as.character(subset(COMBO.LUT, FREQUENCY < 100000)$species)
+  LUT.100K = as.character(subset(COMBO.LUT, FREQUENCY < record_limit)$species)
   LUT.100K = trimws(LUT.100K [order(LUT.100K)])
   length(LUT.100K)
   

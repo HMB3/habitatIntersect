@@ -60,6 +60,7 @@ Imports:
   sf, 
   shiny,  
   sp,
+  stars,
   stringr,   
   taxonlookup,
   Taxonstand,

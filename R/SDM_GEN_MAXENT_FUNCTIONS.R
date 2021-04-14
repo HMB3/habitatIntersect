@@ -672,18 +672,24 @@ compile_sdm_results = function(species_list,
                                results_dir,
                                save_data,
                                data_path,
+                               sdm_path,
                                save_run) {
   
   ## The code that adds niche info is now in './R/9_COLLATE_MAXENT_RESULTS.R'
   message('Creating summary stats for ', length(species_list),
           ' species in the set ', "'", save_run, "'")
   
+  ##
+  processed = list.dirs(sdm_path, full.names = FALSE, recursive = FALSE)
+  
   ## First, make a list of all the species with models, then restrict them
   ## to just the models on the species_list list
   map_spp_list  = gsub(" ", "_", species_list)
+  map_spp_list  = processed[processed %in% map_spp_list ]
   map_spp_patt  = paste0(map_spp_list, collapse = "|")
+  
   message ("map_spp_list head:")
-  message (paste (head(map_spp_list), collapse=","))
+  message (paste(head(map_spp_list),   collapse = ","))
   
   ## Now stop R from creating listing all the maxent files that have completed - this takes a long time
   message('Compile SDM results for species in ', results_dir)
