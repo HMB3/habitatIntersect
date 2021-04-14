@@ -47,7 +47,7 @@ To install, run :
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Function to install packages
+## Function to load or install packages
 ipak <- function(pkg){
   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
   if (length(new.pkg))
@@ -625,12 +625,6 @@ minimum number of predictors remains.
 
 
 ## Clean up the folders which have failed
-
-#data('AUS')
-data('Koppen_zones')
-data('Koppen_1975_1km')
-data('bs_predictors')
-data('LAND')
 run_sdm_analysis(species_list            = rev(analysis_taxa),
                  maxent_dir              = 'output/maxent/full_models',     
                  bs_dir                  = 'output/maxent/back_sel_models',
@@ -738,8 +732,7 @@ tryCatch(
                                     
                                     grid_names    = env_variables,             
                                     current_grids = aus.grids.current,         
-                                    create_mess   = TRUE,
-                                    nclust        = 1),
+                                    create_mess   = TRUE),
   
   ## If the species fails, write a fail message to file
   error = function(cond) {

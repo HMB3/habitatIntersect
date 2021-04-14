@@ -191,10 +191,17 @@ project_maxent_current_grids_mess = function(country_shp,   world_shp,
           hs_current_not_novel <- pred.current * is.na(novel_current)
           
           ## Write out not-novel raster :: this can go to the main directory
+          ## Write the raster of novel environments to the MESS sub-directory
+          if(!file.exists(sprintf('%s%s/full/%s%s.tif', maxent_path, species, species, "_current_not_novel"))) {
+          
           message('Writing currently un-novel environments to file for ', species)
           writeRaster(hs_current_not_novel, sprintf('%s%s/full/%s%s.tif', maxent_path,
                                                     species, species, 
                                                     "_current_not_novel"), overwrite = TRUE)
+          
+          } else {
+            message(species, 'Current un-novel environments file already saved')
+          }
           
           ## If we're on windows, use the GDAL .bat file
           current_novel_raster <- raster(sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel"))
