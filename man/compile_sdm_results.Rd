@@ -5,7 +5,14 @@
 \title{This function extracts the SDM results from the folders.
 It assumes that the input folders are those returned by the 'fit_maxent_targ_bg_back_sel' function}
 \usage{
-compile_sdm_results(species_list, results_dir, save_data, data_path, save_run)
+compile_sdm_results(
+  species_list,
+  results_dir,
+  save_data,
+  data_path,
+  sdm_path,
+  save_run
+)
 }
 \arguments{
 \item{species_list}{Character string - the species to run maxent models for}
@@ -15,6 +22,8 @@ compile_sdm_results(species_list, results_dir, save_data, data_path, save_run)
 \item{save_data}{Logical or character - do you want to save the data frame?}
 
 \item{data_path}{Character string - The file path used for saving the data frame}
+
+\item{sdm_path}{Character string - The file path used for saving the data frame}
 
 \item{save_run}{Character string - run name to append to the data frame, useful for multiple runs.}
 }

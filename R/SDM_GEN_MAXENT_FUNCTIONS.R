@@ -665,6 +665,7 @@ local_simplify = function (occ, bg, path, species_column = "species", response_c
 #' @param results_dir       Character string - The file path used for saving the maxent output
 #' @param save_data         Logical or character - do you want to save the data frame?
 #' @param data_path         Character string - The file path used for saving the data frame
+#' @param sdm_path          Character string - The file path used for saving the data frame
 #' @param save_run          Character string - run name to append to the data frame, useful for multiple runs.
 #' @return                  Data.frame of maxent results
 #' @export

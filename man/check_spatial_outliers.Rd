@@ -14,6 +14,7 @@ check_spatial_outliers(
   land_shp,
   clean_path,
   plot_points,
+  record_limit,
   spatial_mult,
   prj
 )
