@@ -23,12 +23,12 @@ compile_sdm_results(
 
 \item{data_path}{Character string - The file path used for saving the data frame}
 
-\item{sdm_path}{Character string - The file path used for saving the data frame}
+\item{sdm_path}{Character string - The file path where the maxent models are stored}
 
 \item{save_run}{Character string - run name to append to the data frame, useful for multiple runs.}
 }
 \value{
-Data.frame of maxent results
+Data.frame of Maxent results
 }
 \description{
 This function extracts the SDM results from the folders.
