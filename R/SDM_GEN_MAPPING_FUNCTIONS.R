@@ -101,6 +101,8 @@ project_maxent_current_grids_mess = function(country_shp,   world_shp,
               m, current_grids[[colnames(m@presence)]])$prediction_logistic
             writeRaster(pred.current, f_current, overwrite = TRUE)
             
+            gc()
+            
           } else {
             message('Use existing prediction for ', species)
             pred.current = raster(sprintf('%s/%s/full/%s_current.tif',
@@ -130,6 +132,8 @@ project_maxent_current_grids_mess = function(country_shp,   world_shp,
             mess_current  <- similarity(current_grids, swd, full = TRUE)
             novel_current <- mess_current$similarity_min < 0    ## All novel environments are < 0
             novel_current[novel_current==0]              <- NA  ## 0 values are NA
+            
+            gc()
             
             
           } else {
@@ -212,12 +216,14 @@ project_maxent_current_grids_mess = function(country_shp,   world_shp,
                                                               group     = FALSE,
                                                               agr       = FALSE))
           
+          gc()
+          
           ## Create the MESS path and save shapefiles
           MESS_shp_path   = sprintf('%s%s/full/%s',
                                     maxent_path, species, 'MESS_output')
           
           ## Check if the current MESS shapefile exists?
-          novel_current_shp <- sprintf('%s/%s%s.shp',   MESS_dir, species, "_current_novel_polygon")
+          novel_current_shp <- sprintf('%s/%s%s.shp', MESS_dir, species, "_current_novel_polygon")
           if(!file.exists(novel_current_shp)) {
             
             ## Re-project the shapefiles
@@ -227,10 +233,19 @@ project_maxent_current_grids_mess = function(country_shp,   world_shp,
             ## Now save the novel areas as shapefiles
             ## There is a problem with accessing the files at the same time
             message('Saving current MESS maps to polygons for ', species)
-            writeOGR(obj    = novel_current_poly,
-                     dsn    = sprintf('%s',  MESS_shp_path),
-                     layer  = paste0(species, "_current_novel_polygon"),
-                     driver = "ESRI Shapefile", overwrite_layer = TRUE)
+            st_write(novel_current_poly, 
+                     sprintf('%s/%s%s.shp', MESS_dir, species, "_current_novel_polygon"))
+            
+            st_write(novel_current_poly,
+                     dsn    = geo_layer,
+                     layer  = geo_layer,
+                     driver = "MapInfo File")
+            
+            
+            # writeOGR(obj    = novel_current_poly,
+            #          dsn    = sprintf('%s',  MESS_shp_path),
+            #          layer  = paste0(species, "_current_novel_polygon"),
+            #          driver = "ESRI Shapefile", overwrite_layer = TRUE)
           } else {
             message(' Current MESS maps already saved to polygons for ', species)
           }
@@ -283,6 +298,8 @@ project_maxent_current_grids_mess = function(country_shp,   world_shp,
                                                   col = c('red', 'transparent', 'transparent')[panel.number()]),
                                         data = list(occ = occ)))
             dev.off()
+            
+            gc()
             
           } else {
             message(' Current MESS panel maps already created for ', species)
