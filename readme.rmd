@@ -689,6 +689,7 @@ sdm.results.dir <- MAXENT.RESULTS$results_dir
 ``` 
 
 
+\
 
 Now we need raster grids that we can project the SDM models into :
 
@@ -730,17 +731,17 @@ rasterOptions(tmpdir = 'G:/Raster_temp')
 
 ## Create 2070 sdm map projections
 tryCatch(
-  project_maxent_current_grids_mess(country_shp   = AUS, 
-                                    country_prj   = CRS("+init=EPSG:3577"),
-                                    local_prj     = aus_albers,
+  project_maxent_current_grids_mess(country_shp     = AUS, 
+                                    country_prj     = CRS("+init=EPSG:3577"),
+                                    local_prj       = aus_albers,
                                     
-                                    species_list  = map_spp,    
-                                    maxent_path   = './output/maxent/back_sel_models/',
-                                    climate_path  = './data/worldclim/aus/',               
+                                    species_list    = rev(map_spp),    
+                                    maxent_path     = './output/maxent/back_sel_models/',
+                                    climate_path    = './data/worldclim/aus/',               
                                     
-                                    grid_names    = env_variables,             
-                                    current_grids = study.grids.current,         
-                                    create_mess   = TRUE,
+                                    grid_names      = env_variables,             
+                                    current_grids   = study.grids.current,         
+                                    create_mess     = TRUE,
                                     save_novel_poly = FALSE),
   
   ## If the species fails, write a fail message to file

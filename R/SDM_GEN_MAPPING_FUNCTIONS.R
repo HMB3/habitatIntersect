@@ -201,23 +201,19 @@ project_maxent_current_grids_mess = function(country_shp,
             message(species, ' Current un-novel environments file already saved')
           }
           
-          ## If we're on windows, use the GDAL .bat file
-          current_novel_raster <- raster(sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel"))
-          current_novel_poly   <- sf::as_Spatial(sf::st_as_sf(stars::st_as_stars(current_novel_raster), 
-                                                              as_points = FALSE, 
-                                                              merge     = TRUE,
-                                                              fill      = FALSE, 
-                                                              group     = FALSE,
-                                                              agr       = FALSE))
-          
-          gc()
-          
           ## Create the MESS path and save shapefiles
-          MESS_shp_path   = sprintf('%s%s/full/%s', maxent_path, species, 'MESS_output')
-          
-          ## Check if the current MESS shapefile exists?
-          novel_current_shp <- sprintf('%s/%s%s.shp', MESS_dir, species, "_current_novel_polygon")
+          MESS_shp_path <- sprintf('%s%s/full/%s', maxent_path, species, 'MESS_output')
           if(save_novel_poly == TRUE) {
+            
+            ## Create shape files 
+            current_novel_raster <- raster(sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel"))
+            current_novel_poly   <- sf::as_Spatial(sf::st_as_sf(stars::st_as_stars(current_novel_raster), 
+                                                                as_points = FALSE, 
+                                                                merge     = TRUE,
+                                                                fill      = FALSE, 
+                                                                group     = FALSE,
+                                                                agr       = FALSE))
+            gc()
             
             ## Now save the novel areas as shapefiles
             ## There is a problem with accessing the files at the same time
@@ -227,22 +223,16 @@ project_maxent_current_grids_mess = function(country_shp,
                      layer  = paste0(species, "_current_novel_polygon"),
                      driver = "ESRI Shapefile", overwrite_layer = TRUE)
           } else {
-            message('Do not save current MESS maps already saved to shapefile for ', species)
+            message('Do not save current MESS maps to shapefile for ', species)
           }
           
           ## Create a SpatialLines object that indicates novel areas (this will be overlaid)
           ## Below, we create a dummy polygon as the first list element (which is the extent
           ## of the raster, expanded by 10%), to plot on panel 1). 50 = approx 50 lines across the polygon
           
-          ## Cast the objects into the sf class so we avoid issues with wrong methods being called in hatch()
-          novel_hatch              <- list(as(extent(current_novel_poly)*1.1, 'SpatialLines'),
-                                           current_novel_poly)
-          
           ## Now create a panel of PNG files for maxent projections and MESS maps
           ## All the projections and extents need to match
           empty_ras <- init(pred.current, function(x) NA)
-          projection(current_novel_poly);projection(occ);projection(empty_ras);projection(poly)
-          projection(pred.current)
           
           ## Use the 'levelplot' function to make a multipanel output:
           ## occurrence points, current raster and future raster
