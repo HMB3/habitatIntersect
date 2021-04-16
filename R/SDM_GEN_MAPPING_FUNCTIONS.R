@@ -24,7 +24,6 @@
 #' @param time_slice         Character string - The time period to create predictions for (e.g. '2050', or '2070')
 #' @param current_grids      Character string - Vector of current enviro conditions that you want to include
 #' @param create_mess        Logical - Create mess maps of the preditions (T/F)?
-#' you need to download the OSGeo4W64 setup, see https://www.osgeo.org/)
 #' @export
 project_maxent_current_grids_mess = function(country_shp, 
                                              country_prj,   

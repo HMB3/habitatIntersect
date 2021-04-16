@@ -667,7 +667,6 @@ local_simplify = function (occ, bg, path, species_column = "species", response_c
 #' @param data_path         Character string - The file path used for saving the data frame
 #' @param sdm_path          Character string - The file path where the maxent models are stored.
 #' @param save_run          Character string - run name to append to the data frame, useful for multiple runs.
-#' @return                  Data.frame of Maxent results
 #' @export
 compile_sdm_results = function(species_list,
                                results_dir,
@@ -848,6 +847,7 @@ compile_sdm_results = function(species_list,
     
     ## If saving, save
     saveRDS(MAXENT.RESULTS, paste0(data_path, 'MAXENT_RESULTS_', save_run, '.rds'))
+    return(MAXENT.RESULTS)
     
   } else {
     ## Or return to the global environment

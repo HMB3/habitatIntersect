@@ -741,7 +741,7 @@ tryCatch(
                                     climate_path  = './data/worldclim/aus/',               
                                     
                                     grid_names    = env_variables,             
-                                    current_grids = aus.grids.current,         
+                                    current_grids = study.grids.current,         
                                     create_mess   = TRUE),
   
   ## If the species fails, write a fail message to file
