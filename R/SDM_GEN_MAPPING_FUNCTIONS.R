@@ -21,9 +21,9 @@
 #' @param maxent_path        Character string - The file path containin the existing maxent models
 #' @param climate_path       Character string - The file path where the climate data is saved
 #' @param grid_names         Character string - Vector of enviro conditions that you want to include
-#' @param time_slice         Character string - The time period to create predictions for (e.g. '2050', or '2070')
 #' @param current_grids      Character string - Vector of current enviro conditions that you want to include
-#' @param create_mess        Logical - Create mess maps of the preditions (T/F)?
+#' @param save_novel_poly    Character string - Save the novel areas as shapefiles?
+#' @param create_mess        Logical - Create mess maps of the predictions (T/F)?
 #' @export
 project_maxent_current_grids_mess = function(country_shp, 
                                              country_prj,   save_novel_poly,
