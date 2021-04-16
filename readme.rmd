@@ -726,8 +726,10 @@ gc()
 aus_albers <- CRS('+proj=aea +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=132 +x_0=0 +y_0=0 
                    +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs')
 
-## Set a 
-rasterOptions(tmpdir = 'G:/Raster_temp')
+## Set the raster temp directory to a location not on the partition, to save space
+rasterOptions(tmpdir = 'G:/Raster_temp/')
+write("R_USER = G:/Raster_temp/", file=file.path(Sys.getenv('R_USER'), '.Renviron'))
+# write("TMPDIR = G:/Raster_temp/", file=file.path(Sys.getenv('TMPDIR'), '.Renviron'))
 
 ## Create 2070 sdm map projections
 tryCatch(
