@@ -703,9 +703,10 @@ aus.grids.current <- stack(
   file.path('./data/worldclim2/aus/current', 
             sprintf('bio_%d_AUSGDA.tif', 1:19)))
 
-# study.grids.current <- stack(
-#   file.path('./data/worldclim2/aus/current', 
-#             sprintf('bio_%d_AUSGDA.tif', 1:19)))
+## This set of grids is just for the study area in NE_NSW
+study.grids.current <- stack(
+  file.path('./data/worldclim2/aus/current/Study_area',
+            sprintf('bio_%d_AUSGDA.tif', 1:19)))
 
 ``` 
 

@@ -28,7 +28,7 @@
 #' @param create_mess        Logical - Create mess maps of the preditions (T/F)?
 #' you need to download the OSGeo4W64 setup, see https://www.osgeo.org/)
 #' @export
-project_maxent_current_grids_mess = function(country_shp,   world_shp,
+project_maxent_current_grids_mess = function(country_shp, 
                                              country_prj,   world_prj, 
                                              local_prj,     species_list,
                                              maxent_path,   climate_path,
@@ -38,9 +38,6 @@ project_maxent_current_grids_mess = function(country_shp,   world_shp,
   ## Read in the Aus and world shapefile and re-rpoject
   country_poly <- country_shp %>%
     spTransform(country_prj)
-  
-  world_poly <- world_shp %>%
-    spTransform(world_prj)
   
   ## Rename the raster grids
   ## Note this step is only needed if the current grids used in the 
@@ -209,7 +206,7 @@ project_maxent_current_grids_mess = function(country_shp,   world_shp,
           
           ## If we're on windows, use the GDAL .bat file
           current_novel_raster <- raster(sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel"))
-          novel_current_poly   <- sf::as_Spatial(sf::st_as_sf(stars::st_as_stars(current_novel_raster), 
+          current_novel_poly   <- sf::as_Spatial(sf::st_as_sf(stars::st_as_stars(current_novel_raster), 
                                                               as_points = FALSE, 
                                                               merge     = TRUE,
                                                               fill      = FALSE, 
@@ -219,30 +216,30 @@ project_maxent_current_grids_mess = function(country_shp,   world_shp,
           gc()
           
           ## Create the MESS path and save shapefiles
-          MESS_shp_path   = sprintf('%s%s/full/%s',
-                                    maxent_path, species, 'MESS_output')
+          MESS_shp_path   = sprintf('%s%s/full/%s', maxent_path, species, 'MESS_output')
           
           ## Check if the current MESS shapefile exists?
           novel_current_shp <- sprintf('%s/%s%s.shp', MESS_dir, species, "_current_novel_polygon")
           if(!file.exists(novel_current_shp)) {
             
             ## Re-project the shapefiles
-            novel_current_poly = novel_current_poly %>%
+            current_novel_poly = current_novel_poly %>%
               spTransform(country_prj)
             
             ## Now save the novel areas as shapefiles
             ## There is a problem with accessing the files at the same time
             message('Saving current MESS maps to polygons for ', species)
-            st_write(novel_current_poly, 
-                     sprintf('%s/%s%s.shp', MESS_dir, species, "_current_novel_polygon"))
+            st_write(current_novel_poly, 
+                     sprintf('%s/%s%s.shp', MESS_dir, species, "_current_novel_polygon"),
+                     driver = "ESRI Shapefile")
             
-            st_write(novel_current_poly,
+            st_write(current_novel_poly,
                      dsn    = geo_layer,
                      layer  = geo_layer,
                      driver = "MapInfo File")
             
             
-            # writeOGR(obj    = novel_current_poly,
+            # writeOGR(obj    = current_novel_poly,
             #          dsn    = sprintf('%s',  MESS_shp_path),
             #          layer  = paste0(species, "_current_novel_polygon"),
             #          driver = "ESRI Shapefile", overwrite_layer = TRUE)
@@ -255,13 +252,13 @@ project_maxent_current_grids_mess = function(country_shp,   world_shp,
           ## of the raster, expanded by 10%), to plot on panel 1). 50 = approx 50 lines across the polygon
           
           ## Cast the objects into the sf class so we avoid issues with wrong methods being called in hatch()
-          novel_hatch              <- list(as(extent(novel_current_poly)*1.1, 'SpatialLines'),
-                                           novel_current_poly)
+          novel_hatch              <- list(as(extent(current_novel_poly)*1.1, 'SpatialLines'),
+                                           current_novel_poly)
           
           ## Now create a panel of PNG files for maxent projections and MESS maps
           ## All the projections and extents need to match
           empty_ras <- init(pred.current, function(x) NA)
-          projection(novel_current_poly);projection(occ);projection(empty_ras);projection(poly)
+          projection(current_novel_poly);projection(occ);projection(empty_ras);projection(poly)
           projection(pred.current)
           
           ## Use the 'levelplot' function to make a multipanel output:
@@ -623,7 +620,7 @@ project_maxent_grids_mess = function(country_shp,   world_shp,
             #writeRaster(pred.current, f_current, overwrite = TRUE)
 
             ## If we're on windows, use the GDAL .bat file
-            novel_current_poly <- polygonizer_windows(sprintf('%s/%s%s.tif',   MESS_dir, species, "_current_novel"),
+            current_novel_poly <- polygonizer_windows(sprintf('%s/%s%s.tif',   MESS_dir, species, "_current_novel"),
                                                       OSGeo_path = OSGeo_path)
             novel_future_poly  <- polygonizer_windows(sprintf('%s/%s%s%s.tif', MESS_dir, species, "_future_novel_", x),
                                                       OSGeo_path = OSGeo_path)
@@ -637,13 +634,13 @@ project_maxent_grids_mess = function(country_shp,   world_shp,
             if(!file.exists(novel_current_shp)) {
 
               ## Re-project the shapefiles
-              novel_current_poly = novel_current_poly %>%
+              current_novel_poly = current_novel_poly %>%
                 spTransform(country_prj)
 
               ## Now save the novel areas as shapefiles
               ## There is a problem with accessing the files at the same time
               message('Saving current MESS maps to polygons for ', species)
-              writeOGR(obj    = novel_current_poly,
+              writeOGR(obj    = current_novel_poly,
                        dsn    = sprintf('%s',  MESS_shp_path),
                        layer  = paste0(species, "_current_novel_polygon"),
                        driver = "ESRI Shapefile", overwrite_layer = TRUE)
@@ -674,13 +671,13 @@ project_maxent_grids_mess = function(country_shp,   world_shp,
 
             ## Cast the objects into the sf class so we avoid issues with wrong methods being called in hatch()
             novel_hatch <- list(as(extent(pred.current)*1.1, 'SpatialLines'),
-                                hatch(novel_current_poly, 50),
+                                hatch(current_novel_poly, 50),
                                 hatch(novel_future_poly, 50))
 
             ## Now create a panel of PNG files for maxent projections and MESS maps
             ## All the projections and extents need to match
             empty_ras <- init(pred.current, function(x) NA)
-            projection(novel_current_poly);projection(occ);projection(empty_ras);projection(poly)
+            projection(current_novel_poly);projection(occ);projection(empty_ras);projection(poly)
             projection(pred.current);projection(pred.future)
             identical(extent(pred.current), extent(pred.future))
 
@@ -923,7 +920,7 @@ hatch <- function(x, density) {
 ## Function to convert a raster into a polygon ----
 
 
-# novel_current_poly <- polygonizer_windows(sprintf('%s/%s%s.tif',   MESS_dir, species, "_current_novel"),
+# current_novel_poly <- polygonizer_windows(sprintf('%s/%s%s.tif',   MESS_dir, species, "_current_novel"),
 #                                           OSGeo_path = OSGeo_path)
 
 
