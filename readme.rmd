@@ -690,7 +690,7 @@ sdm.results.dir <- MAXENT.RESULTS$results_dir
 
 
 
-Or, we can load in some 1km*1km Worldclim rasters for current environmental conditions :
+Now we need raster grids that we can project the SDM models into :
 
 \
 
@@ -731,9 +731,7 @@ rasterOptions(tmpdir = 'G:/Raster_temp')
 ## Create 2070 sdm map projections
 tryCatch(
   project_maxent_current_grids_mess(country_shp   = AUS, 
-                                    world_shp     = LAND,   
                                     country_prj   = CRS("+init=EPSG:3577"),
-                                    world_prj     = CRS("+init=epsg:4326"),
                                     local_prj     = aus_albers,
                                     
                                     species_list  = map_spp,    
@@ -742,7 +740,8 @@ tryCatch(
                                     
                                     grid_names    = env_variables,             
                                     current_grids = study.grids.current,         
-                                    create_mess   = TRUE),
+                                    create_mess   = TRUE,
+                                    save_novel_poly = FALSE),
   
   ## If the species fails, write a fail message to file
   error = function(cond) {
