@@ -52,7 +52,7 @@ project_maxent_current_grids_mess = function(country_shp,
     maxent_predict_fun <- function(species) {
       
       ## Create species name
-      ## species = map_spp[1]
+      ## species = map_spp[91]
       save_name = gsub(' ', '_', species)
       
       ## Create a path for the current prediction of the species
@@ -105,8 +105,7 @@ project_maxent_current_grids_mess = function(country_shp,
           
           ## Report current mess map in progress
           ## Could work out how to the static mess once, before looping through scenarios
-          MESS_dir = sprintf('%s%s/full/%s',
-                             maxent_path, species, 'MESS_output')
+          MESS_dir = sprintf('%s%s/full/%s', maxent_path, species, 'MESS_output')
           
           ## If the current novel layer doesn't exist, create it
           if(!file.exists(sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel")))  {
@@ -232,7 +231,7 @@ project_maxent_current_grids_mess = function(country_shp,
           
           ## Now create a panel of PNG files for maxent projections and MESS maps
           ## All the projections and extents need to match
-          empty_ras <- init(pred.current, function(x) NA)
+          empty_ras <- init(current_grids, function(x) NA)
           
           ## Use the 'levelplot' function to make a multipanel output:
           ## occurrence points, current raster and future raster
