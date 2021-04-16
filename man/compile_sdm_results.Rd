@@ -27,9 +27,6 @@ compile_sdm_results(
 
 \item{save_run}{Character string - run name to append to the data frame, useful for multiple runs.}
 }
-\value{
-Data.frame of Maxent results
-}
 \description{
 This function extracts the SDM results from the folders.
 It assumes that the input folders are those returned by the 'fit_maxent_targ_bg_back_sel' function

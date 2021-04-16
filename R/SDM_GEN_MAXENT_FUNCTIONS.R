@@ -656,7 +656,7 @@ local_simplify = function (occ, bg, path, species_column = "species", response_c
 
 
 
-## Compile the SDM data ----
+## Compile the SDM data -----
 
 
 #' This function extracts the SDM results from the folders.
