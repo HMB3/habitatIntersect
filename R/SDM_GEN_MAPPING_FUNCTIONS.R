@@ -52,7 +52,7 @@ project_maxent_current_grids_mess = function(country_shp,
     maxent_predict_fun <- function(species) {
       
       ## Create species name
-      ## species = map_spp[91]
+      ## species = map_spp[1]
       save_name = gsub(' ', '_', species)
       
       ## First check if the species exists
@@ -98,7 +98,7 @@ project_maxent_current_grids_mess = function(country_shp,
               
               pred.current <- rmaxent::project(
                 m, current_grids[[colnames(m@presence)]])$prediction_logistic
-              writeRaster(pred.current, f_current, overwrite = TRUE)
+              raster::writeRaster(pred.current, f_current, overwrite = TRUE, tmpdir = 'G:/Raster_temp/')
               
               gc()
               
@@ -812,6 +812,44 @@ project_maxent_grids_mess = function(country_shp,   world_shp,
     }
   })
 }
+
+
+
+
+## Plot a rasterVis::levelplot with a colour ramp diverging around zero ----
+## A gist by John Baumgartner for the (https://gist.github.com/johnbaums?direction=desc&sort=updated), adpated here locally
+
+
+#' @param p    A trellis object resulting from rasterVis::levelplot
+#' @param ramp Character string - The name of an RColorBrewer palette (as character), a character
+#' @export
+diverge0 <- function(p, ramp) {
+  
+  ## p: a trellis object resulting from rasterVis::levelplot
+  ## ramp: the name of an RColorBrewer palette (as character), a character
+  ##       vector of colour names to interpolate, or a colorRampPalette.
+  if(length(ramp)==1 && is.character(ramp) && ramp %in%
+     row.names(brewer.pal.info)) {
+    ramp <- suppressWarnings(colorRampPalette(brewer.pal(11, ramp)))
+  } else if(length(ramp) > 1 && is.character(ramp) && all(ramp %in% colors())) {
+    ramp <- colorRampPalette(ramp)
+  } else if(!is.function(ramp))
+    stop('ramp should be either the name of a RColorBrewer palette, ',
+         'a vector of colours to be interpolated, or a colorRampPalette.')
+  
+  ##
+  rng <- range(p$legend[[1]]$args$key$at)
+  s   <- seq(-max(abs(rng)), max(abs(rng)), len=1001)
+  i   <- findInterval(rng[which.min(abs(rng))], s)
+  
+  ##
+  zlim <- switch(which.min(abs(rng)), `1`=i:(1000+1), `2`=1:(i+1))
+  p$legend[[1]]$args$key$at <- s[zlim]
+  p[[grep('^legend', names(p))]][[1]]$args$key$col <- ramp(1000)[zlim[-length(zlim)]]
+  p$panel.args.common$col.regions <- ramp(1000)[zlim[-length(zlim)]]
+  p
+}
+
 
 
 

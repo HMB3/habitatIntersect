@@ -115,7 +115,7 @@ data('target.insect.families')
 data('target.host.plants')
 data('all.insect.plant.spp')
 
-analysis_taxa <- str_trim(target.host.plants)
+analysis_taxa <- str_trim(target.insect.spp)
 analysis_taxa
 
 ```
@@ -728,8 +728,6 @@ aus_albers <- CRS('+proj=aea +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=132 +x_0=0 +y
 
 ## Set the raster temp directory to a location not on the partition, to save space
 rasterOptions(tmpdir = 'G:/Raster_temp/')
-#write("R_USER = C:/Program Files/", file=file.path(Sys.getenv('R_USER'), '.Renviron'))
-# write("TMPDIR = G:/Raster_temp/", file=file.path(Sys.getenv('TMPDIR'), '.Renviron'))
 
 ## Create 2070 sdm map projections
 tryCatch(
