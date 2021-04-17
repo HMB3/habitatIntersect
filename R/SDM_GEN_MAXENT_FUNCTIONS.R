@@ -656,11 +656,10 @@ local_simplify = function (occ, bg, path, species_column = "species", response_c
 
 
 
-## Compile the SDM data -----
+## Compile the SDM results -----
 
 
 #' This function extracts the SDM results from the folders.
-#' It assumes that the input folders are those returned by the 'fit_maxent_targ_bg_back_sel' function
 #' @param species_list      Character string - the species to run maxent models for
 #' @param results_dir       Character string - The file path used for saving the maxent output
 #' @param save_data         Logical or character - do you want to save the data frame?

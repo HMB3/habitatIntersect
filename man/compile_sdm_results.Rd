@@ -2,8 +2,7 @@
 % Please edit documentation in R/SDM_GEN_MAXENT_FUNCTIONS.R
 \name{compile_sdm_results}
 \alias{compile_sdm_results}
-\title{This function extracts the SDM results from the folders.
-It assumes that the input folders are those returned by the 'fit_maxent_targ_bg_back_sel' function}
+\title{This function extracts the SDM results from the folders.}
 \usage{
 compile_sdm_results(
   species_list,
@@ -29,5 +28,4 @@ compile_sdm_results(
 }
 \description{
 This function extracts the SDM results from the folders.
-It assumes that the input folders are those returned by the 'fit_maxent_targ_bg_back_sel' function
 }
