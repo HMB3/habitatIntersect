@@ -52,13 +52,12 @@ project_maxent_current_grids_mess = function(country_shp,
     maxent_predict_fun <- function(species) {
       
       ## Create species name
-      ## species = map_spp[1]
+      ## species = rev(map_spp)[1]
       save_name = gsub(' ', '_', species)
       
       ## First check if the species exists
       current_mess_png = sprintf('%s/%s/full/%s_%s.png', maxent_path, species, species, "mess_panel")
       if(!file.exists(current_mess_png)) {
-        
         
         ## Create a path for the current prediction of the species
         f_current  <- sprintf('%s%s/full/%s_current.tif', maxent_path, species, species)
@@ -98,7 +97,7 @@ project_maxent_current_grids_mess = function(country_shp,
               
               pred.current <- rmaxent::project(
                 m, current_grids[[colnames(m@presence)]])$prediction_logistic
-              raster::writeRaster(pred.current, f_current, overwrite = TRUE, tmpdir = 'G:/Raster_temp/')
+              raster::writeRaster(pred.current, f_current, overwrite = TRUE)
               
               gc()
               
