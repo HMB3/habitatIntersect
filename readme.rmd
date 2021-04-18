@@ -55,7 +55,6 @@ ipak <- function(pkg){
   sapply(pkg, require, character.only = TRUE)
 }
 
-
 ## These packages are not on cran, but are needed
 # library(devtools)
 # install_github('johnbaums/things')
@@ -228,6 +227,37 @@ worldclim_climate = raster::stack(
   file.path('./data/worldclim2/res_30s/bioclim',
             sprintf('wc2.1_30s_bio_%d.tif', 1:19)))
 
+aus.grids.current <- stack(
+  file.path('./data/worldclim2/aus/current', 
+            sprintf('bio_%d_AUSGDA.tif', 1:19)))
+
+## This set of grids is just for the study area in NE_NSW
+study.grids.current <- stack(
+  file.path('./data/worldclim2/aus/current/Study_area',
+            sprintf('bio_%d_AUSGDA.tif', 1:19)))
+
+aus.veg.grids <- stack(
+  list.files('./data/Remote_sensing/sdm_predictors/', 
+             '_subset.tif', full.names = TRUE))
+
+## Rename Veg grids
+names(worldclim_climate)   <- env_variables
+names(aus.grids.current)   <- names(worldclim_climate)
+names(study.grids.current) <- names(worldclim_climate)
+
+
+names(aus.veg.grids) <- c("Plant_cover_fraction_0_5m", 
+                          "Plant_cover_fraction_5_10m",  
+                          "Plant_cover_fraction_10_30m",      
+                          "Plant_cover_fraction_30m",
+                          "Total_Plant_cover_fraction",  
+                          "Tree_canopy_height_25th", 
+                          "Tree_canopy_height_50th", 
+                          "Tree_canopy_height_75th",   
+                          "Tree_canopy_height_95th",   
+                          "Tree_canopy_peak_foliage",
+                          "Tree_canopy_peak_foliage_2")
+
 worldclim_annual_temp <- worldclim_climate[[1]]
 
 ```
@@ -360,8 +390,7 @@ COMBO.RASTER.FAM = combine_records_extract(ala_df          = ALA.LAND.FAM,
                                            raster_denom     = 10, 
                                            save_data        = FALSE,
                                            save_run         = "TARGET_INSECT_FAMILIES",
-                                           data_path        = "./output/results/",
-                                           project_path     = 'F:/North_east_NSW_fire_recovery')
+                                           data_path        = "./output/results/")
 
 
 COMBO.RASTER.GEN = combine_records_extract(ala_df          = ALA.LAND.GEN,
@@ -381,12 +410,11 @@ COMBO.RASTER.GEN = combine_records_extract(ala_df          = ALA.LAND.GEN,
                                            worldclim_divide = FALSE,
                                            save_data        = FALSE,
                                            save_run         = "TARGET_INSECT_GENERA",
-                                           data_path        = "./output/results/",
-                                           project_path     = 'F:/North_east_NSW_fire_recovery')
+                                           data_path        = "./output/results/")
 
 
 COMBO.RASTER.SPP = combine_records_extract(ala_df          = ALA.LAND.SPP,
-                                           site_df         = all_insect_site_df_genera,
+                                           site_df         = all_insect_site_df_species,
                                            thin_records    = FALSE,
                                            template_raster = template_raster_1km_WGS84,
                                            world_raster    = worldclim_climate,
@@ -395,15 +423,35 @@ COMBO.RASTER.SPP = combine_records_extract(ala_df          = ALA.LAND.SPP,
                                            
                                            ## These two will need to change.
                                            ## Specify them in the code
-                                           biocl_vars      = bioclim_variables,
+                                           #biocl_vars      = bioclim_variables,
                                            env_vars        = env_variables,
                                            
                                            ## This might need to change too
                                            worldclim_divide = FALSE,
                                            save_data        = FALSE,
                                            save_run         = "TARGET_INSECT_SPECIES",
-                                           data_path        = "./output/results/",
-                                           project_path     = 'F:/North_east_NSW_fire_recovery')
+                                           data_path        = "./output/results/")
+
+
+## 
+VEG.RASTER.SPP = combine_records_extract(ala_df          = head(ALA.LAND.SPP, 500),
+                                         site_df         = head(all_insect_site_df_species, 500),
+                                         thin_records    = FALSE,
+                                         template_raster = template_raster_1km_WGS84,
+                                         world_raster    = aus.veg.grids,
+                                         prj             = CRS("+init=epsg:4326"),
+                                         species_list    = analysis_taxa,
+                                         
+                                         ## These two will need to change.
+                                         ## Specify them in the code
+                                         #biocl_vars      = bioclim_variables,
+                                         env_vars        = names(aus.veg.grids),
+                                         
+                                         ## This might need to change too
+                                         worldclim_divide = FALSE,
+                                         save_data        = FALSE,
+                                         save_run         = "TARGET_INSECT_SPECIES",
+                                         data_path        = "./output/results/")
 
 
 ``` 
@@ -540,7 +588,7 @@ SDM.SPAT.OCC.BG = prepare_sdm_table(coord_df        = COORD.CLEAN,
                                     save_data       = TRUE,
                                     save_shp        = TRUE,
                                     data_path       = paste0(getwd(), '/output/results/'),
-                                    project_path    = 'F:/North_east_NSW_fire_recovery')
+                                    project_path    = 'G:/North_east_NSW_fire_recovery')
 
 ``` 
 
@@ -680,9 +728,9 @@ MAXENT.RESULTS = compile_sdm_results(species_list = analysis_taxa,
                                      sdm_path     = "./output/maxent/back_sel_models/",
                                      save_run     = "TEST_INSECT")
 
-## Get map_spp from the maxent results table above, change the species column,
+## Get map_taxa from the maxent results table above, change the species column,
 ## then create a list of logistic thresholds
-map_spp         <- MAXENT.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
+map_taxa        <- MAXENT.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
 percent.10.log  <- MAXENT.RESULTS$Logistic_threshold
 sdm.results.dir <- MAXENT.RESULTS$results_dir
 
@@ -735,7 +783,7 @@ tryCatch(
                                     country_prj     = CRS("+init=EPSG:3577"),
                                     local_prj       = aus_albers,
                                     
-                                    species_list    = rev(map_spp),    
+                                    species_list    = rev(map_taxa),    
                                     maxent_path     = './output/maxent/back_sel_models/',
                                     climate_path    = './data/worldclim/aus/',               
                                     
@@ -824,7 +872,7 @@ tryCatch(mapply(sdm_area_cell_count,
                 country_shp   = './data/AUS_albers.rds',  ## This would have to change
                 
                 DIR_list      = sdm.results.dir,  
-                species_list  = map_spp,
+                species_list  = map_taxa,
                 number_gcms   = 6,
                 maxent_path   = 'output/maxent/back_sel_models/', 
                 thresholds    = percent.10.log,
