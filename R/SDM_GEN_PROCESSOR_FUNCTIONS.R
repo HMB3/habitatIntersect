@@ -953,7 +953,7 @@ combine_records_extract = function(ala_df,
   }
   
   ## Print the dataframe dimensions to screen :: format to recognise millions, hundreds of thousands, etc.
-  COMBO.RASTER.CONVERT = completeFun(COMBO.RASTER.CONVERT, complete_var)
+  COMBO.RASTER.CONVERT = completeFun(COMBO.RASTER.CONVERT, env_vars[1])
   
   message(length(unique(COMBO.RASTER.CONVERT$searchTaxon)),
           ' species processed of ', length(species_list), ' original species')
@@ -1972,6 +1972,7 @@ prepare_sdm_table = function(coord_df,
                              data_path) {
   
   ## Define Mollweide here. This is hard-wired, not user supplied
+  ## Change this to GDA ALBERS
   sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
   
   ## Just add clean_df to this step
@@ -2142,10 +2143,15 @@ prepare_sdm_table = function(coord_df,
   if(save_shp == TRUE) {
     
     ## save .shp for future refrence
-    writeOGR(obj    = SPAT.OUT.SPDF,
+    # writeOGR(obj    = SPAT.OUT.SPDF,
+    #          dsn    = "./data/ANALYSIS/CLEAN_GBIF",
+    #          layer  = paste0('SPAT_OUT_CHECK_', save_run),
+    #          driver = "ESRI Shapefile", overwrite_layer = TRUE)
+    
+    st_write(obj    = st_collection_extract(SPAT.OUT.SPDF, "POINT"),
              dsn    = "./data/ANALYSIS/CLEAN_GBIF",
              layer  = paste0('SPAT_OUT_CHECK_', save_run),
-             driver = "ESRI Shapefile", overwrite_layer = TRUE)
+             driver = "ESRI Shapefile")
     
   } else {
     message(' skip file saving, not many species analysed')   ##

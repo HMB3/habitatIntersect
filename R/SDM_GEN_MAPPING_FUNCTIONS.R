@@ -906,8 +906,6 @@ shapefile_vector_from_raster = function (shp_file,
 
 
 
-
-
 ## Function to aggregate sdm predictions ----
 
 

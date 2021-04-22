@@ -486,7 +486,7 @@ records data.frame is that returned by the combine_records_extract function abov
 ## COMBO.RASTER.SUBSET <- COMBO.RASTER.CONVERT %>% select(-one_of(env_cols))
 ## readr::write_rds(COMBO.RASTER.SUBSET, './output/results/SUBSET_ALL_INSECT_FAMILIES.rds', "gz", compression = 9L)
 ## Flag records as institutional or spatial outliers
-COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.FAM,
+COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.SPP,
                                   capitals   = 10000,  
                                   centroids  = 5000,   
                                   save_data  = FALSE,
@@ -581,14 +581,15 @@ background points from other taxa, if specified. In this example for bats, we'll
 
 ## Final dataset is a spatial points dataframe in the Mollwiede projection
 SDM.SPAT.OCC.BG = prepare_sdm_table(coord_df        = COORD.CLEAN,
-                                    species_list    = unique(COORD.CLEAN$searchTaxon),
+                                    species_list    = analysis_taxa,
                                     sdm_table_vars  = sdm_table_vars,
-                                    save_run        = "AUS_INSECT_FAMILIES",
+                                    save_run        = "TARGET_INSECT_SPP",
                                     read_background = FALSE,
                                     save_data       = TRUE,
                                     save_shp        = TRUE,
-                                    data_path       = paste0(getwd(), '/output/results/'),
-                                    project_path    = 'G:/North_east_NSW_fire_recovery')
+                                    data_path       = paste0(getwd(), '/output/results/')#,
+                                    #project_path    = 'G:/North_east_NSW_fire_recovery'
+                                    )
 
 ``` 
 
@@ -723,8 +724,8 @@ across Australia ().
 ## This function aggregates the results for models that ran successfully
 MAXENT.RESULTS = compile_sdm_results(species_list = analysis_taxa,
                                      results_dir  = 'output/maxent/back_sel_models',
-                                     save_data    = FALSE,
-                                     data_path    = "./output/results/",
+                                     save_data    = TRUE,
+                                     data_path    = "./output/maxent/summary_results/",
                                      sdm_path     = "./output/maxent/back_sel_models/",
                                      save_run     = "TEST_INSECT")
 
