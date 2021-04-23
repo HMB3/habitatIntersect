@@ -865,7 +865,7 @@ combine_records_extract = function(ala_df,
                                    #biocl_vars,
                                    env_vars,
                                    complete_var,
-                                   worldclim_divide,
+                                   raster_divide,
                                    save_data,
                                    data_path,
                                    save_run) {
@@ -937,7 +937,7 @@ combine_records_extract = function(ala_df,
   
   ## Change the raster values here: See http://worldclim.org/formats1 for description of the interger conversion.
   ## All worldclim temperature variables were multiplied by 10, so then divide by 10 to reverse it.
-  if (worldclim_divide == TRUE) {
+  if (raster_divide == TRUE) {
     
     ## Convert the worldclim grids
     message('Processing worldclim 1.0 data, divide the rasters by 10')
@@ -965,126 +965,6 @@ combine_records_extract = function(ala_df,
     saveRDS(COMBO.RASTER.CONVERT, paste0(data_path, 'COMBO_RASTER_CONVERT_',  save_run, '.rds'))
     return(COMBO.RASTER.CONVERT)
     
-  } else {
-    return(COMBO.RASTER.CONVERT)
-  }
-  gc()
-}
-
-
-
-
-## Extract environmental values for site occurrence records -----
-
-
-#' This function takes a data frame from Ubran sources (e.g. I-naturalist), and extracts enviro values.
-#' It assumes that the site dataframe has these columns : species, lat, lon, Country, INVENTORY, SOURCE
-#' @param site_df           Data.frame of site records (only used if you have site data, e.g. I-naturalist)
-#' @param species_list       Character string - List of species analysed, used to cut the dataframe down
-#' @param thin_records       Do you want to thin the records out? If so, it will be 1 record per 1km*1km grid cell
-#' @param template_raster    A global R Raster used to thin records to 1 record per 1km grid cell
-#' @param world_raster       An global R Raster of the enviro conditions used to extract values for all records
-#' @param prj                The projection system used. Currently, needs to be WGS84
-#' @param biocl_vars         The variables used - eg the standard bioclim names (https://www.worldclim.org/).
-#' @param env_vars           The actual anmes of the variables (e.g. bio1 = rainfall, etc.) Only needed for worldlcim
-#' @param worldclim_divide    Are you using worldclim stored as long intergers? If so, divide by 10.
-#' @param save_data          Do you want to save the data frame?
-#' @param data_path          The file path used for saving the data frame
-#' @param save_run           Character string - run name to append to the data frame (e.g. bat species, etc.). Useful for multiple runs.
-#' @return                   Data frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)
-#' @export
-site_records_extract = function(site_df,
-                                species_list,
-                                thin_records,
-                                template_raster,
-                                world_raster,
-                                prj,
-                                biocl_vars,
-                                env_vars,
-                                worldclim_divide,
-                                save_data,
-                                data_path,
-                                save_run) {
-  
-  ## Get just the species list
-  site.XY = site_df[site_df$searchTaxon %in% species_list, ]
-  message('Extracting raster values for ',
-          length(unique(site.XY$searchTaxon)), ' site species across ',
-          length(unique(site.XY$INVENTORY)),   ' Councils ')
-  
-  ## Create points: the 'over' function seems to need geographic coordinates for this data...
-  site.XY   = SpatialPointsDataFrame(coords      = site.XY[c("lon", "lat")],
-                                     data        = site.XY,
-                                     proj4string = prj)
-  
-  if(thin_records == TRUE) {
-    
-    ## The length needs to be the same
-    length(unique(site.XY$searchTaxon))
-    site.XY.SPLIT.ALL <- split(site.XY, site.XY$searchTaxon)
-    occurrence_cells_all  <- lapply(site.XY.SPLIT.ALL, function(x) cellFromXY(template_raster, x))
-    
-    ## Check with a message, but could check with a fail
-    message('Split prodcues ', length(occurrence_cells_all), ' data frames for ', length(species_list), ' species')
-    
-    ## Now get just one record within each 10*10km cell.
-    site.XY.1KM <- mapply(function(x, cells) {
-      x[!duplicated(cells), ]
-    }, site.XY.SPLIT.ALL, occurrence_cells_all, SIMPLIFY = FALSE) %>% do.call(rbind, .)
-    
-    ## Check to see we have 19 variables + the species for the standard predictors, and 19 for all predictors
-    message(round(nrow(site.XY.1KM)/nrow(site.XY)*100, 2), " % records retained at 1km resolution")
-    
-    ## Create points: the 'over' function seems to need geographic coordinates for this data...
-    COMBO.POINTS = site.XY.1KM[c("lon", "lat")]
-    
-  } else {
-    message('dont thin the records out' )
-    COMBO.POINTS = site.XY
-  }
-  
-  ## Bioclim variables
-  ## Extract raster data
-  message('Extracting raster values for ', length(species_list), ' species in the set ', "'", save_run, "'")
-  message(projection(COMBO.POINTS));message(projection(world_raster))
-  dim(COMBO.POINTS);dim(site.XY.1KM)
-  
-  ## Extract the raster values
-  COMBO.RASTER <- raster::extract(world_raster, COMBO.POINTS) %>%
-    cbind(as.data.frame(site.XY.1KM), .)
-  
-  ## Group rename the columns
-  setnames(COMBO.RASTER, old = biocl_vars, new = env_vars)
-  COMBO.RASTER <- COMBO.RASTER %>% dplyr::select(-lat.1, -lon.1)
-  
-  ## Change the raster values here: See http://worldclim.org/formats1 for description of the interger conversion.
-  ## All worldclim temperature variables were multiplied by 10, so then divide by 10 to reverse it.
-  if (worldclim_divide == TRUE) {
-    
-    ## Convert the worldclim grids
-    message('Processing worldclim 1.0 data, divide the rasters by 10')
-    
-    COMBO.RASTER.CONVERT = as.data.table(COMBO.RASTER)
-    COMBO.RASTER.CONVERT[, (env_variables [c(1:11)]) := lapply(.SD, function(x)
-      x / 10 ), .SDcols = env_variables [c(1:11)]]
-    COMBO.RASTER.CONVERT = as.data.frame(COMBO.RASTER.CONVERT)
-    
-  } else {
-    message('Not rocessing worldclim data, dont divide the rasters')
-    COMBO.RASTER.CONVERT = COMBO.RASTER
-  }
-  
-  ## Print the dataframe dimensions to screen :: format to recognise millions, hundreds of thousands, etc.
-  COMBO.RASTER.CONVERT = completeFun(COMBO.RASTER.CONVERT, env_vars[1])
-  
-  message(length(unique(COMBO.RASTER.CONVERT$searchTaxon)),
-          ' species processed of ', length(species_list), ' original species')
-  
-  ## save data
-  if(save_data == TRUE) {
-    
-    ## save .rds file for the next session
-    saveRDS(COMBO.RASTER.CONVERT, paste0(data_path, 'COMBO_RASTER_CONVERT_',  save_run, '.rds'))
   } else {
     return(COMBO.RASTER.CONVERT)
   }
@@ -1959,7 +1839,7 @@ plot_range_histograms = function(coord_df,
 #' @param read_background    Logical - Read in an additional dataframe of background points (T/F)?
 #' @param save_data          Logical - do you want to save the data frame?
 #' @param data_path          Character string - The file path used for saving the data frame
-#' @return                   Data.frame of species records, with spatial outlier T/F flag for each record
+#' @param project_path       Paht of species records, with spatial outlier T/F flag for each record
 #' @export
 prepare_sdm_table = function(coord_df,
                              species_list,
@@ -1969,11 +1849,12 @@ prepare_sdm_table = function(coord_df,
                              save_shp,
                              read_background,
                              save_data,
-                             data_path) {
+                             data_path,
+                             project_path) {
   
-  ## Define Mollweide here. This is hard-wired, not user supplied
+  ## Define GDA ALBERS. This is hard-wired, not user supplied
   ## Change this to GDA ALBERS
-  sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
+  sp_epsg3577 <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs"
   
   ## Just add clean_df to this step
   coord_df <- subset(coord_df, coord_summary == TRUE)
@@ -1995,8 +1876,8 @@ prepare_sdm_table = function(coord_df,
   ## Create a spatial points object, and change to a projected system to calculate distance more accurately
   ## This is the mollweide projection used for the SDMs
   coordinates(COMBO.RASTER.ALL)    <- ~lon+lat
-  proj4string(COMBO.RASTER.ALL)    <- '+init=epsg:4326'
-  COMBO.RASTER.ALL                 <- spTransform(COMBO.RASTER.ALL, CRS(sp_epsg54009))
+  proj4string(COMBO.RASTER.ALL)    <- '+init=epsg:3577'
+  COMBO.RASTER.ALL                 <- spTransform(COMBO.RASTER.ALL, CRS(sp_epsg3577))
   
   ## Don't filter the data again to be 1 record per 1km, that has already happened
   SDM.DATA.ALL <- COMBO.RASTER.ALL
@@ -2120,7 +2001,7 @@ prepare_sdm_table = function(coord_df,
   ## Convert back to format for SDMs :: use Mollweide projection
   SDM.SPAT.ALL = SpatialPointsDataFrame(coords      = SDM.SPAT.ALL[c("lon", "lat")],
                                         data        = SDM.SPAT.ALL,
-                                        proj4string = CRS(sp_epsg54009))
+                                        proj4string = CRS(sp_epsg3577))
   projection(SDM.SPAT.ALL)
   message(length(unique(SDM.SPAT.ALL$searchTaxon)),
           ' species processed through from download to SDM table')
@@ -2135,24 +2016,19 @@ prepare_sdm_table = function(coord_df,
   names(SPAT.OUT.CHECK)
   
   ## Then create a SPDF
-  SPAT.OUT.SPDF    = SpatialPointsDataFrame(coords      = SPAT.OUT.CHECK[c("LON", "LAT")],
-                                            data        = SPAT.OUT.CHECK,
-                                            proj4string = CRS("+init=epsg:4326"))
+  SPAT.OUT.SPDF = SpatialPointsDataFrame(coords      = SPAT.OUT.CHECK[c("LON", "LAT")],
+                                         data        = SPAT.OUT.CHECK,
+                                         proj4string = CRS("+init=epsg:3577"))
   
   ## Write the shapefile out
   if(save_shp == TRUE) {
     
     ## save .shp for future refrence
-    # writeOGR(obj    = SPAT.OUT.SPDF,
-    #          dsn    = "./data/ANALYSIS/CLEAN_GBIF",
-    #          layer  = paste0('SPAT_OUT_CHECK_', save_run),
-    #          driver = "ESRI Shapefile", overwrite_layer = TRUE)
-    
-    st_write(obj    = st_collection_extract(SPAT.OUT.SPDF, "POINT"),
-             dsn    = "./data/ANALYSIS/CLEAN_GBIF",
+    writeOGR(obj    = SPAT.OUT.SPDF,
+             dsn    = paste0(project_path, '/output/results'),
              layer  = paste0('SPAT_OUT_CHECK_', save_run),
-             driver = "ESRI Shapefile")
-    
+             driver = 'ESRI Shapefile', overwrite_layer = TRUE)
+
   } else {
     message(' skip file saving, not many species analysed')   ##
   }
