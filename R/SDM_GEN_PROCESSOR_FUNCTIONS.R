@@ -173,6 +173,8 @@ download_ALA_all_species = function (species_list,
         next
       }
       
+      select_taxa(term = list(species = sp.n, kingdom = "Animalia"))
+      
       ## Download ALL records from ALA - also include extra columns and quality columns
       message("Downloading ALA records for ", sp.n, " using ALA4R :: occurrences")
       ALA = ALA4R::occurrences(taxon              = paste0("species:", sp.n), 
@@ -180,6 +182,9 @@ download_ALA_all_species = function (species_list,
                                email              = your_email,
                                extra              = extra_cols,
                                qa                 = quality_cols) %>% .[["data"]]
+      
+      ## Now filter the data to just the correct records
+      str_subset(ALA$scientificNameOriginal, str_c(sp.n, collapse = "|"))
       
       ## Save records to .Rdata file
       message(nrow(ALA), " Records returned for ", sp.n)
