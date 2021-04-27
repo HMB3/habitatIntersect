@@ -1076,8 +1076,6 @@ combine_records_extract = function(ala_df,
                                    thin_records,
                                    world_raster,
                                    prj,
-                                   #biocl_vars,
-                                   env_vars,
                                    complete_var,
                                    raster_divide,
                                    save_data,
@@ -1167,7 +1165,7 @@ combine_records_extract = function(ala_df,
   }
   
   ## Print the dataframe dimensions to screen :: format to recognise millions, hundreds of thousands, etc.
-  COMBO.RASTER.CONVERT = completeFun(COMBO.RASTER.CONVERT, env_vars[1])
+  COMBO.RASTER.CONVERT = completeFun(COMBO.RASTER.CONVERT, names(world_raster)[1])
   
   message(length(unique(COMBO.RASTER.CONVERT$searchTaxon)),
           ' species processed of ', length(species_list), ' original species')
