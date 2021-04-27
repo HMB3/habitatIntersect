@@ -919,7 +919,7 @@ combine_records_extract = function(ala_df,
   length(unique(ALA.COMBO$scientificName))
   
   ## Now filter the records to those where the searhed and returned taxa match
-  ## More matching is in : 4_ALA_GBIF_TAXO_COMBINE.R
+  ## More matching is in : 4_ALA_GBIF_TAXO_COMBINE.R from GreenCities
   ALA.COMBO <- ALA.COMBO %>% mutate(Match_SN_ST = str_detect(scientificName, searchTaxon)) %>% 
     filter(Match_SN_ST == 'TRUE')
   

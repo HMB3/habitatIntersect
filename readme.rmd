@@ -121,7 +121,7 @@ analysis_taxa
 ```
 
 
-The species list is supplied to a series of functions to calculate enviromnetal ranges and habitat 
+The species list is supplied to a series of functions to calculate environmental ranges and habitat 
 suitability. The initial functions download all species records from the Atlas and living Australia
 (https://www.ala.org.au/) and the Global Biodiversity Information Facility (GBIF, https://www.gbif.org/). 
 The species data are downloaded as individual .Rdata files to the specified folders, which must exist first, 
@@ -264,6 +264,8 @@ names(aus.veg.grids) <- c("Plant_cover_fraction_0_5m",
 ## 
 aus.climate.veg.grids <- stack(aus.grids.current, aus.veg.grids)
 aus_annual_temp       <- aus.climate.veg.grids[[1]]
+world_annual_temp     <- worldclim_climate[[1]]
+
 
 # The next step requires a template raster of 1km * 1km cells, which is used to filter 
 # records to 1 per one 1km cell. This raster needs to have the same extent (global) 
@@ -271,7 +273,6 @@ aus_annual_temp       <- aus.climate.veg.grids[[1]]
 # distributions. It should have a value of 1 for land, and NA for the ocean. 
 # This takes ages in R.....
 template_raster_1km_WGS84 = raster("./data/world_koppen/template_1km_WGS84.tif")
-
 
 ```
 
@@ -281,7 +282,6 @@ Next we filter the records to those taken after 1950, and those inside the raste
 (i.e. species records in the ocean according to the raster boundaries will be excluded).
 
 \
-
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
@@ -297,7 +297,7 @@ ALA.LAND.FAM <- combine_ala_records(species_list      = analysis_taxa,
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
                                     keep_cols         = ALA_keep,
-                                    world_raster      = aus_annual_temp,
+                                    world_raster      = world_annual_temp,
                                     save_data         = FALSE)
 
 
@@ -307,7 +307,7 @@ ALA.LAND.GEN <- combine_ala_records(species_list      = analysis_taxa,
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
                                     keep_cols         = ALA_keep,
-                                    world_raster      = aus_annual_temp,
+                                    world_raster      = world_annual_temp,
                                     save_data         = FALSE)
 
 
@@ -317,8 +317,7 @@ ALA.LAND.SPP <- combine_ala_records(species_list      = analysis_taxa,
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
                                     keep_cols         = ALA_keep,
-                                    world_raster      = aus_annual_temp,
-                                    save_data         = FALSE)
+                                    world_raster      = world_annual_temp)
 
 ``` 
 
