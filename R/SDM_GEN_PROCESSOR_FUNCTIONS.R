@@ -509,8 +509,12 @@ download_ALA_all_tribes = function (species_list,
 #' @param keep_cols          The columns we want to keep - a character list created by you
 #' @param world_raster       An Raster file of the enviro conditions used (assumed to be global)
 #' @export
-combine_ala_records = function(species_list, records_path, records_extension,
-                               record_type, keep_cols, world_raster, save_data) {
+combine_ala_records = function(species_list, 
+                               records_path, 
+                               records_extension,
+                               record_type, 
+                               keep_cols, 
+                               world_raster) {
   
   ##
   download = list.files(records_path, pattern = ".RData")
@@ -537,84 +541,71 @@ combine_ala_records = function(species_list, records_path, records_extension,
       ## Load each file - check if some are already dataframes
       d <- get(load(f))
       if (length(class(d)) > 1) {
-        
         d <- d[["data"]]
-        
       } else {
-        
         d = d
-        
       }
       
       ## Check if the dataframes have data
-      if (nrow(d) <= 2) {
+      if (nrow(d) >= 2) {
         
         ## If the species has < 2 records, escape the loop
-        print (paste ("No occurrence records for ", x, " skipping "))
-        return (d)
+        print (paste ("Sufficient occurrence records for ", x, " processing "))
         
-      }
-      
-      ##  type standardisation
-      names(d)[names(d) == 'latitude']  <- 'lat'
-      names(d)[names(d) == 'longitude'] <- 'lon'
-      
-      ##  standardi[sz]e catnum colname
-      if("catalogueNumber" %in% colnames(d)) {
-        message ("Renaming catalogueNumber column to catalogNumber")
-        names(d)[names(d) == 'catalogueNumber'] <- 'catalogNumber'
+        ##  type standardisation
+        names(d)[names(d) == 'latitude']  <- 'lat'
+        names(d)[names(d) == 'longitude'] <- 'lon'
         
-      }
-      
-      if (!is.character(d$catalogNumber)) {
-        d$catalogNumber = as.character(d$catalogNumber)
+        ##  standardi[sz]e catnum colname
+        if("catalogueNumber" %in% colnames(d)) {
+          d <- d %>% dplyr::select(-catalogueNumber)
+        }
         
-      }
-      
-      ## standardi[sz]e catnum colname
-      if('coordinateUncertaintyinMetres' %in% colnames(d)) {
-        message ("Renaming recordID column to id")
-        names(d)[names(d) == 'coordinateUncertaintyinMetres'] <- 'coordinateUncertaintyInMetres'
-        d[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(d["coordinateUncertaintyInMetres"]))
+        if("eventDate" %in% colnames(d)) {
+          d <- d %>% dplyr::select(-eventDate)
+        }
         
-      }
-      
-      ## standardi[sz]e catnum colname
-      if('recordID' %in% colnames(d)) {
-        message ("Renaming recordID column to id")
-        names(d)[names(d) == 'recordID'] <- 'id'
+        ## standardi[sz]e catnum colname
+        if('coordinateUncertaintyinMetres' %in% colnames(d)) {
+          message ("Renaming recordID column to id")
+          names(d)[names(d) == 'coordinateUncertaintyinMetres'] <- 'coordinateUncertaintyInMetres'
+          d[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(d["coordinateUncertaintyInMetres"]))}
         
+        ## standardi[sz]e catnum colname
+        if('recordID' %in% colnames(d)) {
+          message ("Renaming recordID column to id")
+          names(d)[names(d) == 'recordID'] <- 'id'}
+        
+        ## Create the searchTaxon column - check how to put the data in here
+        message ('Formatting occurrence data for ', x)
+        d[,"searchTaxon"] = x
+        d[,"searchTaxon"] = gsub(records_extension, "", d[,"searchTaxon"])
+        
+        if(!is.character(d["id"])) {
+          d["id"] <- as.character(d["id"])}
+        
+        ## Choose only the desired columns
+        d = d %>%
+          dplyr::select(one_of(keep_cols))
+        
+        ## Then print warnings
+        warnings()
+        
+        ## This is a list of columns in different ALA files which have weird characters
+        message ('Formatting numeric occurrence data for ', x)
+        # d[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(d["coordinateUncertaintyInMetres"]))
+        d["year"]  = as.numeric(unlist(d["year"]))
+        d["month"] = as.numeric(unlist(d["month"]))
+        d["id"]    = as.character(unlist(d["id"]))
+        
+      } else {
+        message('No ALA dat for ', x, ' skipping')
       }
-      
-      ## Create the searchTaxon column - check how to put the data in here
-      message ('Formatting occurrence data for ', x)
-      d[,"searchTaxon"] = x
-      d[,"searchTaxon"] = gsub(records_extension, "", d[,"searchTaxon"])
-      
-      if(!is.character(d["id"])) {
-        d["id"] <- as.character(d["id"])
-      }
-      
-      ## Choose only the desired columns
-      d = d %>%
-        dplyr::select(one_of(keep_cols))
-      
-      ## Then print warnings
-      warnings()
-      
-      ## This is a list of columns in different ALA files which have weird characters
-      message ('Formatting numeric occurrence data for ', x)
-      # d[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(d["coordinateUncertaintyInMetres"]))
-      d["year"]  = as.numeric(unlist(d["year"]))
-      d["month"] = as.numeric(unlist(d["month"]))
-      d["id"]    = as.character(unlist(d["id"]))
-      
       return(d)
-      
     }) %>%
     
     ## Finally, bind all the rows together
-    bind_rows
+    bind_rows()
   
   ## Clear the garbage
   gc()
@@ -626,14 +617,7 @@ combine_ala_records = function(species_list, records_path, records_extension,
   if (nrow(ALL) > 0) {
     
     ## What names get returned?
-    sort(names(ALL))
-    TRIM <- ALL%>%
-      dplyr::select(dplyr::one_of(keep_cols))
-    
-    dim(TRIM)
-    sort(names(TRIM))
-    
-    ## What are the unique species?
+    TRIM <- ALL
     (sum(is.na(TRIM$scientificName)) + nrow(subset(TRIM, scientificName == "")))/nrow(TRIM)*100
     
     ## 3). FILTER RECORDS TO THOSE WITH COORDINATES, AND AFTER 1950
@@ -642,8 +626,11 @@ combine_ala_records = function(species_list, records_path, records_extension,
       
       ## Note that these filters are very forgiving...
       ## Unless we include the NAs, very few records are returned!
-      filter(!is.na(lon) & !is.na(lat),
-             year >= 1950 & !is.na(year))
+      filter(!is.na(lon) & !is.na(lat)) %>%
+      filter(lon < 180 & lat > -90) %>%
+      filter(lon < 180 & lat > -90) %>%
+      filter(year >= 1950) %>%
+      filter(!is.na(year))
     
     ## How many records were removed by filtering?
     message(nrow(TRIM) - nrow(CLEAN), " records removed")
@@ -651,8 +638,7 @@ combine_ala_records = function(species_list, records_path, records_extension,
             " % records retained using spatially valid records")
     
     ## Can use WORLDCIM rasters to get only records where wordlclim data is.
-    message('Removing ALA points outside raster bounds for ', length(species_list),
-            ' species')
+    message('Removing ALA points outside raster bounds for ', length(species_list), ' species')
     
     ## Now get the XY centroids of the unique 1km * 1km WORLDCLIM blocks where ALA records are found
     ## Get cell number(s) of WORLDCLIM raster from row and/or column numbers. Cell numbers start at 1 in the upper left corner,
@@ -680,43 +666,31 @@ combine_ala_records = function(species_list, records_path, records_extension,
     
     ## Finally, filter the cleaned ALA data to only those points on land.
     ## This is achieved with the final [onland]
-    LAND.POINTS = filter(CLEAN, cellFromXY(world_raster, CLEAN[c("lon", "lat")]) %in%
+    LAND.POINTS = filter(CLEAN, cellFromXY(world_raster,   CLEAN[c("lon", "lat")]) %in%
                            unique(cellFromXY(world_raster, CLEAN[c("lon", "lat")]))[onland])
     
     ## how many records were on land?
-    records.ocean = dim(CLEAN)[1] - dim(LAND.POINTS)[1]
-    dim(LAND.POINTS)
+    records.ocean = nrow(CLEAN) - nrow(LAND.POINTS)
+    nrow(LAND.POINTS)
     length(unique(LAND.POINTS$searchTaxon))
     
     ## Add a source column
     LAND.POINTS$SOURCE = record_type
-    message(round((dim(LAND.POINTS)[1])/dim(CLEAN)[1]*100, 2),
+    message(round((nrow(LAND.POINTS))/nrow(CLEAN)*100, 2),
             " % records retained using spatially valid records")
     
     ## save data
-    dim(LAND.POINTS)
+    nrow(LAND.POINTS)
     length(unique(LAND.POINTS$searchTaxon))
     
     ## get rid of some memory
     gc()
     
   } else {
-    message('No ALA data for this set of taxa, creating empty datframe to other data')
+    message('No ALA dat for this set of taxa, creating empty datframe to other data')
     LAND.POINTS  = setNames(data.frame(matrix(ncol = length(keep), nrow = 0)), keep)
   }
-  
-  ## save data
-  if(save_data == TRUE) {
-    
-    ## save .rds file for the next session
-    message('Save ALA data for ', length(unique(LAND.POINTS$searchTaxon), ' taxa'))
-    saveRDS(LAND.POINTS, paste0(data_path, 'ALA_LAND_',  save_run, '.rds'))
-    return(LAND.POINTS)
-    
-  } else {
-    return(LAND.POINTS)
-  }
-  gc()
+  return(LAND.POINTS)
 }
 
 
@@ -738,7 +712,12 @@ combine_ala_records = function(species_list, records_path, records_extension,
 #' @param keep_cols          The columns we want to keep - a character list created by you
 #' @param world_raster       An Raster file of the enviro conditions used (assumed to be global)
 #' @export
-combine_gbif_records = function(species_list, records_path, records_extension, record_type, keep_cols, world_raster) {
+combine_gbif_records = function(species_list, 
+                                records_path, 
+                                records_extension, 
+                                record_type, 
+                                keep_cols, 
+                                world_raster) {
   
   download = list.files(records_path, pattern = ".RData")
   length(download)
@@ -746,7 +725,7 @@ combine_gbif_records = function(species_list, records_path, records_extension, r
   ## Now these lists are getting too long for the combine step.
   ## Restrict them to just the strings that partially match the  species list for each run
   spp.download <- paste(species_list, records_extension, sep = "")
-  download     = download[download %in% spp.download ]
+  download     <- download[download %in% spp.download ]
   message('downloaded species ', length(download), ' analyzed species ', length(species_list))
   
   ALL.POINTS <- download %>%
@@ -754,65 +733,73 @@ combine_gbif_records = function(species_list, records_path, records_extension, r
     ## Pipe the list into lapply
     lapply(function(x) {
       
-      ## x = download[1]
+      ## x = download[10]
       ## Create a character string of each .RData file
       f <- sprintf(paste0(records_path, "%s"), x)
       
       ## Load each file
+      message('Reading GBIF data for ', x)
       d <- get(load(f))
       
-      ## Now drop the columns which we don't need
-      message ('Reading GBIF data for ', x)
-      
-      ## Check if the dataframes have data
-      if (nrow(d) <= 2) {
+      ## Check if the data frames have data
+      if (nrow(d) >= 2) {
         
-        ## If the species has < 2 records, escape the loop
-        print (paste ("No GBIF records for ", x, " skipping "))
-        return (d)
+        # if(!is.character(dat$gbifID)) {
+        #   d$gbifID <- as.character(d$gbifID)
+        # }
         
+        if("gbifID" %in% colnames(d)) {
+          d <- d %>% dplyr::select(-gbifID)
+        }
+        
+        ## Need to print the object within the loop
+        names(d)[names(d) == 'decimalLatitude']  <- 'lat'
+        names(d)[names(d) == 'decimalLongitude'] <- 'lon'
+        
+        ## Create the searchTaxon column - check how to put the data in here
+        message ('Formatting occurrence data for ', x)
+        searchtax <- gsub(records_extension, "",    x)
+        
+        ## Filter the data for each species
+        message('filter records for ', searchtax)
+        d <- d %>% mutate(searchTaxon = searchtax) %>%
+          dplyr::select(one_of(keep_cols)) %>% 
+          
+          filter(!is.na(lon) & !is.na(lat)) %>%
+          filter(lon < 180 & lat > -90) %>%
+          filter(lon < 180 & lat > -90) %>%
+          filter(year >= 1950) %>%
+          filter(!is.na(year))
+        
+      } else {
+        message('No ALA dat for ', x, ' skipping')
       }
-      
-      dat <- data.frame(searchTaxon = x, d[, colnames(d) %in% keep_cols],
-                        stringsAsFactors = FALSE)
-      
-      if(!is.character(dat$gbifID)) {
-        
-        dat$gbifID <- as.character(dat$gbifID)
-        
-      }
-      
-      ## Need to print the object within the loop
-      names(dat)[names(dat) == 'decimalLatitude']  <- 'lat'
-      names(dat)[names(dat) == 'decimalLongitude'] <- 'lon'
-      dat$searchTaxon = gsub("_GBIF_records.RData", "", dat$searchTaxon)
-      return(dat)
-      
+      return(d)
     }) %>%
     
     ## Finally, bind all the rows together
-    bind_rows
+    bind_rows()
+  
+  ## Clear the garbage
+  gc()
   
   ## If there is GBIF data
   if (nrow(ALL.POINTS) > 0) {
     
     ## What proportion of the dataset has no lat/lon? Need to check this so we know the latest download is working
-    formatC(dim(ALL.POINTS)[1], format = "e", digits = 2)
-    (sum(is.na(ALL.POINTS$lat))            + dim(subset(ALL.POINTS, year < 1950))[1])/dim(ALL.POINTS)[1]*100
+    formatC(nrow(ALL.POINTS), format = "e", digits = 2)
+    (sum(is.na(ALL.POINTS$lat))            + nrow(subset(ALL.POINTS, year < 1950)))/nrow(ALL.POINTS)*100
     
     ## Almost none of the GBIF data has no scientificName. This is the right field to use for matching taxonomy
-    (sum(is.na(ALL.POINTS$scientificName)) + dim(subset(ALL.POINTS, scientificName == ""))[1])/dim(ALL.POINTS)[1]*100
-    
+    (sum(is.na(ALL.POINTS$scientificName)) + nrow(subset(ALL.POINTS, scientificName == "")))/nrow(ALL.POINTS)*100
     
     ## Now get just the columns we want to keep.
-    GBIF.TRIM <- ALL.POINTS%>%
+    GBIF.TRIM <- ALL.POINTS %>%
       dplyr::select(one_of(keep_cols))
-    names(GBIF.TRIM)
-    gc()
     
     ## Just get the newly downloaded species
     GBIF.TRIM = GBIF.TRIM[GBIF.TRIM$searchTaxon %in% species_list, ]
-    formatC(dim(GBIF.TRIM)[1], format = "e", digits = 2)
+    formatC(nrow(GBIF.TRIM), format = "e", digits = 2)
     
     ## What are the unique species?
     length(unique(GBIF.TRIM$species))
@@ -822,12 +809,7 @@ combine_gbif_records = function(species_list, records_path, records_extension, r
     ## FILTER RECORDS TO THOSE WITH COORDINATES, AND AFTER 1950
     
     ## Now filter the GBIF records using conditions which are not too restrictive
-    GBIF.CLEAN <- GBIF.TRIM %>%
-      
-      ## Note that these filters are very forgiving...
-      ## Unless we include the NAs, very few records are returned!
-      filter(!is.na(lon) & !is.na(lat),
-             year >= 1950 & !is.na(year))
+    GBIF.CLEAN <- GBIF.TRIM 
     
     ## How many species are there?
     names(GBIF.CLEAN)
@@ -837,11 +819,12 @@ combine_gbif_records = function(species_list, records_path, records_extension, r
     
     ## Can use WORLDCIM rasters to get only records where wordlclim data is.
     message('Removing GBIF points in the ocean for ', length(species_list), ' species')
+    xy_mat <- GBIF.CLEAN %>% dplyr::select(lon, lat) %>% as.matrix()
     
     ## Now get the XY centroids of the unique 1km * 1km WORLDCLIM blocks where GBIF records are found
     ## Get cell number(s) of WORLDCLIM raster from row and/or column numbers. Cell numbers start at 1 in the upper left corner,
     ## and increase from left to right, and then from top to bottom. The last cell number equals the number of raster cells
-    xy <- cellFromXY(world_raster, GBIF.CLEAN[c("lon", "lat")]) %>%
+    xy <- cellFromXY(world_raster, xy_mat) %>%
       
       ## get the unique raster cells
       unique %>%
@@ -865,14 +848,14 @@ combine_gbif_records = function(species_list, records_path, records_extension, r
     
     ## Finally, filter the cleaned GBIF data to only those points on land.
     ## This is achieved with the final [onland]
-    LAND.POINTS = filter(GBIF.CLEAN, cellFromXY(world_raster, GBIF.CLEAN[c("lon", "lat")]) %in%
-                           unique(cellFromXY(world_raster,    GBIF.CLEAN[c("lon", "lat")]))[onland])
+    LAND.POINTS = filter(GBIF.CLEAN, cellFromXY(world_raster, xy_mat) %in%
+                           unique(cellFromXY(world_raster,    xy_mat))[onland])
     
     ## how many records were on land?
     records.ocean = nrow(GBIF.CLEAN) - nrow(LAND.POINTS)  ## 91575 records are in the ocean
     
     ## Print the dataframe dimensions to screen
-    dim(LAND.POINTS)
+    nrow(LAND.POINTS)
     length(unique(LAND.POINTS$searchTaxon))
     
     ## Add a source column
@@ -884,163 +867,10 @@ combine_gbif_records = function(species_list, records_path, records_extension, r
     gc()
     
   } else {
-    
     message('No GBIF data for this taxon, creating empty datframe to bind to GBIF data')
     LAND.POINTS  = setNames(data.frame(matrix(ncol = length(keep_cols), nrow = 0)), keep_cols)
-    
-  }
-  
-  return(LAND.POINTS)
-  
-}
-
-
-
-
-## Cleaning ALA background records -----
-
-
-#' Clean the background points for niche analysis
-#'
-#' This function cleans all backgroud data from ALA into one file
-#' @param species_list       Character Vector - List of species already downloaded
-#' @param background_df      Data frame - Records from the ALA/GBIF
-#' @param record_type        Adds a column to the data frame for the data source, EG ALA
-#' @param keep_cols          The columns we want to keep - a character list created by you
-#' @param world_raster       A Raster file of the enviro conditions used (assumed to be global)
-#' @param save_data          Save the data?
-#' @param save_run           Name the save run
-#' @export
-combine_background_records = function(background_df, species_list,
-                                      record_type,   keep_cols, world_raster, data_path,
-                                      save_data,     save_run) {
-  
-  ## Create the searchTaxon column - check how to put the data in here
-  background_df <- background_df %>% mutate(searchTaxon = scientificName)
-  
-  ## First restrict the background points to species not on the target list
-  background_df <- background_df[!background_df$searchTaxon %in% species_list, ]
-  
-  ## The standardise the column names
-  background_df <- background_df %>% 
-    
-    mutate(lat = decimalLatitude,
-           lon = decimalLongitude,
-           lat = as.numeric(lat),
-           lon = as.numeric(lon)) %>% as.data.frame()
-  
-  ## Catalogue number
-  if("catalogueNumber" %in% colnames(background_df)) {
-    message ("Renaming catalogueNumber column to catalogNumber")
-    names(background_df)[names(background_df) == 'catalogueNumber'] <- 'catalogNumber'
-    
-  }
-  if (!is.character(background_df$catalogNumber)) {
-    background_df$catalogNumber = as.character(background_df$catalogNumber)
-  }
-  
-  ## Record id
-  if('recordID' %in% colnames(background_df)) {
-    message ("Renaming recordID column to id")
-    names(background_df)[names(background_df) == 'recordID'] <- 'id'
-    
-  }
-  if(!is.character(background_df["id"])) {
-    background_df["id"] <- as.character(background_df["id"])
-  }
-  
-  ## Choose only the desired columns
-  background_df = background_df %>%
-    dplyr::select(one_of(keep_cols))
-  warnings()
-  
-  ## This is a list of columns in different ALA files which have weird characters
-  background_df["year"]  = as.numeric(unlist(background_df["year"]))
-  background_df["month"] = as.numeric(unlist(background_df["month"]))
-  background_df["id"]    = as.character(unlist(background_df["id"]))
-  
-  ## What names get returned?
-  sort(names(background_df))
-  TRIM <- background_df %>%
-    dplyr::select(dplyr::one_of(keep_cols))
-  
-  dim(TRIM)
-  sort(names(TRIM))
-  
-  ## FILTER RECORDS TO THOSE WITH COORDINATES, AND AFTER 1950
-  ## Now filter the ALA records using conditions which are not too restrictive
-  CLEAN <- TRIM %>%
-    
-    ## Note that these filters are very forgiving...
-    ## Unless we include the NAs, very few records are returned!
-    filter(!is.na(lon) & !is.na(lat),
-           year >= 1950 & !is.na(year))
-  
-  ## How many records were removed by filtering?
-  message(nrow(TRIM) - nrow(CLEAN), " records removed")
-  message(round((nrow(CLEAN))/nrow(TRIM)*100, 2),
-          " % records retained using spatially valid records")
-  
-  ## Can use WORLDCIM rasters to get only records where wordlclim data is.
-  message('Removing ALA points outside raster bounds for ', length(species_list), ' species')
-  
-  ## Now get the XY centroids of the unique 1km * 1km WORLDCLIM blocks where ALA records are found
-  ## Get cell number(s) of WORLDCLIM raster from row and/or column numbers. Cell numbers start at 1 in the upper left corner,
-  ## and increase from left to right, and then from top to bottom. The last cell number equals the number of raster cell
-  latcoord <- CLEAN %>% select(lat)
-  loncoord <- CLEAN %>% select(lon)
-  
-  ## get the unique raster cells
-  xy <- cellFromXY(world_raster, CLEAN[c("lon", "lat")]) %>%
-    unique %>%
-    
-    ## Get coordinates of the center of raster cells for a row, column, or cell number of WORLDCLIM raster
-    xyFromCell(world_raster, .) %>%
-    na.omit()
-  
-  ## For some reason, we need to convert the xy coords to a spatial points data frame, in order to avoid this error:
-  ## 'NAs introduced by coercion to integer range'
-  xy <- SpatialPointsDataFrame(coords = xy, data = as.data.frame(xy),
-                               proj4string = CRS("+proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs"))
-  
-  ## Now extract the temperature values for the unique 1km centroids which contain ALA data
-  class(xy)
-  z   = raster::extract(world_raster, xy)
-  
-  ## Then track which values of Z are on land or not
-  onland = z %>% is.na %>%  `!` # %>% xy[.,]  cells on land or not
-  
-  ## Finally, filter the cleaned ALA data to only those points on land.
-  ## This is achieved with the final [onland]
-  LAND.POINTS = filter(CLEAN, cellFromXY(world_raster, CLEAN[c("lon", "lat")]) %in%
-                         unique(cellFromXY(world_raster, CLEAN[c("lon", "lat")]))[onland])
-  
-  ## how many records were on land?
-  records.ocean = nrow(CLEAN) - nrow(LAND.POINTS)
-  dim(LAND.POINTS)
-  length(unique(LAND.POINTS$searchTaxon))
-  
-  ## Add a source column
-  LAND.POINTS$SOURCE = record_type
-  message(round((nrow(LAND.POINTS)/nrow(CLEAN))*100, 2),
-          " % records retained using spatially valid records")
-  
-  ## save data
-  dim(LAND.POINTS)
-  length(unique(LAND.POINTS$searchTaxon))
-  
-  ## save data
-  if(save_data == TRUE) {
-    
-    ## save .rds file for the next session
-    saveRDS(LAND.POINTS, paste0(data_path, 'ALA_BG_CONVERT_',  save_run, '.rds'))
-    return(LAND.POINTS)
-    
-  } else {
-    return(LAND.POINTS)
   }
   return(LAND.POINTS)
-  gc()
 }
 
 
@@ -1085,8 +915,13 @@ combine_records_extract = function(ala_df,
   ## Get just the Common columns
   ALA.COMBO = ala_df
   
-  message(length(unique(ALA.COMBO$searchTaxon)))
+  message('Processing ' , length(unique(ALA.COMBO$searchTaxon)), ' searched taxa')
   length(unique(ALA.COMBO$scientificName))
+  
+  ## Now filter the records to those where the searhed and returned taxa match
+  ## More matching is in : 4_ALA_GBIF_TAXO_COMBINE.R
+  ALA.COMBO <- ALA.COMBO %>% mutate(Match_SN_ST = str_detect(scientificName, searchTaxon)) %>% 
+    filter(Match_SN_ST == 'TRUE')
   
   ## If site = TRUE
   if(site_df != 'NONE') {
@@ -1096,7 +931,7 @@ combine_records_extract = function(ala_df,
     ALA.COMBO <- bind_rows(ALA.COMBO, site_df)
     
   } else {
-    message('Dont add site data' )
+    message('Do not add site data' )
   }
   
   ## CHECK TAXONOMY RETURNED BY ALA USING TAXONSTAND?
