@@ -173,7 +173,8 @@ download_ALA_all_species = function (species_list,
         next
       }
       
-      select_taxa(term = list(species = sp.n, kingdom = "Animalia"))
+      ## Use 'galah'?
+      select_taxa(term = list(specificEpithet = sp.n))
       
       ## Download ALL records from ALA - also include extra columns and quality columns
       message("Downloading ALA records for ", sp.n, " using ALA4R :: occurrences")
@@ -184,11 +185,11 @@ download_ALA_all_species = function (species_list,
                                qa                 = quality_cols) %>% .[["data"]]
       
       ## Now filter the data to just the correct records
-      str_subset(ALA$scientificNameOriginal, str_c(sp.n, collapse = "|"))
+      ALA_filter <- ALA %>% filter(str_detect(scientificNameOriginal, sp.n))
       
       ## Save records to .Rdata file
-      message(nrow(ALA), " Records returned for ", sp.n)
-      save(ALA, file = file_name)
+      message(nrow(ALA_filter), " Records returned for ", sp.n)
+      save(ALA_filter, file = file_name)
       gc()
       
     } else {
@@ -281,9 +282,12 @@ download_ALA_all_genera = function (species_list,
                                extra              = extra_cols,
                                qa                 = quality_cols) %>% .[["data"]]
       
+      ## Filter to just the rows that match the species
+      ALA_filter <- ALA %>% filter(str_detect(scientificNameOriginal, sp.n))
+      
       ## Save records to .Rdata file
-      message(nrow(ALA), " Records returned for ", sp.n)
-      save(ALA, file = file_name)
+      message(nrow(ALA_filter), " Records returned for ", sp.n)
+      save(ALA_filter, file = file_name)
       gc()
       
     } else {
@@ -378,9 +382,11 @@ download_ALA_all_families = function (species_list,
                                extra              = extra_cols,
                                qa                 = quality_cols) %>% .[["data"]]
       
+      ALA_filter <- ALA %>% filter(str_detect(scientificNameOriginal, sp.n))
+      
       ## Save records to .Rdata file
-      message(nrow(ALA), " Records returned for ", sp.n)
-      save(ALA, file = file_name)
+      message(nrow(ALA_filter), " Records returned for ", sp.n)
+      save(ALA_filter, file = file_name)
       gc()
       
     } else {
@@ -2236,7 +2242,7 @@ prepare_sdm_table = function(coord_df,
              dsn    = paste0(project_path, '/output/results'),
              layer  = paste0('SPAT_OUT_CHECK_', save_run),
              driver = 'ESRI Shapefile', overwrite_layer = TRUE)
-
+    
   } else {
     message(' skip file saving, not many species analysed')   ##
   }
