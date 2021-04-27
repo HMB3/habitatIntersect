@@ -2,8 +2,8 @@
 % Please edit documentation in R/SDM_GEN_PROCESSOR_FUNCTIONS.R
 \name{prepare_sdm_table}
 \alias{prepare_sdm_table}
-\title{This function takes a data frame of all species records and :
-prepares a table in the 'species with data' (swd) format for modelling uses the Maxent algorithm.
+\title{This function takes a data frame of all species records,
+And prepares a table in the 'species with data' (swd) format for modelling uses the Maxent algorithm.
 It assumes that the input df is that returned by the coord_clean_records function}
 \usage{
 prepare_sdm_table(
@@ -37,12 +37,11 @@ prepare_sdm_table(
 \item{save_data}{Logical - do you want to save the data frame?}
 
 \item{data_path}{Character string - The file path used for saving the data frame}
-}
-\value{
-Data.frame of species records, with spatial outlier T/F flag for each record
+
+\item{project_path}{Paht of species records, with spatial outlier T/F flag for each record}
 }
 \description{
-This function takes a data frame of all species records and :
-prepares a table in the 'species with data' (swd) format for modelling uses the Maxent algorithm.
+This function takes a data frame of all species records,
+And prepares a table in the 'species with data' (swd) format for modelling uses the Maxent algorithm.
 It assumes that the input df is that returned by the coord_clean_records function
 }

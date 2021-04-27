@@ -20,16 +20,9 @@ download_ALA_all_families(
 \item{download_path}{Character string - File path for species downloads}
 
 \item{download_limit}{Numeric - How many records can be downloaded at one time? Set by server}
-
-\item{extra_cols}{Character - extra ALA columns, eg environmental vatriables}
-
-\item{quality_cols}{Character - quality ALA columns, eg spatial accuracy}
-}
-\value{
-Data frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)
 }
 \description{
 This function downloads family occurrence files from ALA (https://www.ala.org.au/).
 It assumes that the species list supplied is taxonomically correct.
-It downloads the species to fiel without returning anything to the global environment
+It downloads the species without returning anything
 }

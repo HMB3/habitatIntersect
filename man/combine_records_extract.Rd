@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_PROCESSOR_FUNCTIONS.R
 \name{combine_records_extract}
 \alias{combine_records_extract}
-\title{This function combines occurrence files from ALA and GBIF into one table, & extracts enviro values.
+\title{This function combines occurrence files from ALA and GBIF into one table, and extracts enviro values.
 It assumes that both files come from the previous GBIF/ALA combine function.}
 \usage{
 combine_records_extract(
@@ -14,13 +14,11 @@ combine_records_extract(
   thin_records,
   world_raster,
   prj,
-  biocl_vars,
   env_vars,
+  complete_var,
   raster_divide,
-  raster_denom,
   save_data,
   data_path,
-  project_path,
   save_run
 )
 }
@@ -39,22 +37,22 @@ combine_records_extract(
 
 \item{prj}{The projection system used. Currently, needs to be WGS84}
 
-\item{biocl_vars}{The variables used - eg the standard bioclim names (https://www.worldclim.org/).}
-
 \item{env_vars}{The actual variable names (e.g. bio1 = rainfall, etc.) Only needed for worldlcim}
-
-\item{raster_divide}{Are you using worldclim stored as long intergers? If so, divide by 10.}
 
 \item{save_data}{Do you want to save the data frame?}
 
 \item{data_path}{The file path used for saving the data frame}
 
 \item{save_run}{A run name to append to the data frame (e.g. bat species, etc.). Useful for multiple runs.}
+
+\item{biocl_vars}{The variables used - eg the standard bioclim names (https://www.worldclim.org/).}
+
+\item{worldclim_divide}{Are you using worldclim stored as long intergers? If so, divide by 10.}
 }
 \value{
 Data frame of all ALA/GBIF records, with global enviro conditions for each record location (i.e. lat/lon)
 }
 \description{
-This function combines occurrence files from ALA and GBIF into one table, & extracts enviro values.
+This function combines occurrence files from ALA and GBIF into one table, and extracts enviro values.
 It assumes that both files come from the previous GBIF/ALA combine function.
 }

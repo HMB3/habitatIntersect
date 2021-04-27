@@ -36,7 +36,7 @@ calc_1km_niches(
 
 \item{save_run}{Character string - run name to append to the data frame, useful for multiple runs.}
 
-\item{data_path}{Character string - The file path used for saving the data frame.}
+\item{data_path}{Character string - The file path used for saving the data frame}
 
 \item{save_data}{Logical - do you want to save the data frame?}
 
