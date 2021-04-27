@@ -12,7 +12,7 @@
 ## GBIF download ----
 
 
-#' Download species occurrence files from GBIF
+#' Download species occurrence files from GBIF.
 #'
 #' This function downloads species occurrence files from GBIF (https://www.gbif.org/).
 #' It assumes that the species list supplied is taxonomically correct (haha!).
@@ -21,7 +21,9 @@
 #' @param download_path  Character string - File path for species downloads
 #' @param download_limit Numeric - How many records can be downloaded at one time? Set by server
 #' @export
-download_GBIF_all_species = function(species_list, download_path, download_limit) {
+download_GBIF_all_species = function(species_list, 
+                                     download_path, 
+                                     download_limit) {
   
   ## create variables
   GBIF.download.limit = download_limit
@@ -34,7 +36,7 @@ download_GBIF_all_species = function(species_list, download_path, download_limit
     file_name = paste0(download_path, sp.n, "_GBIF_records.RData")
     
     ## If it's already downloaded, skip
-    if (file.exists (file_name)) {
+    if (file.exists(file_name)) {
       
       print(paste ("file exists for species", sp.n, "skipping"))
       next
@@ -87,7 +89,7 @@ download_GBIF_all_species = function(species_list, download_path, download_limit
       # cat("Takonkeys returned for :: ", sp.n, unique(GBIF$taxonKey),       sep = "\n")
       
       ## Could also only use the key searched, but that could knock out a lot of species
-      message(dim(GBIF[1]), " Records returned for ", sp.n)
+      message(nrow(GBIF), " Records returned for ", sp.n)
       
       ## Save records to .Rdata file
       save(GBIF, file = file_name)
@@ -113,72 +115,178 @@ download_GBIF_all_species = function(species_list, download_path, download_limit
 #' @param download_path  Character string - File path for species downloads
 #' @param download_limit Numeric - How many records can be downloaded at one time? Set by server
 #' @export
-download_ALA_all_species = function (species_list, your_email, download_path, ala_temp_dir, download_limit) {
+download_ALA_all_species = function (species_list, 
+                                     your_email, 
+                                     download_path, 
+                                     ala_temp_dir, 
+                                     download_limit,
+                                     extra_cols,
+                                     quality_cols) {
   
   ## create variables
   download_limit  = 200000
   
   ## for every species in the list
   ## sp.n = species_list[1]
-  for(sp.n in species_list){
-    
-    ## Get the ID?
-    if(!dir.exists(ala_temp_dir)) {
-      message('Creating ', ala_temp_dir)
-      dir.create(ala_temp_dir) } else {
-        message('temp ALA directory already exists')}
-    
-    lsid <- ALA4R::specieslist(sp.n)$taxonConceptLsid
+  for(sp.n in species_list) {
     
     ## First, check if the f*&%$*# file exists
+    message('Searching for records from ', sp.n)
     file_name = paste0(download_path, sp.n, "_ALA_records.RData")
     
     ## If it's already downloaded, skip
-    if (file.exists (file_name)) {
+    if (!file.exists (file_name)) {
+      
+      ## If the temp directory doesn't exist, create it
+      if(!dir.exists(ala_temp_dir)) {
+        message('Creating ', ala_temp_dir)
+        dir.create(ala_temp_dir) } else {
+          message('temp ALA directory already exists')}
+      
+      # lsid <- ALA4R::specieslist(sp.n)$taxonConceptLsid
+      
+      ## create a dummy file
+      dummy = data.frame()
+      save (dummy, file = file_name)
+      
+      ## Then check the spelling...incorrect nomenclature will return NULL result
+      dir.create(ala_temp_dir)
+      if (is.null(ALA4R::occurrences(taxon              = paste0("species:", sp.n), 
+                                     download_reason_id = 7, 
+                                     email              = your_email,
+                                     qa                 = "all")$data) == TRUE) {
+        
+        ## Now, append the species which had incorrect nomenclature to the skipped list
+        print (paste ("Possible incorrect nomenclature", sp.n, "skipping"))
+        next
+      }
+      
+      ## Skip species with no records
+      if (nrow(ALA4R::occurrences(taxon              = paste0("species:", sp.n), 
+                                  download_reason_id = 7, 
+                                  email              = your_email,
+                                  qa                 = "all")$data) <= 2) {
+        
+        ## now append the species which had no records to the skipped list
+        print (paste ("No ALA records for", sp.n, "skipping"))
+        records = paste ("No ALA records |", sp.n)
+        next
+      }
+      
+      ## Download ALL records from ALA - also include extra columns and quality columns
+      message("Downloading ALA records for ", sp.n, " using ALA4R :: occurrences")
+      ALA = ALA4R::occurrences(taxon              = paste0("species:", sp.n), 
+                               download_reason_id = 7, 
+                               email              = your_email,
+                               extra              = extra_cols,
+                               qa                 = quality_cols) %>% .[["data"]]
+      
+      ## Save records to .Rdata file
+      message(nrow(ALA), " Records returned for ", sp.n)
+      save(ALA, file = file_name)
+      gc()
       
     } else {
-      message(paste ("file exists for species", sp.n, "skipping"))
-      cat(sp.n)
+      message('ALA records for ', sp.n, ' Already downloaded')
     }
-    ## create a dummy file
-    dummy = data.frame()
-    save (dummy, file = file_name)
-    dir.create(ala_temp_dir)
-    
-    if (is.null(ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"', sep = ""),
-                                   download_reason_id = 7, email = your_email)$data) == TRUE) {
-    } else {
-      message(paste ("Possible incorrect nomenclature", sp.n, "skipping"))
-      cat(sp.n)
-    }
-    
-    ## Skip species with no records
-    if (nrow(ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"',sep=""),
-                                download_reason_id = 7, email = your_email)$data) <= 2) {
-      
-      ## now append the species which had no records to the skipped list
-      print (paste ("No ALA records for", sp.n, "skipping"))
-      records = paste ("No ALA records |", sp.n)
-      
-    } else {
-      message(paste ("No ALA records |", sp.n))
-      cat(sp.n)
-    }
-    
-    ## Download ALL records from ALA ::
-    message("Downloading ALA records for ", sp.n, " using ALA4R :: occurrences")
-    ALA = ALA4R::occurrences(taxon = paste('taxon_name:\"', sp.n, '\"',sep=""), 
-                             download_reason_id = 7, 
-                             email  = your_email)
-    ALA = ALA[["data"]]
-    
-    # cat("Synonyms returned for :: ", sp.n, unique(ALA$scientificName), sep="\n")
-    message(dim(ALA[1]), " Records returned for ", sp.n)
-    
-    ## Save records to .Rdata file
-    save(ALA, file = file_name)
   }
 }
+
+
+
+## ALA download Genus Records -----
+
+
+#' Download species occurrence files from the Atlas of Living Australia (ALA)
+#'
+#' This function downloads family occurrence files from ALA (https://www.ala.org.au/).
+#' It assumes that the species list supplied is taxonomically correct.
+#' It downloads the species to fiel without returning anything to the global environment
+#'
+#' @param species_list   Character vector - List of species binomials to download
+#' @param download_path  Character string - File path for species downloads
+#' @param extra_cols     Character - extra ALA columns, eg environmental vatriables
+#' @param quality_cols   Character - quality ALA columns, eg spatial accuracy
+#' @param download_limit Numeric - How many records can be downloaded at one time? Set by server
+#' @return               Data frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)
+#' @export
+download_ALA_all_genera = function (species_list, 
+                                    your_email, 
+                                    download_path, 
+                                    ala_temp_dir, 
+                                    download_limit,
+                                    extra_cols,
+                                    quality_cols) {
+  
+  ## create variables
+  download_limit  = 200000
+  
+  ## for every species in the list
+  ## sp.n = species_list[1]
+  for(sp.n in species_list) {
+    
+    ## First, check if the f*&%$*# file exists
+    message('Searching for records from ', sp.n)
+    file_name = paste0(download_path, sp.n, "_ALA_records.RData")
+    
+    ## If it's already downloaded, skip
+    if (!file.exists (file_name)) {
+      
+      ## If the temp directory doesn't exist, create it
+      if(!dir.exists(ala_temp_dir)) {
+        message('Creating ', ala_temp_dir)
+        dir.create(ala_temp_dir) } else {
+          message('temp ALA directory already exists')}
+      
+      # lsid <- ALA4R::specieslist(sp.n)$taxonConceptLsid
+      
+      ## create a dummy file
+      dummy = data.frame()
+      save (dummy, file = file_name)
+      
+      ## Then check the spelling...incorrect nomenclature will return NULL result
+      dir.create(ala_temp_dir)
+      if (is.null(ALA4R::occurrences(taxon              = paste0("genus:", sp.n), 
+                                     download_reason_id = 7, 
+                                     email              = your_email,
+                                     qa                 = "all")$data) == TRUE) {
+        
+        ## Now, append the species which had incorrect nomenclature to the skipped list
+        print (paste ("Possible incorrect nomenclature", sp.n, "skipping"))
+        next
+      }
+      
+      ## Skip species with no records
+      if (nrow(ALA4R::occurrences(taxon              = paste0("genus:", sp.n), 
+                                  download_reason_id = 7, 
+                                  email              = your_email,
+                                  qa                 = "all")$data) <= 2) {
+        
+        ## now append the species which had no records to the skipped list
+        print (paste ("No ALA records for", sp.n, "skipping"))
+        records = paste ("No ALA records |", sp.n)
+        next
+      }
+      
+      ## Download ALL records from ALA - also include extra columns and quality columns
+      message("Downloading ALA records for ", sp.n, " using ALA4R :: occurrences")
+      ALA = ALA4R::occurrences(taxon              = paste0("genus:", sp.n), 
+                               download_reason_id = 7, 
+                               email              = your_email,
+                               extra              = extra_cols,
+                               qa                 = quality_cols) %>% .[["data"]]
+      
+      ## Save records to .Rdata file
+      message(nrow(ALA), " Records returned for ", sp.n)
+      save(ALA, file = file_name)
+      gc()
+      
+    } else {
+      message('ALA records for ', sp.n, ' Already downloaded')
+    }
+  }
+} 
+
 
 
 
@@ -190,13 +298,15 @@ download_ALA_all_species = function (species_list, your_email, download_path, al
 #'
 #' This function downloads family occurrence files from ALA (https://www.ala.org.au/).
 #' It assumes that the species list supplied is taxonomically correct.
-#' It downloads the species without returning anything
+#' It downloads the species to fiel without returning anything to the global environment
 #'
 #' @param species_list   Character vector - List of species binomials to download
 #' @param download_path  Character string - File path for species downloads
+#' @param extra_cols     Character - extra ALA columns, eg environmental vatriables 
+#' @param quality_cols   Character - quality ALA columns, eg spatial accuracy
 #' @param download_limit Numeric - How many records can be downloaded at one time? Set by server
-#' @export extra_cols    Character - extra ALA columns, eg environmental vatriables
-#' @export quality_cols  Character - quality ALA columns, eg spatial accuracy
+#' @return               Data frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)
+#' @export
 download_ALA_all_families = function (species_list, 
                                       your_email, 
                                       download_path, 
@@ -205,7 +315,7 @@ download_ALA_all_families = function (species_list,
                                       extra_cols,
                                       quality_cols) {
   
-  ## create variables
+  ## Set download limit
   download_limit  = 200000
   
   ## for every species in the list
@@ -272,9 +382,102 @@ download_ALA_all_families = function (species_list,
       message('ALA records for ', sp.n, ' Already downloaded')
     }
   }
+}
+
+
+
+## ALA download Tribe Records ----
+
+
+#' Download species occurrence files from the Atlas of Living Australia (ALA)
+#'
+#' This function downloads family occurrence files from ALA (https://www.ala.org.au/).
+#' It assumes that the species list supplied is taxonomically correct.
+#' It downloads the species to fiel without returning anything to the global environment
+#'
+#' @param species_list   Character vector - List of species binomials to download
+#' @param download_path  Character string - File path for species downloads
+#' @param extra_cols     Character - extra ALA columns, eg environmental vatriables
+#' @param quality_cols   Character - quality ALA columns, eg spatial accuracy
+#' @param download_limit Numeric - How many records can be downloaded at one time? Set by server
+#' @return               Data frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)
+#' @export
+download_ALA_all_tribes = function (species_list, 
+                                    your_email, 
+                                    download_path, 
+                                    ala_temp_dir, 
+                                    download_limit,
+                                    extra_cols,
+                                    quality_cols) {
+  
+  ## create variables
+  download_limit  = 200000
+  
+  ## for every species in the list
+  ## sp.n = species_list[1]
+  for(sp.n in species_list) {
+    
+    ## First, check if the f*&%$*# file exists
+    message('Searching for records from ', sp.n)
+    file_name = paste0(download_path, sp.n, "_ALA_records.RData")
+    
+    ## If it's already downloaded, skip
+    if (!file.exists (file_name)) {
+      
+      ## If the temp directory doesn't exist, create it
+      if(!dir.exists(ala_temp_dir)) {
+        message('Creating ', ala_temp_dir)
+        dir.create(ala_temp_dir) } else {
+          message('temp ALA directory already exists')}
+      
+      # lsid <- ALA4R::specieslist(sp.n)$taxonConceptLsid
+      
+      ## create a dummy file
+      dummy = data.frame()
+      save (dummy, file = file_name)
+      
+      ## Then check the spelling...incorrect nomenclature will return NULL result
+      dir.create(ala_temp_dir)
+      if (is.null(ALA4R::occurrences(taxon              = paste0("tribe:", sp.n), 
+                                     download_reason_id = 7, 
+                                     email              = your_email,
+                                     qa                 = "all")$data) == TRUE) {
+        
+        ## Now, append the species which had incorrect nomenclature to the skipped list
+        print (paste ("Possible incorrect nomenclature", sp.n, "skipping"))
+        next
+      }
+      
+      ## Skip species with no records
+      if (nrow(ALA4R::occurrences(taxon              = paste0("tribe:", sp.n), 
+                                  download_reason_id = 7, 
+                                  email              = your_email,
+                                  qa                 = "all")$data) <= 2) {
+        
+        ## now append the species which had no records to the skipped list
+        print (paste ("No ALA records for", sp.n, "skipping"))
+        records = paste ("No ALA records |", sp.n)
+        next
+      }
+      
+      ## Download ALL records from ALA - also include extra columns and quality columns
+      message("Downloading ALA records for ", sp.n, " using ALA4R :: occurrences")
+      ALA = ALA4R::occurrences(taxon              = paste0("tribe:", sp.n), 
+                               download_reason_id = 7, 
+                               email              = your_email,
+                               extra              = extra_cols,
+                               qa                 = quality_cols) %>% .[["data"]]
+      
+      ## Save records to .Rdata file
+      message(nrow(ALA), " Records returned for ", sp.n)
+      save(ALA, file = file_name)
+      gc()
+      
+    } else {
+      message('ALA records for ', sp.n, ' Already downloaded')
+    }
+  }
 } 
-
-
 
 
 

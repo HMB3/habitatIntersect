@@ -92,7 +92,7 @@ environmental conditions.
 The backbone of the R workflow is a list of (taxonomically Ridgey-Didge!) Taxa names 
 that we supply. The analysis is designed to process data for one species at a time, 
 allowing species results to be updated as required. Unfortunately, Australia's insects
-are not very well sampled....so we can analyse at the family level.
+are not very well sampled...so we can analyse at the family level.
 
 \
 
@@ -114,7 +114,8 @@ data('target.insect.families')
 data('target.host.plants')
 data('all.insect.plant.spp')
 
-analysis_taxa <- str_trim(c(target.insect.genera, target.insect.spp, target.insect.families)) %>% unique() 
+analysis_taxa <- str_trim(target.insect.spp)
+# analysis_taxa <- str_trim(c(target.insect.genera, target.insect.spp, target.insect.families)) %>% unique() 
 analysis_taxa
 
 ```
@@ -174,22 +175,22 @@ ala_env_cols = ala_fields("occurrence_stored", as_is = TRUE)$description[231:389
 
 
 ##
-download_ALA_all_species(species_list  = analysis_taxa,
-                         your_email    = 'hugh.burley@gmail.com',
-                         download_path = "./data/ALA/Insects/Species/",
-                         ala_temp_dir  = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
+download_ALA_all_species(species_list   = analysis_taxa,
+                         your_email     = 'hugh.burley@gmail.com',
+                         download_path  = "./data/ALA/Insects/Species/",
+                         ala_temp_dir   = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
                          download_limit = 20000,
                          extra_cols     = ala_env_cols,
                          quality_cols   = 'all')
 
 
-download_ALA_all_genera(species_list  = analysis_taxa,
-                        your_email    = 'hugh.burley@gmail.com',
-                        download_path = "./data/ALA/Insects/Genus/",
-                        ala_temp_dir  = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
-                        download_limit = 20000,
-                        extra_cols     = ala_env_cols,
-                        quality_cols   = 'all')
+download_ALA_all_genera(species_list    = analysis_taxa,
+                        your_email      = 'hugh.burley@gmail.com',
+                        download_path   = "./data/ALA/Insects/Genus/",
+                        ala_temp_dir    = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
+                        download_limit  = 20000,
+                        extra_cols      = ala_env_cols,
+                        quality_cols    = 'all')
 
 
 ## Now download the data for all the families
