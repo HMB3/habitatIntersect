@@ -9,7 +9,9 @@ download_ALA_all_species(
   your_email,
   download_path,
   ala_temp_dir,
-  download_limit
+  download_limit,
+  extra_cols,
+  quality_cols
 )
 }
 \arguments{

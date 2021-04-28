@@ -10,8 +10,7 @@ combine_ala_records(
   records_extension,
   record_type,
   keep_cols,
-  world_raster,
-  save_data
+  world_raster
 )
 }
 \arguments{

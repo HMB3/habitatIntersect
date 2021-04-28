@@ -115,7 +115,7 @@ run_sdm_analysis = function(species_list,
                                       replicates              = replicates,
                                       responsecurves          = responsecurves,
                                       #shp_path                = shp_path,
-                                      country_shp             = country_shp ),
+                                      country_shp             = country_shp),
           
           
           ## Save error message
@@ -227,6 +227,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
          'l', 'p', 'q', 'h', and 't'.")
   
   ## Create a buffer of xkm around the occurrence points
+  ## So the spatial data change has caused this problem
   buffer <- aggregate(gBuffer(occ, width = background_buffer_width, byid = TRUE))
   
   ## Get unique cell numbers for species occurrences

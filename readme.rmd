@@ -536,6 +536,8 @@ SDM.SPAT.OCC.BG = prepare_sdm_table(coord_df        = COORD.CLEAN,
 
 \
 
+Start the wiki from here, using the pre-prepared data
+
 The next process is to run species distribution models using global records of each species.
 The sdm function runs two maxent models: a full model using all variables, and backwards selection. 
 Given a candidate set of predictor variables, the backwards selection function identifies a subset 

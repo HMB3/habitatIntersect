@@ -23,6 +23,7 @@ fit_maxent_targ_bg_back_sel(
   max_bg_size,
   background_buffer_width,
   Koppen_raster,
+  koppen_crop,
   shapefiles,
   features,
   replicates,
@@ -55,7 +56,7 @@ fit_maxent_targ_bg_back_sel(
 
 \item{max_bg_size}{Numeric - The max number of background points to keep}
 
-\item{background_buffer_width}{Numeric - The max distance (km) from occ points that BG points should be selected?}
+\item{koppen_crop}{Logical - Should we use a koppen zone raster to select background points?}
 
 \item{shapefiles}{Logical - Save shapefiles of the occ and bg data (T/F)?}
 

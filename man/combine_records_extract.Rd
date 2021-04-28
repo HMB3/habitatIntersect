@@ -14,7 +14,6 @@ combine_records_extract(
   thin_records,
   world_raster,
   prj,
-  env_vars,
   complete_var,
   raster_divide,
   save_data,
@@ -37,8 +36,6 @@ combine_records_extract(
 
 \item{prj}{The projection system used. Currently, needs to be WGS84}
 
-\item{env_vars}{The actual variable names (e.g. bio1 = rainfall, etc.) Only needed for worldlcim}
-
 \item{save_data}{Do you want to save the data frame?}
 
 \item{data_path}{The file path used for saving the data frame}
@@ -46,6 +43,8 @@ combine_records_extract(
 \item{save_run}{A run name to append to the data frame (e.g. bat species, etc.). Useful for multiple runs.}
 
 \item{biocl_vars}{The variables used - eg the standard bioclim names (https://www.worldclim.org/).}
+
+\item{env_vars}{The actual variable names (e.g. bio1 = rainfall, etc.) Only needed for worldlcim}
 
 \item{worldclim_divide}{Are you using worldclim stored as long intergers? If so, divide by 10.}
 }

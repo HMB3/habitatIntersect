@@ -25,6 +25,7 @@ run_sdm_analysis(
   features,
   replicates,
   responsecurves,
+  koppen_crop,
   Koppen_raster,
   Koppen_zones,
   country_shp
@@ -64,6 +65,8 @@ run_sdm_analysis(
 \item{replicates}{Numeric - The number of replicates to use}
 
 \item{responsecurves}{Logical - Save response curves of the maxent models (T/F)?}
+
+\item{koppen_crop}{Logical - Should we use a koppen zone raster to select background points?}
 
 \item{Koppen_raster}{RasterLayer of global koppen zones, in Mollweide54009 projection}
 
