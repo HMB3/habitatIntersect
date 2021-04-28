@@ -173,9 +173,6 @@ download_ALA_all_species = function (species_list,
         next
       }
       
-      ## Use 'galah'?
-      select_taxa(term = list(specificEpithet = sp.n))
-      
       ## Download ALL records from ALA - also include extra columns and quality columns
       message("Downloading ALA records for ", sp.n, " using ALA4R :: occurrences")
       ALA = ALA4R::occurrences(taxon              = paste0("species:", sp.n), 
@@ -184,12 +181,9 @@ download_ALA_all_species = function (species_list,
                                extra              = extra_cols,
                                qa                 = quality_cols) %>% .[["data"]]
       
-      ## Now filter the data to just the correct records
-      ALA_filter <- ALA %>% filter(str_detect(scientificNameOriginal, sp.n))
-      
       ## Save records to .Rdata file
-      message(nrow(ALA_filter), " Records returned for ", sp.n)
-      save(ALA_filter, file = file_name)
+      message(nrow(ALA), " Records returned for ", sp.n)
+      save(ALA, file = file_name)
       gc()
       
     } else {
@@ -282,12 +276,9 @@ download_ALA_all_genera = function (species_list,
                                extra              = extra_cols,
                                qa                 = quality_cols) %>% .[["data"]]
       
-      ## Filter to just the rows that match the species
-      ALA_filter <- ALA %>% filter(str_detect(scientificNameOriginal, sp.n))
-      
       ## Save records to .Rdata file
-      message(nrow(ALA_filter), " Records returned for ", sp.n)
-      save(ALA_filter, file = file_name)
+      message(nrow(ALA), " Records returned for ", sp.n)
+      save(ALA, file = file_name)
       gc()
       
     } else {
@@ -382,11 +373,9 @@ download_ALA_all_families = function (species_list,
                                extra              = extra_cols,
                                qa                 = quality_cols) %>% .[["data"]]
       
-      ALA_filter <- ALA %>% filter(str_detect(scientificNameOriginal, sp.n))
-      
       ## Save records to .Rdata file
-      message(nrow(ALA_filter), " Records returned for ", sp.n)
-      save(ALA_filter, file = file_name)
+      message(nrow(ALA), " Records returned for ", sp.n)
+      save(ALA, file = file_name)
       gc()
       
     } else {
@@ -489,6 +478,8 @@ download_ALA_all_tribes = function (species_list,
     }
   }
 } 
+
+
 
 
 
@@ -620,6 +611,7 @@ combine_ala_records = function(species_list,
     TRIM <- ALL
     (sum(is.na(TRIM$scientificName)) + nrow(subset(TRIM, scientificName == "")))/nrow(TRIM)*100
     
+    
     ## 3). FILTER RECORDS TO THOSE WITH COORDINATES, AND AFTER 1950
     ## Now filter the ALA records using conditions which are not too restrictive
     CLEAN <- TRIM %>%
@@ -666,7 +658,7 @@ combine_ala_records = function(species_list,
     
     ## Finally, filter the cleaned ALA data to only those points on land.
     ## This is achieved with the final [onland]
-    LAND.POINTS = filter(CLEAN, cellFromXY(world_raster,   CLEAN[c("lon", "lat")]) %in%
+    LAND.POINTS = filter(CLEAN, cellFromXY(world_raster, CLEAN[c("lon", "lat")]) %in%
                            unique(cellFromXY(world_raster, CLEAN[c("lon", "lat")]))[onland])
     
     ## how many records were on land?
@@ -744,36 +736,45 @@ combine_gbif_records = function(species_list,
       ## Check if the data frames have data
       if (nrow(d) >= 2) {
         
-        # if(!is.character(dat$gbifID)) {
-        #   d$gbifID <- as.character(d$gbifID)
-        # }
-        
-        if("gbifID" %in% colnames(d)) {
-          d <- d %>% dplyr::select(-gbifID)
+        if("decimalLatitude" %in% colnames(d)) {
+          
+          if("gbifID" %in% colnames(d)) {
+            d <- d %>% dplyr::select(-gbifID)
+          }
+          
+          if("eventDate" %in% colnames(d)) {
+            d <- d %>% dplyr::select(-eventDate)
+          }
+          
+          ## Need to print the object within the loop
+          # names(d)[names(d) == 'decimalLatitude']  <- 'lat'
+          # names(d)[names(d) == 'decimalLongitude'] <- 'lon'
+          d <- d %>% rename(lat = decimalLatitude,
+                            lon = decimalLongitude)
+          
+          ## Create the searchTaxon column - check how to put the data in here
+          message ('Formatting occurrence data for ', x)
+          searchtax <- gsub(records_extension, "",    x)
+          
+          ## Filter the data for each species
+          message('filter records for ', searchtax)
+          d <- d %>% mutate(searchTaxon = searchtax) %>%
+            dplyr::select(one_of(keep_cols)) %>% 
+            
+            filter(!is.na(lon) & !is.na(lat)) %>%
+            filter(lon < 180 & lat > -90) %>%
+            filter(lon < 180 & lat > -90) %>%
+            filter(year >= 1950) %>%
+            filter(!is.na(year))
+          
+        } else {
+          message('No location data for ', x, ' skipping')
         }
         
-        ## Need to print the object within the loop
-        names(d)[names(d) == 'decimalLatitude']  <- 'lat'
-        names(d)[names(d) == 'decimalLongitude'] <- 'lon'
-        
-        ## Create the searchTaxon column - check how to put the data in here
-        message ('Formatting occurrence data for ', x)
-        searchtax <- gsub(records_extension, "",    x)
-        
-        ## Filter the data for each species
-        message('filter records for ', searchtax)
-        d <- d %>% mutate(searchTaxon = searchtax) %>%
-          dplyr::select(one_of(keep_cols)) %>% 
-          
-          filter(!is.na(lon) & !is.na(lat)) %>%
-          filter(lon < 180 & lat > -90) %>%
-          filter(lon < 180 & lat > -90) %>%
-          filter(year >= 1950) %>%
-          filter(!is.na(year))
-        
       } else {
-        message('No ALA dat for ', x, ' skipping')
+        message('No GBIF dat for ', x, ' skipping')
       }
+      
       return(d)
     }) %>%
     
@@ -1138,7 +1139,6 @@ coord_clean_records = function(records,
 #' @param land_shp           R object. Shapefile of the worlds land (e.g. https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-land/)
 #' @param clean_path         Character string -  The file path used for saving the checks
 #' @param spatial_mult       Numeric. The multiplier of the interquartile range (method == 'quantile', see ?cc_outl)
-#' @param plot_points        Character - plot the points?
 #' @return                   Data.frame of species records, with spatial outlier T/F flag for each record
 #' @export
 check_spatial_outliers = function(all_df,
@@ -1146,6 +1146,7 @@ check_spatial_outliers = function(all_df,
                                   land_shp,
                                   clean_path,
                                   plot_points,
+                                  record_limit,
                                   spatial_mult,
                                   prj) {
   
@@ -1254,7 +1255,7 @@ check_spatial_outliers = function(all_df,
   
   ## Watch out here - this sorting could cause problems for the order of the data frame once it's stitched back together
   ## If we we use spp to join the data back together, will it preserve the order?
-  LUT.100K = as.character(subset(COMBO.LUT, FREQUENCY < 100000)$species)
+  LUT.100K = as.character(subset(COMBO.LUT, FREQUENCY < record_limit)$species)
   LUT.100K = trimws(LUT.100K [order(LUT.100K)])
   length(LUT.100K)
   
@@ -1367,6 +1368,7 @@ check_spatial_outliers = function(all_df,
   }
   return(SPAT.TRUE)
 }
+
 
 
 ## Calculate niches using occurrence data ----
