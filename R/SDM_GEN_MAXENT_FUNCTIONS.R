@@ -30,6 +30,7 @@
 #' @param features           Character string - Which features should be used? (e.g. linear, product, quadratic 'lpq')
 #' @param replicates         Numeric - The number of replicates to use
 #' @param responsecurves     Logical - Save response curves of the maxent models (T/F)?
+#' @param koppen_crop        Logical - Should we use a koppen zone raster to select background points?
 #' @param country_shp             .Rds object - SpatialPolygonsDataFrame of Australia for mapping maxent points
 #' @param Koppen_raster      RasterLayer of global koppen zones, in Mollweide54009 projection
 #' @param Koppen_zones       Dataframe of global koppen zones, with columns : GRIDCODE, Koppen
@@ -51,11 +52,13 @@ run_sdm_analysis = function(species_list,
                             features,
                             replicates,
                             responsecurves,
+                            koppen_crop,
                             Koppen_raster,
                             Koppen_zones,
                             country_shp ) {
   
   ## Loop over all the species
+  ## species <- species_list[3]
   lapply(species_list, function(species){
     
     ## Skip the species if the directory already exists, before the loop
@@ -75,6 +78,7 @@ run_sdm_analysis = function(species_list,
       file.create(file.path(dir_name, "in_progress.txt"))
       
       ## Print the taxa being processed to screen
+      ## 
       if(species %in% sdm_df$searchTaxon) {
         message('Doing ', species)
         
@@ -100,6 +104,7 @@ run_sdm_analysis = function(species_list,
                                       pct_thr                 = pct_thr,
                                       k_thr                   = k_thr,
                                       
+                                      koppen_crop             = koppen_crop,
                                       template_raster         = template_raster,
                                       min_n                   = min_n,
                                       max_bg_size             = max_bg_size,
@@ -158,22 +163,20 @@ run_sdm_analysis = function(species_list,
 #' @param bsdir              Character string - The file path used for saving the backwards selection maxent output
 #' @param backwards_sel      Logical - Run backwards selection using the maxent models (T/F)?
 #' @param template_raster    RasterLayer -  Empty raster with analysis extent (global), res (1km) and projection (Mollweide, EPSG 54009)
+#' @param template_raster    RasterLayer -  Empty raster with analysis extent (global), res (1km) and projection (Mollweide, EPSG 54009)
 #' @param cor_thr            Numeric - The max allowable pairwise correlation between predictor variables
 #' @param pct_thr            Numeric - The min allowable percent variable contribution
 #' @param k_thr              Numeric - The min number of variables to be kept in the model
 #' @param min_n              Numeric - The min number of records for running maxent
 #' @param max_bg_size        Numeric - The max number of background points to keep
-#' @param background_buffer_width Numeric - The max distance (km) from occ points that BG points should be selected?
+#' @param koppen_crop        Logical - Should we use a koppen zone raster to select background points?
 #' @param shapefiles         Logical - Save shapefiles of the occ and bg data (T/F)?
 #' @param features           Character string - Which features should be used? (e.g. linear, product, quadratic 'lpq')
 #' @param replicates         Numeric - The number of replicates to use
 #' @param responsecurves     Logical - Save response curves of the maxent models (T/F)?
-#' @param country_shp             .Rds object - SpatialPolygonsDataFrame of Australia for mapping maxent points
-#' @param rep_args             RasterLayer of global koppen zones, in Mollweide54009 projection
+#' @param country_shp        .Rds object - SpatialPolygonsDataFrame of Australia for mapping maxent points
+#' @param rep_args           RasterLayer of global koppen zones, in Mollweide54009 projection
 #' @param full_args          Dataframe of global koppen zones, with columns : GRIDCODE, Koppen
-#' @export
-
-
 #' @export
 fit_maxent_targ_bg_back_sel <- function(occ,
                                         bg,
@@ -190,6 +193,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
                                         max_bg_size,
                                         background_buffer_width,
                                         Koppen_raster,
+                                        koppen_crop,
                                         shapefiles,
                                         features,
                                         replicates,
@@ -257,25 +261,32 @@ fit_maxent_targ_bg_back_sel <- function(occ,
     
     ## Find which of these cells fall within the Koppen-Geiger zones that the species occupies
     ## Crop the Kopppen raster to the extent of the occurrences, and snap it
-    message(name, ' intersecting background cells with Koppen zones')
-    Koppen_crop <- crop(Koppen_raster, occ, snap = 'out')
-    
-    ## Only extract and match those cells that overlap between the ::
-    ## 1). cropped koppen zone,
-    ## 2). occurrences and
-    ## 3). background points
-    message(xres(template_raster), ' metre cell size for template raster')
-    message(xres(Koppen_raster), ' metre cell size for Koppen raster')
-    zones               <- raster::extract(Koppen_crop, occ)
-    cells_in_zones_crop <- Which(Koppen_crop %in% zones, cells = TRUE)
-    cells_in_zones      <- cellFromXY(Koppen_raster, xyFromCell(Koppen_crop, cells_in_zones_crop))
-    bg_cells            <- intersect(bg_cells, cells_in_zones)  ## this is 0 for 5km
-    i                   <- cellFromXY(template_raster, bg)
-    bg                  <- bg[which(i %in% bg_cells), ]
-    
-    ## For some species, we have the problem that the proportion of ALA/INV data is
-    ## very different in the occurrence vs the bg records.
-    ## This should be caused by the 200km / koppen restriction, etc.
+    if(koppen_crop == TRUE) {
+      
+      message(name, ' intersecting background cells with Koppen zones')
+      Koppen_crop <- crop(Koppen_raster, occ, snap = 'out')
+      
+      ## Only extract and match those cells that overlap between the ::
+      ## 1). cropped koppen zone,
+      ## 2). occurrences and
+      ## 3). background points
+      message(xres(template_raster), ' metre cell size for template raster')
+      message(xres(Koppen_raster),   ' metre cell size for Koppen raster')
+      zones               <- raster::extract(Koppen_crop, occ)
+      cells_in_zones_crop <- Which(Koppen_crop %in% zones, cells = TRUE)
+      cells_in_zones      <- cellFromXY(Koppen_raster, xyFromCell(Koppen_crop, cells_in_zones_crop))
+      bg_cells            <- intersect(bg_cells, cells_in_zones)  ## this is 0 for 5km
+      i                   <- cellFromXY(template_raster, bg)
+      bg                  <- bg[which(i %in% bg_cells), ]
+      
+      ## For some species, we have the problem that the proportion of ALA/INV data is
+      ## very different in the occurrence vs the bg records.
+      ## This should be caused by the 200km / koppen restriction, etc.
+      
+    } else {
+      message(name, ' Do not intersect background cells with Koppen zones')
+      bg                  <- bg[which(i %in% bg_cells), ]
+    }
     
     ## Reduce background sample, if it's larger than max_bg_size
     if (nrow(bg) > max_bg_size) {
@@ -516,8 +527,8 @@ fit_maxent_targ_bg_back_sel <- function(occ,
 #' @param responsecurves     Logical - Save response curves of the maxent models (T/F)?
 #' @export
 local_simplify = function (occ, bg, path, species_column = "species", response_curves = TRUE,
-                           logistic_format = TRUE, type = "PI", cor_thr, pct_thr, k_thr,
-                           features = "lpq", replicates = 1, quiet = TRUE)
+                           logistic_format = TRUE,  type = "PI", cor_thr, pct_thr, k_thr,
+                           features = "lpq",  replicates = 1, quiet = TRUE)
   
 {
   if (!species_column %in% colnames(occ))

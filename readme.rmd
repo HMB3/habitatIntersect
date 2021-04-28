@@ -115,7 +115,7 @@ data('target.host.plants')
 data('all.insect.plant.spp')
 
 analysis_taxa <- str_trim(target.insect.spp)
-# analysis_taxa <- str_trim(c(target.insect.genera, target.insect.spp, target.insect.families)) %>% unique() 
+# analysis_taxa <- str_trim(c(target.insect.spp, all.insect.spp)) %>% unique() 
 analysis_taxa
 
 ```
@@ -134,14 +134,18 @@ without returning anything.
 ## The functions expect these folders,
 ALA_dir     <- './data/ALA'
 GBIF_dir    <- './data/GBIF'
-back_dir    <- './output/maxent/back_sel_models'
-full_dir    <- './output/maxent/full_models'
+
+back_dir     <- './output/maxent/back_sel_models'
+full_dir     <- './output/maxent/full_models'
+veg_back_dir <- './output/full_maxent/back_sel_models'
+veg_full_dir <- './output/full_maxent/full_models'
+
 results_dir <- './output/results'
 climate_dir <- './data/worldclim/world/2070'
 check_dir   <- './data/GBIF/Check_plots/'
 temp_dir    <- 'G:/Raster_temp'
 
-dir_lists   <- c(ALA_dir,  GBIF_dir,    back_dir, check_dir,
+dir_lists   <- c(ALA_dir,  GBIF_dir,    back_dir, check_dir, veg_back_dir, veg_full_dir,
                  full_dir, results_dir, climate_dir, temp_dir)
 
 ## Create the folders if they don't exist
@@ -220,6 +224,10 @@ https://drive.google.com/open?id=1T5ET5MUX3-lkqiN5nNL3SZZagoJlEOal.
 
 \
 
+Let's create all the raster data we need here :
+
+\
+
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Use worldclim 2 data
@@ -228,17 +236,17 @@ worldclim_climate = raster::stack(
   file.path('./data/worldclim2/res_30s/bioclim',
             sprintf('wc2.1_30s_bio_%d.tif', 1:19)))
 
-## Data for Australian that is in GDA Albers projection
+## Climate data for Australia, in GDA Albers projection
 aus.grids.current <- stack(
   file.path('./data/worldclim2/aus/current', 
             sprintf('bio_%d_AUSGDA.tif', 1:19)))
 
-## This set of grids is just for the study area in NE_NSW
+## Climate data for the study area in NE_NSW, in GDA Albers projection
 study.grids.current <- stack(
   file.path('./data/worldclim2/aus/current/Study_area',
             sprintf('bio_%d_AUSGDA.tif', 1:19)))
 
-## And a stack of grids for vegetation
+## And a stack of grids for vegetation, in GDA Albers projection
 aus.veg.grids <- stack(
   list.files('./data/Remote_sensing/Veg_data/height_and_cover', 
              '_1km.tif', full.names = TRUE))
@@ -261,18 +269,20 @@ names(aus.veg.grids) <- c("Plant_cover_fraction_0_5m",
                           "Tree_canopy_peak_foliage",
                           "Tree_canopy_peak_foliage_total")
 
-## 
+## Combine the grids
 aus.climate.veg.grids <- stack(aus.grids.current, aus.veg.grids)
 aus_annual_temp       <- aus.climate.veg.grids[[1]]
 world_annual_temp     <- worldclim_climate[[1]]
 
 
-# The next step requires a template raster of 1km * 1km cells, which is used to filter 
+# We also need a template raster of 1km * 1km cells, which is used to filter 
 # records to 1 per one 1km cell. This raster needs to have the same extent (global) 
 # resolution (1km) and projection (WGS84) of the data used to analyse the species 
 # distributions. It should have a value of 1 for land, and NA for the ocean. 
 # This takes ages in R.....
 template_raster_1km_WGS84 = raster("./data/world_koppen/template_1km_WGS84.tif")
+Koppen_1975_1km           = raster('data/world_koppen/Koppen_1000m_Mollweide54009.tif')
+template_raster_1km_mol   = raster("./data/world_koppen/template_has_data_1km.tif")
 
 ```
 
@@ -468,7 +478,7 @@ GLOB.NICHE = calc_1km_niches(coord_df     = SPATIAL.CLEAN,
                              env_vars     = env_variables,
                              cell_size    = 2,
                              save_data    = TRUE,
-                             save_run     = "ALL_INSECTS_SPECIES",
+                             save_run     = "ALL_INSECT_SPECIES",
                              data_path    = "./output/results/")
 
 ``` 
@@ -506,11 +516,12 @@ background points from other taxa, if specified. In this example for bats, we'll
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Final dataset is a spatial points dataframe in the Mollwiede projection
+## Final dataset is a spatial points data frame in GDA Albers projection
 SDM.SPAT.OCC.BG = prepare_sdm_table(coord_df        = COORD.CLEAN,
                                     species_list    = unique(COORD.CLEAN$searchTaxon),
-                                    sdm_table_vars  = sdm_table_vars,
-                                    save_run        = "TARGET_INSECT_SPP",
+                                    sdm_table_vars  = sdm_table_vars <- c('searchTaxon', 'lon', 'lat', 'SOURCE',
+                                                                          names(aus.climate.veg.grids)),
+                                    save_run        = "ALL_INSECT_SPP",
                                     read_background = FALSE,
                                     save_data       = TRUE,
                                     save_shp        = TRUE,
@@ -526,50 +537,6 @@ SDM.SPAT.OCC.BG = prepare_sdm_table(coord_df        = COORD.CLEAN,
 \
 
 The next process is to run species distribution models using global records of each species.
-In order to sample species records thoroughly, we use a rasterized version of the 1975 
-Koppen raster, and another template raster of the same extent (global), resolution (1km*1km) 
-and projection (Mollweide) as the analysis data. This step takes ages...
-
-\
-
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
-
-## Use gdal to create a template raster in the mollweide projection, using one of the bioclim layers
-template_raster_1km_mol <- gdalwarp("./data/wc2-5/bio1.bil",
-                                    tempfile(fileext = '.bil'),
-                                    t_srs = sp_epsg54009,
-                                    output_Raster = TRUE,
-                                    tr = c(1000, 1000),
-                                    r = "near", 
-                                    dstnodata = '-9999')
-
-## Should be 1km*1km, values of 0 for ocean and 1 for land 
-template_raster_1km_mol[template_raster_1km_mol > 0] <- 1
-template_raster_1km_mol[template_raster_1km_mol < 0] <- 1
-xres(template_raster_1km_mol)
-
-``` 
-
-\
-
-A pre-prepared template raster in the Mollweide projection is found on google drive :
-https://drive.google.com/open?id=1mQHVmYxSMw_cw1iGvfU9M7Pq6Kl6nz-C
-
-\
-
-
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
-
-## Download the template and koppen rasters from google drive
-## https://drive.google.com/open?id=1mQHVmYxSMw_cw1iGvfU9M7Pq6Kl6nz-C
-## https://drive.google.com/open?id=1oY5ZWCV3eoKAWShCaApgLvV6Mb9G0HFQ
-Koppen_1975_1km         = raster('data/world_koppen/Koppen_1000m_Mollweide54009.tif')
-template_raster_1km_mol = raster("./data/world_koppen/template_has_data_1km.tif")
-
-```
-
-\
-
 The sdm function runs two maxent models: a full model using all variables, and backwards selection. 
 Given a candidate set of predictor variables, the backwards selection function identifies a subset 
 of variables that meets specified multi-collinearity criteria. Subsequently, backward step-wise variable 
@@ -603,18 +570,14 @@ minimum number of predictors remains.
 
 ## Clean up the folders which have failed
 run_sdm_analysis(species_list            = rev(analysis_taxa),
-                 maxent_dir              = 'output/maxent/full_models',     
-                 bs_dir                  = 'output/maxent/back_sel_models',
-                 sdm_df                  = SDM.ALL.PLANT.SPP.BG,
+                 maxent_dir              = 'output/full_maxent/full_models',     
+                 bs_dir                  = 'output/full_maxent/back_sel_models',
+                 sdm_df                  = SDM.SPAT.OCC.BG,
                  
-                 sdm_predictors          = c("Annual_mean_temp",    "Mean_diurnal_range",  "Isothermality",      
-                                             "Temp_seasonality",    "Max_temp_warm_month", "Min_temp_cold_month", 
-                                             "Temp_annual_range",   "Mean_temp_warm_qu",   "Mean_temp_cold_qu",
-                                             "Annual_precip",       "Precip_wet_month",   "Precip_dry_month",    
-                                             "Precip_seasonality",  "Precip_wet_qu",       "Precip_dry_qu"),
+                 sdm_predictors          = names(aus.climate.veg.grids),
                  
                  backwards_sel           = TRUE,      
-                 template_raster         = template_raster_1km_mol,
+                 template_raster         = template_raster_1km_GDA,
                  cor_thr                 = 0.8,  
                  pct_thr                 = 5, 
                  k_thr                   = 4, 
@@ -626,6 +589,7 @@ run_sdm_analysis(species_list            = rev(analysis_taxa),
                  replicates              = 5,
                  responsecurves          = TRUE,
                  country_shp             = AUS,
+                 koppen_crop             = FALSE,
                  Koppen_zones            = Koppen_zones,
                  Koppen_raster           = Koppen_1975_1km)
 

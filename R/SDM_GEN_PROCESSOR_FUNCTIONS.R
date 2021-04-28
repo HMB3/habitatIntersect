@@ -2125,6 +2125,8 @@ prepare_sdm_table = function(coord_df,
     
     ## Save .rds file of the occurrence and BG points for the next session
     saveRDS(SDM.SPAT.OCC.BG, paste0(data_path, 'SDM_SPAT_OCC_BG_',  save_run, '.rds'))
+    return(SDM.SPAT.OCC.BG)
+    
   } else {
     message('Return the occurrence + Background data to the global environment')   ##
     return(SDM.SPAT.OCC.BG)
