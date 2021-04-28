@@ -982,7 +982,7 @@ combine_records_extract = function(ala_df,
   # setnames(COMBO.RASTER, old = names(world_raster), new = env_vars)
   COMBO.RASTER <- COMBO.RASTER %>% dplyr::select(-lat.1, -lon.1)
   
-  ## Change the raster values here: See http://worldclim.org/formats1 for description of the interger conversion.
+  ## Change the raster values here: See http://worldclim.org/formats1 for description of the integer conversion.
   ## All worldclim temperature variables were multiplied by 10, so then divide by 10 to reverse it.
   if (raster_divide == TRUE) {
     
@@ -999,8 +999,9 @@ combine_records_extract = function(ala_df,
     COMBO.RASTER.CONVERT = COMBO.RASTER
   }
   
-  ## Print the dataframe dimensions to screen :: format to recognise millions, hundreds of thousands, etc.
-  COMBO.RASTER.CONVERT = completeFun(COMBO.RASTER.CONVERT, names(world_raster)[1])
+  ## Get the complete data
+  COMBO.RASTER.CONVERT = completeFun(COMBO.RASTER.CONVERT, c(names(world_raster)[1], 
+                                                             names(world_raster)[20]))
   
   message(length(unique(COMBO.RASTER.CONVERT$searchTaxon)),
           ' species processed of ', length(species_list), ' original species')
@@ -1022,7 +1023,7 @@ combine_records_extract = function(ala_df,
 
 
 
-## Clean coordinates of occurence records ----
+## Clean coordinates of occurrence records ----
 
 
 #' This function takes a data frame of all species records, and flag records as institutional or spatial outliers.
@@ -1133,77 +1134,85 @@ coord_clean_records = function(records,
 #' It uses the CoordinateCleaner package https://cran.r-project.org/web/packages/CoordinateCleaner/index.html.
 #' It assumes that the input dfs are those returned by the coord_clean_records function
 #' @param all_df             Data.frame. DF of all species records returned by the coord_clean_records function
-#' @param site_df           Data.frame of site records (only used if you have site data, e.g. I-naturalist)
+#' @param site_df            Data.frame of site records (only used if you have site data, e.g. I-naturalist)
 #' @param land_shp           R object. Shapefile of the worlds land (e.g. https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-land/)
 #' @param clean_path         Character string -  The file path used for saving the checks
 #' @param spatial_mult       Numeric. The multiplier of the interquartile range (method == 'quantile', see ?cc_outl)
+#' @param plot_points        Character - plot the points?
 #' @return                   Data.frame of species records, with spatial outlier T/F flag for each record
 #' @export
 check_spatial_outliers = function(all_df,
                                   site_df,
                                   land_shp,
                                   clean_path,
+                                  plot_points,
                                   spatial_mult,
                                   prj) {
   
   ## Try plotting the points which are outliers for a subset of spp and label them
-  ALL.PLOT = SpatialPointsDataFrame(coords      = all_df[c("lon", "lat")],
-                                    data        = all_df,
-                                    proj4string = prj)
-  
-  CLEAN.TRUE = subset(all_df, coord_summary == TRUE)
-  CLEAN.PLOT = SpatialPointsDataFrame(coords      = CLEAN.TRUE[c("lon", "lat")],
-                                      data        = CLEAN.TRUE,
+  if(plot_points == TRUE) {
+    
+    ALL.PLOT = SpatialPointsDataFrame(coords      = all_df[c("lon", "lat")],
+                                      data        = all_df,
                                       proj4string = prj)
-  
-  ## Create global and australian shapefile in the local coordinate system
-  LAND.84 = land_shp %>%
-    spTransform(prj)
-  AUS.84 = AUS %>%
-    spTransform(prj)
-  
-  ## spp = spat.taxa[1]
-  plot.taxa <- as.character(unique(CLEAN.PLOT$searchTaxon))
-  for (spp in plot.taxa) {
     
-    ## Plot a subset of taxa
-    CLEAN.PLOT.PI = CLEAN.PLOT[ which(CLEAN.PLOT$searchTaxon == spp), ]
+    CLEAN.TRUE = subset(all_df, coord_summary == TRUE)
+    CLEAN.PLOT = SpatialPointsDataFrame(coords      = CLEAN.TRUE[c("lon", "lat")],
+                                        data        = CLEAN.TRUE,
+                                        proj4string = prj)
     
-    message("plotting occ data for ", spp, ", ",
-            nrow(CLEAN.PLOT.PI), " records flagged as either ",
-            unique(CLEAN.PLOT.PI$coord_summary))
+    ## Create global and australian shapefile in the local coordinate system
+    LAND.84 = land_shp %>%
+      spTransform(prj)
+    AUS.84 = AUS %>%
+      spTransform(prj)
     
-    ## Plot true and false points for the world
-    ## Black == FALSE
-    ## Red   == TRUE
-    message('Writing map of global coord clean records for ', spp)
-    png(sprintf("%s%s_%s", clean_path, spp, "global_check_cc.png"),
-        16, 10, units = 'in', res = 500)
+    ## spp = plot.taxa[1]
+    plot.taxa <- as.character(unique(CLEAN.PLOT$searchTaxon))
+    for (spp in plot.taxa) {
+      
+      ## Plot a subset of taxa
+      CLEAN.PLOT.PI = CLEAN.PLOT[ which(CLEAN.PLOT$searchTaxon == spp), ]
+      
+      message("plotting occ data for ", spp, ", ",
+              nrow(CLEAN.PLOT.PI), " records flagged as ",
+              unique(CLEAN.PLOT.PI$coord_summary))
+      
+      ## Plot true and false points for the world
+      ## Black == FALSE
+      ## Red   == TRUE
+      message('Writing map of global coord clean records for ', spp)
+      png(sprintf("%s%s_%s", clean_path, spp, "global_check_cc.png"),
+          16, 10, units = 'in', res = 500)
+      
+      par(mfrow = c(1,1))
+      # plot(LAND.84, main = paste0(nrow(subset(CLEAN.PLOT.PI, coord_summary == FALSE)),
+      #                             " Global clean_coord 'FALSE' points for ", spp),
+      #      lwd = 0.01, asp = 1, col = 'grey', bg = 'sky blue')
+      # 
+      # points(CLEAN.PLOT.PI,
+      #        pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
+      #        xlab = "", ylab = "", asp = 1,
+      #        col = factor(ALL.PLOT$coord_summary))
+      
+      ## Plot true and false points for the world
+      ## Black == FALSE
+      ## Red   == TRUE
+      plot(AUS.84, main = paste0(nrow(subset(CLEAN.PLOT.PI, coord_summary == FALSE)),
+                                 " Global clean_coord 'FALSE' points for ", spp),
+           lwd = 0.01, asp = 1, bg = 'sky blue', col = 'grey')
+      
+      points(CLEAN.PLOT.PI,
+             pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
+             xlab = "", ylab = "", asp = 1,
+             col = factor(ALL.PLOT$coord_summary))
+      
+      dev.off()
+      
+    }
     
-    par(mfrow = c(1,2))
-    plot(LAND.84, main = paste0(nrow(subset(ALL.PLOT, coord_summary == FALSE)),
-                                " Global clean_coord 'FALSE' points for ", spp),
-         lwd = 0.01, asp = 1, col = 'grey', bg = 'sky blue')
-    
-    points(CLEAN.PLOT.PI,
-           pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
-           xlab = "", ylab = "", asp = 1,
-           col = factor(ALL.PLOT$coord_summary))
-    
-    ## Plot true and false points for the world
-    ## Black == FALSE
-    ## Red   == TRUE
-    plot(AUS.84, main = paste0(nrow(subset(ALL.PLOT, coord_summary == FALSE)),
-                               " Global clean_coord 'FALSE' points for ", spp),
-         lwd = 0.01, asp = 1, bg = 'sky blue', col = 'grey')
-    
-    points(ALL.PLOT,
-           pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
-           xlab = "", ylab = "", asp = 1,
-           col = factor(ALL.PLOT$coord_summary))
-    
-    dev.off()
-    
+  } else {
+    message('Do not create maps of each species coord clean records')   ##
   }
   
   ## Create a tibble to supply to coordinate cleaner
@@ -1226,7 +1235,7 @@ check_spatial_outliers = function(all_df,
     timetk::tk_tbl()
   
   ## Check
-  dim(SDM.COORDS)
+  nrow(SDM.COORDS)
   head(SDM.COORDS)
   class(SDM.COORDS)
   summary(SDM.COORDS$decimallongitude)
@@ -1260,7 +1269,7 @@ check_spatial_outliers = function(all_df,
       
       ## Run the spatial outlier detection
       message("Running spatial outlier detection for ", x)
-      message(dim(f)[1], " records for ", x)
+      message(nrow(f), " records for ", x)
       sp.flag <- cc_outl(f,
                          lon     = "decimallongitude",
                          lat     = "decimallatitude",
@@ -1286,53 +1295,58 @@ check_spatial_outliers = function(all_df,
   
   ## Join the data back on
   SPAT.FLAG = join(as.data.frame(test.geo), SPAT.OUT) ## Join means the skipped spp are left out
-  dim(SPAT.FLAG)
+  nrow(SPAT.FLAG)
   
   ## Try plotting the points which are outliers for a subset of spp and label them
   ## Get the first 10 spp
-  ## spp = spat.taxa[1]
-  spat.taxa <- as.character(unique(SPAT.FLAG$searchTaxon))
-  for (spp in spat.taxa) {
+  if(plot_points == TRUE) {
     
-    ## Plot a subset of taxa
-    SPAT.PLOT <- SPAT.FLAG %>% filter(searchTaxon == spp) %>%
-      SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
-                             data        = .,
-                             proj4string = prj)
+    spat.taxa <- as.character(unique(SPAT.FLAG$searchTaxon))
+    for (spp in spat.taxa) {
+      
+      ## Plot a subset of taxa
+      ## spp = spat.taxa[1]
+      SPAT.PLOT <- SPAT.FLAG %>% filter(searchTaxon == spp) %>%
+        SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
+                               data        = .,
+                               proj4string = prj)
+      
+      message("plotting occ data for ", spp, ", ",
+              nrow(SPAT.PLOT ), " records")
+      
+      ## Plot true and false points for the world
+      ## Black == FALSE
+      ## Red   == TRUE
+      message('Writing map of global coord clean records for ', spp)
+      png(sprintf("%s%s_%s", clean_path, spp, "global_spatial_outlier_check.png"),
+          16, 10, units = 'in', res = 500)
+      
+      par(mfrow = c(1,1))
+      # plot(LAND.84, main = paste0(nrow(subset(SPAT.PLOT, SPAT_OUT == FALSE)),
+      #                             " Spatial outlier 'FALSE' points for ", spp),
+      #      lwd = 0.01, asp = 1, col = 'grey', bg = 'sky blue')
+      # 
+      # points(SPAT.PLOT,
+      #        pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
+      #        xlab = "", ylab = "", asp = 1,
+      #        col = factor(SPAT.PLOT$SPAT_OUT))
+      
+      ## Plot true and false points for the world
+      ## Black == FALSE
+      ## Red   == TRUE
+      plot(AUS.84, main = paste0("Australian points for ", spp),
+           lwd = 0.01, asp = 1, bg = 'sky blue', col = 'grey')
+      
+      points(SPAT.PLOT,
+             pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
+             xlab = "", ylab = "", asp = 1,
+             col = factor(SPAT.PLOT$SPAT_OUT))
+      
+      dev.off()
+    }
     
-    message("plotting occ data for ", spp, ", ",
-            nrow(SPAT.PLOT ), " records")
-    
-    ## Plot true and false points for the world
-    ## Black == FALSE
-    ## Red   == TRUE
-    message('Writing map of global coord clean records for ', spp)
-    png(sprintf("%s%s_%s", clean_path, spp, "global_spatial_outlier_check.png"),
-        16, 10, units = 'in', res = 500)
-    
-    par(mfrow = c(1,2))
-    plot(LAND.84, main = paste0(nrow(subset(SPAT.PLOT, SPAT_OUT == FALSE)),
-                                " Spatial outlier 'FALSE' points for ", spp),
-         lwd = 0.01, asp = 1, col = 'grey', bg = 'sky blue')
-    
-    points(SPAT.PLOT,
-           pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
-           xlab = "", ylab = "", asp = 1,
-           col = factor(SPAT.PLOT$SPAT_OUT))
-    
-    ## Plot true and false points for the world
-    ## Black == FALSE
-    ## Red   == TRUE
-    plot(AUS.84, main = paste0("Australian points for ", spp),
-         lwd = 0.01, asp = 1, bg = 'sky blue', col = 'grey')
-    
-    points(SPAT.PLOT,
-           pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
-           xlab = "", ylab = "", asp = 1,
-           col = factor(SPAT.PLOT$SPAT_OUT))
-    
-    dev.off()
-    
+  } else {
+    message('Do not create maps of each species spatial clean records')   ##
   }
   
   ## Could add the species in site records in here
@@ -1353,9 +1367,6 @@ check_spatial_outliers = function(all_df,
   }
   return(SPAT.TRUE)
 }
-
-
-
 
 
 ## Calculate niches using occurrence data ----
