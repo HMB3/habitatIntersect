@@ -1914,7 +1914,8 @@ prepare_sdm_table = function(coord_df,
   
   ## Define GDA ALBERS. This is hard-wired, not user supplied
   ## Change this to GDA ALBERS
-  sp_epsg3577 <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs"
+  sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
+  sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs"
   
   ## Just add clean_df to this step
   coord_df <- subset(coord_df, coord_summary == TRUE)
@@ -1936,8 +1937,8 @@ prepare_sdm_table = function(coord_df,
   ## Create a spatial points object, and change to a projected system to calculate distance more accurately
   ## This is the mollweide projection used for the SDMs
   coordinates(COMBO.RASTER.ALL)    <- ~lon+lat
-  proj4string(COMBO.RASTER.ALL)    <- '+init=epsg:3577'
-  COMBO.RASTER.ALL                 <- spTransform(COMBO.RASTER.ALL, CRS(sp_epsg3577))
+  proj4string(COMBO.RASTER.ALL)    <- '+init=epsg:54009'
+  COMBO.RASTER.ALL                 <- spTransform(COMBO.RASTER.ALL, CRS(sp_epsg54009))
   
   ## Don't filter the data again to be 1 record per 1km, that has already happened
   SDM.DATA.ALL <- COMBO.RASTER.ALL
@@ -2061,7 +2062,7 @@ prepare_sdm_table = function(coord_df,
   ## Convert back to format for SDMs :: use Mollweide projection
   SDM.SPAT.ALL = SpatialPointsDataFrame(coords      = SDM.SPAT.ALL[c("lon", "lat")],
                                         data        = SDM.SPAT.ALL,
-                                        proj4string = CRS(sp_epsg3577))
+                                        proj4string = CRS(sp_epsg54009))
   projection(SDM.SPAT.ALL)
   message(length(unique(SDM.SPAT.ALL$searchTaxon)),
           ' species processed through from download to SDM table')
