@@ -315,14 +315,6 @@ fit_maxent_targ_bg_back_sel <- function(occ,
     occ.mol <- occ %>%
       spTransform(projection(buffer))
     
-    ## Print the koppen zones, occurrences and points to screen
-    # plot(Koppen_crop, legend = FALSE,
-    #      main = paste0('Occurence SDM records for ', name))
-    #
-    # plot(aus.mol, add = TRUE)
-    # plot(buffer,  add = TRUE, col = "red")
-    # plot(occ.mol, add = TRUE, col = "blue")
-    
     ## Then save the occurrence points
     png(sprintf('%s/%s/%s_%s.png', outdir, save_name, save_name, "buffer_occ"),
         16, 10, units = 'in', res = 300)
@@ -404,7 +396,6 @@ fit_maxent_targ_bg_back_sel <- function(occ,
                                  'responsecurves=true',
                                  'outputformat=logistic',
                                  off, paste(names(rep_args), rep_args, sep = '=')))
-      
     }
     
     ## Run the full maxent model - using all the data in swd
@@ -493,6 +484,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
                         title = paste0('Reduced variable correlations for ', save_name))
       
       dev.off()
+      gc()
       
     } else {
       message("Don't run backwards selection")
