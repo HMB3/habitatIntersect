@@ -28,8 +28,8 @@
 project_maxent_current_grids_mess = function(country_shp, 
                                              country_prj,   save_novel_poly,
                                              local_prj,     species_list,
-                                             maxent_path,   climate_path,
-                                             grid_names,    current_grids, 
+                                             maxent_path,   
+                                             current_grids, 
                                              create_mess) {
   
   ## Read in the Aus and world shapefile and re-rpoject
@@ -39,7 +39,7 @@ project_maxent_current_grids_mess = function(country_shp,
   ## Rename the raster grids
   ## Note this step is only needed if the current grids used in the 
   ## their original form, rather than being renamed
-  names(current_grids) <- grid_names
+  # names(current_grids) <- grid_names
   
   ## First, run a loop over each scenario:
   lapply(species_list, function(x) {

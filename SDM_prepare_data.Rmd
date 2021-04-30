@@ -113,7 +113,7 @@ data('target.host.plants')
 data('all.insect.plant.spp')
 
 # analysis_taxa <- str_trim(target.insect.spp[1:10])
-analysis_taxa <- str_trim(target.insect.spp) %>% unique() 
+analysis_taxa <- str_trim(all.insect.families) %>% unique() 
 analysis_taxa
 
 ```
