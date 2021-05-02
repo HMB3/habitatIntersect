@@ -14,8 +14,6 @@ project_maxent_current_grids_mess(
   local_prj,
   species_list,
   maxent_path,
-  climate_path,
-  grid_names,
   current_grids,
   create_mess
 )
@@ -33,13 +31,13 @@ project_maxent_current_grids_mess(
 
 \item{maxent_path}{Character string - The file path containin the existing maxent models}
 
-\item{climate_path}{Character string - The file path where the climate data is saved}
-
-\item{grid_names}{Character string - Vector of enviro conditions that you want to include}
-
 \item{current_grids}{Character string - Vector of current enviro conditions that you want to include}
 
 \item{create_mess}{Logical - Create mess maps of the predictions (T/F)?}
+
+\item{climate_path}{Character string - The file path where the climate data is saved}
+
+\item{grid_names}{Character string - Vector of enviro conditions that you want to include}
 }
 \description{
 This function takes the maxent models created by the 'fit_maxent_targ_bg_back_sel' function,
