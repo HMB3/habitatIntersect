@@ -123,11 +123,11 @@ minimum number of predictors remains.
 
 ## Clean up the folders which have failed
 run_sdm_analysis(species_list            = analysis_taxa,
-                 maxent_dir              = 'output/full_maxent/full_models',     
-                 bs_dir                  = 'output/full_maxent/back_sel_models',
-                 sdm_df                  = SDM.SPAT.OCC.BG,
+                 maxent_dir              = 'output/veg_maxent/full_models',     
+                 bs_dir                  = 'output/veg_maxent/back_sel_models',
+                 sdm_df                  = SDM.ALL.INS.GEN.BG,
                  
-                 sdm_predictors          = names(aus.climate.veg.grids),
+                 sdm_predictors          = names(aus.veg.grids),
                  
                  backwards_sel           = TRUE,      
                  template_raster         = template_raster_1km_mol,
@@ -204,9 +204,9 @@ tryCatch(
                                     local_prj       = aus_albers,
                                     
                                     species_list    = rev(map_taxa),    
-                                    maxent_path     = './output/full_maxent/back_sel_models/',
+                                    maxent_path     = './output/veg_maxent/back_sel_models/',
             
-                                    current_grids   = study.climate.veg.grids,         
+                                    current_grids   = study.veg.current,         
                                     create_mess     = TRUE,
                                     save_novel_poly = FALSE),
   
@@ -214,8 +214,8 @@ tryCatch(
   error = function(cond) {
     
     ## This will write the error message inside the text file, but it won't include the species
-    file.create(file.path("output/full_maxent/back_sel_models/mapping_failed_current.txt"))
-    cat(cond$message, file = file.path("output/full_maxent/back_sel_models/mapping_failed_current.txt"))
+    file.create(file.path("output/veg_maxent/back_sel_models/mapping_failed_current.txt"))
+    cat(cond$message, file = file.path("output/veg_maxent/back_sel_models/mapping_failed_current.txt"))
     warning(cond$message)
     
   })
