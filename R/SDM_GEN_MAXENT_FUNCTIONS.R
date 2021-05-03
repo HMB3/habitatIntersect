@@ -711,7 +711,7 @@ compile_sdm_results = function(species_list,
   message (paste ("maxent.tables has this many entries:", length(maxent.tables)))
   maxent.tables = stringr::str_subset(maxent.tables, map_spp_patt)
   message (paste ("maxent.tables has this many entries:", length(maxent.tables)))
-  message (paste (head(maxent.tables), collapse=","))
+  message (paste (head(maxent.tables), collapse = ","))
   
   ## Now create a table of the results
   ## x = maxent.tables[1]
@@ -722,7 +722,7 @@ compile_sdm_results = function(species_list,
       
       ## We don't need to skip species that haven't been modelled
       x = gsub(paste0(results_dir, "/"), "", x)
-      message (x)
+      message(x)
       
       ## load the backwards selected model
       if (grepl("back", results_dir)) {
@@ -731,7 +731,6 @@ compile_sdm_results = function(species_list,
       } else {
         ## Get the background records from any source
         m = readRDS(paste0(results_dir, '/',  x))$me_full
-        
       }
       
       ## Get the number of Variables
@@ -740,11 +739,14 @@ compile_sdm_results = function(species_list,
       
       ## Get variable importance
       m.vars    = ENMeval::var.importance(m)
-      var.pcont = m.vars[rev(order(m.vars[["percent.contribution"]])),][["variable"]][1]
-      pcont     = m.vars[rev(order(m.vars[["percent.contribution"]])),][["percent.contribution"]][1]
+      var.pcont = m.vars[rev(order(m.vars[["percent.contribution"]])),][["variable"]][1:4]
+      pcont     = m.vars[rev(order(m.vars[["percent.contribution"]])),][["percent.contribution"]][1:4]
+      Var_pcont = paste(var.pcont, pcont, sep = ' = ')
       
-      var.pimp  = m.vars[rev(order(m.vars[["permutation.importance"]])),][["variable"]][1]
-      pimp      = m.vars[rev(order(m.vars[["permutation.importance"]])),][["permutation.importance"]][1]
+      var.pimp  = m.vars[rev(order(m.vars[["permutation.importance"]])),][["variable"]][1:1]
+      pimp      = m.vars[rev(order(m.vars[["permutation.importance"]])),][["permutation.importance"]][1:1]
+      
+      ## Create a list of the variables which explains at least 75% of variation?
       
       ## Get maxent results columns to be used for model checking
       ## Including the omission rate here
@@ -757,10 +759,14 @@ compile_sdm_results = function(species_list,
       d = data.frame(searchTaxon              = x,
                      Maxent_records           = mxt.records,
                      Number_var               = number.var,
-                     Var_pcont                = var.pcont,
-                     Per_cont                 = pcont,
-                     Var_pimp                 = var.pimp,
-                     Perm_imp                 = pimp,
+                     
+                     Var_pcont_1              = Var_pcont[1],
+                     Var_pcont_2              = Var_pcont[2],
+                     Var_pcont_3              = Var_pcont[3],
+                     Var_pcont_4              = Var_pcont[4],
+                     
+                     Var_pimp                 = var.pimp[[1]],
+                     Perm_imp                 = pimp[[1]],
                      Training_AUC,
                      Number_background_points,
                      Logistic_threshold,
@@ -769,6 +775,7 @@ compile_sdm_results = function(species_list,
       ## Remove path gunk, and species
       d$Species     = NULL
       d$searchTaxon = gsub("/full/maxent_fitted.rds", "", d$searchTaxon)
+      row.names(d)  <- NULL
       return(d)
       
     }) %>%

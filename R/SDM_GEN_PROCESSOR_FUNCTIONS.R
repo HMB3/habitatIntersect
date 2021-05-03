@@ -128,7 +128,7 @@ download_ALA_all_species = function (species_list,
   download_limit  = 200000
   
   ## for every species in the list
-  ## sp.n = species_list[1]
+  ## sp.n = species_list[2]
   for(sp.n in species_list) {
     
     ## First, check if the f*&%$*# file exists

@@ -101,17 +101,9 @@ minimum number of predictors remains.
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## SDM.ALL.INS.SPP.BG   = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_SPP.rds')
-## SDM.TARG.INS.SPP.BG  = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_INSECT_SPECIES.rds')
-## SDM.ALL.PLANT.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_PLANT_SPP.rds')
-
-
-## SDM.ALL.INS.GEN.BG  = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_GENERA.rds')
-## SDM.TARG.INS.GEN.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_INSECT_GENERA.rds')
-
-## SDM.ALL.INS.FAM.BG  = readRDS('./output/results/SDM_SPAT_OCC_BG_AUS_INSECT_FAMILIES.rds')
-## SDM.TARG.INS.FAM.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_INSECT_FAMILIES.rds')
-
+## SDM.ALL.INS.FAM.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_FAMILIES.rds')
+## SDM.ALL.INS.GEN.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_GENERA.rds')
+## SDM.ALL.INS.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_SPP.rds')
 
 
 ## To Do :
@@ -123,9 +115,9 @@ minimum number of predictors remains.
 
 ## Clean up the folders which have failed
 run_sdm_analysis(species_list            = analysis_taxa,
-                 maxent_dir              = 'output/veg_maxent/full_models',     
-                 bs_dir                  = 'output/veg_maxent/back_sel_models',
-                 sdm_df                  = SDM.ALL.INS.GEN.BG,
+                 maxent_dir              = 'output/full_maxent/full_models',     
+                 bs_dir                  = 'output/full_maxent/back_sel_models',
+                 sdm_df                  = SDM.ALL.INS.FAM.BG,
                  
                  sdm_predictors          = names(aus.veg.grids),
                  
@@ -167,10 +159,10 @@ across Australia ().
 ## This function aggregates the results for models that ran successfully
 MAXENT.RESULTS = compile_sdm_results(species_list = analysis_taxa,
                                      results_dir  = 'output/full_maxent/back_sel_models',
-                                     save_data    = FALSE,
+                                     save_data    = TRUE,
                                      data_path    = "./output/full_maxent/summary_results/",
                                      sdm_path     = "./output/full_maxent/back_sel_models/",
-                                     save_run     = "TEST_INSECT")
+                                     save_run     = "ALL_INSECTS")
 
 ## Get map_taxa from the maxent results table above, change the species column,
 ## then create a list of logistic thresholds
