@@ -112,8 +112,8 @@ data('target.insect.families')
 data('target.host.plants')
 data('all.insect.plant.spp')
 
-# analysis_taxa <- str_trim(target.insect.spp[1:10])
-analysis_taxa <- str_trim(all.insect.families) %>% unique() 
+analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique() 
+#analysis_taxa <- str_trim(c(target.insect.spp, all.insect.spp)) %>% unique() 
 analysis_taxa
 
 ```
@@ -218,7 +218,6 @@ download_ALA_all_families(species_list   = analysis_taxa,
 
 This pipeline combines species occurrence points with raster data. It was developed using worldclim 
 climate raster data, but it can take any set of rasters. All the raster data is available here :: 
-are also available here:
 
 \
 
@@ -244,7 +243,7 @@ aus.grids.current <- stack(
             sprintf('bio_%d_AUSGDA.tif', 1:19)))
 
 ## Climate data for the study area in NE_NSW, in GDA Albers projection
-study.climate.current <- stack(
+study.grids.current <- stack(
   file.path('./data/worldclim2/aus/current/Study_area',
             sprintf('bio_%d_AUSGDA.tif', 1:19)))
 
@@ -253,33 +252,28 @@ aus.veg.grids <- stack(
   list.files('./data/Remote_sensing/Veg_data/height_and_cover', 
              '_1km.tif', full.names = TRUE))
 
-## And a stack of grids for vegetation for the study area in NE_NSW, in GDA Albers projection
-study.veg.current <- stack(
-  list.files('./data/Remote_sensing/Veg_data/height_and_cover/Study', 
-             '_1km_study.tif', full.names = TRUE))
-
-
 ## Rename the raster grids
-names(worldclim_climate)     <- env_variables
-names(aus.grids.current)     <- names(worldclim_climate)
-names(study.climate.current) <- names(worldclim_climate)
-names(aus.veg.grids)         <- names(study.veg.current) <- c("Plant_cover_fraction_0_5m", 
-                                                              "Plant_cover_fraction_5_10m",  
-                                                              "Plant_cover_fraction_10_30m",      
-                                                              "Plant_cover_fraction_30m",
-                                                              "Total_Plant_cover_fraction",  
-                                                              "Tree_canopy_height_25th", 
-                                                              "Tree_canopy_height_50th", 
-                                                              "Tree_canopy_height_75th",   
-                                                              "Tree_canopy_height_95th",   
-                                                              "Tree_canopy_peak_foliage",
-                                                              "Tree_canopy_peak_foliage_total") 
+names(worldclim_climate)   <- env_variables
+names(aus.grids.current)   <- names(worldclim_climate)
+names(study.grids.current) <- names(worldclim_climate)
+
+
+names(aus.veg.grids) <- c("Plant_cover_fraction_0_5m", 
+                          "Plant_cover_fraction_5_10m",  
+                          "Plant_cover_fraction_10_30m",      
+                          "Plant_cover_fraction_30m",
+                          "Total_Plant_cover_fraction",  
+                          "Tree_canopy_height_25th", 
+                          "Tree_canopy_height_50th", 
+                          "Tree_canopy_height_75th",   
+                          "Tree_canopy_height_95th",   
+                          "Tree_canopy_peak_foliage",
+                          "Tree_canopy_peak_foliage_total")
 
 ## Combine the grids
-aus.climate.veg.grids   <- stack(aus.grids.current, aus.veg.grids)
-study.climate.veg.grids <- stack(study.climate.current, study.veg.current)
-aus_annual_temp         <- aus.climate.veg.grids[[1]]
-world_annual_temp       <- worldclim_climate[[1]]
+aus.climate.veg.grids <- stack(aus.grids.current, aus.veg.grids)
+aus_annual_temp       <- aus.climate.veg.grids[[1]]
+world_annual_temp     <- worldclim_climate[[1]]
 
 
 # We also need a template raster of 1km * 1km cells, which is used to filter 
@@ -501,8 +495,20 @@ GLOB.NICHE = calc_1km_niches(coord_df     = SPATIAL.CLEAN,
                              env_vars     = env_variables,
                              cell_size    = 2,
                              save_data    = TRUE,
-                             save_run     = "ALL_INSECT_SPECIES",
+                             save_run     = "ALL_INSECT_GENERA",
                              data_path    = "./output/results/")
+
+
+## Blend the niches together
+# GLOBAL_NICHES_1 <- readRDS('./output/results/GLOBAL_NICHES_ALL_INSECT_SPECIES.rds')
+# GLOBAL_NICHES_2 <- readRDS('./output/results/GLOBAL_NICHES_ALL_INSECT_GENERA.rds')
+# GLOBAL_NICHES_3 <- readRDS('./output/results/GLOBAL_NICHES_ALL_INSECT_FAMILIES.rds')
+# GLOBAL_NICHES   <- bind_rows(GLOBAL_NICHES_1, 
+#                              GLOBAL_NICHES_2,
+#                              GLOBAL_NICHES_3) %>% .[.$searchTaxon %in% analysis_taxa, ]
+# saveRDS(GLOBAL_NICHES, './output/results/ALL_INSECT_NICHES.rds')
+
+
 
 ``` 
 
@@ -539,17 +545,28 @@ coord_clean_records function.
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
+## Two projection systems 
+sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
+sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs"
+
 ## Final dataset is a spatial points data frame in GDA Albers projection
 SDM.SPAT.OCC.BG = prepare_sdm_table(coord_df        = COORD.CLEAN,
                                     species_list    = unique(COORD.CLEAN$searchTaxon),
                                     sdm_table_vars  = sdm_table_vars <- c('searchTaxon', 'lon', 'lat', 'SOURCE',
                                                                           names(aus.climate.veg.grids)),
-                                    save_run        = "ALL_INSECT_SPP",
+                                    save_run        = "TARGET_INSECT_SPP",
                                     read_background = FALSE,
                                     save_data       = TRUE,
-                                    save_shp        = TRUE,
+                                    save_shp        = FALSE,
                                     data_path       = paste0(getwd(), '/output/results/'),
                                     project_path    = 'G:/North_east_NSW_fire_recovery')
+
+## Save shape file separately - doesn't seem to work in R
+SDM.SPAT.OCC.BG.GDA <- spTransform(SDM.SPAT.OCC.BG, crs(sp_epsg3577))
+writeOGR(obj    = SDM.SPAT.OCC.BG.GDA,
+         dsn    = 'G:/North_east_NSW_fire_recovery/output/results',
+         layer  = 'SDM_SPAT_OCC_BG_GDA_ALL_SPP', 
+         driver = 'ESRI Shapefile', overwrite_layer = TRUE)
 
 ``` 
 

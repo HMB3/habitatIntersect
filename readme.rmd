@@ -169,7 +169,7 @@ MAXENT.RESULTS = compile_sdm_results(species_list = analysis_taxa,
                                      save_data    = FALSE,
                                      data_path    = "./output/full_maxent/summary_results/",
                                      sdm_path     = "./output/full_maxent/back_sel_models/",
-                                     save_run     = "TEST_INSECT")
+                                     save_run     = "TARGET_INSECTS")
 
 ## Get map_taxa from the maxent results table above, change the species column,
 ## then create a list of logistic thresholds
