@@ -14,6 +14,7 @@ prepare_sdm_table(
   save_run,
   save_shp,
   read_background,
+  background_points,
   save_data,
   data_path,
   project_path
@@ -33,6 +34,8 @@ prepare_sdm_table(
 \item{save_shp}{Logical - Save a shapefile of the SDM table (T/F)?}
 
 \item{read_background}{Logical - Read in an additional dataframe of background points (T/F)?}
+
+\item{background_points}{Data.frame. DF of extra species records}
 
 \item{save_data}{Logical - do you want to save the data frame?}
 
