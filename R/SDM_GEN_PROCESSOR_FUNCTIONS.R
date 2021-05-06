@@ -1898,6 +1898,7 @@ plot_range_histograms = function(coord_df,
 #' @param save_run           Character string - append a run name to the output (e.g. 'bat_species')
 #' @param save_shp           Logical - Save a shapefile of the SDM table (T/F)?
 #' @param read_background    Logical - Read in an additional dataframe of background points (T/F)?
+#' @param background_points  Data.frame. DF of extra species records 
 #' @param save_data          Logical - do you want to save the data frame?
 #' @param data_path          Character string - The file path used for saving the data frame
 #' @param project_path       Paht of species records, with spatial outlier T/F flag for each record
@@ -1909,6 +1910,7 @@ prepare_sdm_table = function(coord_df,
                              save_run,
                              save_shp,
                              read_background,
+                             background_points,
                              save_data,
                              data_path,
                              project_path) {
@@ -2104,12 +2106,12 @@ prepare_sdm_table = function(coord_df,
     Message('Read in background data for taxa analaysed')
     # background.points = readRDS(paste0(data_path, BG_points)) %>%
     #   .[, -(27:28)]
-    background = background.points[!background.points$searchTaxon %in% species_list, ]
+    background = background_points[!background_points$searchTaxon %in% species_list, ]
     
     ## The BG points step needs to be ironed out.
     ## For some analysis, we need to do other taxa (e.g. animals)
     ## For Bats, they just want to use other bats.
-    SDM.SPAT.OCC.BG = rbind(SDM.SPAT.ALL, background.points)
+    SDM.SPAT.OCC.BG = rbind(SDM.SPAT.ALL, background)
     
   } else {
     message('Dont read in Background data, creating it in this run')

@@ -101,7 +101,8 @@ minimum number of predictors remains.
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## SDM.ALL.INS.FAM.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_FAMILIES.rds')
+## SDM.ALL.PLA.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_PLANT_SPP.rds')
+## SDM.ALL.INS.FAM.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_FAMILIES.rds') %>% rbind(., SDM.ALL.PLA.SPP.BG)
 ## SDM.ALL.INS.GEN.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_GENERA.rds')
 ## SDM.ALL.INS.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_SPP.rds')
 
