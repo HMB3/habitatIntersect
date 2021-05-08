@@ -1536,7 +1536,9 @@ calc_1km_niches = function(coord_df,
       DF   = subset(COMBO.KOP, searchTaxon == x)[, c("lat", "lon", "searchTaxon")]
       
       message('Calcualting geographic ranges for ', x, ', ', nrow(DF), ' records')
-      if(nrow(DF) > 10) {
+      if(nrow(DF) < 10) {
+        next
+      }
       
       AOO  = AOO.computing(XY = DF, Cell_size_AOO = cell_size)  ## Grid size in decimal degrees
       
@@ -1550,12 +1552,10 @@ calc_1km_niches = function(coord_df,
       rownames(EOO)    <- NULL
       Extent           <- left_join(AOO, EOO, by = "searchTaxon") %>% 
         dplyr::select(searchTaxon, AOO, EOO)
+      
       ## Return the area
       return(Extent)
       
-      } else {
-        message(' Don not calcualte geographic ranges for ', x, ', only ', nrow(DF), ' records')
-      }
     }) %>%
     
     ## Finally, create one dataframe for all niches

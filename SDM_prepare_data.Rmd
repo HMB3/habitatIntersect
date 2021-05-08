@@ -257,28 +257,34 @@ aus.veg.grids <- stack(
   list.files('./data/Remote_sensing/Veg_data/height_and_cover', 
              '_1km.tif', full.names = TRUE))
 
+## And a stack of grids for vegetation, in GDA Albers projection
+study.veg.grids <- stack(
+  list.files('./data/Remote_sensing/Veg_data/height_and_cover/Study', 
+             '_1km_study.tif', full.names = TRUE))
+
 ## Rename the raster grids
 names(worldclim_climate)   <- env_variables
 names(aus.grids.current)   <- names(worldclim_climate)
 names(study.grids.current) <- names(worldclim_climate)
 
 
-names(aus.veg.grids) <- c("Plant_cover_fraction_0_5m", 
-                          "Plant_cover_fraction_5_10m",  
-                          "Plant_cover_fraction_10_30m",      
-                          "Plant_cover_fraction_30m",
-                          "Total_Plant_cover_fraction",  
-                          "Tree_canopy_height_25th", 
-                          "Tree_canopy_height_50th", 
-                          "Tree_canopy_height_75th",   
-                          "Tree_canopy_height_95th",   
-                          "Tree_canopy_peak_foliage",
-                          "Tree_canopy_peak_foliage_total")
+names(aus.veg.grids) <- names(study.veg.grids) <- c("Plant_cover_fraction_0_5m", 
+                                                  "Plant_cover_fraction_5_10m",  
+                                                  "Plant_cover_fraction_10_30m",      
+                                                  "Plant_cover_fraction_30m",
+                                                  "Total_Plant_cover_fraction",  
+                                                  "Tree_canopy_height_25th", 
+                                                  "Tree_canopy_height_50th", 
+                                                  "Tree_canopy_height_75th",   
+                                                  "Tree_canopy_height_95th",   
+                                                  "Tree_canopy_peak_foliage",
+                                                  "Tree_canopy_peak_foliage_total")
 
 ## Combine the grids
-aus.climate.veg.grids <- stack(aus.grids.current, aus.veg.grids)
-aus_annual_temp       <- aus.climate.veg.grids[[1]]
-world_annual_temp     <- worldclim_climate[[1]]
+aus.climate.veg.grids   <- stack(aus.grids.current,   aus.veg.grids)
+study.climate.veg.grids <- stack(study.grids.current, study.veg.grids)
+aus_annual_temp         <- aus.climate.veg.grids[[1]]
+world_annual_temp       <- worldclim_climate[[1]]
 
 
 # We also need a template raster of 1km * 1km cells, which is used to filter 
