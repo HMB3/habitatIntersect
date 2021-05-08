@@ -1407,7 +1407,7 @@ calc_1km_niches = function(coord_df,
   message('Estimating global niches for ', length(species_list), ' species across ',
           length(env_vars), ' climate variables')
   
-  NICHE.1KM    <- coord_df %>% as.data.frame () %>%
+  NICHE.1KM <- coord_df %>% as.data.frame () %>%
     filter(coord_summary == TRUE)
   NICHE.1KM.84 <- SpatialPointsDataFrame(coords      = NICHE.1KM[c("lon", "lat")],
                                          data        = NICHE.1KM,
@@ -1415,9 +1415,9 @@ calc_1km_niches = function(coord_df,
   
   ## Use a projected, rather than geographic, coordinate system
   ## Not sure why, but this is needed for the spatial overlay step
-  AUS.WGS   = spTransform(country_shp,  prj)
-  LAND.WGS  = spTransform(world_shp,    prj)
-  KOP.WGS   = spTransform(kop_shp,      prj)
+  AUS.WGS   = spTransform(country_shp, prj)
+  LAND.WGS  = spTransform(world_shp,   prj)
+  KOP.WGS   = spTransform(kop_shp,     prj)
   
   ## Intersect the points with the Global koppen file
   message('Intersecting points with shapefiles for ', length(species_list), ' species')
@@ -1459,6 +1459,7 @@ calc_1km_niches = function(coord_df,
   
   message('Estimating global niches for ',
           length(species_list), ' species in the set ', "'", save_run, "'")
+  
   GLOB.NICHE <- env_vars %>%
     
     ## Pipe the list into lapply
@@ -1469,11 +1470,7 @@ calc_1km_niches = function(coord_df,
       ## currently it only works hard-wired........
       niche_estimate(DF = NICHE.GLO.DF, colname = x)
       
-    }) %>%
-    
-    ## finally, create one dataframe for all niches
-    as.data.frame
-  
+    }) %>% as.data.frame()
   
   ## Remove duplicate Taxon columns and check the output
   GLOB.NICHE <- GLOB.NICHE %>% dplyr::select(-contains("."))
@@ -1527,7 +1524,7 @@ calc_1km_niches = function(coord_df,
   
   ## AREA OF OCCUPANCY (AOO).
   ## For every species in the list: calculate the AOO
-  ## x = spp.geo[1]
+  ## x = spp.geo[47]
   spp.geo = as.character(unique(COMBO.KOP$searchTaxon))
   
   GBIF.AOO <- spp.geo %>%
@@ -1539,18 +1536,30 @@ calc_1km_niches = function(coord_df,
       DF   = subset(COMBO.KOP, searchTaxon == x)[, c("lat", "lon", "searchTaxon")]
       
       message('Calcualting geographic ranges for ', x, ', ', nrow(DF), ' records')
+      if(nrow(DF) > 10) {
+      
       AOO  = AOO.computing(XY = DF, Cell_size_AOO = cell_size)  ## Grid size in decimal degrees
+      
+      ## Set the working directory
+      # setwd(data_path)
+      EOO  = EOO.computing(XY = DF, write_shp = TRUE, write_results = FALSE) 
       AOO  = as.data.frame(AOO)
       AOO$searchTaxon  <- rownames(AOO)
+      EOO$searchTaxon  <- rownames(EOO)
       rownames(AOO)    <- NULL
-      
+      rownames(EOO)    <- NULL
+      Extent           <- left_join(AOO, EOO, by = "searchTaxon") %>% 
+        dplyr::select(searchTaxon, AOO, EOO)
       ## Return the area
-      return(AOO)
+      return(Extent)
       
+      } else {
+        message(' Don not calcualte geographic ranges for ', x, ', only ', nrow(DF), ' records')
+      }
     }) %>%
     
     ## Finally, create one dataframe for all niches
-    bind_rows
+    bind_rows()
   head(GBIF.AOO)
   
   ## Now join on the geographic range and glasshouse data

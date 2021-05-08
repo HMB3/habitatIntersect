@@ -103,8 +103,8 @@ minimum number of predictors remains.
 
 ## SDM.ALL.PLA.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_PLANT_SPP.rds')
 ## SDM.ALL.INS.FAM.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_FAMILIES.rds') %>% rbind(., SDM.ALL.PLA.SPP.BG)
-## SDM.ALL.INS.GEN.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_GENERA.rds')
-## SDM.ALL.INS.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_SPP.rds')
+## SDM.ALL.INS.GEN.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_GENERA.rds') %>% rbind(., SDM.ALL.PLA.SPP.BG)
+## SDM.ALL.INS.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_SPP.rds') %>% rbind(., SDM.ALL.PLA.SPP.BG)
 
 
 ## To Do :
@@ -115,12 +115,11 @@ minimum number of predictors remains.
 
 
 ## Clean up the folders which have failed
-run_sdm_analysis(species_list            = analysis_taxa,
-                 maxent_dir              = 'output/full_maxent/full_models',     
-                 bs_dir                  = 'output/full_maxent/back_sel_models',
-                 sdm_df                  = SDM.ALL.INS.FAM.BG,
-                 
-                 sdm_predictors          = names(aus.veg.grids),
+run_sdm_analysis(species_list            = rev(analysis_taxa),
+                 maxent_dir              = 'output/plant_maxent/full_models',     
+                 bs_dir                  = 'output/plant_maxent/back_sel_models',
+                 sdm_df                  = SDM.ALL.PLA.SPP.BG,
+                 sdm_predictors          = names(aus.climate.veg.grids),
                  
                  backwards_sel           = TRUE,      
                  template_raster         = template_raster_1km_mol,

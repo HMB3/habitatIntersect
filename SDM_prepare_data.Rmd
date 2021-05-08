@@ -112,9 +112,13 @@ data('target.insect.families')
 data('target.host.plants')
 data('all.insect.plant.spp')
 
+analysis_taxa <- str_trim(c(target.insect.spp))      %>% unique()
+# analysis_taxa <- str_trim(c(target.insect.genera))   %>% unique()
+# analysis_taxa <- str_trim(c(target.insect.families)) %>% unique()
 # analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
 # analysis_taxa <- str_trim(c(target.insect.spp, all.insect.spp)) %>% unique()
 # analysis_taxa <- c(all.insect.plant.spp, target.host.plants)    %>% unique()
+# analysis_taxa <- str_trim(target.host.plants)
 analysis_taxa
 
 ```
@@ -307,8 +311,8 @@ template_raster_1km_mol   = raster("./data/world_koppen/template_has_data_1km.ti
 
 
 ## FESM data : a stack of grids for fire extent, in GDA Albers projection
-fesm.grids <- stack(list.files('./data/Remote_sensing/Veg_data/FESM', 
-                               '_GDA.tif', full.names = TRUE))
+# fesm.grids <- stack(list.files('./data/Remote_sensing/Veg_data/FESM', 
+#                                '_GDA.tif', full.names = TRUE))
 
 
 ```
@@ -491,17 +495,17 @@ It assumes that the input df is that returned by the check_spatial_outliers func
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Estimate climate niches using species records
-## Make this calculate niches for only the target list
-GLOB.NICHE = calc_1km_niches(coord_df     = SPATIAL.CLEAN,
+## Make this calculate niches for the target list
+GLOB.NICHE = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxon %in% analysis_taxa, ],
                              prj          = CRS("+init=epsg:4326"),
                              country_shp  = AUS,
                              world_shp    = LAND,
                              kop_shp      = Koppen_shp,
                              species_list = analysis_taxa,
-                             env_vars     = env_variables,
+                             env_vars     = names(aus.climate.veg.grids),
                              cell_size    = 2,
                              save_data    = TRUE,
-                             save_run     = "ALL_INSECT_GENERA",
+                             save_run     = "ALL_INSECT_SPP",
                              data_path    = "./output/results/")
 
 
