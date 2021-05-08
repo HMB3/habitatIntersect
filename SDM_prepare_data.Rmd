@@ -112,9 +112,9 @@ data('target.insect.families')
 data('target.host.plants')
 data('all.insect.plant.spp')
 
-#analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
-#analysis_taxa <- str_trim(c(target.insect.spp, all.insect.spp)) %>% unique()
-analysis_taxa <- c(all.insect.plant.spp, target.host.plants) %>% unique() 
+# analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
+# analysis_taxa <- str_trim(c(target.insect.spp, all.insect.spp)) %>% unique()
+# analysis_taxa <- c(all.insect.plant.spp, target.host.plants)    %>% unique()
 analysis_taxa
 
 ```
@@ -304,6 +304,11 @@ template_raster_1km_mol   = raster("./data/world_koppen/template_has_data_1km.ti
 # template_raster_1km_GDA[template_raster_1km_GDA > 0] <- 1
 # template_raster_1km_GDA[template_raster_1km_GDA < 0] <- 1
 # xres(template_raster_1km_GDA)
+
+
+## FESM data : a stack of grids for fire extent, in GDA Albers projection
+fesm.grids <- stack(list.files('./data/Remote_sensing/Veg_data/FESM', 
+                               '_GDA.tif', full.names = TRUE))
 
 
 ```
