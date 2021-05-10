@@ -344,7 +344,7 @@ ALA.LAND.FAM <- combine_ala_records(species_list      = analysis_taxa,
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
                                     keep_cols         = ALA_keep,
-                                    world_raster      = aus_annual_temp)
+                                    world_raster      = world_annual_temp)
 
 
 ## Combine Genus ALA data
@@ -353,7 +353,7 @@ ALA.LAND.GEN <- combine_ala_records(species_list      = analysis_taxa,
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
                                     keep_cols         = ALA_keep,
-                                    world_raster      = aus_annual_temp)
+                                    world_raster      = world_annual_temp)
 
 
 ## Combine Species ALA data

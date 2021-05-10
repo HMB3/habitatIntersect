@@ -1524,7 +1524,7 @@ calc_1km_niches = function(coord_df,
   
   ## AREA OF OCCUPANCY (AOO).
   ## For every species in the list: calculate the AOO
-  ## x = spp.geo[47]
+  ## x = spp.geo[63]
   spp.geo = as.character(unique(COMBO.KOP$searchTaxon))
   
   GBIF.AOO <- spp.geo %>%
@@ -1533,13 +1533,13 @@ calc_1km_niches = function(coord_df,
     lapply(function(x) {
       
       ## Subset the the data frame to calculate area of occupancy according the IUCN.eval
-      DF   = subset(COMBO.KOP, searchTaxon == x)[, c("lat", "lon", "searchTaxon")]
+      DF = subset(COMBO.KOP, searchTaxon == x)[, c("lat", "lon", "searchTaxon")] %>% 
+        .[!duplicated(.[,c('lat', 'lon')]),] 
       
-      
-      if(nrow(DF) > 10) {
+      if(nrow(DF) > 2) {
         
         message('Calcualting AOO and EOO for ', x, ', using ', nrow(DF), ' records')
-        AOO  = AOO.computing(XY = DF, Cell_size_AOO = cell_size)  ## Grid size in decimal degrees
+        AOO = AOO.computing(XY = DF, Cell_size_AOO = cell_size)  ## Grid size in decimal degrees
         
         ## Set the working directory
         # setwd(data_path)
@@ -1557,17 +1557,14 @@ calc_1km_niches = function(coord_df,
         
       } else {
         message('Calcualting AOO, but NOT EOO for ', x, ', using ', nrow(DF), ' records')
-        AOO  = AOO.computing(XY = DF, Cell_size_AOO = cell_size)  ## Grid size in decimal degrees
+        AOO = AOO.computing(XY = DF, Cell_size_AOO = cell_size)  ## Grid size in decimal degrees
         
         ## Set the working directory
-        # setwd(data_path)
-        EOO  = 0 
         AOO  = as.data.frame(AOO)
         AOO$searchTaxon  <- rownames(AOO)
-        EOO$searchTaxon  <- rownames(EOO)
         rownames(AOO)    <- NULL
-        rownames(EOO)    <- NULL
-        Extent           <- left_join(AOO, EOO, by = "searchTaxon") %>% 
+        Extent           <- AOO %>%
+          mutate(EOO = 0) %>% 
           dplyr::select(searchTaxon, AOO, EOO)
         
         ## Return the area
@@ -1583,7 +1580,7 @@ calc_1km_niches = function(coord_df,
   identical(nrow(GBIF.AOO), nrow(GLOB.NICHE))
   GLOB.NICHE <- list(GLOB.NICHE, GBIF.AOO, KOP.AGG) %>%
     reduce(left_join, by = "searchTaxon") %>%
-    dplyr::select(searchTaxon, Aus_records, AOO, KOP_count, everything())
+    dplyr::select(searchTaxon, Aus_records, AOO, EOO, KOP_count, everything())
   
   if(save_data == TRUE) {
     
