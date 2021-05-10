@@ -1535,30 +1535,47 @@ calc_1km_niches = function(coord_df,
       ## Subset the the data frame to calculate area of occupancy according the IUCN.eval
       DF   = subset(COMBO.KOP, searchTaxon == x)[, c("lat", "lon", "searchTaxon")]
       
-      message('Calcualting geographic ranges for ', x, ', ', nrow(DF), ' records')
-      if(nrow(DF) < 10) {
-        next
+      
+      if(nrow(DF) > 10) {
+        
+        message('Calcualting AOO and EOO for ', x, ', using ', nrow(DF), ' records')
+        AOO  = AOO.computing(XY = DF, Cell_size_AOO = cell_size)  ## Grid size in decimal degrees
+        
+        ## Set the working directory
+        # setwd(data_path)
+        EOO  = EOO.computing(XY = DF, write_shp = TRUE, write_results = FALSE) 
+        AOO  = as.data.frame(AOO)
+        AOO$searchTaxon  <- rownames(AOO)
+        EOO$searchTaxon  <- rownames(EOO)
+        rownames(AOO)    <- NULL
+        rownames(EOO)    <- NULL
+        Extent           <- left_join(AOO, EOO, by = "searchTaxon") %>% 
+          dplyr::select(searchTaxon, AOO, EOO)
+        
+        ## Return the area
+        return(Extent)
+        
+      } else {
+        message('Calcualting AOO, but NOT EOO for ', x, ', using ', nrow(DF), ' records')
+        AOO  = AOO.computing(XY = DF, Cell_size_AOO = cell_size)  ## Grid size in decimal degrees
+        
+        ## Set the working directory
+        # setwd(data_path)
+        EOO  = 0 
+        AOO  = as.data.frame(AOO)
+        AOO$searchTaxon  <- rownames(AOO)
+        EOO$searchTaxon  <- rownames(EOO)
+        rownames(AOO)    <- NULL
+        rownames(EOO)    <- NULL
+        Extent           <- left_join(AOO, EOO, by = "searchTaxon") %>% 
+          dplyr::select(searchTaxon, AOO, EOO)
+        
+        ## Return the area
+        return(Extent)
       }
-      
-      AOO  = AOO.computing(XY = DF, Cell_size_AOO = cell_size)  ## Grid size in decimal degrees
-      
-      ## Set the working directory
-      # setwd(data_path)
-      EOO  = EOO.computing(XY = DF, write_shp = TRUE, write_results = FALSE) 
-      AOO  = as.data.frame(AOO)
-      AOO$searchTaxon  <- rownames(AOO)
-      EOO$searchTaxon  <- rownames(EOO)
-      rownames(AOO)    <- NULL
-      rownames(EOO)    <- NULL
-      Extent           <- left_join(AOO, EOO, by = "searchTaxon") %>% 
-        dplyr::select(searchTaxon, AOO, EOO)
-      
-      ## Return the area
-      return(Extent)
-      
     }) %>%
     
-    ## Finally, create one dataframe for all niches
+    ## Finally, create one data-frame for all niches
     bind_rows()
   head(GBIF.AOO)
   

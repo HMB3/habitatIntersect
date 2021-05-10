@@ -112,7 +112,7 @@ data('target.insect.families')
 data('target.host.plants')
 data('all.insect.plant.spp')
 
-analysis_taxa <- str_trim(c(target.insect.spp))      %>% unique()
+analysis_taxa <- str_trim(c(target.insect.spp)) %>% unique()
 # analysis_taxa <- str_trim(c(target.insect.genera))   %>% unique()
 # analysis_taxa <- str_trim(c(target.insect.families)) %>% unique()
 # analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
@@ -280,7 +280,7 @@ names(aus.veg.grids) <- names(study.veg.grids) <- c("Plant_cover_fraction_0_5m",
                                                   "Tree_canopy_peak_foliage",
                                                   "Tree_canopy_peak_foliage_total")
 
-## Combine the grids
+## Combine the grids into raster stacks
 aus.climate.veg.grids   <- stack(aus.grids.current,   aus.veg.grids)
 study.climate.veg.grids <- stack(study.grids.current, study.veg.grids)
 aus_annual_temp         <- aus.climate.veg.grids[[1]]
@@ -344,7 +344,7 @@ ALA.LAND.FAM <- combine_ala_records(species_list      = analysis_taxa,
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
                                     keep_cols         = ALA_keep,
-                                    world_raster      = world_annual_temp)
+                                    world_raster      = aus_annual_temp)
 
 
 ## Combine Genus ALA data
@@ -353,7 +353,7 @@ ALA.LAND.GEN <- combine_ala_records(species_list      = analysis_taxa,
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
                                     keep_cols         = ALA_keep,
-                                    world_raster      = world_annual_temp)
+                                    world_raster      = aus_annual_temp)
 
 
 ## Combine Species ALA data
@@ -511,7 +511,7 @@ GLOB.NICHE = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxon %i
                              env_vars     = names(aus.climate.veg.grids),
                              cell_size    = 2,
                              save_data    = TRUE,
-                             save_run     = "ALL_INSECT_SPP",
+                             save_run     = "TARGET_INSECT_SPP",
                              data_path    = "./output/results/")
 
 
@@ -553,41 +553,4 @@ plot_range_histograms(coord_df     = SPATIAL.CLEAN,
 \
 
 Then we need to create at table we can use for species distribution modelling. This function takes 
-a data frame of all species records, and prepares a table in the 'species with data' (swd) format for 
-modelling uses the Maxent algorithm. It assumes that the input df is that returned by the 
-coord_clean_records function.
-
-\
-
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
-
-## Two projection systems 
-sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
-sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs"
-
-## Final data set is a spatial points data frame in the Mollweide projection
-SDM.ALL.PLA.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_PLANT_SPP.rds')
-SDM.SPAT.OCC.BG prepare_sdm_table(coord_df          = COORD.CLEAN,
-                                  species_list      = unique(COORD.CLEAN$searchTaxon),
-                                  sdm_table_vars    = sdm_table_vars <- c('searchTaxon', 'lon', 'lat', 'SOURCE',
-                                                                          names(aus.climate.veg.grids)),
-                                  save_run          = "ALL_PLANT_SPP",
-                                  read_background   = TRUE,
-                                  background_points = SDM.ALL.PLA.SPP.BG, 
-                                  save_data         = TRUE,
-                                  save_shp          = FALSE,
-                                  data_path         = paste0(getwd(), '/output/results/'),
-                                  project_path      = 'G:/North_east_NSW_fire_recovery')
-
-## Save shape file separately - doesn't seem to work in R
-SDM.SPAT.OCC.BG.GDA <- spTransform(SDM.SPAT.OCC.BG, crs(sp_epsg3577))
-writeOGR(obj    = SDM.SPAT.OCC.BG.GDA,
-         dsn    = 'G:/North_east_NSW_fire_recovery/output/results',
-         layer  = 'SDM_SPAT_OCC_BG_GDA_ALL_PLANT_SPP', 
-         driver = 'ESRI Shapefile', overwrite_layer = TRUE)
-
-``` 
-
-\
-
-
+a data frame of all species records, and prepares a table in the 'species with data' (swd) format taht
