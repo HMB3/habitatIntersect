@@ -12,7 +12,7 @@
 ## GBIF download ----
 
 
-#' Download species occurrence files from GBIF.
+#' Download species occurrence files from GBIF
 #'
 #' This function downloads species occurrence files from GBIF (https://www.gbif.org/).
 #' It assumes that the species list supplied is taxonomically correct (haha!).
