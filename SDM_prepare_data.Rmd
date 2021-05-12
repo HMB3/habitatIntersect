@@ -242,25 +242,35 @@ worldclim_climate = raster::stack(
   file.path('./data/worldclim2/res_30s/bioclim',
             sprintf('wc2.1_30s_bio_%d.tif', 1:19)))
 
+
 ## Climate data for Australia, in GDA Albers projection
 aus.grids.current <- stack(
   file.path('./data/worldclim2/aus/current', 
             sprintf('bio_%d_AUSGDA.tif', 1:19)))
+
 
 ## Climate data for the study area in NE_NSW, in GDA Albers projection
 study.grids.current <- stack(
   file.path('./data/worldclim2/aus/current/Study_area',
             sprintf('bio_%d_AUSGDA.tif', 1:19)))
 
+
 ## And a stack of grids for vegetation, in GDA Albers projection
 aus.veg.grids <- stack(
   list.files('./data/Remote_sensing/Veg_data/height_and_cover', 
              '_1km.tif', full.names = TRUE))
 
+
 ## And a stack of grids for vegetation, in GDA Albers projection
 study.veg.grids <- stack(
   list.files('./data/Remote_sensing/Veg_data/height_and_cover/Study', 
              '_1km_study.tif', full.names = TRUE))
+
+
+## Valley bottom data
+aus.vbf   <- raster('./data/Remote_sensing/Topography/mrvbf_int_resample.tif')
+study.vbf <- raster('./data/Remote_sensing/Topography/mrvbf_int_resample.tif')
+
 
 ## Rename the raster grids
 names(worldclim_climate)   <- env_variables
@@ -269,16 +279,16 @@ names(study.grids.current) <- names(worldclim_climate)
 
 
 names(aus.veg.grids) <- names(study.veg.grids) <- c("Plant_cover_fraction_0_5m", 
-                                                  "Plant_cover_fraction_5_10m",  
-                                                  "Plant_cover_fraction_10_30m",      
-                                                  "Plant_cover_fraction_30m",
-                                                  "Total_Plant_cover_fraction",  
-                                                  "Tree_canopy_height_25th", 
-                                                  "Tree_canopy_height_50th", 
-                                                  "Tree_canopy_height_75th",   
-                                                  "Tree_canopy_height_95th",   
-                                                  "Tree_canopy_peak_foliage",
-                                                  "Tree_canopy_peak_foliage_total")
+                                                    "Plant_cover_fraction_5_10m",  
+                                                    "Plant_cover_fraction_10_30m",      
+                                                    "Plant_cover_fraction_30m",
+                                                    "Total_Plant_cover_fraction",  
+                                                    "Tree_canopy_height_25th", 
+                                                    "Tree_canopy_height_50th", 
+                                                    "Tree_canopy_height_75th",   
+                                                    "Tree_canopy_height_95th",   
+                                                    "Tree_canopy_peak_foliage",
+                                                    "Tree_canopy_peak_foliage_total")
 
 ## Combine the grids into raster stacks
 aus.climate.veg.grids   <- stack(aus.grids.current,   aus.veg.grids)

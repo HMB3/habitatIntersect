@@ -198,14 +198,14 @@ download_ALA_all_species = function (species_list,
 ## ALA download Genus Records -----
 
 
-#' Download species occurrence files from the Atlas of Living Australia (ALA)
+#' Download genus occurrence files from the Atlas of Living Australia (ALA)
 #'
 #' This function downloads family occurrence files from ALA (https://www.ala.org.au/).
-#' It assumes that the species list supplied is taxonomically correct.
-#' It downloads the species to fiel without returning anything to the global environment
+#' It assumes that the genus list supplied is taxonomically correct.
+#' It downloads the genus to fiel without returning anything to the global environment
 #'
-#' @param species_list   Character vector - List of species binomials to download
-#' @param download_path  Character string - File path for species downloads
+#' @param species_list   Character vector - List of genus binomials to download
+#' @param download_path  Character string - File path for genus downloads
 #' @param extra_cols     Character - extra ALA columns, eg environmental vatriables
 #' @param quality_cols   Character - quality ALA columns, eg spatial accuracy
 #' @param download_limit Numeric - How many records can be downloaded at one time? Set by server
@@ -222,7 +222,7 @@ download_ALA_all_genera = function (species_list,
   ## create variables
   download_limit  = 200000
   
-  ## for every species in the list
+  ## for every genus in the list
   ## sp.n = species_list[1]
   for(sp.n in species_list) {
     
