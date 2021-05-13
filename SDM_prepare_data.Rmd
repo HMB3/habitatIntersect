@@ -269,7 +269,7 @@ study.veg.grids <- stack(
 
 ## Valley bottom data
 aus.vbf   <- raster('./data/Remote_sensing/Topography/mrvbf_int_resample.tif')
-study.vbf <- raster('./data/Remote_sensing/Topography/mrvbf_int_resample.tif')
+study.vbf <- raster('./data/Remote_sensing/Topography/mrvbf_int_resample_study.tif')
 
 
 ## Rename the raster grids
@@ -291,8 +291,8 @@ names(aus.veg.grids) <- names(study.veg.grids) <- c("Plant_cover_fraction_0_5m",
                                                     "Tree_canopy_peak_foliage_total")
 
 ## Combine the grids into raster stacks
-aus.climate.veg.grids   <- stack(aus.grids.current,   aus.veg.grids)
-study.climate.veg.grids <- stack(study.grids.current, study.veg.grids)
+aus.climate.veg.grids   <- stack(aus.grids.current,   aus.veg.grids, aus.vbf)
+study.climate.veg.grids <- stack(study.grids.current, study.veg.grids, study.vbf)
 aus_annual_temp         <- aus.climate.veg.grids[[1]]
 world_annual_temp       <- worldclim_climate[[1]]
 
