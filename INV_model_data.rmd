@@ -1,6 +1,6 @@
 ---
 title: "nenswniche : a package for rapidly estimating multiple species ranges and habitat suitability"
-authors: "Hugh Burley, Shawn Laffan, Adrian Fisher"
+authors: "Hugh Burley, Shawn Laffan, Will Cornwell"
 date: "March 2021"
 output:
   github_document:
@@ -75,7 +75,7 @@ ipak(sdmgen_packages)
 
 # Background
 
-This code is being developed at UNSW, as part of a project investigating
+This code is being developed at UNSW, to help investigate
 the impacts of the 2019/2020 bush fires on Insects in the North East Forests 
 of New South Wales. The aim is to create a pipeline that rapidly assesses 
 the habitat suitability of the threatened insect species under current 

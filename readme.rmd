@@ -1,6 +1,6 @@
 ---
-title: "nenswniche : a package for rapidly estimating multiple species ranges and habitat suitability"
-authors: "Hugh Burley, Shawn Laffan, Adrian Fisher"
+title: "nenswniche : rapidly estimate environmental ranges ranges for invertebrates and plants in NE-NSW"
+authors: "Hugh Burley, Shawn Laffan, Will Cornwell"
 date: "March 2021"
 output:
   github_document:
@@ -9,7 +9,7 @@ toc_depth: 4
 toc_float: true
 number_sections: false  
 vignette: >
-%\VignetteIndexEntry{README}
+  %\VignetteIndexEntry{README}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
   keep_md: true
@@ -75,7 +75,7 @@ ipak(sdmgen_packages)
 
 # Background
 
-This code is being developed at UNSW, as part of a project investigating
+This code is being developed at UNSW, to help investigate
 the impacts of the 2019/2020 bush fires on Insects in the North East Forests 
 of New South Wales. The aim is to create a pipeline that rapidly assesses 
 the habitat suitability of the threatened insect species under current 
@@ -83,7 +83,7 @@ environmental conditions.
 
 \
 
-# STEP  6 :: Run Global SDMs
+# Run SDMs Aross Australia
 
 \
 
@@ -101,17 +101,10 @@ minimum number of predictors remains.
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## SDM.ALL.INS.SPP.BG   = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_SPP.rds')
-## SDM.TARG.INS.SPP.BG  = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_INSECT_SPECIES.rds')
-## SDM.ALL.PLANT.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_PLANT_SPP.rds')
-
-
-## SDM.ALL.INS.GEN.BG  = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_GENERA.rds')
-## SDM.TARG.INS.GEN.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_INSECT_GENERA.rds')
-
-## SDM.ALL.INS.FAM.BG  = readRDS('./output/results/SDM_SPAT_OCC_BG_AUS_INSECT_FAMILIES.rds')
-## SDM.TARG.INS.FAM.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_INSECT_FAMILIES.rds')
-
+## SDM.ALL.PLA.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_PLANT_SPP.rds')
+## SDM.ALL.INS.FAM.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_FAMILIES.rds') %>% rbind(., SDM.ALL.PLA.SPP.BG)
+## SDM.ALL.INS.GEN.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_GENERA.rds') %>% rbind(., SDM.ALL.PLA.SPP.BG)
+## SDM.ALL.INS.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_SPP.rds') %>% rbind(., SDM.ALL.PLA.SPP.BG)
 
 
 ## To Do :
@@ -122,11 +115,11 @@ minimum number of predictors remains.
 
 
 ## Clean up the folders which have failed
-run_sdm_analysis(species_list            = analysis_taxa,
-                 maxent_dir              = 'output/veg_maxent/full_models',     
-                 bs_dir                  = 'output/veg_maxent/back_sel_models',
-                 sdm_df                  = SDM.ALL.INS.GEN.BG,
-                 sdm_predictors          = names(aus.veg.grids),
+run_sdm_analysis(species_list            = rev(analysis_taxa),
+                 maxent_dir              = 'output/plant_maxent/full_models',     
+                 bs_dir                  = 'output/plant_maxent/back_sel_models',
+                 sdm_df                  = SDM.ALL.PLA.SPP.BG,
+                 sdm_predictors          = names(aus.climate.veg.grids),
                  
                  backwards_sel           = TRUE,      
                  template_raster         = template_raster_1km_mol,
@@ -149,7 +142,7 @@ run_sdm_analysis(species_list            = analysis_taxa,
 
 \
 
-# STEP 7 :: Project SDMs across Australia
+# Project SDMs across Australia
 
 \
 
@@ -165,11 +158,11 @@ across Australia ().
 ## Create a table of maxent results
 ## This function aggregates the results for models that ran successfully
 MAXENT.RESULTS = compile_sdm_results(species_list = analysis_taxa,
-                                     results_dir  = 'output/full_maxent/back_sel_models',
+                                     results_dir  = 'output/plant_maxent/back_sel_models',
                                      save_data    = FALSE,
-                                     data_path    = "./output/full_maxent/summary_results/",
-                                     sdm_path     = "./output/full_maxent/back_sel_models/",
-                                     save_run     = "TARGET_INSECTS")
+                                     data_path    = "./output/plant_maxent/summary_results/",
+                                     sdm_path     = "./output/plant_maxent/back_sel_models/",
+                                     save_run     = "ALL_INSECTS")
 
 ## Get map_taxa from the maxent results table above, change the species column,
 ## then create a list of logistic thresholds
@@ -202,10 +195,10 @@ tryCatch(
                                     country_prj     = CRS("+init=EPSG:3577"),
                                     local_prj       = aus_albers,
                                     
-                                    species_list    = rev(map_taxa),    
-                                    maxent_path     = './output/veg_maxent/back_sel_models/',
-            
-                                    current_grids   = study.veg.current,         
+                                    species_list    = map_taxa,    
+                                    maxent_path     = './output/plant_maxent/back_sel_models/',
+                                    
+                                    current_grids   = study.climate.veg.grids,         
                                     create_mess     = TRUE,
                                     save_novel_poly = FALSE),
   
@@ -213,8 +206,8 @@ tryCatch(
   error = function(cond) {
     
     ## This will write the error message inside the text file, but it won't include the species
-    file.create(file.path("output/veg_maxent/back_sel_models/mapping_failed_current.txt"))
-    cat(cond$message, file = file.path("output/veg_maxent/back_sel_models/mapping_failed_current.txt"))
+    file.create(file.path("output/plant_maxent/back_sel_models/mapping_failed_current.txt"))
+    cat(cond$message, file = file.path("output/plant_maxent/back_sel_models/mapping_failed_current.txt"))
     warning(cond$message)
     
   })
@@ -233,92 +226,4 @@ indicate where the maxent model is extrapolating beyond the training data (i.e. 
 
 \
 
-
-# STEP 8 :: Aggregate SDM projections within Spatial units
-
-\
-
-Now that all the species models and projections have been run, we need to aggregate them 
-across all six global circulation models. In order to aggregate the results, we need 
-a shapefile to aggregate to. In this example, we'll use the Australian Significant Urban 
-Areas, which were used in the Stoten article. A geo-tif of the Significant Areas is on 
-Google drive:
-
-\
-
-
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
-
-## Can't use the .rda, must use the file path
-areal_unit_vec <- shapefile_vector_from_raster(shp_file = SUA,
-                                               prj      = CRS("+init=EPSG:3577"),
-                                               agg_var  = 'SUA_CODE16',
-                                               temp_ras = aus.grids.current[[1]],
-                                               targ_ras = './data/SUA_2016_AUST.tif')
-
-## This is a vector of all the cells that either are or aren't in the rasterized shapefile
-summary(areal_unit_vec)
-
-``` 
-
-\
-
-This aggregation function uses the 10th% Logistic threshold for each species 
-from the maxent models to threshold the rasters of habitat suitability (0-1) 
-For each GCM. For each species, it sums the 6 GCMS to create a binary raster with 
-cell values between 0-6. These cell values represent the number of GCMs where that 
-cell had a suitability value above the threshold determined by maxent. We classify 
-a cell has suitable if it met the threshold in > 4 GCMs, and use this combined 
-raster to compare current and future suitability, measuring if the suitability 
-of each cell is changing over time, remaining stable or was never suitable
-It assumes that the maxent predictions were generated by the 'project_maxent_grids_mess'  
-function. Note that this step is quite memory heavy, and is best run with 32GB of RAM.
-
-\
-
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
-
-## Combine GCM predictions and calculate gain and loss for 2030 
-## Then loop over the species folders and climate scenarios
-tryCatch(mapply(sdm_area_cell_count,                      
-                unit_shp      = './data/SUA_albers.rds',  ## This would have to change
-                unit_vec      = areal_unit_vec, 
-                sort_var      = "SUA_NAME16",
-                agg_var       = "SUA_CODE16",
-                world_shp     = './data/LAND_albers.rds', ## This would have to change
-                country_shp   = './data/AUS_albers.rds',  ## This would have to change
-                
-                DIR_list      = sdm.results.dir,  
-                species_list  = map_taxa,
-                number_gcms   = 6,
-                maxent_path   = 'output/maxent/back_sel_models/', 
-                thresholds    = percent.10.log,
-                time_slice    = 30,                     
-                write_rasters = TRUE),
-         
-         ## If the species fails, write a fail message to file.
-         error = function(cond) {
-           
-           ## This will write the error message inside the text file,
-           file.create(file.path("output/maxent/back_sel_models/sua_count_failed_2030.txt"))
-           cat(cond$message, 
-               file=file.path("output/maxent/back_sel_models/sua_count_failed_2030.txt"))
-           warning(cond$message)
-           
-         })
-
-``` 
-
-
-\
-
-![fig1](https://github.com/HMB3/sdmgen/blob/master/output/Acacia_dealbata_gain_loss_0.3799_2030.png?raw=true)
-
-**Figure 3.** Example of a combined map of change in climatic suitability from current conditions to 2070. 
-Species occurrence points are plotted in red on the left panel. The cells in the right and bottom panels 
-are coded as either lost (orange cells - present now but not in 2070 according to 4 or more GCMs), 
-gained (green cells - absent now, but present in 2070), stable (blue cells - present now and in 2070), 
-or never suitable (white cells - never present).
-
-\
 

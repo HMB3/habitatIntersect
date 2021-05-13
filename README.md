@@ -1,5 +1,5 @@
-A pipeline for rapidly estimating multiple species ranges and
-habitat suitability
+nenswniche : rapidly estimate environmental ranges ranges for
+invertebrates and plants in NE-NSW
 ================
 March 2021
 
@@ -8,8 +8,9 @@ March 2021
 The text and code below summarises a workflow in R that can be used to
 relatively rapidly assess the environmental range of a species within
 Australia, from downloading occurrence records, through to creating maps
-of predicted climatic suitability across Australia. An example of this 
-work is published in Science of the Total Environment ::
+of predicted climatic suitability across Australia at 1km\*1km
+resolution. An example of this work is published in the journal Science
+of the Total Environment ::
 
   
 
@@ -24,10 +25,27 @@ of The Total Environment, 685, 451-462.
 To install, run :
 
 ``` r
-## The package should import all the required packges
-devtools::install_github("HMB3/sdmgen")
-library(sdmgen)
-sapply(sdmgen_packages, require, character.only = TRUE)
+## Function to load or install packages
+ipak <- function(pkg){
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if (length(new.pkg))
+    install.packages(new.pkg, dependencies = TRUE, repos="https://cran.csiro.au/")
+  sapply(pkg, require, character.only = TRUE)
+}
+
+## These packages are not on cran, but are needed
+# library(devtools)
+# install_github('johnbaums/things')
+# install_github('johnbaums/rmaxent')
+# install_github('traitecoevo/taxonlookup')
+
+## Main package 
+# devtools::install_github("HMB3/nenswniche")
+
+## Load packages 
+library(nenswniche)
+data('sdmgen_packages')
+ipak(sdmgen_packages)
 ```
 
   
@@ -36,440 +54,53 @@ sapply(sdmgen_packages, require, character.only = TRUE)
 
 # Background
 
-This code is being developed at UNSW, as part of a project investigating
-Invertebrate conservation in the North East Forests of New South Wales.
-The is to create a pipeline that rapidly assesses the habitat suitability 
-of large suites of species under current conditions. It could be used to
-assess the distribution of any species (e.g. bats, reptiles, etc).
-
-  
-  
-  
-
-# STEP 1 :: Download species occurrence data
+This code is being developed at UNSW, to help investigate the impacts of
+the 2019/2020 bush fires on Insects in the North East Forests of New
+South Wales. The aim is to create a pipeline that rapidly assesses the
+habitat suitability of the threatened insect species under current
+environmental conditions.
 
   
 
-The backbone of the R workflow is a list of (taxonomically
-Ridgey-Didge\!) species names that we supply. The analysis is designed
-to process data for one species at a time, allowing species results to
-be updated as required. We can demonstrate the workflow using a sample
-of 5 plant species from the Stoten publication above.
+# Run SDMs Aross Australia
 
   
 
-``` r
-## Use the first 10 plant species in the Stoten list
-data("plant.spp")
-analysis_spp <- plant.spp[1:5]
-analysis_spp
-```
+Start the wiki from here, using the pre-prepared data
 
-    ## [1] "Acacia baileyana" "Acacia boormanii" "Acacia cognata"   "Acacia dealbata" 
-    ## [5] "Acacia decurrens"
-
-The species list is supplied to a series of functions to calculate
-environmental ranges and habitat suitability. The initial functions
-download all species records from the Atlas and living Australia
-(<https://www.ala.org.au/>) and the Global Biodiversity Information
-Facility (GBIF, <https://www.gbif.org/>). The species data are
-downloaded as individual .Rdata files to the specified folders, which
-must exist first, without returning anything.
+The next process is to run species distribution models using global
+records of each species. The sdm function runs two maxent models: a full
+model using all variables, and backwards selection. Given a candidate
+set of predictor variables, the backwards selection function identifies
+a subset of variables that meets specified multi-collinearity criteria.
+Subsequently, backward step-wise variable selection is used to
+iteratively drop the variable that contributes least to the model, until
+the contribution of each variable meets a specified minimum, or until a
+predetermined minimum number of predictors remains.
 
   
 
 ``` r
-## The functions expect these folders,
-ALA_dir     <- './data/ALA'
-GBIF_dir    <- './data/GBIF'
-back_dir    <- './output/maxent/back_sel_models'
-full_dir    <- './output/maxent/full_models'
-results_dir <- './output/results'
-climate_dir <- './data/worldclim/world/2070'
-check_dir   <-'./data/GBIF/Check_plots/'
-dir_lists   <- c(ALA_dir,  GBIF_dir,    back_dir, check_dir,
-                 full_dir, results_dir, climate_dir)
-
-
-## Create the folders if they don't exist
-for(i in dir_lists) {
-  if(!dir.exists(i)) {
-    message('Creating ', i, ' directory')
-    dir.create(i) } else {
-      message(i, ' directory already exists')}
-}
-```
-
-  
-
-Now download GBIF and ALA occurrence data for each species. The
-downloading functions are separated, because the ALA and GBIF columns
-are slightly different, but both data sources are needed to properly
-quantify species ranges. The package functions expect these folders (a
-typical R project structure), create them if they don’t exist
-
-  
-
-``` r
-## Download GBIF occurrence data for each species
-download_GBIF_all_species(species_list  = analysis_spp,
-                          download_path = "./data/GBIF/",
-                          download_limit = 20000)
-
-## Download ALA occurrence data for each species
-download_ALA_all_species(species_list  = analysis_spp,
-                         your_email    = 'hugh.burley@gmail.com',
-                         download_path = "./data/ALA/",
-                         download_limit = 20000)
-```
-
-  
-
-# STEP 2 :: Combine species occurrence data
-
-  
-
-This pipeline was developed using worldclim climate raster data, but it
-can take any set of climate rasters. The spatial data used to develop
-the workflow are on google drive - put this folder in your ‘data’
-project folder:
-<https://drive.google.com/open?id=1T5ET5MUX3-lkqiN5nNL3SZZagoJlEOal>. We
-can also get some global climate data from the worldclim website using
-raster::getData:
-
-  
-
-``` r
-## Download global raster for minimum temperature 
-worldclim_climate     <- raster::getData('worldclim', var = 'bio', res = 2.5, path = './data/')
-worldclim_annual_temp <- raster::stack("./data/wc2-5/bio1.bil")
-sp::plot(worldclim_climate[["bio1"]])
-```
-
-  
-
-1km worldclim grids for current conditions are also available here:
-<https://drive.google.com/open?id=1mQHVmYxSMw_cw1iGvfU9M7Pq6Kl6nz-C>
-
-  
-
-``` r
-## Download global raster for minimum temperature
-## https://drive.google.com/open?id=1mQHVmYxSMw_cw1iGvfU9M7Pq6Kl6nz-C
-worldclim_climate = raster::stack(
-  file.path('./data/worldclim/world/current',
-            sprintf('bio_%02d', 1:19)))
-
-worldclim_annual_temp <- worldclim_climate[[1]]
-```
-
-  
-
-The next function in the workflow combines ALA and GBIF records,
-filtering them to records on land, and recorded after 1950. The climate
-(i.e. raster) data used can be any worldclim layer. It then trims the
-occurrence records to those inside the raster boundaries (i.e. species
-records in the ocean according to the Raster boundaries will be
-excluded).
-
-  
-
-``` r
-## Combine ALA data, and filter to records on land taken > 1950
-## The climate data is the worldclim version 1.0
-ALA.LAND = combine_ala_records(species_list      = analysis_spp,
-                               records_path      = "./data/ALA/",
-                               records_extension = "_ALA_records.RData",
-                               record_type       = "ALA",
-                               keep_cols         = ALA_keep,
-                               world_raster      = worldclim_annual_temp)
-
-## Combine GBIF data and filter to records on land taken > 1950
-GBIF.LAND = combine_gbif_records(species_list      = analysis_spp,
-                                 records_path      = "./data/GBIF/",
-                                 records_extension = "_GBIF_records.RData",
-                                 record_type       = "GBIF",
-                                 keep_cols         = gbif_keep,
-                                 world_raster      =  worldclim_annual_temp)
-```
-
-  
-
-# STEP 3 :: extract environmental values
-
-  
-
-The next step requires a template raster of 1km \* 1km cells, which is
-used to filter records to 1 per one 1km cell. This raster needs to have
-the same extent (global) resolution (1km) and projection (WGS84) of the
-data used to analyse the species distributions. It should have a value
-of 1 for land, and NA for the ocean. This takes ages in R…..
-
-  
-
-``` r
-## Set the Molleweide projection
-sp_epsg54009 <- '+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0'
-
-
-## Use gdal to create a template raster in Mollweide
-template_raster_1km_mol <- gdalwarp("./data/wc2-5/bio1.bil",
-                                    tempfile(fileext = '.bil'),
-                                    t_srs = sp_epsg54009,
-                                    output_Raster = TRUE,
-                                    tr = c(1000, 1000),
-                                    r = "near", dstnodata = '-9999')
-
-
-## Use gdal WGS84 
-template_raster_1km_WGS84 <- template_raster_1km_mol %>% 
-  projectRaster(., crs = CRS("+init=epsg:4326"))
-
-
-## Should be 1km*1km, It should have a value of 1 for land, and NA for the ocean
-template_raster_1km_WGS84[template_raster_1km_WGS84 > 0] <- 1
-template_raster_1km_WGS84[template_raster_1km_WGS84 < 0] <- 1
-xres(template_raster_1km_WGS84);projection(template_raster_1km_WGS84)
-```
-
-  
-
-A pre-prepared template raster is found on google drive:
-<https://drive.google.com/open?id=1mQHVmYxSMw_cw1iGvfU9M7Pq6Kl6nz-C>
-
-  
-
-``` r
-## This raster has nodata for the ocean, 1 for land, 1km*1Km resolution in WGS84
-template_raster_1km_WGS84 = raster("./data/world_koppen/template_1km_WGS84.tif")
-```
-
-  
-
-The next function in the workflow combines occurrence files from ALA and
-GBIF into one table, and extracts environmental values. It assumes that
-both files come from the combine\_ala\_records and
-combine\_gbif\_records functions. Note that the order of the raster
-names in ‘world\_raster’ must match the order of names in the character
-vector ‘env\_variables’. In this case, it’s simply the biolclim
-variables (i.e. bio1-bio19)
-
-  
-
-``` r
-## Combine GBIF and ALA data, and extract environmental values
-COMBO.RASTER.CONVERT = combine_records_extract(ala_df          = ALA.LAND,
-                                               gbif_df         = GBIF.LAND,
-                                               urban_df        = 'NONE',
-                                               thin_records    = TRUE,
-                                               template_raster = template_raster_1km_WGS84,
-                                               world_raster    = worldclim_climate,
-                                               prj             = CRS("+init=epsg:4326"),
-                                               species_list    = analysis_spp,
-                                               biocl_vars      = bioclim_variables,
-                                               env_vars        = env_variables,
-                                               worldclim_grids = TRUE,
-                                               save_data       = FALSE,
-                                               save_run        = "TEST_BATS")
-```
-
-  
-
-# STEP 4 :: Automated cleanin of outlier records
-
-  
-
-The workfow uses four shapefiles as part of analysis and mapping:
-Australia, the World, the global Koppen Zones, and the Significant Urban
-areas of Australia (or SUAs). The SUAs are taken from the ABS:
-<https://www.abs.gov.au/AUSSTATS/abs@.nsf/DetailsPage/1270.0.55.004July%202016?OpenDocument>.
-The Koppen data are from CliMond, centred on 1975:
-<https://www.climond.org/Core/Authenticated/KoppenGeiger.aspx>
-
-  
-
-The next stage of the workflow use a series of cleaning functions to
-automate the removal of records for each species which are outliers.
-Doing this manually is extremely tedious, and although errors will be
-made, autmation is preferable across large suites of taxa. runs a series
-of cleaning steps. The first cleaning function takes a data frame of all
-species records, and flag records as institutional or spatial outliers.
-This function uses the CoordinateCleaner package:
-<https://cran.r-project.org/web/packages/CoordinateCleaner/index.html>.
-It assumes that the records data.frame is that returned by the
-combine\_records\_extract function.
-
-  
-
-``` r
-## Step 4a :: Flag records as institutional or spatial outliers
-COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.CONVERT,
-                                  capitals   = 10000,  ## Remove records within 10km  of capitals
-                                  centroids  = 5000,   ## Remove records within 5km of country centroids
-                                  save_run   = "TEST_SPECIES",
-                                  save_data  = FALSE)
-```
-
-  
-
-The next cleaning function takes a data frame of all species records,
-flags records as spatial outliers (T/F for each record in the df), and
-saves images of the checks for each. Manual cleaning of spatial outliers
-is very tedious, but automated cleaning makes mistakes, so checking is
-handy. This funct uses the CoordinateCleaner package
-<https://cran.r-project.org/web/packages/CoordinateCleaner/index.html>.
-It assumes that the input dfs are those returned by the
-coord\_clean\_records function.
-
-  
-
-``` r
-## Step 4b :: Flag spatial outliers
-SPATIAL.CLEAN = check_spatial_outliers(all_df       = COORD.CLEAN,
-                                       land_shp     = LAND,
-                                       urban_df     = FALSE, 
-                                       clean_path   = './data/GBIF/Check_plots/',
-                                       spatial_mult = 10,
-                                       prj          = CRS("+init=epsg:4326"))
-```
-
-  
-
-The next cleaning function takes a data frame of all species records,
-estimates the geographic and environmental ranges for each species, and
-creates a table of all species ranges. It uses the AOO.computing
-function in the ConR package:
-<https://cran.r-project.org/web/packages/ConR/index.html> It assumes
-that the input df is that returned by the check\_spatial\_outliers
-function.
-
-  
-
-``` r
-## Step 4c :: estimate climate niches using species records
-GLOB.NICHE = calc_1km_niches(coord_df     = SPATIAL.CLEAN,
-                             prj          = CRS("+init=epsg:4326"),
-                             country_shp  = AUS,
-                             world_shp    = LAND,
-                             kop_shp      = Koppen_shp,
-                             species_list = analysis_spp,
-                             env_vars     = env_variables,
-                             cell_size    = 2,
-                             save_run     = "Stoten_EG",
-                             data_path    = "./output/results/",
-                             save_data    = TRUE)
-```
-
-  
-
-We can also plot the environmental ranges of each species. The nex
-cleaning function takes a data frame of all species records, and plots
-histograms and convex hulls for each species in global enviromental
-space. It assumes that the input df is that prepared by the
-check\_spatial\_outliers function
-
-  
-
-``` r
-## Step 4d :: plot species ranges using histograms and convex hulls for rainfall and temperature distributions
-plot_range_histograms(coord_df     = SPATIAL.CLEAN,
-                      species_list = analysis_spp,
-                      range_path   = check_dir)
-```
-
-  
-
-# STEP 5 :: Prepare SDM table
-
-  
-
-The final step in the workflow before modelling is to create at table we
-can use for species distribution modelling. This function takes a data
-frame of all species records, and prepares a table in the ‘species with
-data’ (swd) format for modelling uses the Maxent algorithm. It assumes
-that the input df is that returned by the coord\_clean\_records
-function. There is a switch in the function, that adds additional
-bakground points from other taxa, if specified. In this example for
-bats, we’ll just use the species supplied
-
-  
-
-``` r
-## The final dataset is a spatial points dataframe in the Mollwiede projection
-SDM.SPAT.OCC.BG = prepare_sdm_table(coord_df        = COORD.CLEAN,
-                                    species_list    = unique(COORD.CLEAN$searchTaxon),
-                                    sdm_table_vars  = sdm_table_vars,
-                                    save_run        = "Stoten_EG",
-                                    read_background = FALSE,
-                                    save_data       = FALSE,
-                                    save_shp        = FALSE)
-```
-
-  
-
-# STEP 6 :: Run Global SDMs
-
-  
-
-The next porcess is to run species distribution models using global
-records of each species. In order to sample species records thoroughly,
-we use a rasterised version of the 1975 Koppen raster, and another
-template raster of the same extent (global), resolution (1km\*1km) and
-projection (mollweide) as the analysis data. This step takes ages…
-
-  
-
-``` r
-## Use gdal to create a template raster in the mollweide projection, using one of the bioclim layers
-template_raster_1km_mol <- gdalwarp("./data/wc2-5/bio1.bil",
-                                    tempfile(fileext = '.bil'),
-                                    t_srs = sp_epsg54009,
-                                    output_Raster = TRUE,
-                                    tr = c(1000, 1000),
-                                    r = "near", 
-                                    dstnodata = '-9999')
-
-## Should be 1km*1km, values of 0 for ocean and 1 for land 
-template_raster_1km_mol[template_raster_1km_mol > 0] <- 1
-template_raster_1km_mol[template_raster_1km_mol < 0] <- 1
-xres(template_raster_1km_mol)
-```
-
-  
-
-A pre-prepared template raster in the Mollweide projection is found on
-google drive :
-<https://drive.google.com/open?id=1mQHVmYxSMw_cw1iGvfU9M7Pq6Kl6nz-C>
-
-  
-
-``` r
-## Download the template and koppen rasters from google drive
-## https://drive.google.com/open?id=1mQHVmYxSMw_cw1iGvfU9M7Pq6Kl6nz-C
-## https://drive.google.com/open?id=1oY5ZWCV3eoKAWShCaApgLvV6Mb9G0HFQ
-Koppen_1975_1km         = raster('data/world_koppen/Koppen_1000m_Mollweide54009.tif')
-template_raster_1km_mol = raster("./data/world_koppen/template_has_data_1km.tif")
-```
-
-  
-
-The sdm function runs two maxent models: a full model using all
-variables, and backwards selection. Given a candidate set of predictor
-variables, the backwards selecion function identifies a subset of
-variables that meets specified multicollinearity criteria. Subsequently,
-backward stepwise variable selection is used to iteratively drop the
-variable that contributes least to the model, until the contribution of
-each variable meets a specified minimum, or until a predetermined
-minimum number of predictors remains.
-
-  
-
-``` r
-run_sdm_analysis(species_list            = analysis_spp,
-                 maxent_dir              = 'output/maxent/full_models',     
-                 bs_dir                  = 'output/maxent/back_sel_models',
-                 sdm_df                  = SDM.SPAT.OCC.BG,
-                 sdm_predictors          = bs_predictors,
+## SDM.ALL.PLA.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_PLANT_SPP.rds')
+## SDM.ALL.INS.FAM.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_FAMILIES.rds') %>% rbind(., SDM.ALL.PLA.SPP.BG)
+## SDM.ALL.INS.GEN.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_GENERA.rds') %>% rbind(., SDM.ALL.PLA.SPP.BG)
+## SDM.ALL.INS.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_SPP.rds') %>% rbind(., SDM.ALL.PLA.SPP.BG)
+
+
+## To Do :
+## 1). Search Errors - which ones are real?
+## 3). Delete error folders
+## 4). Re-Run
+## 5). Get Gerry and Ryan to check the taxonomy
+
+
+## Clean up the folders which have failed
+run_sdm_analysis(species_list            = rev(analysis_taxa),
+                 maxent_dir              = 'output/plant_maxent/full_models',     
+                 bs_dir                  = 'output/plant_maxent/back_sel_models',
+                 sdm_df                  = SDM.ALL.PLA.SPP.BG,
+                 sdm_predictors          = names(aus.climate.veg.grids),
+                 
                  backwards_sel           = TRUE,      
                  template_raster         = template_raster_1km_mol,
                  cor_thr                 = 0.8,  
@@ -483,13 +114,14 @@ run_sdm_analysis(species_list            = analysis_spp,
                  replicates              = 5,
                  responsecurves          = TRUE,
                  country_shp             = AUS,
+                 koppen_crop             = TRUE,
                  Koppen_zones            = Koppen_zones,
                  Koppen_raster           = Koppen_1975_1km)
 ```
 
   
 
-# STEP 7 :: Project SDMs across Australia
+# Project SDMs across Australia
 
   
 
@@ -504,59 +136,18 @@ Australia ().
 ``` r
 ## Create a table of maxent results
 ## This function aggregates the results for models that ran successfully
-MAXENT.RESULTS = compile_sdm_results(species_list = analysis_spp,
-                                     results_dir  = 'output/maxent/back_sel_models',
+MAXENT.RESULTS = compile_sdm_results(species_list = analysis_taxa,
+                                     results_dir  = 'output/plant_maxent/back_sel_models',
                                      save_data    = FALSE,
-                                     data_path    = "./output/results/",
-                                     save_run     = "TEST_BATS")
+                                     data_path    = "./output/plant_maxent/summary_results/",
+                                     sdm_path     = "./output/plant_maxent/back_sel_models/",
+                                     save_run     = "ALL_INSECTS")
 
-## Get map_spp from the maxent results table above, change the species column,
+## Get map_taxa from the maxent results table above, change the species column,
 ## then create a list of logistic thresholds
-map_spp         <- MAXENT.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
+map_taxa        <- MAXENT.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
 percent.10.log  <- MAXENT.RESULTS$Logistic_threshold
 sdm.results.dir <- MAXENT.RESULTS$results_dir
-```
-
-  
-
-Now we need some future climate projections. We can download raster
-worldclim data using the raster package. The stoten publication uses
-climate projections under six global circulation models (create a table
-here) :
-
-  
-
-``` r
-## List of scenarios that we used in the Stoten article
-scen_list <- c('AC', 'CC', 'HG', 'GF', 'MC', 'NO')
-
-## For all the scenarios in the list
-for(scen in scen_list)
-  
-  ## Download each to the specified folder, for EG 2070   
-  message('Get the worldclim data for ', scen)
-raster::getData('CMIP5', 
-                var   = 'bio', 
-                res   = 2.5, 
-                rcp   = 85, 
-                model = scen, 
-                year  = 70,
-                path = './data/worldclim/world/2070')
-```
-
-  
-
-Or, we can load in some 1km\*1km Worldclim rasters for current
-environmental conditions :
-
-  
-
-``` r
-## 1km*1km Worldclim rasters for current environmental conditions can be found here:
-## https://drive.google.com/open?id=1B14Jdv_NK2iWnmsqCxlKcEXkKIqwmRL_
-aus.grids.current <- stack(
-  file.path('./data/worldclim/aus/current', 
-            sprintf('bio_%02d.tif', 1:19)))
 ```
 
   
@@ -566,8 +157,8 @@ The projection function takes the maxent models created by the
 across geographic space - currently just for Australia. It uses the
 rmaxent package <https://github.com/johnbaums/rmaxent>. It assumes that
 the maxent models were generated by the
-’fit\_maxent\_targ\_bg\_back\_sel’function. Note that this step is
-quite memory heavy, and is best run with 32GB of RAM.
+‘fit\_maxent\_targ\_bg\_back\_sel’ function. Note that this step is
+quite memory heavy, best run with &gt; 32GB of RAM.
 
   
 
@@ -576,32 +167,28 @@ quite memory heavy, and is best run with 32GB of RAM.
 aus_albers <- CRS('+proj=aea +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=132 +x_0=0 +y_0=0 
                    +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs')
 
-## Create 2070 sdm map projections
+## Try and set the raster temp directory to a location not on the partition, to save space
+rasterOptions(tmpdir = 'G:/Raster_temp/')
+
+## Create current sdm map projections
 tryCatch(
-  project_maxent_grids_mess(country_shp   = AUS, 
-                            world_shp     = LAND,   
-                            country_prj   = CRS("+init=EPSG:3577"),
-                            world_prj     = CRS("+init=epsg:4326"),
-                            local_prj     = aus_albers,
-                            
-                            scen_list     = scen_2070, 
-                            species_list  = map_spp,    
-                            maxent_path   = './output/maxent/back_sel_models/',
-                            climate_path  = './data/worldclim/aus/',               
-                            
-                            grid_names    = env_variables,             
-                            time_slice    = 70,                       
-                            current_grids = aus.grids.current,         
-                            create_mess   = TRUE,
-                            OSGeo_path    = 'C:/OSGeo4W64/OSGeo4W.bat', 
-                            nclust        = 1),
+  project_maxent_current_grids_mess(country_shp     = AUS, 
+                                    country_prj     = CRS("+init=EPSG:3577"),
+                                    local_prj       = aus_albers,
+                                    
+                                    species_list    = map_taxa,    
+                                    maxent_path     = './output/plant_maxent/back_sel_models/',
+                                    
+                                    current_grids   = study.climate.veg.grids,         
+                                    create_mess     = TRUE,
+                                    save_novel_poly = FALSE),
   
   ## If the species fails, write a fail message to file
   error = function(cond) {
     
     ## This will write the error message inside the text file, but it won't include the species
-    file.create(file.path("output/maxent/back_sel_models/mapping_failed_2070.txt"))
-    cat(cond$message, file = file.path("output/maxent/back_sel_models/mapping_failed_2070.txt"))
+    file.create(file.path("output/plant_maxent/back_sel_models/mapping_failed_current.txt"))
+    cat(cond$message, file = file.path("output/plant_maxent/back_sel_models/mapping_failed_current.txt"))
     warning(cond$message)
     
   })
@@ -619,89 +206,3 @@ on the right panel indicate where the maxent model is extrapolating
 beyond the training data (i.e. the result of a MESS map).
 
   
-
-# STEP 8 :: Aggregate SDM projections within Spatial units
-
-  
-
-Now that all the species models and projections have been run, we need
-to aggregate them across all six global circulation models. In order to
-aggregate the results, we need a shapefile to aggregate to. In this
-example, we’ll use the Australian Significant Urban Areas, which were
-used in the Stoten article. A geo-tif of the Significant Areas is on
-Google drive:
-
-  
-
-``` r
-## Can't use the .rda, must use the file path
-areal_unit_vec <- shapefile_vector_from_raster(shp_file = SUA,
-                                               prj      = CRS("+init=EPSG:3577"),
-                                               agg_var  = 'SUA_CODE16',
-                                               temp_ras = aus.grids.current[[1]],
-                                               targ_ras = './data/SUA_2016_AUST.tif')
-
-## This is a vector of all the cells that either are or aren't in the rasterized shapefile
-summary(areal_unit_vec)
-```
-
-  
-
-This aggregation function uses the 10th% Logistic threshold for each
-species from the maxent models to threhsold the rasters of habitat
-suitability (0-1) For each GCM. For each species, it sums the 6 GCMS to
-create a binary raster with cell values between 0-6. These cell values
-represent the number of GCMs where that cell had a suitability value
-above the threshold determined by maxent. We classify a cell has
-suitable if it met the threshold in \> 4 GCMs, and use this combined
-raster to compare current and future suitability, measuring if the
-suitability of each cell is changing over time, remaining stable or was
-never suitable It assumes that the maxent predictions were generated by
-the ‘project\_maxent\_grids\_mess’  
-function. Note that this step is quite memory heavy, and is best run
-with 32GB of RAM.
-
-  
-
-``` r
-## Combine GCM predictions and calculate gain and loss for 2030 
-## Then loop over the species folders and climate scenarios
-tryCatch(mapply(sdm_area_cell_count,                      
-                unit_shp      = './data/SUA_albers.rds',  ## This would have to change
-                unit_vec      = areal_unit_vec, 
-                sort_var      = "SUA_NAME16",
-                agg_var       = "SUA_CODE16",
-                world_shp     = './data/LAND_albers.rds', ## This would have to change
-                country_shp   = './data/AUS_albers.rds',  ## This would have to change
-                
-                DIR_list      = sdm.results.dir,  
-                species_list  = map_spp,
-                number_gcms   = 6,
-                maxent_path   = 'output/maxent/back_sel_models/', 
-                thresholds    = percent.10.log,
-                time_slice    = 30,                     
-                write_rasters = TRUE),
-         
-         ## If the species fails, write a fail message to file.
-         error = function(cond) {
-           
-           ## This will write the error message inside the text file,
-           file.create(file.path("output/maxent/back_sel_models/sua_count_failed_2030.txt"))
-           cat(cond$message, 
-               file=file.path("output/maxent/back_sel_models/sua_count_failed_2030.txt"))
-           warning(cond$message)
-           
-         })
-```
-
-  
-
-![fig1](https://github.com/HMB3/sdmgen/blob/master/output/Acacia_dealbata_gain_loss_0.3799_2030.png?raw=true)
-
-**Figure 3.** Example of a combined map of change in climatic
-suitability from current conditions to 2070. Species occurrence points
-are plotted in red on the left panel. The cells in the right and bottom
-panels are coded as either lost (orange cells - present now but not in
-2070 according to 4 or more GCMs), gained (green cells - absent now, but
-present in 2070), stable (blue cells - present now and in 2070), or
-never suitable (white cells - never present).
