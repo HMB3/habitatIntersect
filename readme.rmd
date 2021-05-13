@@ -1,5 +1,5 @@
 ---
-title: "nenswniche : rapidly estimate environmental ranges ranges for invertebrates and plants in NE-NSW"
+title: "nenswniche : rapidly estimate environmental ranges for invertebrates and plants in NE-NSW"
 authors: "Hugh Burley, Shawn Laffan, Will Cornwell"
 date: "March 2021"
 output:

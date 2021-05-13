@@ -1,5 +1,5 @@
-nenswniche : rapidly estimate environmental ranges ranges for
-invertebrates and plants in NE-NSW
+nenswniche : rapidly estimate environmental ranges for invertebrates and
+plants in NE-NSW
 ================
 March 2021
 
