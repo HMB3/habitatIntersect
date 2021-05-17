@@ -54,13 +54,13 @@ ipak <- function(pkg){
 }
 
 ## These packages are not on cran, but are needed
-# library(devtools)
-# install_github('johnbaums/things')
-# install_github('johnbaums/rmaxent')
-# install_github('traitecoevo/taxonlookup')
+library(devtools)
+install_github('johnbaums/things')
+install_github('johnbaums/rmaxent')
+install_github('traitecoevo/taxonlookup')
 
 ## Main package 
-# devtools::install_github("HMB3/nenswniche")
+devtools::install_github("HMB3/nenswniche")
 
 ## Load packages 
 library(nenswniche)
@@ -102,19 +102,9 @@ minimum number of predictors remains.
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## SDM.ALL.PLA.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_PLANT_SPP.rds')
-## SDM.ALL.INS.FAM.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_FAMILIES.rds') %>% rbind(., SDM.ALL.PLA.SPP.BG)
-## SDM.ALL.INS.GEN.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_GENERA.rds') %>% rbind(., SDM.ALL.PLA.SPP.BG)
-## SDM.ALL.INS.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_SPP.rds') %>% rbind(., SDM.ALL.PLA.SPP.BG)
 
 
-## To Do :
-## 1). Search Errors - which ones are real?
-## 3). Delete error folders
-## 4). Re-Run
-## 5). Get Gerry and Ryan to check the taxonomy
-
-
-## Clean up the folders which have failed
+## Run SDMs for a list of taxa
 run_sdm_analysis(species_list            = rev(analysis_taxa),
                  maxent_dir              = 'output/plant_maxent/full_models',     
                  bs_dir                  = 'output/plant_maxent/back_sel_models',
@@ -146,9 +136,8 @@ run_sdm_analysis(species_list            = rev(analysis_taxa),
 
 \
 
-The next stage of the process is to project the SDM predictions across geographic space.
-First, we need to extract the SDM results from the models. Each model generates a 'threshold' 
-of probability of occurrence (see ref), which we use to create map of habitat suitability 
+Next we project the SDMs across geographic space. First, we need to extract the SDM results from the models. 
+Each model generates a 'threshold' of probability of occurrence (see ref), which we use to create map of habitat suitability 
 across Australia (). 
 
 \

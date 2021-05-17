@@ -112,8 +112,8 @@ data('target.insect.families')
 data('target.host.plants')
 data('all.insect.plant.spp')
 
-analysis_taxa <- str_trim(c(target.insect.spp)) %>% unique()
-# analysis_taxa <- str_trim(c(target.insect.genera))   %>% unique()
+# analysis_taxa <- str_trim(c(target.insect.spp)) %>% unique()
+analysis_taxa <- str_trim(c(target.insect.genera))   %>% unique()
 # analysis_taxa <- str_trim(c(target.insect.families)) %>% unique()
 # analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
 # analysis_taxa <- str_trim(c(target.insect.spp, all.insect.spp)) %>% unique()
@@ -268,14 +268,16 @@ study.veg.grids <- stack(
 
 
 ## Valley bottom data
-aus.vbf   <- raster('./data/Remote_sensing/Topography/mrvbf_int_resample.tif')
-study.vbf <- raster('./data/Remote_sensing/Topography/mrvbf_int_resample_study.tif')
+aus.vbf   <- raster('./data/Remote_sensing/Topography/mrvbf_int_1km.tif')
+study.vbf <- raster('./data/Remote_sensing/Topography/mrvbf_int_study_1km.tif')
 
 
 ## Rename the raster grids
 names(worldclim_climate)   <- env_variables
 names(aus.grids.current)   <- names(worldclim_climate)
 names(study.grids.current) <- names(worldclim_climate)
+names(aus.vbf)             <- 'valley_bottom_flatness_1km'
+names(study.vbf)           <- 'valley_bottom_flatness_1km'
 
 
 names(aus.veg.grids) <- names(study.veg.grids) <- c("Plant_cover_fraction_0_5m", 
@@ -291,7 +293,7 @@ names(aus.veg.grids) <- names(study.veg.grids) <- c("Plant_cover_fraction_0_5m",
                                                     "Tree_canopy_peak_foliage_total")
 
 ## Combine the grids into raster stacks
-aus.climate.veg.grids   <- stack(aus.grids.current,   aus.veg.grids, aus.vbf)
+aus.climate.veg.grids   <- stack(aus.grids.current,   aus.veg.grids,   aus.vbf)
 study.climate.veg.grids <- stack(study.grids.current, study.veg.grids, study.vbf)
 aus_annual_temp         <- aus.climate.veg.grids[[1]]
 world_annual_temp       <- worldclim_climate[[1]]
@@ -305,31 +307,6 @@ world_annual_temp       <- worldclim_climate[[1]]
 template_raster_1km_WGS84 = raster("./data/world_koppen/template_1km_WGS84.tif")
 Koppen_1975_1km           = raster('data/world_koppen/Koppen_1000m_Mollweide54009.tif')
 template_raster_1km_mol   = raster("./data/world_koppen/template_has_data_1km.tif")
-
-
-## Use Molleweide or GDA Albers
-# sp_epsg3577 <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs"
-# sp_epsg54009 <- '+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0'
-
-## Use gdal to create a template raster in the mollweide projection, using one of the bioclim layers
-# template_raster_1km_GDA <- gdalwarp("./data/worldclim2/aus/current/bio_1_AUSGDA.tif",
-#                                     tempfile(fileext = '.tif'),
-#                                     t_srs = sp_epsg3577,
-#                                     output_Raster = TRUE,
-#                                     tr = c(1000, 1000),
-#                                     r = "near", 
-#                                     dstnodata = '-9999')
-
-## Should be 1km*1km, values of 0 for ocean and 1 for land 
-# template_raster_1km_GDA[template_raster_1km_GDA > 0] <- 1
-# template_raster_1km_GDA[template_raster_1km_GDA < 0] <- 1
-# xres(template_raster_1km_GDA)
-
-
-## FESM data : a stack of grids for fire extent, in GDA Albers projection
-# fesm.grids <- stack(list.files('./data/Remote_sensing/Veg_data/FESM', 
-#                                '_GDA.tif', full.names = TRUE))
-
 
 ```
 
@@ -563,4 +540,22 @@ plot_range_histograms(coord_df     = SPATIAL.CLEAN,
 \
 
 Then we need to create at table we can use for species distribution modelling. This function takes 
-a data frame of all species records, and prepares a table in the 'species with data' (swd) format taht
+a data frame of all species records, and prepares a table in the 'species with data' (swd) format.
+
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+## Final dataset is a spatial points dataframe in the Mollwiede projection
+SDM.SPAT.OCC.BG = prepare_sdm_table(coord_df        = COORD.CLEAN,
+                                    species_list    = unique(COORD.CLEAN$searchTaxon),
+                                    sdm_table_vars  = sdm_table_vars,
+                                    save_run        = "AUS_INSECT_FAMILIES",
+                                    read_background = FALSE,
+                                    save_data       = TRUE,
+                                    save_shp        = TRUE,
+                                    data_path       = paste0(getwd(), '/output/results/'),
+                                    project_path    = 'F:/North_east_NSW_fire_recovery')
+
+``` 
+
+
