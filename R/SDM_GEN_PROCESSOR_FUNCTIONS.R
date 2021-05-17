@@ -195,12 +195,9 @@ download_ALA_all_species = function (species_list,
 
 
 
-## ALA download Genus Records -----
+#' ALA download Genus Records -----
 
-
-#' Download genus occurrence files from the Atlas of Living Australia (ALA)
-#'
-#' This function downloads family occurrence files from ALA (https://www.ala.org.au/).
+#' @description  This function downloads genus occurrence files from ALA (https://www.ala.org.au/).
 #' It assumes that the genus list supplied is taxonomically correct.
 #' It downloads the genus to fiel without returning anything to the global environment
 #'
@@ -1908,12 +1905,12 @@ plot_range_histograms = function(coord_df,
 
 
 
-## Create SDM table ----
+#' Create SDM table ----
 
 
-#' This function takes a data frame of all species records,
+#' @description  'This function takes a data frame of all species records,
 #' And prepares a table in the 'species with data' (swd) format for modelling uses the Maxent algorithm.
-#' It assumes that the input df is that returned by the coord_clean_records function
+#' It assumes that the input df is that returned by the coord_clean_records function'
 #' @param coord_df           Data.frame. DF of all species records returned by the coord_clean_records function
 #' @param species_list       Character string - the species analysed
 #' @param BG_points          Logical - Do we want to include a dataframe of background points? Otherwise, BG points taken from species not modelled
