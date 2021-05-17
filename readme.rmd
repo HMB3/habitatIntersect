@@ -76,10 +76,10 @@ ipak(sdmgen_packages)
 # Background
 
 This code is being developed at UNSW, to help investigate
-the impacts of the 2019/2020 bush fires on Insects in the North East Forests 
-of New South Wales. The aim is to create a pipeline that rapidly assesses 
-the habitat suitability of the threatened insect species under current 
-environmental conditions. 
+the impacts of the 2019/2020 bush fires on Insects in the Forests 
+of North East New South Wales. The aim is to create a pipeline that 
+rapidly assesses the habitat suitability of the threatened insect 
+species under current environmental conditions. 
 
 \
 

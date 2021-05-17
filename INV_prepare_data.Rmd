@@ -49,7 +49,7 @@ To install, run :
 ipak <- function(pkg){
   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
   if (length(new.pkg))
-    install.packages(new.pkg, dependencies = TRUE, repos="https://cran.csiro.au/")
+    install.packages(new.pkg, dependencies = TRUE, repos = "https://cran.csiro.au/")
   sapply(pkg, require, character.only = TRUE)
 }
 
@@ -59,9 +59,10 @@ ipak <- function(pkg){
 # install_github('johnbaums/rmaxent')
 # install_github('traitecoevo/taxonlookup')
 
-## Main package 
+## Create documentation and install package
 # roxygen2::roxygenise()
 # devtools::install_github("HMB3/nenswniche")
+
 
 ## Load packages 
 library(nenswniche)
@@ -116,10 +117,11 @@ data('all.insect.plant.spp')
 # analysis_taxa <- str_trim(c(target.insect.spp)) %>% unique()
 # analysis_taxa <- str_trim(c(target.insect.genera)) %>% unique()
 # analysis_taxa <- str_trim(c(target.insect.families)) %>% unique()
+analysis_taxa <- str_trim(c(all.insect.families)) %>% unique()
 # analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
 # analysis_taxa <- str_trim(c(target.insect.spp, all.insect.spp)) %>% unique()
 # analysis_taxa <- c(all.insect.plant.spp, target.host.plants)    %>% unique()
-analysis_taxa <- str_trim(target.host.plants)
+# analysis_taxa <- str_trim(target.host.plants)
 analysis_taxa
 
 ```
@@ -274,7 +276,27 @@ study.vbf <- raster('./data/Remote_sensing/Topography/mrvbf_int_study_1km.tif')
 
 
 ## Rename the raster grids
-names(worldclim_climate)   <- env_variables
+names(worldclim_climate)   <- c("Annual_mean_temp",
+                                "Mean_diurnal_range",
+                                "Isothermality",
+                                "Temp_seasonality",
+                                "Max_temp_warm_month",
+                                "Min_temp_cold_month",
+                                "Temp_annual_range",
+                                "Mean_temp_wet_qu",
+                                "Mean_temp_dry_qu",
+                                "Mean_temp_warm_qu",
+                                "Mean_temp_cold_qu",
+                                
+                                "Annual_precip",
+                                "Precip_wet_month",
+                                "Precip_dry_month",
+                                "Precip_seasonality",
+                                "Precip_wet_qu",
+                                "Precip_dry_qu",
+                                "Precip_warm_qu",
+                                "Precip_col_qu")
+
 names(aus.grids.current)   <- names(worldclim_climate)
 names(study.grids.current) <- names(worldclim_climate)
 names(aus.vbf)             <- 'valley_bottom_flatness_1km'
