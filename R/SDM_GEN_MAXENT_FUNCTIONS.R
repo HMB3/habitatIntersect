@@ -58,7 +58,7 @@ run_sdm_analysis = function(species_list,
                             country_shp ) {
   
   ## Loop over all the species
-  ## species <- species_list[3]
+  ## species <- species_list[10]
   lapply(species_list, function(species){
     
     ## Skip the species if the directory already exists, before the loop
@@ -112,7 +112,6 @@ run_sdm_analysis = function(species_list,
                                       features                = features,
                                       replicates              = replicates,
                                       responsecurves          = responsecurves,
-                                      #shp_path                = shp_path,
                                       country_shp             = country_shp),
           
           
@@ -284,6 +283,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
       
     } else {
       message(name, ' Do not intersect background cells with Koppen zones')
+      i                   <- cellFromXY(template_raster, bg)
       bg                  <- bg[which(i %in% bg_cells), ]
     }
     
@@ -299,7 +299,6 @@ fit_maxent_targ_bg_back_sel <- function(occ,
       message(nrow(bg), ' target species background records for ', name,
               ' using all points from :: ', unique(bg$SOURCE))
       bg.samp <- bg
-      
     }
     
     ## Now save an image of the background points
