@@ -2123,7 +2123,7 @@ prepare_sdm_table = function(coord_df,
   ## Here we are using a dataframe of mammals, reptiles and birds.
   if(read_background == TRUE) {
     
-    Message('Read in background data for taxa analaysed')
+    message('Read in background data for taxa analaysed')
     # background.points = readRDS(paste0(data_path, BG_points)) %>%
     #   .[, -(27:28)]
     background = background_points[!background_points$searchTaxon %in% species_list, ]
