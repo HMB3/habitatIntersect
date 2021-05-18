@@ -68,7 +68,6 @@ run_sdm_analysis = function(species_list,
     ## && sum(file.info(dir_name)$size) < 1000 (EG 1MB)
     dir_name = file.path(outdir, gsub(' ', '_', species))
     
-    
     if(!dir.exists(dir_name)) {
       message('Maxent not run for ', species, ' - running')
       
@@ -78,7 +77,6 @@ run_sdm_analysis = function(species_list,
       file.create(file.path(dir_name, "in_progress.txt"))
       
       ## Print the taxa being processed to screen
-      ## 
       if(species %in% sdm_df$searchTaxon) {
         message('Doing ', species)
         

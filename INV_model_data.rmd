@@ -102,9 +102,9 @@ minimum number of predictors remains.
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## SDM.ALL.PLA.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_PLANT_SPP.rds')
-## SDM.ALL.INS.FAM.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_FAMILIES.rds') %>% rbind(., SDM.ALL.PLA.SPP.BG)
-## SDM.ALL.INS.GEN.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_GENERA.rds') %>% rbind(., SDM.ALL.PLA.SPP.BG)
-## SDM.ALL.INS.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_SPP.rds') %>% rbind(., SDM.ALL.PLA.SPP.BG)
+## SDM.ALL.INS.FAM.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_FAMILIES.rds')
+## SDM.ALL.INS.GEN.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_GENERA.rds')
+## SDM.TARG.INS.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_TARG_INSECT_SPP.rds') 
 
 
 ## To Do :
@@ -116,9 +116,9 @@ minimum number of predictors remains.
 
 ## Clean up the folders which have failed
 run_sdm_analysis(species_list            = rev(analysis_taxa),
-                 maxent_dir              = 'output/plant_maxent/full_models',     
-                 bs_dir                  = 'output/plant_maxent/back_sel_models',
-                 sdm_df                  = SDM.ALL.PLA.SPP.BG,
+                 maxent_dir              = 'output/veg_climate_topo_maxent/full_models',     
+                 bs_dir                  = 'output/veg_climate_topo_maxent/back_sel_models',
+                 sdm_df                  = SDM.TARG.INS.SPP.BG,
                  sdm_predictors          = names(aus.climate.veg.grids),
                  
                  backwards_sel           = TRUE,      
@@ -197,7 +197,7 @@ tryCatch(
                                     
                                     species_list    = map_taxa,    
                                     maxent_path     = './output/plant_maxent/back_sel_models/',
-            
+                                    
                                     current_grids   = study.climate.veg.grids,         
                                     create_mess     = TRUE,
                                     save_novel_poly = FALSE),

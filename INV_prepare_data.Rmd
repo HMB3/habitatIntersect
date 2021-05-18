@@ -576,18 +576,18 @@ sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0
 
 
 ## Final data set is a spatial points data frame in the Mollweide projection
-SDM.ALL.PLA.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_PLANT_SPP.rds')
-SDM.SPAT.OCC.BG prepare_sdm_table(coord_df          = COORD.CLEAN,
-                                  species_list      = unique(COORD.CLEAN$searchTaxon),
-                                  sdm_table_vars    = c('searchTaxon', 'lon', 'lat', 'SOURCE',
-                                                        names(aus.climate.veg.grids)),
-                                  save_run          = "ALL_INSECT_SPP",
-                                  read_background   = TRUE,
-                                  background_points = SDM.ALL.PLA.SPP.BG, 
-                                  save_data         = TRUE,
-                                  save_shp          = FALSE,
-                                  data_path         = paste0(getwd(), '/output/results/'),
-                                  project_path      = 'G:/North_east_NSW_fire_recovery')
+SDM.ALL.PLA.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_HOST_PLANT_SPP.rds')
+SDM.SPAT.OCC.BG    = prepare_sdm_table(coord_df          = COORD.CLEAN,
+                                       species_list      = unique(COORD.CLEAN$searchTaxon),
+                                       sdm_table_vars    = c('searchTaxon', 'lon', 'lat', 'SOURCE', 'SPAT_OUT',
+                                                             names(aus.climate.veg.grids)),
+                                       save_run          = "ALL_INSECT_SPP",
+                                       read_background   = TRUE,
+                                       background_points = SDM.ALL.PLA.SPP.BG, 
+                                       save_data         = TRUE,
+                                       save_shp          = FALSE,
+                                       data_path         = paste0(getwd(), '/output/results/'),
+                                       project_path      = 'G:/North_east_NSW_fire_recovery')
 
 
 ## Save shape file separately - doesn't seem to work in R
@@ -596,6 +596,7 @@ writeOGR(obj    = SDM.SPAT.OCC.BG.GDA,
          dsn    = 'G:/North_east_NSW_fire_recovery/output/results',
          layer  = 'SDM_SPAT_OCC_BG_GDA_TARG_INSECT_SPP', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
+
 ``` 
 
 \

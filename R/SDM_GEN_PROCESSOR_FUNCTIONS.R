@@ -2117,32 +2117,29 @@ prepare_sdm_table = function(coord_df,
     message(' skip file saving, not many species analysed')   ##
   }
   
+  ## Now select the final columns needed
+  message(length(unique(SDM.SPAT.ALL$searchTaxon)), ' Species in occurrence and BG data')
+  drops        <- c('CC.OBS', 'SPOUT.OBS')
+  sdm_cols     <- names(dplyr::select(SDM.SPAT.ALL@data, searchTaxon, lon, lat, SOURCE, everything()))
+  SDM.SPAT.ALL <- SDM.SPAT.ALL[,!(names(SDM.SPAT.ALL) %in% drops)]
+  
+  
   ## CREATE BACKGROUND POINTS AND VARIBALE NAMES
   ## Use one data frame for all species analysis,
   ## to save mucking around with background points
-  ## Here we are using a dataframe of mammals, reptiles and birds.
   if(read_background == TRUE) {
     
     message('Read in background data for taxa analaysed')
-    # background.points = readRDS(paste0(data_path, BG_points)) %>%
-    #   .[, -(27:28)]
     background = background_points[!background_points$searchTaxon %in% species_list, ]
     
     ## The BG points step needs to be ironed out.
     ## For some analysis, we need to do other taxa (e.g. animals)
-    ## For Bats, they just want to use other bats.
-    SDM.SPAT.OCC.BG = rbind(SDM.SPAT.ALL, background)
+    SDM.SPAT.OCC.BG <- rbind(SDM.SPAT.ALL, background)
     
   } else {
     message('Dont read in Background data, creating it in this run')
     SDM.SPAT.OCC.BG = SDM.SPAT.ALL
   }
-  
-  ## Now select the final columns needed
-  message(length(unique(SDM.SPAT.OCC.BG$searchTaxon)), ' Species in occurrence and BG data')
-  drops <- c('CC.OBS', 'SPOUT.OBS')
-  sdm_cols <- names(dplyr::select(SDM.SPAT.OCC.BG@data, searchTaxon, lon, lat, SOURCE, everything()))
-  SDM.SPAT.OCC.BG <- SDM.SPAT.OCC.BG[,!(names(SDM.SPAT.OCC.BG) %in% drops)]
   
   ## save data
   if(save_data == TRUE) {
