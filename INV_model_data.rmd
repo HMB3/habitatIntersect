@@ -45,6 +45,10 @@ To install, run :
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
+## Set java memory limit
+rm(list = ls())
+options(java.parameters = "-Xmx64000m")
+
 ## Function to load or install packages
 ipak <- function(pkg){
   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
@@ -62,7 +66,7 @@ ipak <- function(pkg){
 ## Main package 
 # devtools::install_github("HMB3/nenswniche")
 
-## Load packages 
+## Load packages
 library(nenswniche)
 data('sdmgen_packages')
 ipak(sdmgen_packages)
@@ -101,9 +105,9 @@ minimum number of predictors remains.
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## SDM.ALL.PLA.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_PLANT_SPP.rds')
-## SDM.ALL.INS.FAM.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_FAMILIES.rds')
-## SDM.ALL.INS.GEN.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_GENERA.rds')
+## SDM.ALL.PLA.SPP.BG  = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_PLANT_SPP.rds')
+## SDM.TARG.INS.FAM.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_TARG_INSECT_FAM.rds')
+## SDM.TARG.INS.GEN.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_TARG_INSECT_GENERA.rds')
 ## SDM.TARG.INS.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_TARG_INSECT_SPP.rds') 
 
 
@@ -118,7 +122,7 @@ minimum number of predictors remains.
 run_sdm_analysis(species_list            = rev(analysis_taxa),
                  maxent_dir              = 'output/veg_climate_topo_maxent/full_models',     
                  bs_dir                  = 'output/veg_climate_topo_maxent/back_sel_models',
-                 sdm_df                  = SDM.TARG.INS.SPP.BG,
+                 sdm_df                  = SDM.TARG.INS.FAM.BG,
                  sdm_predictors          = names(aus.climate.veg.grids),
                  
                  backwards_sel           = TRUE,      
@@ -158,10 +162,10 @@ across Australia ().
 ## Create a table of maxent results
 ## This function aggregates the results for models that ran successfully
 MAXENT.RESULTS = compile_sdm_results(species_list = analysis_taxa,
-                                     results_dir  = 'output/plant_maxent/back_sel_models',
+                                     results_dir  = 'output/veg_climate_topo_maxent/back_sel_models',
                                      save_data    = FALSE,
-                                     data_path    = "./output/plant_maxent/summary_results/",
-                                     sdm_path     = "./output/plant_maxent/back_sel_models/",
+                                     data_path    = "./output/veg_climate_topo_maxent/summary_results/",
+                                     sdm_path     = "./output/veg_climate_topo_maxent/back_sel_models/",
                                      save_run     = "ALL_INSECTS")
 
 ## Get map_taxa from the maxent results table above, change the species column,
@@ -196,7 +200,7 @@ tryCatch(
                                     local_prj       = aus_albers,
                                     
                                     species_list    = map_taxa,    
-                                    maxent_path     = './output/plant_maxent/back_sel_models/',
+                                    maxent_path     = './output/veg_climate_topo_maxent/back_sel_models/',
                                     
                                     current_grids   = study.climate.veg.grids,         
                                     create_mess     = TRUE,
@@ -207,7 +211,7 @@ tryCatch(
     
     ## This will write the error message inside the text file, but it won't include the species
     file.create(file.path("output/plant_maxent/back_sel_models/mapping_failed_current.txt"))
-    cat(cond$message, file = file.path("output/plant_maxent/back_sel_models/mapping_failed_current.txt"))
+    cat(cond$message, file = file.path("output/veg_climate_topo_maxent/back_sel_models/mapping_failed_current.txt"))
     warning(cond$message)
     
   })
