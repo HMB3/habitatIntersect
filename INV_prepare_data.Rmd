@@ -47,7 +47,7 @@ To install, run :
 
 ## Set java memory limit
 rm(list = ls())
-options(java.parameters = "-Xmx64000m")P
+options(java.parameters = "-Xmx64000m")
 
 ## Function to load or install packages
 ipak <- function(pkg){
