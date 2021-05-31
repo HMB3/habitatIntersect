@@ -53,7 +53,8 @@ options(java.parameters = "-Xmx64000m")
 ipak <- function(pkg){
   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
   if (length(new.pkg))
-    install.packages(new.pkg, dependencies = TRUE, repos = "https://cran.csiro.au/")
+    install.packages(new.pkg, dependencies = TRUE, 
+                     repos = "https://cran.csiro.au/")
   sapply(pkg, require, character.only = TRUE)
 }
 
