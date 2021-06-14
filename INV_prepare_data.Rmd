@@ -275,6 +275,19 @@ study.veg.grids <- stack(
              '_1km_study.tif', full.names = TRUE))
 
 
+## SMD Results
+study.sdm.grids <- stack(
+  list.files('./output/veg_climate_topo_maxent/Habitat_suitability/10m', 
+             '_10m.tif', full.names = TRUE))
+
+
+
+## Veg layers
+study.sdm.grids <- stack(
+  list.files('./output/veg_climate_topo_maxent/Habitat_suitability/10m', 
+             '_10m.tif', full.names = TRUE))
+
+
 ## Valley bottom data
 aus.vbf   <- raster('./data/Remote_sensing/Topography/mrvbf_int_1km.tif')
 study.vbf <- raster('./data/Remote_sensing/Topography/mrvbf_int_study_1km.tif')
