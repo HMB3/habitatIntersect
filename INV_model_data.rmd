@@ -108,7 +108,8 @@ minimum number of predictors remains.
 ## SDM.ALL.PLA.SPP.BG  = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_PLANT_SPP.rds')
 ## SDM.TARG.INS.FAM.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_TARG_INSECT_FAM.rds')
 ## SDM.TARG.INS.GEN.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_TARG_INSECT_GENERA.rds')
-## SDM.TARG.INS.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_TARG_INSECT_SPP.rds') 
+## SDM.TARG.INS.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_TARG_INSECT_SPP.rds')
+## SDM.ALL.INS.SPP.BG  = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_SPP.rds')
 
 
 ## To Do :
@@ -122,7 +123,7 @@ minimum number of predictors remains.
 run_sdm_analysis(species_list            = rev(analysis_taxa),
                  maxent_dir              = 'output/veg_climate_topo_maxent/full_models',     
                  bs_dir                  = 'output/veg_climate_topo_maxent/back_sel_models',
-                 sdm_df                  = SDM.TARG.INS.FAM.BG,
+                 sdm_df                  = SDM.TARG.INS.GEN.BG,
                  sdm_predictors          = names(aus.climate.veg.grids),
                  
                  backwards_sel           = TRUE,      
@@ -157,22 +158,36 @@ across Australia ().
 
 \
 
+## Why did I want to get the dismo object first, before re-running the model?
+## Would running the models again make any difference?
+
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+## New version of dismo is needed to make the ENMeval functions working
+## ENMeval::var.importance(m)
+## ENMeval              * 0.3.1      2020-09-12 [1] CRAN (R 4.0.4) 
 
 ## Create a table of maxent results
 ## This function aggregates the results for models that ran successfully
 MAXENT.RESULTS = compile_sdm_results(species_list = analysis_taxa,
                                      results_dir  = 'output/veg_climate_topo_maxent/back_sel_models',
-                                     save_data    = FALSE,
-                                     data_path    = "./output/veg_climate_topo_maxent/summary_results/",
+                                     save_data    = TRUE,
+                                     data_path    = "./output/veg_climate_topo_maxent/Habitat_suitability/",
                                      sdm_path     = "./output/veg_climate_topo_maxent/back_sel_models/",
-                                     save_run     = "ALL_INSECTS")
+                                     save_run     = "TARG_INSECT_SPP")
 
 ## Get map_taxa from the maxent results table above, change the species column,
 ## then create a list of logistic thresholds
 map_taxa        <- MAXENT.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
 percent.10.log  <- MAXENT.RESULTS$Logistic_threshold
 sdm.results.dir <- MAXENT.RESULTS$results_dir
+
+
+## Combine maxent results together
+MAXENT.COMBINED <- readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_FAM.rds') %>% 
+  bind_rows(readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_GENERA.rds')) %>% 
+  bind_rows(readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_SPP.rds'))
+saveRDS(MAXENT.COMBINED, './output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_TAXA.rds')
 
 ``` 
 

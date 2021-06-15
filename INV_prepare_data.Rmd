@@ -122,8 +122,8 @@ data('all.insect.plant.spp')
 # analysis_taxa <- str_trim(c(target.insect.spp)) %>% unique()
 # analysis_taxa <- str_trim(c(target.insect.genera)) %>% unique()
 # analysis_taxa <- str_trim(c(target.insect.families)) %>% unique()
-analysis_taxa <- str_trim(c(all.insect.families)) %>% unique()
-# analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
+# analysis_taxa <- str_trim(c(all.insect.families)) %>% unique()
+analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
 # analysis_taxa <- str_trim(c(target.insect.spp, all.insect.spp)) %>% unique()
 # analysis_taxa <- c(all.insect.plant.spp, target.host.plants)    %>% unique()
 # analysis_taxa <- str_trim(target.host.plants)
@@ -279,7 +279,6 @@ study.veg.grids <- stack(
 study.sdm.grids <- stack(
   list.files('./output/veg_climate_topo_maxent/Habitat_suitability/10m', 
              '_10m.tif', full.names = TRUE))
-
 
 
 ## Veg layers
@@ -544,13 +543,10 @@ GLOB.NICHE = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxon %i
 
 
 ## Blend the niches together
-# GLOBAL_NICHES_1 <- readRDS('./output/results/GLOBAL_NICHES_ALL_INSECT_SPECIES.rds')
-# GLOBAL_NICHES_2 <- readRDS('./output/results/GLOBAL_NICHES_ALL_INSECT_GENERA.rds')
-# GLOBAL_NICHES_3 <- readRDS('./output/results/GLOBAL_NICHES_ALL_INSECT_FAMILIES.rds')
-# GLOBAL_NICHES   <- bind_rows(GLOBAL_NICHES_1, 
-#                              GLOBAL_NICHES_2,
-#                              GLOBAL_NICHES_3) %>% .[.$searchTaxon %in% analysis_taxa, ]
-# saveRDS(GLOBAL_NICHES, './output/results/ALL_INSECT_NICHES.rds')
+GLOBAL_NICHES_TARG_TAXA <- readRDS('./output/results/GLOBAL_NICHES_TARGET_INSECT_SPP.rds') %>% 
+  bind_rows(readRDS('./output/results/GLOBAL_NICHES_TARGET_INSECT_GENUS.rds'))     %>% 
+  bind_rows(readRDS('./output/results/GLOBAL_NICHES_TARGET_INSECT_FAMILIES.rds'))  %>% .[.$searchTaxon %in% analysis_taxa, ]
+saveRDS(GLOBAL_NICHES_TARG_TAXA, './output/veg_climate_topo_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_TAXA.rds')
 
 
 
