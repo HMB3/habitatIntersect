@@ -1,6 +1,6 @@
 ---
 title: "nenswniche : a package for rapidly estimating multiple species ranges and habitat suitability"
-authors: "Hugh Burley, Shawn Laffan, Adrian Fisher"
+authors: "Hugh Burley, Shawn Laffan, Will Cornwell, Adrian Fisher"
 date: "October 2021"
 output:
   github_document:

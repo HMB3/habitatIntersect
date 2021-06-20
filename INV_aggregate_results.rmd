@@ -53,12 +53,6 @@ ipak <- function(pkg){
   sapply(pkg, require, character.only = TRUE)
 }
 
-## These packages are not on cran, but are needed
-# library(devtools)
-# install_github('johnbaums/things')
-# install_github('johnbaums/rmaxent')
-# install_github('traitecoevo/taxonlookup')
-
 ## Main package 
 # devtools::install_github("HMB3/nenswniche")
 
@@ -81,14 +75,27 @@ What do we want to do here? Create a stack of rasters using the FESM layers.
 Then, for each species, intersect the current layers with the FESM layers.
 This is not what Will was suggesting the other day...that's something more sophisticated.
 
+
 But we can start with that. Make this function loop through all species, and intersect
 The habitat layers with the FESM layers. How much from that can we keep? 
-
 
 Consider the extent and resolution issues - FESM is 10m fire scars?
 GEEBAM is the Keith Class veg units, but only for the areas that burnt...
 How can we intersect the 1km rasters with the 10m layers? What do we want at the end,
-a measure of % remaining/burnt for each species in each veg class?
+a measure of % remaining/burnt for each species, overall, and in each veg class?
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+## Create a stack of all the rasters needed to calculate habitat
+## Try stacking the composite bands, + the SDMs
+study.veg.sdm <- stack('./output/veg_climate_topo_maxent/Habitat_suitability/10m/Resampled/Veg_fire_SDM_composite.tif')
+
+## Check the raster output
+# plot(aus.veg.grids$Acanthosomatidae_current_not_novel_10m)
+
+
+``` 
+
 
 
 \
