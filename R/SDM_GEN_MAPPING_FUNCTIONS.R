@@ -8,6 +8,85 @@
 
 
 
+
+#' This  function uses the 10th% Logistic threshold for each species from the maxent
+#' models to threshold the rasters of habitat suitability (0-1) for current conditions.
+#' @param DIR_list      Character string - The list of global circulation models to create predictions for
+#' @param species_list  Character string - The species to run maxent predictions for
+#' @param maxent_path   Character string - The file path containing the existing maxent models
+#' @param thresholds    Character string - List of SDM thresholds
+#' @param write_rasters Character string - Save rasters 
+#' @export
+habitat_threshold = function(DIR_list, species_list,
+                             maxent_path, thresholds,
+                             write_rasters) {
+  
+  ## Loop over each directory
+  ## DIR = DIR_list[1]
+  lapply(DIR_list, function(DIR) {
+    
+    ## And each species - although we don't want all possible
+    ## combinations. use mapply in the function call
+    ## species = species_list[1]
+    lapply(species_list, function(species) {
+      
+      ## Then, create rasters that meet habitat suitability criteria
+      ## thresholds, determined by the rmaxent function
+      ## thresh = thresholds[1]
+      for (thresh in thresholds) {
+        
+        ## Create a list of the rasters in each species directory for
+        ## each time period, then take the mean
+        message('Thresholding habitat suitablity for ', species)
+        
+        ## Then, If the gain/loss raster already exists, skip that species
+        current_file = sprintf('%s/%s/full/%s_current_not_novel.tif',
+                               maxent_path, species, species)
+        
+        ## Next is easier than if/else
+        if(!file.exists(current_file)) {
+          
+          ## Print the species being analysed
+          message('doing ', species, ' | Logistic > ', thresh)
+          
+          ## Read in the current suitability raster :: get the current_not_novel raster
+          f_current <- raster(sprintf('%s/%s/full/%s_current_not_novel.tif',
+                                      maxent_path, species, species))
+          
+          ## First, create a simple function to threshold each of the rasters in raster.list,
+          ## Then apply this to just the current suitability raster.
+          thresh_greater       = function (x) {x > thresh}
+          current_suit_thresh  = thresh_greater(f_current)
+          
+          ## Now write the rasters
+          ## If the rasters don't exist, write them for each species/threshold
+          if(write_rasters == TRUE) {
+            
+            ## Write the current suitability raster, thresholded using the Maximum training
+            ## sensitivity plus specificity Logistic threshold
+            message('Writing ', species, ' current', ' max train > ', thresh)
+            
+            ## Save in two places, in the species folder, 
+            ## and in the habitat suitability folder
+            writeRaster(current_suit_thresh, sprintf('%s/%s/full/%s_%s%s.tif', maxent_path,
+                                                     species, species, "current_suit_not_novel_above_", thresh),
+                        overwrite = TRUE)
+            
+          } else {
+            message(' skip raster writing')
+          }
+        } else {
+          message(species, ' thresholded raster already exists, skip')
+        }
+      }
+    })
+  })
+}
+
+
+
+
+
 #' This function takes the maxent models created by the 'fit_maxent_targ_bg_back_sel' function,
 #' and projects the model across geographic space - currently just for Australia.
 #' 
