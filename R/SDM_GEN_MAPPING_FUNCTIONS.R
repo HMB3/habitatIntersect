@@ -11,76 +11,78 @@
 
 #' This  function uses the 10th% Logistic threshold for each species from the maxent
 #' models to threshold the rasters of habitat suitability (0-1) for current conditions.
-#' @param DIR_list      Character string - The list of global circulation models to create predictions for
 #' @param species_list  Character string - The species to run maxent predictions for
 #' @param maxent_path   Character string - The file path containing the existing maxent models
 #' @param thresholds    Character string - List of SDM thresholds
 #' @param write_rasters Character string - Save rasters 
 #' @export
-habitat_threshold = function(DIR_list, species_list,
-                             maxent_path, thresholds,
+habitat_threshold = function(species_list,
+                             maxent_table,
+                             maxent_path, 
                              write_rasters) {
   
-  ## Loop over each directory
-  ## DIR = DIR_list[1]
-  lapply(DIR_list, function(DIR) {
+  ## Pipe the list into Lapply
+  species_list %>%
     
-    ## And each species - although we don't want all possible
-    ## combinations. use mapply in the function call
-    ## species = species_list[1]
-    lapply(species_list, function(species) {
+    ## Loop over just the species
+    lapply(function(species) {
       
-      ## Then, create rasters that meet habitat suitability criteria
-      ## thresholds, determined by the rmaxent function
-      ## thresh = thresholds[1]
-      for (thresh in thresholds) {
+      ## Check the threshold data exists
+      current_file = sprintf('%s/%s/full/%s_current_not_novel.tif',
+                             maxent_path, species, species)
+      
+      ## If the threshold raster data doesn't exist :
+      if(!file.exists(current_file)) {
         
-        ## Create a list of the rasters in each species directory for
-        ## each time period, then take the mean
-        message('Thresholding habitat suitablity for ', species)
+        ## species = species_list[1]
+        message("Creating threshold rasters for ", species)
         
-        ## Then, If the gain/loss raster already exists, skip that species
-        current_file = sprintf('%s/%s/full/%s_current_not_novel.tif',
-                               maxent_path, species, species)
+        ## Get the directory
+        DIR = maxent_table %>%
+          filter(searchTaxon == species) %>%
+          dplyr::select(results_dir) %>%
+          distinct() %>% .[1, ] %>% .[[1]]
         
-        ## Next is easier than if/else
-        if(!file.exists(current_file)) {
+        thresh = maxent_table %>%
+          filter(searchTaxon == species) %>%
+          dplyr::select(Logistic_threshold) %>%
+          distinct() %>% .[1, ] %>% .[[1]]
+        
+        ## Print the species being analysed
+        message('doing ', species, ' | Logistic > ', thresh)
+        
+        ## Read in the current suitability raster :: get the current_not_novel raster
+        f_current <- raster(sprintf('%s/%s/full/%s_current_not_novel.tif',
+                                    maxent_path, species, species))
+        
+        ## First, create a simple function to threshold each of the rasters in raster.list,
+        ## Then apply this to just the current suitability raster.
+        thresh_greater       = function (x) {x > thresh}
+        current_suit_thresh  = thresh_greater(f_current)
+        
+        ## Now write the rasters
+        ## If the rasters don't exist, write them for each species/threshold
+        if(write_rasters == "TRUE") {
           
-          ## Print the species being analysed
-          message('doing ', species, ' | Logistic > ', thresh)
+          ## Write the current suitability raster, thresholded using the Maximum training
+          ## sensitivity plus specificity Logistic threshold
+          message('Writing ', species, ' current', ' max train > ', thresh)
           
-          ## Read in the current suitability raster :: get the current_not_novel raster
-          f_current <- raster(sprintf('%s/%s/full/%s_current_not_novel.tif',
-                                      maxent_path, species, species))
+          ## Save in two places, in the species folder, 
+          ## and in the habitat suitability folder
+          writeRaster(current_suit_thresh, sprintf('%s/%s/full/%s_%s%s.tif', maxent_path,
+                                                   species, species, "current_suit_not_novel_above_", thresh),
+                      overwrite = TRUE)
           
-          ## First, create a simple function to threshold each of the rasters in raster.list,
-          ## Then apply this to just the current suitability raster.
-          thresh_greater       = function (x) {x > thresh}
-          current_suit_thresh  = thresh_greater(f_current)
-          
-          ## Now write the rasters
-          ## If the rasters don't exist, write them for each species/threshold
-          if(write_rasters == TRUE) {
-            
-            ## Write the current suitability raster, thresholded using the Maximum training
-            ## sensitivity plus specificity Logistic threshold
-            message('Writing ', species, ' current', ' max train > ', thresh)
-            
-            ## Save in two places, in the species folder, 
-            ## and in the habitat suitability folder
-            writeRaster(current_suit_thresh, sprintf('%s/%s/full/%s_%s%s.tif', maxent_path,
-                                                     species, species, "current_suit_not_novel_above_", thresh),
-                        overwrite = TRUE)
-            
-          } else {
-            message(' skip raster writing')
-          }
         } else {
-          message(species, ' thresholded raster already exists, skip')
+          message(' skip raster writing')
         }
+        
+      } else {
+        message('Threshold raster already exists for', species, ' skip')
+        cat(species)
       }
-    })
-  })
+    }) 
 }
 
 
@@ -1022,298 +1024,295 @@ sdm_area_cell_count = function(unit_shp, country_shp,
   
   ## Loop over each directory
   ## DIR = DIR_list[1]
+  
+  ## And each species - although we don't want all possible
+  ## combinations. use mapply in the function call
+  ## species = species_list[1]
   lapply(DIR_list, function(DIR) {
     
-    ## And each species - although we don't want all possible
-    ## combinations. use mapply in the function call
-    ## species = species_list[1]
-    lapply(species_list, function(species) {
+    ## Then, create rasters that meet habitat suitability criteria
+    ## thresholds, determined by the rmaxent function
+    ## thresh = thresholds[1]
+    for (thresh in thresholds) {
       
-      ## Then, create rasters that meet habitat suitability criteria
-      ## thresholds, determined by the rmaxent function
-      ## thresh = thresholds[1]
-      for (thresh in thresholds) {
+      ## Create a list of the rasters in each species directory for
+      ## each time period, then take the mean
+      message('Running summary of SDM predictions within SUAs for ',
+              species, ' using ', names(areal_unit)[1], " shapefile")
+      
+      ## Read in all the habitat suitability rasters for each time period which are _not_ novel
+      raster.list       = list.files(as.character(DIR), pattern = 'future_not_novel', full.names = TRUE)
+      raster.list       = raster.list[grep(paste0('bi', time_slice, collapse = '|'), raster.list, ignore.case = TRUE)]
+      number.un.nov     = length(raster.list)
+      
+      ## First, if the number of gcms is less than expected, skip that species
+      if(number.un.nov == number_gcms) {
         
-        ## Create a list of the rasters in each species directory for
-        ## each time period, then take the mean
-        message('Running summary of SDM predictions within SUAs for ',
-                species, ' using ', names(areal_unit)[1], " shapefile")
+        ## Then create a stack of rasters from the file list
+        ## This is a bit hack, but it works :: better to use a regular expression
+        message('Combining SDM prediction for ', length(raster.list), ' GCMS for 20', time_slice)
+        suit              = stack(raster.list)
+        suit.list         = unstack(suit)
         
-        ## Read in all the habitat suitability rasters for each time period which are _not_ novel
-        raster.list       = list.files(as.character(DIR), pattern = 'future_not_novel', full.names = TRUE)
-        raster.list       = raster.list[grep(paste0('bi', time_slice, collapse = '|'), raster.list, ignore.case = TRUE)]
-        number.un.nov     = length(raster.list)
+        ## Then, If the gain/loss raster already exists, skip that species
+        aggregation_file =   sprintf('%s/%s/full/%s_20%s_%s%s.tif', maxent_path,
+                                     species, species, time_slice, "gain_loss_", thresh)
         
-        ## First, if the number of gcms is less than expected, skip that species
-        if(number.un.nov == number_gcms) {
+        ## Next is easier than if/else
+        if(!file.exists(aggregation_file)) {
           
-          ## Then create a stack of rasters from the file list
-          ## This is a bit hack, but it works :: better to use a regular expression
-          message('Combining SDM prediction for ', length(raster.list), ' GCMS for 20', time_slice)
-          suit              = stack(raster.list)
-          suit.list         = unstack(suit)
+          ## Check if the mean GCM raster exists
+          f_mean = sprintf('%s/%s/full/%s_20%s_suitability_mean.tif', maxent_path, species, species, time_slice)
           
-          ## Then, If the gain/loss raster already exists, skip that species
-          aggregation_file =   sprintf('%s/%s/full/%s_20%s_%s%s.tif', maxent_path,
-                                       species, species, time_slice, "gain_loss_", thresh)
+          if(!file.exists(f_mean)) {
+            message('Calculating mean of ', length(raster.list), ' GCMS for 20', time_slice)
+            
+            combo_suit_mean   = mean(suit)
+            writeRaster(combo_suit_mean , sprintf('%s/%s/full/%s_20%s_suitability_mean.tif',
+                                                  maxent_path, species, species, time_slice), overwrite = TRUE)
+          } else {
+            message('Mean of ', length(raster.list), ' GCMS for 20', time_slice, ' already exists')
+          }
           
-          ## Next is easier than if/else
-          if(!file.exists(aggregation_file)) {
+          ## Print the species being analysed
+          message('doing ', species, ' | Logistic > ', thresh, ' for 20', time_slice)
+          
+          ## Read in the current suitability raster :: get the current_not_novel raster
+          f_current <- raster(sprintf('%s/%s/full/%s_current_not_novel.tif',
+                                      maxent_path, species, species))
+          
+          ## First, create a simple function to threshold each of the rasters in raster.list,
+          ## Then apply this to just the current suitability raster.
+          thresh_greater       = function (x) {x > thresh}
+          current_suit_thresh  = thresh_greater(f_current)
+          
+          ## Count the number of patches in the thresholded suitability raster
+          ## And the largest contiguous areas
+          ## Are the environmental conditions at the sites novel?
+          ## see exdet gist for interactions between variables
+          message('Calcualting the max contiguous suitability patch for ', species)
+          patches   <- SDMTools::ConnCompLabel(current_suit_thresh)
+          n_patches <- maxValue(patches)
+          max_patch_area <- max(table(patches[]))
+          
+          ## First, calculate the cells which are greater that the:
+          ## Maximum training sensitivity plus specificity Logistic threshold
+          message('Running thresholds for ', species, ' | 20', time_slice, ' combined suitability > ', thresh)
+          
+          ## Create a loop, etc to compress this............
+          suit_ras1_thresh   = thresh_greater(suit.list[[1]])
+          suit_ras2_thresh   = thresh_greater(suit.list[[2]])
+          suit_ras3_thresh   = thresh_greater(suit.list[[3]])
+          suit_ras4_thresh   = thresh_greater(suit.list[[4]])
+          suit_ras5_thresh   = thresh_greater(suit.list[[5]])
+          suit_ras6_thresh   = thresh_greater(suit.list[[6]])
+          
+          ## Then sum them up: All the threshholds
+          combo_suit_thresh   =  Reduce("+", list(suit_ras1_thresh, suit_ras2_thresh, suit_ras3_thresh,
+                                                  suit_ras4_thresh, suit_ras5_thresh, suit_ras6_thresh))
+          
+          ## For each species, create a binary raster with cells > 4 GCMs above the maxent threshold = 1,
+          ## and cells with < 4 GCMs = 0.
+          message('Calculating change for ', species, ' | 20', time_slice, ' combined suitability > ', thresh)
+          
+          ## Functions for thresholding rasters
+          band_4           <- function(x) {ifelse(x >=  4, 1, 0) }
+          combo_suit_4GCM  <- calc(combo_suit_thresh, fun = band_4)
+          
+          ## Now create a raster of the gain, loss and stable
+          ## Create a raster stack of the current and future rasters
+          message ("Counting cells lost/gained/stable/never suitable, both across AUS and per unit")
+          
+          ## Add n_patches and max_patch_area to the output tables - same for every scenario though
+          ## Create a table of cell counts using a raster stack of current and future data
+          
+          ## Replace REG_CODE_7 = areal_unit_vec
+          d <- as.data.frame(stack(current_suit_thresh, combo_suit_4GCM)[]) %>%
+            setNames(c(' Current', 'future')) %>%
+            mutate(!!agg_var := areal_unit_vec,
+                   cell_number = seq_len(ncell(current_suit_thresh))) %>%
+            as.tbl
+          dim(d);summary(d)
+          
+          ## Then classify the cells of the raster stack into lost, gained, stable and never suitable
+          ##
+          d2 <- d %>%
+            na.omit %>%
             
-            ## Check if the mean GCM raster exists
-            f_mean = sprintf('%s/%s/full/%s_20%s_suitability_mean.tif', maxent_path, species, species, time_slice)
+            mutate(lost   = current == 1 & future == 0,
+                   gained = current == 0 & future == 1,
+                   stable = current == 1 & future == 1,
+                   never  = current == 0 & future == 0,
+                   nodata = is.na(current) | is.na(future))
+          d2$class <- apply(select(d2, lost:never), 1, which)
+          dim(d2)
+          
+          ## Then group the cell counts by SUA
+          ## Try subbing (!!sort_var) for REG_CODE_7
+          message ("group by, ", agg_var)
+          d3 <- d2 %>%
+            group_by(.dots = agg_var) %>%
             
-            if(!file.exists(f_mean)) {
-              message('Calculating mean of ', length(raster.list), ' GCMS for 20', time_slice)
-              
-              combo_suit_mean   = mean(suit)
-              writeRaster(combo_suit_mean , sprintf('%s/%s/full/%s_20%s_suitability_mean.tif',
-                                                    maxent_path, species, species, time_slice), overwrite = TRUE)
-            } else {
-              message('Mean of ', length(raster.list), ' GCMS for 20', time_slice, ' already exists')
-            }
+            summarize(CURRENT_SUITABLE = sum(current, na.rm = TRUE),
+                      FUTURE_SUITABLE  = sum(future,  na.rm = TRUE),
+                      LOST             = sum(lost,    na.rm = TRUE),
+                      GAINED           = sum(gained,  na.rm = TRUE),
+                      STABLE           = sum(stable,  na.rm = TRUE),
+                      NEVER            = sum(never,   na.rm = TRUE),
+                      NODAT            = sum(nodata,  na.rm = TRUE),
+                      n_cells = n()) %>%
             
-            ## Print the species being analysed
-            message('doing ', species, ' | Logistic > ', thresh, ' for 20', time_slice)
+            ## Then calculate change between current and future
+            mutate(CHANGE    = FUTURE_SUITABLE - CURRENT_SUITABLE,
+                   GAIN_LOSS = ifelse(CHANGE < 0, 'LOSS', ifelse(CHANGE > 0, 'GAIN', 'STABLE')),
+                   GAIN_LOSS = ifelse(CURRENT_SUITABLE == 0 &
+                                        FUTURE_SUITABLE == 0, 'NEVER', GAIN_LOSS))
+          dim(d3)
+          
+          ## Add the species column
+          d4 = d3 %>%
+            join(areal_unit@data, .) %>%
+            add_column(., SPECIES = species,    .after = "AREASQKM16") %>%
+            add_column(., PERIOD  = time_slice, .after = "SPECIES")    %>%
+            add_column(., THRESH  = thresh,     .after = "PERIOD")
+          
+          ## Now calculate the number of cells lost/gained/stable across Australia
+          message ("Counting cells lost/gained/stable/never suitable across Australia")
+          d5 <- stack(current_suit_thresh, combo_suit_4GCM)[]
+          r  <- raster(current_suit_thresh)
+          z  <- as.data.frame(d4)
+          
+          ## Then classify the raster stack to make each value (i.e. outcome) unique
+          r[d5[, 1]==1 & d5[, 2]==0] <- 1  ## 1 in current raster and 0 in future = LOSS
+          r[d5[, 1]==0 & d5[, 2]==1] <- 2  ## 0 in current raster and 1 in future = GAIN
+          r[d5[, 1]==1 & d5[, 2]==1] <- 3  ## 1 in current raster and 1 in future = STABLE
+          r[d5[, 1]==0 & d5[, 2]==0] <- 4  ## 0 in current raster and 0 in future = NEVER_SUIT
+          
+          ## Create a table of these values, to merge with the levels later. This avoids the problem
+          ## that not all the categories will
+          ## be present for all species
+          change_values = data.frame("ID" = 1:4, "CHANGE" = c("LOST", "GAINED", "STABLE", "NEVER"))
+          
+          ## Now convert the raster to a factor and assign lables to the levels
+          gain_loss <- as.factor(r)
+          levels(gain_loss)[[1]] <- data.frame(ID = 1:4, label = c('Lost', 'Gained', 'Stable', 'Never_Suitable'))
+          z <- as.data.frame(d5)
+          
+          ## Create a table of the gain/loss/stable :: write this to file as well
+          gain_loss_table      = table(z[, 1], z[, 2])
+          gain_loss_df         = as.data.frame(raster::freq(gain_loss))
+          gain_loss_df$SPECIES = species
+          gain_loss_df$PERIOD  = time_slice
+          
+          names(gain_loss_df)  = c("CHANGE", "COUNT", "SPECIES", "PERIOD")
+          gain_loss_df         = gain_loss_df[, c("SPECIES", "PERIOD", "CHANGE", "COUNT")]
+          
+          ## Change values and remove the NA row
+          gain_loss_df$CHANGE[gain_loss_df$CHANGE == 1] <- "LOST"
+          gain_loss_df$CHANGE[gain_loss_df$CHANGE == 2] <- "GAINED"
+          gain_loss_df$CHANGE[gain_loss_df$CHANGE == 3] <- "STABLE"
+          gain_loss_df$CHANGE[gain_loss_df$CHANGE == 4] <- "NEVER_SUIT"
+          gain_loss_df = head(gain_loss_df, 4)
+          
+          ## Now add the counts of the biggest contiguous area
+          gain_loss_df$NUM_PATCH = n_patches
+          gain_loss_df$MAX_PATCH = max_patch_area
+          head(gain_loss_df)
+          
+          ## Save the gain/loss table for the whole of Australia
+          message('Writing ', species, ' gain_loss tables for 20', time_slice)
+          write.csv(gain_loss_df, sprintf('%s/%s/full/%s_20%s_%s%s.csv', maxent_path,
+                                          species, species, time_slice, "gain_loss_table_", thresh), row.names = FALSE)
+          
+          ## Save the gain/loss table
+          write.csv(d4, sprintf('%s/%s/full/%s_20%s_%s%s.csv', maxent_path,
+                                species, species, time_slice, "SUA_cell_count_", thresh), row.names = FALSE)
+          
+          ## Now write the rasters
+          ## If the rasters don't exist, write them for each species/threshold
+          if(write_rasters == "TRUE") {
             
-            ## Read in the current suitability raster :: get the current_not_novel raster
-            f_current <- raster(sprintf('%s/%s/full/%s_current_not_novel.tif',
-                                        maxent_path, species, species))
+            ## Write the current suitability raster, thresholded using the Maximum training
+            ## sensitivity plus specificity Logistic threshold
+            message('Writing ', species, ' current', ' max train > ', thresh)
+            writeRaster(current_suit_thresh, sprintf('%s/%s/full/%s_%s%s.tif', maxent_path,
+                                                     species, species, "current_suit_not_novel_above_", thresh),
+                        overwrite = TRUE)
             
-            ## First, create a simple function to threshold each of the rasters in raster.list,
-            ## Then apply this to just the current suitability raster.
-            thresh_greater       = function (x) {x > thresh}
-            current_suit_thresh  = thresh_greater(f_current)
+            ## Write the combined suitability raster, thresholded using the maximum training value
+            message('Writing ', species, ' | 20', time_slice, ' max train > ', thresh)
+            writeRaster(combo_suit_thresh, sprintf('%s/%s/full/%s_20%s%s%s.tif', maxent_path,
+                                                   species, species, time_slice, "_log_thresh_above_", thresh),
+                        overwrite = TRUE)
             
-            ## Count the number of patches in the thresholded suitability raster
-            ## And the largest contiguous areas
-            ## Are the environmental conditions at the sites novel?
-            ## see exdet gist for interactions between variables
-            message('Calcualting the max contiguous suitability patch for ', species)
-            patches   <- SDMTools::ConnCompLabel(current_suit_thresh)
-            n_patches <- maxValue(patches)
-            max_patch_area <- max(table(patches[]))
+            ## Write the combined future raster with > 4 GCMs above the maximum training value
+            message('Writing ', species, ' | 20', time_slice, ' 4 GCMs > ', thresh)
+            writeRaster(combo_suit_4GCM, sprintf('%s/%s/full/%s_20%s%s%s.tif', maxent_path,
+                                                 species, species, time_slice, "_4GCMs_above_", thresh),
+                        overwrite = TRUE)
             
-            ## First, calculate the cells which are greater that the:
-            ## Maximum training sensitivity plus specificity Logistic threshold
-            message('Running thresholds for ', species, ' | 20', time_slice, ' combined suitability > ', thresh)
+            ## Write out the gain/loss raster
+            writeRaster(gain_loss, sprintf('%s/%s/full/%s_20%s%s%s.tif', maxent_path,
+                                           species, species, time_slice, "_gain_loss_", thresh), datatype = 'INT2U',
+                        overwrite = TRUE)
             
-            ## Create a loop, etc to compress this............
-            suit_ras1_thresh   = thresh_greater(suit.list[[1]])
-            suit_ras2_thresh   = thresh_greater(suit.list[[2]])
-            suit_ras3_thresh   = thresh_greater(suit.list[[3]])
-            suit_ras4_thresh   = thresh_greater(suit.list[[4]])
-            suit_ras5_thresh   = thresh_greater(suit.list[[5]])
-            suit_ras6_thresh   = thresh_greater(suit.list[[6]])
+            ## Create a color scheme for the gain_loss plot
+            unit.plot.cols = brewer.pal(12, "Paired")
+            ## Create dataframe of colors that match the categories :;
+            # 1 <- "LOST"        unit.plot.cols[8]
+            # 2 <- "GAINED"      unit.plot.cols[4]
+            # 3 <- "STABLE"      unit.plot.cols[1]
+            # 4 <- "NEVER_SUIT"  unit.plot.cols[9]
+            ## 1 = STABLE, 4 = GAIN, 8 = LOSS, 9 = NEVER
+            lc_id = c(1, 2, 3, 4)
+            cover_palette <- c(unit.plot.cols[8], unit.plot.cols[4], unit.plot.cols[1], unit.plot.cols[11])
             
-            ## Then sum them up: All the threshholds
-            combo_suit_thresh   =  Reduce("+", list(suit_ras1_thresh, suit_ras2_thresh, suit_ras3_thresh,
-                                                    suit_ras4_thresh, suit_ras5_thresh, suit_ras6_thresh))
+            colors        <- data.frame(id = lc_id, color = cover_palette, stringsAsFactors = FALSE)
+            csort         <- colors[order(colors$id),]
             
-            ## For each species, create a binary raster with cells > 4 GCMs above the maxent threshold = 1,
-            ## and cells with < 4 GCMs = 0.
-            message('Calculating change for ', species, ' | 20', time_slice, ' combined suitability > ', thresh)
+            ## Create Labels for the gain_loss plots
+            gain_plot <- ratify(gain_loss)
+            rat <- levels(gain_plot)[[1]]
             
-            ## Functions for thresholding rasters
-            band_4           <- function(x) {ifelse(x >=  4, 1, 0) }
-            combo_suit_4GCM  <- calc(combo_suit_thresh, fun = band_4)
+            ## Use an inner join, to accomodate the different categories. EG sometimes, there are
+            ## no cells which are gained for each species, etc.
+            rat[["CHANGE"]]   <- join(rat, change_values, type = "inner")$CHANGE
+            levels(gain_plot) <- rat
             
-            ## Now create a raster of the gain, loss and stable
-            ## Create a raster stack of the current and future rasters
-            message ("Counting cells lost/gained/stable/never suitable, both across AUS and per unit")
+            ## Save the gain/loss raster to PNG
+            save_name = gsub(' ', '_', species)
+            identical(projection(country_poly), projection(gain_plot))
             
-            ## Add n_patches and max_patch_area to the output tables - same for every scenario though
-            ## Create a table of cell counts using a raster stack of current and future data
+            message('writing gain/loss png for ', 'species')
+            png(sprintf('%s/%s/full/%s_%s_%s_20%s.png', maxent_path, save_name,
+                        save_name, "gain_loss", thresh, time_slice),
+                16, 10, units = 'in', res = 500)
             
-            ## Replace REG_CODE_7 = areal_unit_vec
-            d <- as.data.frame(stack(current_suit_thresh, combo_suit_4GCM)[]) %>%
-              setNames(c(' Current', 'future')) %>%
-              mutate(!!agg_var := areal_unit_vec,
-                     cell_number = seq_len(ncell(current_suit_thresh))) %>%
-              as.tbl
-            dim(d);summary(d)
+            ## Could add the SUA polygons as well
+            print(levelplot(gain_plot,
+                            col.regions = csort$color,
+                            xlab = NULL, ylab = NULL,
+                            main       = list(paste0(gsub('_', ' ', species), ' :: ',  20,
+                                                     time_slice, ' 4GCMs > ',  thresh),
+                                              font = 4, cex = 2)) +
+                    latticeExtra::layer(sp.polygons(country_poly),
+                                        data = list(country_poly = country_poly)))
             
-            ## Then classify the cells of the raster stack into lost, gained, stable and never suitable
-            ##
-            d2 <- d %>%
-              na.omit %>%
-              
-              mutate(lost   = current == 1 & future == 0,
-                     gained = current == 0 & future == 1,
-                     stable = current == 1 & future == 1,
-                     never  = current == 0 & future == 0,
-                     nodata = is.na(current) | is.na(future))
-            d2$class <- apply(select(d2, lost:never), 1, which)
-            dim(d2)
-            
-            ## Then group the cell counts by SUA
-            ## Try subbing (!!sort_var) for REG_CODE_7
-            message ("group by, ", agg_var)
-            d3 <- d2 %>%
-              group_by(.dots = agg_var) %>%
-              
-              summarize(CURRENT_SUITABLE = sum(current, na.rm = TRUE),
-                        FUTURE_SUITABLE  = sum(future,  na.rm = TRUE),
-                        LOST             = sum(lost,    na.rm = TRUE),
-                        GAINED           = sum(gained,  na.rm = TRUE),
-                        STABLE           = sum(stable,  na.rm = TRUE),
-                        NEVER            = sum(never,   na.rm = TRUE),
-                        NODAT            = sum(nodata,  na.rm = TRUE),
-                        n_cells = n()) %>%
-              
-              ## Then calculate change between current and future
-              mutate(CHANGE    = FUTURE_SUITABLE - CURRENT_SUITABLE,
-                     GAIN_LOSS = ifelse(CHANGE < 0, 'LOSS', ifelse(CHANGE > 0, 'GAIN', 'STABLE')),
-                     GAIN_LOSS = ifelse(CURRENT_SUITABLE == 0 &
-                                          FUTURE_SUITABLE == 0, 'NEVER', GAIN_LOSS))
-            dim(d3)
-            
-            ## Add the species column
-            d4 = d3 %>%
-              join(areal_unit@data, .) %>%
-              add_column(., SPECIES = species,    .after = "AREASQKM16") %>%
-              add_column(., PERIOD  = time_slice, .after = "SPECIES")    %>%
-              add_column(., THRESH  = thresh,     .after = "PERIOD")
-            
-            ## Now calculate the number of cells lost/gained/stable across Australia
-            message ("Counting cells lost/gained/stable/never suitable across Australia")
-            d5 <- stack(current_suit_thresh, combo_suit_4GCM)[]
-            r  <- raster(current_suit_thresh)
-            z  <- as.data.frame(d4)
-            
-            ## Then classify the raster stack to make each value (i.e. outcome) unique
-            r[d5[, 1]==1 & d5[, 2]==0] <- 1  ## 1 in current raster and 0 in future = LOSS
-            r[d5[, 1]==0 & d5[, 2]==1] <- 2  ## 0 in current raster and 1 in future = GAIN
-            r[d5[, 1]==1 & d5[, 2]==1] <- 3  ## 1 in current raster and 1 in future = STABLE
-            r[d5[, 1]==0 & d5[, 2]==0] <- 4  ## 0 in current raster and 0 in future = NEVER_SUIT
-            
-            ## Create a table of these values, to merge with the levels later. This avoids the problem
-            ## that not all the categories will
-            ## be present for all species
-            change_values = data.frame("ID" = 1:4, "CHANGE" = c("LOST", "GAINED", "STABLE", "NEVER"))
-            
-            ## Now convert the raster to a factor and assign lables to the levels
-            gain_loss <- as.factor(r)
-            levels(gain_loss)[[1]] <- data.frame(ID = 1:4, label = c('Lost', 'Gained', 'Stable', 'Never_Suitable'))
-            z <- as.data.frame(d5)
-            
-            ## Create a table of the gain/loss/stable :: write this to file as well
-            gain_loss_table      = table(z[, 1], z[, 2])
-            gain_loss_df         = as.data.frame(raster::freq(gain_loss))
-            gain_loss_df$SPECIES = species
-            gain_loss_df$PERIOD  = time_slice
-            
-            names(gain_loss_df)  = c("CHANGE", "COUNT", "SPECIES", "PERIOD")
-            gain_loss_df         = gain_loss_df[, c("SPECIES", "PERIOD", "CHANGE", "COUNT")]
-            
-            ## Change values and remove the NA row
-            gain_loss_df$CHANGE[gain_loss_df$CHANGE == 1] <- "LOST"
-            gain_loss_df$CHANGE[gain_loss_df$CHANGE == 2] <- "GAINED"
-            gain_loss_df$CHANGE[gain_loss_df$CHANGE == 3] <- "STABLE"
-            gain_loss_df$CHANGE[gain_loss_df$CHANGE == 4] <- "NEVER_SUIT"
-            gain_loss_df = head(gain_loss_df, 4)
-            
-            ## Now add the counts of the biggest contiguous area
-            gain_loss_df$NUM_PATCH = n_patches
-            gain_loss_df$MAX_PATCH = max_patch_area
-            head(gain_loss_df)
-            
-            ## Save the gain/loss table for the whole of Australia
-            message('Writing ', species, ' gain_loss tables for 20', time_slice)
-            write.csv(gain_loss_df, sprintf('%s/%s/full/%s_20%s_%s%s.csv', maxent_path,
-                                            species, species, time_slice, "gain_loss_table_", thresh), row.names = FALSE)
-            
-            ## Save the gain/loss table
-            write.csv(d4, sprintf('%s/%s/full/%s_20%s_%s%s.csv', maxent_path,
-                                  species, species, time_slice, "SUA_cell_count_", thresh), row.names = FALSE)
-            
-            ## Now write the rasters
-            ## If the rasters don't exist, write them for each species/threshold
-            if(write_rasters == "TRUE") {
-              
-              ## Write the current suitability raster, thresholded using the Maximum training
-              ## sensitivity plus specificity Logistic threshold
-              message('Writing ', species, ' current', ' max train > ', thresh)
-              writeRaster(current_suit_thresh, sprintf('%s/%s/full/%s_%s%s.tif', maxent_path,
-                                                       species, species, "current_suit_not_novel_above_", thresh),
-                          overwrite = TRUE)
-              
-              ## Write the combined suitability raster, thresholded using the maximum training value
-              message('Writing ', species, ' | 20', time_slice, ' max train > ', thresh)
-              writeRaster(combo_suit_thresh, sprintf('%s/%s/full/%s_20%s%s%s.tif', maxent_path,
-                                                     species, species, time_slice, "_log_thresh_above_", thresh),
-                          overwrite = TRUE)
-              
-              ## Write the combined future raster with > 4 GCMs above the maximum training value
-              message('Writing ', species, ' | 20', time_slice, ' 4 GCMs > ', thresh)
-              writeRaster(combo_suit_4GCM, sprintf('%s/%s/full/%s_20%s%s%s.tif', maxent_path,
-                                                   species, species, time_slice, "_4GCMs_above_", thresh),
-                          overwrite = TRUE)
-              
-              ## Write out the gain/loss raster
-              writeRaster(gain_loss, sprintf('%s/%s/full/%s_20%s%s%s.tif', maxent_path,
-                                             species, species, time_slice, "_gain_loss_", thresh), datatype = 'INT2U',
-                          overwrite = TRUE)
-              
-              ## Create a color scheme for the gain_loss plot
-              unit.plot.cols = brewer.pal(12, "Paired")
-              ## Create dataframe of colors that match the categories :;
-              # 1 <- "LOST"        unit.plot.cols[8]
-              # 2 <- "GAINED"      unit.plot.cols[4]
-              # 3 <- "STABLE"      unit.plot.cols[1]
-              # 4 <- "NEVER_SUIT"  unit.plot.cols[9]
-              ## 1 = STABLE, 4 = GAIN, 8 = LOSS, 9 = NEVER
-              lc_id = c(1, 2, 3, 4)
-              cover_palette <- c(unit.plot.cols[8], unit.plot.cols[4], unit.plot.cols[1], unit.plot.cols[11])
-              
-              colors        <- data.frame(id = lc_id, color = cover_palette, stringsAsFactors = FALSE)
-              csort         <- colors[order(colors$id),]
-              
-              ## Create Labels for the gain_loss plots
-              gain_plot <- ratify(gain_loss)
-              rat <- levels(gain_plot)[[1]]
-              
-              ## Use an inner join, to accomodate the different categories. EG sometimes, there are
-              ## no cells which are gained for each species, etc.
-              rat[["CHANGE"]]   <- join(rat, change_values, type = "inner")$CHANGE
-              levels(gain_plot) <- rat
-              
-              ## Save the gain/loss raster to PNG
-              save_name = gsub(' ', '_', species)
-              identical(projection(country_poly), projection(gain_plot))
-              
-              message('writing gain/loss png for ', 'species')
-              png(sprintf('%s/%s/full/%s_%s_%s_20%s.png', maxent_path, save_name,
-                          save_name, "gain_loss", thresh, time_slice),
-                  16, 10, units = 'in', res = 500)
-              
-              ## Could add the SUA polygons as well
-              print(levelplot(gain_plot,
-                              col.regions = csort$color,
-                              xlab = NULL, ylab = NULL,
-                              main       = list(paste0(gsub('_', ' ', species), ' :: ',  20,
-                                                       time_slice, ' 4GCMs > ',  thresh),
-                                                font = 4, cex = 2)) +
-                      latticeExtra::layer(sp.polygons(country_poly),
-                                          data = list(country_poly = country_poly)))
-              
-              dev.off()
-              
-            } else {
-              message(' skip raster writing')
-            }
+            dev.off()
             
           } else {
-            message(species, ' ', 20, time_slice, ' spatial aggregation already exists, skip')
+            message(' skip raster writing')
           }
           
         } else {
-          message(species, ' ', 20, time_slice, ' insufficient gcms exists, skip')
+          message(species, ' ', 20, time_slice, ' spatial aggregation already exists, skip')
         }
+        
+      } else {
+        message(species, ' ', 20, time_slice, ' insufficient gcms exists, skip')
       }
-    })
+    }
   })
-  
 }
 
 

@@ -251,7 +251,7 @@ present. Here we've chosen the 10th% Logistic threshold for each taxa (ref).
 ## Create a table of maxent results
 ## This function aggregates the results for models that ran successfully
 mapply(habitat_threshold(DIR_list      = sdm.results.dir, 
-                         species_list  = map_taxa,
+                         species_list  = unique(MAXENT.RESULTS$searchTaxon),
                          maxent_path   = './output/veg_climate_topo_maxent/back_sel_models/',
                          thresholds    = percent.10.log,
                          write_rasters = TRUE))
