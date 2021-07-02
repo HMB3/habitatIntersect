@@ -67,33 +67,50 @@ ipak(sdmgen_packages)
 \
 
 
-# STEP 8 :: Aggregate results for each species and intersect with FESM
+# Assess the exent of habitat burnt for each species
 
 \
 
-What do we want to do here? Create a stack of rasters using the FESM layers.
-Then, for each species, intersect the current layers with the FESM layers.
-This is not what Will was suggesting the other day...that's something more sophisticated.
+For each species, we want to caclulate the % of suitable habitat that was burnt by the
+2019-2020 fires. We could use raster multiplication to achieve this...
 
 
-But we can start with that. Make this function loop through all species, and intersect
-The habitat layers with the FESM layers. How much from that can we keep? 
+Create a function that loops through all species, and multiples the thresh holded SDM rasters by
+the fire severity layers (the FESM layers). 
 
 Consider the extent and resolution issues - FESM is 10m fire scars?
 GEEBAM is the Keith Class veg units, but only for the areas that burnt...
+SVTM
+
 How can we intersect the 1km rasters with the 10m layers? What do we want at the end,
 a measure of % remaining/burnt for each species, overall, and in each veg class?
 
+
+
+Next let's get the rasters to compare with SDM modelling :
+
+- Fire layers    (FESM)
+- NSW Vegetation (Veg maps)  
+
+\
+
+
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Create a stack of all the rasters needed to calculate habitat
-## Try stacking the composite bands, + the SDMs
-study.veg.sdm <- stack('./output/veg_climate_topo_maxent/Habitat_suitability/10m/Resampled/Veg_fire_SDM_composite.tif')
+## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
+## VALUES : 1-4, burn intensity from 2019-2020 fires at 10m resolution
+FESM_1000m_GDA_study <- raster('./data/Remote_sensing/FESM/fesm_20200420_1000m_meanx_GDA_study.tif')
+xres(FESM)
+yres(FESM)
 
-## Check the raster output
-# plot(aus.veg.grids$Acanthosomatidae_current_not_novel_10m)
 
-
+## SVTM Rasters : https://www.environment.nsw.gov.au/vegetation/state-vegetation-type-map.htm
+# The State Vegetation Type Map (SVTM)  of Plant Community Types across NSW at 5m pixels
+SVTM           <- raster('./data/Remote_sensing/Veg_data/NSW_vegetation_types/SVTM_PCTID_mar2020_coastLUTv5p5.tif')
+SVTM_GDA_study <- raster('./data/Remote_sensing/Veg_data/NSW_vegetation_types/SVTM_PCTID_study.tif')
+xres(SVTM_GDA_study)
+yres(SVTM_GDA_study)
+ 
 ``` 
 
 

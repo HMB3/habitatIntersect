@@ -238,7 +238,10 @@ https://drive.google.com/open?id=1T5ET5MUX3-lkqiN5nNL3SZZagoJlEOal.
 
 \
 
-Let's create all the raster data we need here :
+Let's create all the raster data we need. First let's get the rasters needed for SDM modelling :
+- Climate
+- Vegetation
+- Topoggraphy
 
 \
 
@@ -275,19 +278,12 @@ study.veg.grids <- stack(
              '_1km_study.tif', full.names = TRUE))
 
 
-## SMD Results
+## SDM Results
 study.sdm.grids <- stack(
   list.files('./output/veg_climate_topo_maxent/Habitat_suitability/10m', 
              '_10m.tif', full.names = TRUE))
 
 
-## Veg layers
-study.sdm.grids <- stack(
-  list.files('./output/veg_climate_topo_maxent/Habitat_suitability/10m', 
-             '_10m.tif', full.names = TRUE))
-
-
-## Valley bottom data
 aus.vbf   <- raster('./data/Remote_sensing/Topography/mrvbf_int_1km.tif')
 study.vbf <- raster('./data/Remote_sensing/Topography/mrvbf_int_study_1km.tif')
 
@@ -350,7 +346,9 @@ template_raster_1km_mol   = raster("./data/world_koppen/template_has_data_1km.ti
 
 ```
 
+
 \
+
 
 Next we filter the records to those taken after 1950, and those inside the raster boundaries 
 (i.e. species records in the ocean according to the raster boundaries will be excluded).

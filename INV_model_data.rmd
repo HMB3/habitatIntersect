@@ -178,10 +178,10 @@ sdm.results.dir <- MAXENT.RESULTS$results_dir
 
 
 ## Combine maxent results together for the different taxa
-MAXENT.COMBINED <- readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_FAM.rds') %>% 
-  bind_rows(readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_GENERA.rds'))    %>% 
-  bind_rows(readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_SPP.rds'))
-saveRDS(MAXENT.COMBINED, './output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_TAXA.rds')
+# MAXENT.COMBINED <- readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_FAM.rds') %>% 
+#   bind_rows(readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_GENERA.rds'))    %>% 
+#   bind_rows(readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_SPP.rds'))
+# saveRDS(MAXENT.COMBINED, './output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_TAXA.rds')
 
 ``` 
 
@@ -248,13 +248,11 @@ present. Here we've chosen the 10th% Logistic threshold for each taxa (ref).
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Create a table of maxent results
-## This function aggregates the results for models that ran successfully
-mapply(habitat_threshold(DIR_list      = sdm.results.dir, 
-                         species_list  = unique(MAXENT.RESULTS$searchTaxon),
-                         maxent_path   = './output/veg_climate_topo_maxent/back_sel_models/',
-                         thresholds    = percent.10.log,
-                         write_rasters = TRUE))
+## Threshold the SDM models to be either 0 or 1
+habitat_threshold(taxa_list     = unique(MAXENT.RESULTS$searchTaxon),
+                  maxent_table  = MAXENT.RESULTS,
+                  maxent_path   = './output/veg_climate_topo_maxent/back_sel_models/',
+                  write_rasters = TRUE)
 
 ``` 
 
