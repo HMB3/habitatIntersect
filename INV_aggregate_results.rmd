@@ -30,7 +30,10 @@ word_document:
 
 \
 
-The text and code below summarises a workflow in R that can be used to relatively rapidly assess the environmental range of a species within Australia, from downloading occurrence records, through to creating maps of predicted climatic suitability across Australia at 1km*1km resolution. An example of this work is published in the journal Science of the Total Environment ::
+The text and code below summarises a workflow in R that can be used to relatively rapidly assess the 
+environmental range of a species within Australia, from downloading occurrence records, through to 
+creating maps of predicted climatic suitability across Australia at 1km*1km resolution. An example 
+of this work is published in the journal Science of the Total Environment ::
 
 \
 
@@ -67,16 +70,17 @@ ipak(sdmgen_packages)
 \
 
 
-# Assess the exent of habitat burnt for each species
+# Assess the exent of suitable habitat burnt for each species
 
 \
 
-For each species, we want to caclulate the % of suitable habitat that was burnt by the
-2019-2020 fires. We could use raster multiplication to achieve this...
+For each Invertebrate species, let's calculate the % of suitable habitat that was burnt by the
+2019-2020 fires. We can do this using raster multiplication...
 
 
-Create a function that loops through all species, and multiples the thresh holded SDM rasters by
+Create a function that loops through all species, and multiples the thresholded SDM rasters by
 the fire severity layers (the FESM layers). 
+
 
 Consider the extent and resolution issues - FESM is 10m fire scars?
 GEEBAM is the Keith Class veg units, but only for the areas that burnt...
@@ -86,11 +90,13 @@ How can we intersect the 1km rasters with the 10m layers? What do we want at the
 a measure of % remaining/burnt for each species, overall, and in each veg class?
 
 
+\
 
-Next let's get the rasters to compare with SDM modelling :
+First, get the rasters to compare with SDM modelling :
 
 - Fire layers    (FESM)
-- NSW Vegetation (Veg maps)  
+- NSW Vegetation (Veg maps) 
+- SDM output     (Binary habitat suitability, 0-1)
 
 \
 
@@ -98,21 +104,61 @@ Next let's get the rasters to compare with SDM modelling :
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
-## VALUES : 1-4, burn intensity from 2019-2020 fires at 10m resolution
+## VALUES : 1-4, burn intensity from 2019-2020 fires @ 10m resolution
 FESM_1000m_GDA_study <- raster('./data/Remote_sensing/FESM/fesm_20200420_1000m_meanx_GDA_study.tif')
-xres(FESM)
-yres(FESM)
+xres(FESM_1000m_GDA_study)
+yres(FESM_1000m_GDA_study)
 
 
 ## SVTM Rasters : https://www.environment.nsw.gov.au/vegetation/state-vegetation-type-map.htm
-# The State Vegetation Type Map (SVTM)  of Plant Community Types across NSW at 5m pixels
+# The State Vegetation Type Map (SVTM)  of Plant Community Types across NSW @ 5m resolution
 SVTM           <- raster('./data/Remote_sensing/Veg_data/NSW_vegetation_types/SVTM_PCTID_mar2020_coastLUTv5p5.tif')
 SVTM_GDA_study <- raster('./data/Remote_sensing/Veg_data/NSW_vegetation_types/SVTM_PCTID_study.tif')
-xres(SVTM_GDA_study)
+xres(SVTM)
 yres(SVTM_GDA_study)
- 
+
+
+## SDM output
+study_sdm_binary <- stack(
+  list.files('./output/veg_climate_topo_maxent/Habitat_suitability/SDM_thresholds', 
+             'current_suit_not_novel_above', full.names = TRUE))
+
+## All in GDA Albers
+projection(FESM_1000m_GDA_study);projection(SVTM_GDA_study);projection(study_sdm_binary[[1]])
+xres(FESM_1000m_GDA_study);xres(SVTM_GDA_study);xres(study_sdm_binary[[1]])
+
+
 ``` 
 
+
+\
+
+Now try aligning the Fire and Veg rasters to the same grid as the SDMs
+
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+study_sdm_binary_10m <- disaggregate(study_sdm_binary[[1]], fact = 9)
+
+
+## Align the
+SVTM_study <- align_rasters(unaligned     = SVTM,
+                            reference     = study_sdm_binary[[1]],
+                            # dstfile       = './output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/SVTM_NENSW.tif',
+                            output_Raster = FALSE,
+                            nThreads      = 5,
+                            projres_only  = FALSE,
+                            verbose       = FALSE)
+
+
+``` 
+
+\
+
+Next, get the rasters to compare with SDM modelling :
+
+- Fire layers    (FESM)
+- NSW Vegetation (Veg maps)  
 
 
 \
