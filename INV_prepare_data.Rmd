@@ -45,9 +45,11 @@ To install, run :
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Set java memory limit
+## Set environments 
+## java memory limit and temporary raster dir
 rm(list = ls())
 options(java.parameters = "-Xmx64000m")
+
 
 ## Function to load or install packages
 ipak <- function(pkg){
@@ -73,6 +75,9 @@ ipak <- function(pkg){
 library(nenswniche)
 data('sdmgen_packages')
 ipak(sdmgen_packages)
+
+## Set temporary raster dir
+terraOptions()$tempdir = 'G:/North_east_NSW_fire_recovery/TEMP'
 
 ```
 

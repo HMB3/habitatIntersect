@@ -1,6 +1,6 @@
 ---
 title: "nenswniche : a package for rapidly estimating multiple species ranges and habitat suitability"
-authors: "Hugh Burley, Shawn Laffan, Adrian Fisher"
+authors: "Hugh Burley, Shawn Laffan, Will Cornwell, Adrian Fisher"
 date: "March 2021"
 output:
   github_document:
@@ -64,6 +64,9 @@ library(nenswniche)
 data('sdmgen_packages')
 ipak(sdmgen_packages)
 
+## Set temporary raster dir
+terraOptions()$tempdir = 'G:/North_east_NSW_fire_recovery/TEMP'
+
 ```
 
 
@@ -119,9 +122,12 @@ yres(SVTM_GDA_study)
 
 
 ## SDM output
-study_sdm_binary <- stack(
-  list.files('./output/veg_climate_topo_maxent/Habitat_suitability/SDM_thresholds', 
-             'current_suit_not_novel_above', full.names = TRUE))
+# study_sdm_binary <- stack(
+#   list.files('./output/veg_climate_topo_maxent/Habitat_suitability/SDM_threshold_10m', 
+#              'current_suit_not_novel_above', full.names = TRUE))
+
+test_sdm <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/SDM_threshold_10m/Acanthosomatidae_current_suit_not_novel_above_0_3041_10m_.tif')
+
 
 ## All in GDA Albers
 projection(FESM_1000m_GDA_study);projection(SVTM_GDA_study);projection(study_sdm_binary[[1]])
@@ -138,7 +144,18 @@ Now try aligning the Fire and Veg rasters to the same grid as the SDMs
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-study_sdm_binary_10m <- disaggregate(study_sdm_binary[[1]], fact = 9)
+## Try resampling using terra
+# study_sdm_binary_10m <- disaggregate(study_sdm_binary[[1]], fact = 9)
+
+## First, make the resample layer binary
+# FESM_1000m_binary <- FESM_1000m_GDA_study[FESM_1000m_GDA_study > 0] <- 1
+# FESM_1000m_binary[FESM_1000m_binary > 0] <- 1
+# 
+# template_raster_1km_mol[template_raster_1km_mol < 0] <- 1
+
+
+## Extract how many cells fall into each FESM class for each species?
+
 
 
 ## Align the

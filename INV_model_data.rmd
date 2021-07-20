@@ -1,6 +1,6 @@
 ---
 title: "nenswniche : a package for rapidly estimating multiple species ranges and habitat suitability"
-authors: "Hugh Burley, Shawn Laffan, Will Cornwell"
+authors: "Hugh Burley, Shawn Laffan, Will Cornwell, Adrian Fisher"
 date: "March 2021"
 output:
   github_document:
@@ -45,7 +45,8 @@ To install, run :
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Set java memory limit
+## Set environments 
+## java memory limit and temporary raster dir
 rm(list = ls())
 options(java.parameters = "-Xmx64000m")
 
@@ -65,6 +66,9 @@ library(nenswniche)
 data('sdmgen_packages')
 ipak(sdmgen_packages)
 
+## Set temporary raster dir
+terraOptions()$tempdir = 'G:/North_east_NSW_fire_recovery/TEMP'
+
 ```
 
 \
@@ -77,15 +81,19 @@ This code is being developed at UNSW, to help investigate
 the impacts of the 2019/2020 bush fires on Insects in the North East Forests 
 of New South Wales. The aim is to create a pipeline that rapidly assesses 
 the habitat suitability of the threatened insect species under current 
-environmental conditions. 
+environmental conditions. There are three ways to estimate habitat suitability :
+
+- Habitat Suitability Models using geographic records for each invertebrate taxon
+- Habitat Suitability Models using geographic records of host plants for each invertebrate taxon
+- Intersect geographic records of each invertebrate taxon with vegetation maps (e.g. remote sensed vegetation layers) 
 
 \
 
-# STEP  6 :: Run Global SDMs
+# Run SDMs 
 
 \
 
-Start the wiki from here, using the pre-prepared data
+Start the wiki from here, using the pre-prepared data (include data with pacakge)
 
 The next process is to run species distribution models using global records of each species.
 The sdm function runs two maxent models: a full model using all variables, and backwards selection. 
