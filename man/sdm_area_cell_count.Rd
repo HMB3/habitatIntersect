@@ -39,13 +39,13 @@ sdm_area_cell_count(
 
 \item{agg_var}{Character string - The field name in the shapefile to use for aggregating SDM results (e.g. Urban area codes)}
 
+\item{unit_vec}{Character string - The field name in the shapefile to use for aggregating SDM results (e.g. Urban area codes)}
+
 \item{species_list}{Character string - The species to run maxent predictions for}
 
 \item{maxent_path}{Character string - The file path containin the existing maxent models}
 
 \item{time_slice}{Character string - The time period to create predictions for (e.g. '2050', or '2070')}
-
-\item{@param}{unit_vec    Character string - The field name in the shapefile to use for aggregating SDM results (e.g. Urban area codes)}
 
 \item{scen_list}{Character string - The list of global circulation models to create predictions for}
 }
