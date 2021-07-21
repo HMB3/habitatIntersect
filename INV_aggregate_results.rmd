@@ -64,8 +64,9 @@ library(nenswniche)
 data('sdmgen_packages')
 ipak(sdmgen_packages)
 
-## Set temporary raster dir
-terraOptions()$tempdir = 'G:/North_east_NSW_fire_recovery/TEMP'
+## Set temporary raster dir for the terra package
+terraOptions(memfrac = 0.5, 
+             tempdir = 'G:/North_east_NSW_fire_recovery/TEMP')
 
 ```
 
@@ -121,12 +122,10 @@ xres(SVTM)
 yres(SVTM_GDA_study)
 
 
-## SDM output
-# study_sdm_binary <- stack(
-#   list.files('./output/veg_climate_topo_maxent/Habitat_suitability/SDM_threshold_10m', 
-#              'current_suit_not_novel_above', full.names = TRUE))
-
-test_sdm <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/SDM_threshold_10m/Acanthosomatidae_current_suit_not_novel_above_0_3041_10m_.tif')
+## SDM output, resampled to 100m
+study_sdm_binary <- stack(
+  list.files('./output/veg_climate_topo_maxent/Habitat_suitability/SDM_thresholds',
+             'current_suit_not_novel_above', full.names = TRUE))
 
 
 ## All in GDA Albers
@@ -139,13 +138,13 @@ xres(FESM_1000m_GDA_study);xres(SVTM_GDA_study);xres(study_sdm_binary[[1]])
 
 \
 
-Now try aligning the Fire and Veg rasters to the same grid as the SDMs
+Now try resampling and aligning the Fire and Veg rasters to the same grid as the SDMs
 
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Try resampling using terra
-# study_sdm_binary_10m <- disaggregate(study_sdm_binary[[1]], fact = 9)
+## Upscale 
+SVTM_100m <- disaggregate(SVTM, fact = 9)
 
 ## First, make the resample layer binary
 # FESM_1000m_binary <- FESM_1000m_GDA_study[FESM_1000m_GDA_study > 0] <- 1

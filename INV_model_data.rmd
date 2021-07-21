@@ -66,8 +66,9 @@ library(nenswniche)
 data('sdmgen_packages')
 ipak(sdmgen_packages)
 
-## Set temporary raster dir
-terraOptions()$tempdir = 'G:/North_east_NSW_fire_recovery/TEMP'
+## Set temporary raster dir for the terra package
+terraOptions(memfrac = 0.5, 
+             tempdir = 'G:/North_east_NSW_fire_recovery/TEMP')
 
 ```
 
@@ -178,6 +179,7 @@ MAXENT.RESULTS = compile_sdm_results(species_list = analysis_taxa,
                                      sdm_path     = "./output/veg_climate_topo_maxent/back_sel_models/",
                                      save_run     = "TARG_INSECT_SPP")
 
+
 ## Get map_taxa from the maxent results table above, change the species column,
 ## then create a list of logistic thresholds
 map_taxa        <- MAXENT.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
@@ -261,6 +263,7 @@ is not considered present. Here we've chosen the 10th% Logistic threshold for ea
 habitat_threshold(taxa_list     = unique(MAXENT.RESULTS$searchTaxon),
                   maxent_table  = MAXENT.RESULTS,
                   maxent_path   = './output/veg_climate_topo_maxent/back_sel_models/',
+                  cell_factor   = 9,
                   write_rasters = TRUE)
 
 ``` 

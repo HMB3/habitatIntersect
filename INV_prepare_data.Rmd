@@ -76,8 +76,11 @@ library(nenswniche)
 data('sdmgen_packages')
 ipak(sdmgen_packages)
 
-## Set temporary raster dir
-terraOptions()$tempdir = 'G:/North_east_NSW_fire_recovery/TEMP'
+
+## Set temporary raster dir for the terra package
+terraOptions(memfrac = 0.5, 
+             tempdir = 'G:/North_east_NSW_fire_recovery/TEMP')
+
 
 ```
 

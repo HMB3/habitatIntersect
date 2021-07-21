@@ -657,6 +657,21 @@ local_simplify = function (occ, bg, path, species_column = "species", response_c
 
 
 
+#' This function calculates variables importance.
+#' @param species_list   object - maxent model object
+var.importance <- function(mod) {
+  res <- mod@results
+  pc <- res[grepl('contribution', rownames(res)),]
+  pi <- res[grepl('permutation', rownames(res)),]
+  varnames <- sapply(strsplit(names(pc), '.contribution'), function(x) x[1])
+  df <- data.frame(variable=varnames, percent.contribution=pc, permutation.importance=pi, row.names=NULL)
+  return(df)
+}
+
+
+
+
+
 ## Compile the SDM results -----
 
 
@@ -735,7 +750,7 @@ compile_sdm_results = function(species_list,
       mxt.records = nrow(m@presence)
       
       ## Get variable importance
-      m.vars    = ENMeval::var.importance(m)
+      m.vars    = var.importance(m)
       var.pcont = m.vars[rev(order(m.vars[["percent.contribution"]])),][["variable"]][1:4]
       pcont     = m.vars[rev(order(m.vars[["percent.contribution"]])),][["percent.contribution"]][1:4]
       Var_pcont = paste(var.pcont, pcont, sep = ' = ')

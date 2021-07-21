@@ -303,11 +303,13 @@ project_maxent_current_grids_mess = function(country_shp,
 #' @param taxa_list          Character string - The species to run maxent predictions for
 #' @param maxent_path        Character string - The file path containing the existing maxent models
 #' @param maxent_table       Data frame       - A table of maxent results to be used for mapping 
+#' @param cell_size          Numeric          - Cell size to resample output
 #' @param write_rasters      Logical          - Save rasters (T/F)?
 #' @export
 habitat_threshold = function(taxa_list,
                              maxent_table,
-                             maxent_path, 
+                             maxent_path,
+                             cell_factor,
                              write_rasters) {
   
   ## Pipe the list into Lapply
@@ -340,42 +342,47 @@ habitat_threshold = function(taxa_list,
       ## If the threshold raster data doesn't exist :
       if(file.exists(current_file)) {
         
-        if(!file.exists(current_thresh)) {
+        # if(!file.exists(current_thresh)) {
+        
+        ## Print the taxa being analysed
+        message('doing ', taxa, ' | Logistic > ', thresh)
+        
+        ## Read in the current suitability raster :: get the current_not_novel raster
+        f_current <- raster(sprintf('%s/%s/full/%s_current_not_novel.tif',
+                                    maxent_path, taxa_name, taxa_name))
+        
+        ## First, create a simple function to threshold each of the rasters in raster.list,
+        ## Then apply this to just the current suitability raster.
+        thresh_greater       = function (x) {x > thresh}
+        current_suit_thresh  = thresh_greater(f_current)
+        
+        
+        ## Resample rasters
+        message('Resample ', taxa, ' to ', cell_factor)
+        current_suit_thresh_resample <- terra::disaggregate(current_suit_thresh, fact = cell_factor)
+        
+        ## Now write the rasters
+        ## If the rasters don't exist, write them for each taxa/threshold
+        if(write_rasters == "TRUE") {
           
-          ## Print the taxa being analysed
-          message('doing ', taxa, ' | Logistic > ', thresh)
+          ## Write the current suitability raster, thresholded using the Maximum training
+          ## sensitivity plus specificity Logistic threshold
+          message('Writing ', taxa, ' current', ' max train > ', thresh)
           
-          ## Read in the current suitability raster :: get the current_not_novel raster
-          f_current <- raster(sprintf('%s/%s/full/%s_current_not_novel.tif',
-                                      maxent_path, taxa_name, taxa_name))
-          
-          ## First, create a simple function to threshold each of the rasters in raster.list,
-          ## Then apply this to just the current suitability raster.
-          thresh_greater       = function (x) {x > thresh}
-          current_suit_thresh  = thresh_greater(f_current)
-          
-          ## Now write the rasters
-          ## If the rasters don't exist, write them for each taxa/threshold
-          if(write_rasters == "TRUE") {
-            
-            ## Write the current suitability raster, thresholded using the Maximum training
-            ## sensitivity plus specificity Logistic threshold
-            message('Writing ', taxa, ' current', ' max train > ', thresh)
-            
-            ## Save in two places, in the taxa folder, 
-            ## and in the habitat suitability folder
-            writeRaster(current_suit_thresh, sprintf('%s/%s/full/%s_%s%s.tif', maxent_path,
-                                                     taxa_name, taxa_name, "current_suit_not_novel_above_", thresh),
-                        overwrite = TRUE)
-            
-          } else {
-            message(' skip raster writing')
-          }
+          ## Save in two places, in the taxa folder, 
+          ## and in the habitat suitability folder
+          writeRaster(current_suit_thresh_resample, sprintf('%s/%s/full/%s_%s%s.tif', maxent_path,
+                                                            taxa_name, taxa_name, "current_suit_not_novel_above_", thresh),
+                      overwrite = TRUE)
           
         } else {
-          message('Habitat Suitability raster already thresholded for', taxa, ' skip')
-          cat(taxa)
+          message(' skip raster writing')
         }
+        
+        # } else {
+        #   message('Habitat Suitability raster already thresholded for', taxa, ' skip')
+        #   cat(taxa)
+        # }
         
       } else {
         message('No Habitat Suitability raster for', taxa, ' skip')
