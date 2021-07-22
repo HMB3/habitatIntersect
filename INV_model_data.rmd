@@ -166,10 +166,6 @@ across Australia ().
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## New version of dismo is needed to make the ENMeval functions working
-## ENMeval::var.importance(m)
-## ENMeval              * 0.3.1      2020-09-12 [1] CRAN (R 4.0.4) 
-
 ## Create a table of maxent results
 ## This function aggregates the results for models that ran successfully
 MAXENT.RESULTS = compile_sdm_results(species_list = analysis_taxa,
@@ -188,8 +184,9 @@ sdm.results.dir <- MAXENT.RESULTS$results_dir
 
 
 ## Combine maxent results together for the different taxa
-# MAXENT.COMBINED <- readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_FAM.rds') %>% 
-#   bind_rows(readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_GENERA.rds'))    %>% 
+# write_csv(MAXENT.RESULTS, './output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_FAM.csv')
+# MAXENT.COMBINED <- readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_FAM.rds') %>%
+#   bind_rows(readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_GENERA.rds'))    %>%
 #   bind_rows(readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_SPP.rds'))
 # saveRDS(MAXENT.COMBINED, './output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_TAXA.rds')
 
@@ -264,6 +261,8 @@ habitat_threshold(taxa_list     = unique(MAXENT.RESULTS$searchTaxon),
                   maxent_table  = MAXENT.RESULTS,
                   maxent_path   = './output/veg_climate_topo_maxent/back_sel_models/',
                   cell_factor   = 9,
+                  country_shp   = 'AUS',
+                  country_prj   = CRS("+init=EPSG:3577"),
                   write_rasters = TRUE)
 
 ``` 

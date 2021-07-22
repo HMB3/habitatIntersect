@@ -56,8 +56,6 @@ ipak <- function(pkg){
   sapply(pkg, require, character.only = TRUE)
 }
 
-## Main package 
-# devtools::install_github("HMB3/nenswniche")
 
 ## Load packages 
 library(nenswniche)
@@ -122,7 +120,7 @@ xres(SVTM)
 yres(SVTM_GDA_study)
 
 
-## SDM output, resampled to 100m
+## SDM output, re-sampled to 100m
 study_sdm_binary <- stack(
   list.files('./output/veg_climate_topo_maxent/Habitat_suitability/SDM_thresholds',
              'current_suit_not_novel_above', full.names = TRUE))
@@ -143,8 +141,9 @@ Now try resampling and aligning the Fire and Veg rasters to the same grid as the
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Upscale 
-SVTM_100m <- disaggregate(SVTM, fact = 9)
+## Upscale the Veg data from 10m to 100m 
+SVTM_100m <- terra::disaggregate(SVTM, fact = 9)
+
 
 ## First, make the resample layer binary
 # FESM_1000m_binary <- FESM_1000m_GDA_study[FESM_1000m_GDA_study > 0] <- 1

@@ -549,10 +549,12 @@ GLOB.NICHE = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxon %i
 
 
 ## Blend the niches together
-GLOBAL_NICHES_TARG_TAXA <- readRDS('./output/results/GLOBAL_NICHES_TARGET_INSECT_SPP.rds') %>% 
-  bind_rows(readRDS('./output/results/GLOBAL_NICHES_TARGET_INSECT_GENUS.rds'))     %>% 
-  bind_rows(readRDS('./output/results/GLOBAL_NICHES_TARGET_INSECT_FAMILIES.rds'))  %>% .[.$searchTaxon %in% analysis_taxa, ]
-saveRDS(GLOBAL_NICHES_TARG_TAXA, './output/veg_climate_topo_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_TAXA.rds')
+# GLOBAL_NICHES_TARG_TAXA <- readRDS('./output/results/GLOBAL_NICHES_TARGET_INSECT_SPP.rds') %>%
+#   bind_rows(readRDS('./output/results/GLOBAL_NICHES_TARGET_INSECT_GENUS.rds'))     %>%
+#   bind_rows(readRDS('./output/results/GLOBAL_NICHES_TARGET_INSECT_FAMILIES.rds'))  %>% .[.$searchTaxon %in% analysis_taxa, ]
+# 
+# saveRDS(GLOBAL_NICHES_TARG_TAXA,   './output/veg_climate_topo_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_TAXA.rds')
+# write_csv(GLOBAL_NICHES_TARG_TAXA, './output/veg_climate_topo_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_TAXA.csv')
 
 
 

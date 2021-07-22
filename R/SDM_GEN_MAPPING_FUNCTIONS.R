@@ -310,7 +310,13 @@ habitat_threshold = function(taxa_list,
                              maxent_table,
                              maxent_path,
                              cell_factor,
-                             write_rasters) {
+                             write_rasters,
+                             country_shp,
+                             country_prj) {
+  
+  ## Get the AUS shapefile
+  country_poly <- get(country_shp) %>%
+    spTransform(country_prj)
   
   ## Pipe the list into Lapply
   taxa_list %>%
@@ -341,8 +347,6 @@ habitat_threshold = function(taxa_list,
       
       ## If the threshold raster data doesn't exist :
       if(file.exists(current_file)) {
-        
-        # if(!file.exists(current_thresh)) {
         
         ## Print the taxa being analysed
         message('doing ', taxa, ' | Logistic > ', thresh)
@@ -379,10 +383,15 @@ habitat_threshold = function(taxa_list,
           message(' skip raster writing')
         }
         
-        # } else {
-        #   message('Habitat Suitability raster already thresholded for', taxa, ' skip')
-        #   cat(taxa)
-        # }
+        message('writing threshold png for ', 'species')
+        png(sprintf('%s/%s/full/%s_%s%s.png', maxent_path,
+                    taxa_name, taxa_name, "current_suit_not_novel_above_", thresh),
+            16, 10, units = 'in', res = 500)
+        
+        ##
+        plot(current_suit_thresh_resample)
+        plot(country_poly, add = TRUE)
+        dev.off()
         
       } else {
         message('No Habitat Suitability raster for', taxa, ' skip')
