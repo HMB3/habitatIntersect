@@ -379,19 +379,19 @@ habitat_threshold = function(taxa_list,
                                                             taxa_name, taxa_name, "current_suit_not_novel_above_", thresh),
                       overwrite = TRUE)
           
+          message('writing threshold png for ', taxa)
+          png(sprintf('%s/%s/full/%s_%s%s.png', maxent_path,
+                      taxa_name, taxa_name, "current_suit_not_novel_above_", thresh),
+              16, 10, units = 'in', res = 500)
+          
+          ##
+          plot(current_suit_thresh_resample, main = paste0(taxa, ' > ', thresh))
+          plot(country_poly, add = TRUE)
+          dev.off()
+          
         } else {
           message(' skip raster writing')
         }
-        
-        message('writing threshold png for ', 'species')
-        png(sprintf('%s/%s/full/%s_%s%s.png', maxent_path,
-                    taxa_name, taxa_name, "current_suit_not_novel_above_", thresh),
-            16, 10, units = 'in', res = 500)
-        
-        ##
-        plot(current_suit_thresh_resample)
-        plot(country_poly, add = TRUE)
-        dev.off()
         
       } else {
         message('No Habitat Suitability raster for', taxa, ' skip')

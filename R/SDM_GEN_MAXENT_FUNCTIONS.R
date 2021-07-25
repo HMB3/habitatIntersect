@@ -658,7 +658,7 @@ local_simplify = function (occ, bg, path, species_column = "species", response_c
 
 
 #' This function calculates variables importance.
-#' @param species_list   object - maxent model object
+#' @param mod   object - maxent model object
 var.importance <- function(mod) {
   res <- mod@results
   pc <- res[grepl('contribution', rownames(res)),]
