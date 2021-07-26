@@ -58,8 +58,12 @@ run_sdm_analysis = function(taxa_list,
                             Koppen_zones,
                             country_shp ) {
   
+  
+  ## Convert to SF object
+  sdm_df <- st_as_sf(sdm_df)
+  
   ## Loop over all the taxa
-  ## taxa <- taxa_list[10]
+  ## taxa <- taxa_list[3]
   lapply(taxa_list, function(taxa){
     
     ## Skip the taxa if the directory already exists, before the loop
@@ -82,12 +86,14 @@ run_sdm_analysis = function(taxa_list,
         message('Doing ', taxa)
         
         ## Subset the records to only the taxa being processed
-        occurrence <- subset(sdm_df, searchTaxon == taxa | taxa_level == taxa)
+        occurrence <- filter(sdm_df, searchTaxon == taxa | !!sym(taxa_level) == taxa)
         message('Using ', nrow(occurrence), ' occ records from ', unique(occurrence$SOURCE))
         
         ## Now get the background points. These can come from any taxa, other than the modelled taxa.
         ## However, they should be limited to the same SOURCE as the occ data
         background <- subset(sdm_df, searchTaxon != taxa)
+        background <- filter(sdm_df, searchTaxon != taxa & !!sym(taxa_level) != taxa)
+        
         message('Using ', nrow(background), ' background records from ', unique(background$SOURCE))
         
         ## Finally fit the models using FIT_MAXENT_TARG_BG. Also use tryCatch to skip any exceptions
