@@ -9,12 +9,12 @@
 ## Run the SDM analysis ----
 
 
-#' This function takes a data frame of all species records,
-#' and runs a specialised maxent analysis for each species.
+#' This function takes a data frame of all taxa records,
+#' and runs a specialised maxent analysis for each taxa.
 #' It uses the rmaxent package https://github.com/johnbaums/rmaxent
 #' It assumes that the input df is that returned by the prepare_sdm_table function
-#' @param species_list       Character string - the species to run maxent models for
-#' @param sdm_df             SpatialPointsDataFrame. Spdf of all species records returned by the 'prepare_sdm_table' function
+#' @param taxa_list       Character string - the taxa to run maxent models for
+#' @param sdm_df             SpatialPointsDataFrame. Spdf of all taxa records returned by the 'prepare_sdm_table' function
 #' @param sdm_predictors     Character string - Vector of enviro conditions that you want to include
 #' @param maxent_dir         Character string - The file path used for saving the maxent output
 #' @param bs_dir             Character string - The file path used for saving the backwards selection maxent output
@@ -35,7 +35,8 @@
 #' @param Koppen_raster      RasterLayer of global koppen zones, in Mollweide54009 projection
 #' @param Koppen_zones       Dataframe of global koppen zones, with columns : GRIDCODE, Koppen
 #' @export
-run_sdm_analysis = function(species_list,
+run_sdm_analysis = function(taxa_list,
+                            taxa_level,
                             sdm_df,
                             sdm_predictors,
                             maxent_dir,
@@ -57,36 +58,36 @@ run_sdm_analysis = function(species_list,
                             Koppen_zones,
                             country_shp ) {
   
-  ## Loop over all the species
-  ## species <- species_list[10]
-  lapply(species_list, function(species){
+  ## Loop over all the taxa
+  ## taxa <- taxa_list[10]
+  lapply(taxa_list, function(taxa){
     
-    ## Skip the species if the directory already exists, before the loop
+    ## Skip the taxa if the directory already exists, before the loop
     outdir <- maxent_dir
     
     ## Could also check the folder size, so folders with no contents aren't skipped eg
     ## && sum(file.info(dir_name)$size) < 1000 (EG 1MB)
-    dir_name = file.path(outdir, gsub(' ', '_', species))
+    dir_name = file.path(outdir, gsub(' ', '_', taxa))
     
     if(!dir.exists(dir_name)) {
-      message('Maxent not run for ', species, ' - running')
+      message('Maxent not run for ', taxa, ' - running')
       
-      ## Create the directory for the species in progress,
-      ## so other parallel runs don't run the same species
+      ## Create the directory for the taxa in progress,
+      ## so other parallel runs don't run the same taxa
       dir.create(dir_name)
       file.create(file.path(dir_name, "in_progress.txt"))
       
       ## Print the taxa being processed to screen
-      if(species %in% sdm_df$searchTaxon) {
-        message('Doing ', species)
+      if(taxa %in% sdm_df$searchTaxon) {
+        message('Doing ', taxa)
         
         ## Subset the records to only the taxa being processed
-        occurrence <- subset(sdm_df, searchTaxon == species)
+        occurrence <- subset(sdm_df, searchTaxon == taxa | taxa_level == taxa)
         message('Using ', nrow(occurrence), ' occ records from ', unique(occurrence$SOURCE))
         
-        ## Now get the background points. These can come from any species, other than the modelled species.
+        ## Now get the background points. These can come from any taxa, other than the modelled taxa.
         ## However, they should be limited to the same SOURCE as the occ data
-        background <- subset(sdm_df, searchTaxon != species)
+        background <- subset(sdm_df, searchTaxon != taxa)
         message('Using ', nrow(background), ' background records from ', unique(background$SOURCE))
         
         ## Finally fit the models using FIT_MAXENT_TARG_BG. Also use tryCatch to skip any exceptions
@@ -94,7 +95,7 @@ run_sdm_analysis = function(species_list,
           fit_maxent_targ_bg_back_sel(occ                     = occurrence,
                                       bg                      = background,
                                       sdm_predictors          = sdm_predictors,
-                                      name                    = species,
+                                      name                    = taxa,
                                       outdir                  = maxent_dir,
                                       bsdir                   = bs_dir,
                                       backwards_sel           = "TRUE",
@@ -120,14 +121,14 @@ run_sdm_analysis = function(species_list,
             
             ## How to put the message into the file?
             file.create(file.path(dir_name, "sdm_failed.txt"))
-            message(species, ' failed')
+            message(taxa, ' failed')
             cat(cond$message, file = file.path(dir_name, "sdm_failed.txt"))
-            warning(species, ': ', cond$message)
+            warning(taxa, ': ', cond$message)
             
           })
         
       } else {
-        message(species, ' skipped - no data.') ## This condition ignores species which have no data...
+        message(taxa, ' skipped - no data.') ## This condition ignores taxa which have no data...
         file.create(file.path(dir_name, "completed.txt"))
       }
       
@@ -135,7 +136,7 @@ run_sdm_analysis = function(species_list,
       file.create(file.path(dir_name, "completed.txt"))
       
     } else {
-      message(species, ' sdm already exists, skipped') ## This condition ignores species which have no data...
+      message(taxa, ' sdm already exists, skipped') ## This condition ignores taxa which have no data...
     }
     
   })
@@ -149,11 +150,11 @@ run_sdm_analysis = function(species_list,
 ## Run maxent with backwards selection ----
 
 
-#' This function takes a data frame of all species records,
-#' and runs a specialised maxent analysis for each species.
+#' This function takes a data frame of all taxa records,
+#' and runs a specialised maxent analysis for each taxa.
 #' It uses the rmaxent package https://github.com/johnbaums/rmaxent
 #' It assumes that the input df is that returned by the prepare_sdm_table function
-#' @param occ                SpatialPointsDataFrame - Spdf of all species records returned by the 'prepare_sdm_table' function
+#' @param occ                SpatialPointsDataFrame - Spdf of all taxa records returned by the 'prepare_sdm_table' function
 #' @param bg                 SpatialPointsDataFrame - Spdf of of candidate background points
 #' @param sdm_predictors     Character string - Vector of enviro conditions that you want to include
 #' @param outdir             Character string - The file path used for saving the maxent output
@@ -227,7 +228,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
   ## So the spatial data change has caused this problem
   buffer <- aggregate(gBuffer(occ, width = background_buffer_width, byid = TRUE))
   
-  ## Get unique cell numbers for species occurrences
+  ## Get unique cell numbers for taxa occurrences
   cells <- cellFromXY(template_raster, occ)
   
   ## Clean out duplicate cells and NAs (including points outside extent of predictor data)
@@ -237,12 +238,12 @@ fit_maxent_targ_bg_back_sel <- function(occ,
   cells     <- cells[not_dupes]
   message(nrow(occ), ' occurrence records (unique cells).')
   
-  ## Skip species that have less than a minimum number of records: eg 20 species
+  ## Skip taxa that have less than a minimum number of records: eg 20 taxa
   if(nrow(occ) < min_n) {
     
     print (paste ('Fewer occurrence records than the number of cross-validation ',
-                  'replicates for species ', name,
-                  ' Model not fit for this species'))
+                  'replicates for taxa ', name,
+                  ' Model not fit for this taxa'))
     
   } else {
     
@@ -257,7 +258,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
     bg           <- bg[bg_not_dupes, ]
     bg_cells     <- bg_cells[bg_not_dupes]
     
-    ## Find which of these cells fall within the Koppen-Geiger zones that the species occupies
+    ## Find which of these cells fall within the Koppen-Geiger zones that the taxa occupies
     ## Crop the Kopppen raster to the extent of the occurrences, and snap it
     if(koppen_crop == TRUE) {
       
@@ -277,7 +278,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
       i                   <- cellFromXY(template_raster, bg)
       bg                  <- bg[which(i %in% bg_cells), ]
       
-      ## For some species, we have the problem that the proportion of ALA/INV data is
+      ## For some taxa, we have the problem that the proportion of ALA/INV data is
       ## very different in the occurrence vs the bg records.
       ## This should be caused by the 200km / koppen restriction, etc.
       
@@ -290,13 +291,13 @@ fit_maxent_targ_bg_back_sel <- function(occ,
     ## Reduce background sample, if it's larger than max_bg_size
     if (nrow(bg) > max_bg_size) {
       
-      message(nrow(bg), ' target species background records for ', name,
+      message(nrow(bg), ' target taxa background records for ', name,
               ', reduced to random ', max_bg_size, ' using random points from :: ', unique(bg$SOURCE))
       bg.samp <- bg[sample(nrow(bg), max_bg_size), ]
       
     } else {
       ## If the bg points are smaller that the max_bg_size, just get all the points
-      message(nrow(bg), ' target species background records for ', name,
+      message(nrow(bg), ' target taxa background records for ', name,
               ' using all points from :: ', unique(bg$SOURCE))
       bg.samp <- bg
     }
@@ -344,7 +345,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
     saveRDS(bg.samp,  file.path(outdir_sp, paste0(save_name, '_bg.rds')))
     saveRDS(occ,      file.path(outdir_sp, paste0(save_name, '_occ.rds')))
     
-    ## SWD = species with data. Now sample the environmental
+    ## SWD = taxa with data. Now sample the environmental
     ## variables used in the model at all the occ and bg points
     swd_occ <- occ[, sdm_predictors]
     saveRDS(swd_occ, file.path(outdir_sp, paste0(save_name,'_occ_swd.rds')))
@@ -413,7 +414,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
     
     if (backwards_sel == "TRUE") {
       
-      ## Coerce the "species with data" (SWD) files to regular data.frames
+      ## Coerce the "taxa with data" (SWD) files to regular data.frames
       ## This is needed to use the simplify function
       swd_occ     <- as.data.frame(swd_occ)
       swd_occ$lon <- NULL
@@ -422,7 +423,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
       swd_bg$lon  <- NULL
       swd_bg$lat  <- NULL
       
-      ## Need to create a species column here
+      ## Need to create a taxa column here
       swd_occ$searchTaxon <- name
       swd_bg$searchTaxon  <- name
       
@@ -444,7 +445,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
         swd_occ,
         swd_bg,
         path            = bsdir,
-        species_column  = "searchTaxon",
+        taxa_column  = "searchTaxon",
         replicates      = replicates,  ## 5 as above
         response_curves = TRUE,
         logistic_format = TRUE,
@@ -503,10 +504,10 @@ fit_maxent_targ_bg_back_sel <- function(occ,
 #' that contributes least to the model, until the contribution of each variable
 #' meets a specified minimum, or until a predetermined minimum number of predictors remains.
 #' It assumes that the input df is that returned by the fit_maxent_targ_bg_back_sel function
-#' @param occ                SpatialPointsDataFrame - Spdf of all species records returned by the 'prepare_sdm_table' function
+#' @param occ                SpatialPointsDataFrame - Spdf of all taxa records returned by the 'prepare_sdm_table' function
 #' @param bg                 SpatialPointsDataFrame - Spdf of of candidate background points
 #' @param path               Character string - Vector of enviro conditions that you want to include
-#' @param species_column     Character string - Vector of enviro conditions that you want to include
+#' @param taxa_column     Character string - Vector of enviro conditions that you want to include
 #' @param cor_thr            Numeric - The max allowable pairwise correlation between predictor variables
 #' @param pct_thr            Numeric - The min allowable percent variable contribution
 #' @param k_thr              Numeric - The min number of variables to be kept in the model
@@ -516,15 +517,15 @@ fit_maxent_targ_bg_back_sel <- function(occ,
 #' @param logistic_format    Logical value indicating whether maxentResults.csv should report logistic value thresholds
 #' @param responsecurves     Logical - Save response curves of the maxent models (T/F)?
 #' @export
-local_simplify = function (occ, bg, path, species_column = "species", response_curves = TRUE,
+local_simplify = function (occ, bg, path, taxa_column = "taxa", response_curves = TRUE,
                            logistic_format = TRUE,  type = "PI", cor_thr, pct_thr, k_thr,
                            features = "lpq",  replicates = 1, quiet = TRUE)
   
 {
-  if (!species_column %in% colnames(occ))
-    stop(species_column, " is not a column of `occ`", call. = FALSE)
-  if (!species_column %in% colnames(bg))
-    stop(species_column, " is not a column of `bg`", call. = FALSE)
+  if (!taxa_column %in% colnames(occ))
+    stop(taxa_column, " is not a column of `occ`", call. = FALSE)
+  if (!taxa_column %in% colnames(bg))
+    stop(taxa_column, " is not a column of `bg`", call. = FALSE)
   
   if (missing(path)) {
     save <- FALSE
@@ -543,10 +544,10 @@ local_simplify = function (occ, bg, path, species_column = "species", response_c
     
   }
   off <- unname(off)
-  occ_by_species <- split(occ, occ[[species_column]])
-  bg_by_species <- split(bg, bg[[species_column]])
-  if (!identical(sort(names(occ_by_species)), sort(names(bg_by_species)))) {
-    stop("The same set of species names must exist in occ and bg")
+  occ_by_taxa <- split(occ, occ[[taxa_column]])
+  bg_by_taxa <- split(bg, bg[[taxa_column]])
+  if (!identical(sort(names(occ_by_taxa)), sort(names(bg_by_taxa)))) {
+    stop("The same set of taxa names must exist in occ and bg")
   }
   
   type <- switch(type, PI = "permutation.importance", PC = "contribution",
@@ -565,12 +566,12 @@ local_simplify = function (occ, bg, path, species_column = "species", response_c
     if (!quiet)
       message("\n\nDoing ", name)
     name_ <- gsub(" ", "_", name)
-    swd <- rbind(occ_by_species[[name]], bg_by_species[[name]])
-    swd <- swd[, -match(species_column, names(swd))]
+    swd <- rbind(occ_by_taxa[[name]], bg_by_taxa[[name]])
+    swd <- swd[, -match(taxa_column, names(swd))]
     
     if (ncol(swd) < k_thr)
       stop("Initial number of variables < k_thr", call. = FALSE)
-    pa <- rep(1:0, c(nrow(occ_by_species[[name]]), nrow(bg_by_species[[name]])))
+    pa <- rep(1:0, c(nrow(occ_by_taxa[[name]]), nrow(bg_by_taxa[[name]])))
     vc <- usdm::vifcor(swd, maxobservations = nrow(swd),
                        th = cor_thr)
     
@@ -650,7 +651,7 @@ local_simplify = function (occ, bg, path, species_column = "species", response_c
     }
     return(m)
   }
-  lapply(names(occ_by_species), f)
+  lapply(names(occ_by_taxa), f)
 }
 
 
@@ -676,14 +677,14 @@ var.importance <- function(mod) {
 
 
 #' This function extracts the SDM results from the folders.
-#' @param species_list      Character string - the species to run maxent models for
+#' @param taxa_list      Character string - the taxa to run maxent models for
 #' @param results_dir       Character string - The file path used for saving the maxent output
 #' @param save_data         Logical or character - do you want to save the data frame?
 #' @param data_path         Character string - The file path used for saving the data frame
 #' @param sdm_path          Character string - The file path where the maxent models are stored.
 #' @param save_run          Character string - run name to append to the data frame, useful for multiple runs.
 #' @export
-compile_sdm_results = function(species_list,
+compile_sdm_results = function(taxa_list,
                                results_dir,
                                save_data,
                                data_path,
@@ -691,15 +692,15 @@ compile_sdm_results = function(species_list,
                                save_run) {
   
   ## The code that adds niche info is now in './R/9_COLLATE_MAXENT_RESULTS.R'
-  message('Creating summary stats for ', length(species_list),
-          ' species in the set ', "'", save_run, "'")
+  message('Creating summary stats for ', length(taxa_list),
+          ' taxa in the set ', "'", save_run, "'")
   
   ##
   processed = list.dirs(sdm_path, full.names = FALSE, recursive = FALSE)
   
-  ## First, make a list of all the species with models, then restrict them
-  ## to just the models on the species_list list
-  map_spp_list  = gsub(" ", "_", species_list)
+  ## First, make a list of all the taxa with models, then restrict them
+  ## to just the models on the taxa_list list
+  map_spp_list  = gsub(" ", "_", taxa_list)
   map_spp_list  = processed[processed %in% map_spp_list ]
   map_spp_patt  = paste0(map_spp_list, collapse = "|")
   
@@ -707,15 +708,15 @@ compile_sdm_results = function(species_list,
   message (paste(head(map_spp_list),   collapse = ","))
   
   ## Now stop R from creating listing all the maxent files that have completed - this takes a long time
-  message('Compile SDM results for species in ', results_dir)
+  message('Compile SDM results for taxa in ', results_dir)
   maxent.tables = lapply (map_spp_list, FUN = function (x) {paste(results_dir , x, "full/maxent_fitted.rds", sep="/")})
   
-  ## How many species have been modelled?
+  ## How many taxa have been modelled?
   message(paste("maxent.tables has this many entries:", length(maxent.tables)))
   message(paste(head (maxent.tables), collapse=","))
   sdm.exists = lapply(maxent.tables, FUN = function (x) {file.exists (x)}) %>% unlist()
   
-  ## Only list the intersection between the modelled species and
+  ## Only list the intersection between the modelled taxa and
   message(paste(head(sdm.exists), collapse=","))
   maxent.tables = maxent.tables[sdm.exists]
   
@@ -732,7 +733,7 @@ compile_sdm_results = function(species_list,
     ## Pipe the list into lapply
     lapply(function(x) {
       
-      ## We don't need to skip species that haven't been modelled
+      ## We don't need to skip taxa that haven't been modelled
       x = gsub(paste0(results_dir, "/"), "", x)
       message(x)
       
@@ -784,8 +785,8 @@ compile_sdm_results = function(species_list,
                      Logistic_threshold,
                      Omission_rate)
       
-      ## Remove path gunk, and species
-      d$Species     = NULL
+      ## Remove path gunk, and taxa
+      d$taxa     = NULL
       d$searchTaxon = gsub("/full/maxent_fitted.rds", "", d$searchTaxon)
       row.names(d)  <- NULL
       return(d)
@@ -806,7 +807,7 @@ compile_sdm_results = function(species_list,
     .[["Logistic_threshold"]]
   
   ## Create a list of the omission files - again, don't do this for all the files, just the intersection
-  omission.tables = lapply (map_spp_list, FUN = function (x) {paste(results_dir , x, "full/species_omission.csv", sep="/")})
+  omission.tables = lapply (map_spp_list, FUN = function (x) {paste(results_dir , x, "full/taxa_omission.csv", sep="/")})
   message (head (omission.tables))
   
   ## Only process the existing files
@@ -817,7 +818,7 @@ compile_sdm_results = function(species_list,
   ## Get the maxium TSS value using the omission data : use _training_ ommission data only
   Max_tss <- sapply(omission.tables, function(file) {
     
-    ## For eachg species, read in the training data
+    ## For eachg taxa, read in the training data
     d <- read.csv(file)
     i <- which.min(d$Training.omission + d$Fractional.area)
     
@@ -826,18 +827,18 @@ compile_sdm_results = function(species_list,
     
   })
   
-  ## Add a species variable to the TSS results, so we can subset to just the species analysed
+  ## Add a taxa variable to the TSS results, so we can subset to just the taxa analysed
   Max_tss        = as.data.frame(Max_tss)
   MAXENT.RESULTS = cbind(MAXENT.RESULTS, Max_tss)
   summary(MAXENT.RESULTS$Max_tss)
   summary(MAXENT.RESULTS$Omission_rate)
   
   ## This is a summary of maxent output for current conditions
-  ## All species should have AUC > 0.7
+  ## All taxa should have AUC > 0.7
   dim(MAXENT.RESULTS)
   head(MAXENT.RESULTS, 20)[1:5]
   
-  ## Now check the match between the species list, and the results list.
+  ## Now check the match between the taxa list, and the results list.
   length(intersect(map_spp_list, MAXENT.RESULTS$searchTaxon))
   MAXENT.RESULTS  =  MAXENT.RESULTS[MAXENT.RESULTS$searchTaxon %in% map_spp_list , ]
   map_spp         = unique(MAXENT.RESULTS$searchTaxon)
@@ -847,10 +848,10 @@ compile_sdm_results = function(species_list,
   SDM.RESULTS.DIR <- map_spp %>%
     
     ## Pipe the list into lapply
-    lapply(function(species) {
+    lapply(function(taxa) {
       
       ## Create the character string...
-      m <-   sprintf('%s/%s/full/', results_dir, species)                ## path.backwards.sel
+      m <-   sprintf('%s/%s/full/', results_dir, taxa)                ## path.backwards.sel
       m
       
     }) %>%
@@ -860,7 +861,7 @@ compile_sdm_results = function(species_list,
   
   length(SDM.RESULTS.DIR)
   
-  ## Change the species column
+  ## Change the taxa column
   MAXENT.RESULTS$searchTaxon = gsub("_", " ", MAXENT.RESULTS$searchTaxon)
   MAXENT.RESULTS$results_dir = SDM.RESULTS.DIR
   
@@ -873,7 +874,7 @@ compile_sdm_results = function(species_list,
     
   } else {
     ## Or return to the global environment
-    message(' skip file saving, not many species analysed')
+    message(' skip file saving, not many taxa analysed')
     return(MAXENT.RESULTS)
   }
   

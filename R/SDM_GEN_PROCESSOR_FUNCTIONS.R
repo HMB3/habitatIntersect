@@ -3,7 +3,7 @@
 #########################################################################################################################
 
 
-## Below are the functions used to estiamte species ranges and prepare occurrence data for SDM analysis
+## Below are the functions used to estimate species ranges and prepare occurrence data for SDM analysis
 
 
 '%!in%' <- function(x,y)!('%in%'(x,y))
@@ -14,9 +14,9 @@
 
 #' Download species occurrence files from GBIF
 #'
-#' This function downloads species occurrence files from GBIF (https://www.gbif.org/).
-#' It assumes that the species list supplied is taxonomically correct (haha!).
-#' It downloads the species to the specified folders without returning anything
+#' This function downloads taxa occurrence files from GBIF (https://www.gbif.org/).
+#' It assumes that the taxa list supplied is taxonomically correct (haha!).
+#' It downloads the taxa to the specified folders without returning anything
 #' @param species_list   Character vector - List of species binomials to download
 #' @param download_path  Character string - File path for species downloads
 #' @param download_limit Numeric - How many records can be downloaded at one time? Set by server
@@ -491,14 +491,14 @@ download_ALA_all_tribes = function (species_list,
 #' It assumes that all the files come from the previous downloads function.
 #' Although you can download all the records for in one go, this is better for
 #' Doing small runs of species, or where you want to re-run them constantly
-#' @param species_list       Character Vector - List of species already downloaded
-#' @param records_path       File path for downloaded species
+#' @param taxa_list       Character Vector - List of taxa already downloaded
+#' @param records_path       File path for downloaded taxa
 #' @param records_extension  Which R file type? RDS or RDA
 #' @param record_type        Adds a column to the data frame for the data source, EG ALA
 #' @param keep_cols          The columns we want to keep - a character list created by you
 #' @param world_raster       An Raster file of the enviro conditions used (assumed to be global)
 #' @export
-combine_ala_records = function(species_list, 
+combine_ala_records = function(taxa_list, 
                                records_path, 
                                records_extension,
                                record_type, 
@@ -510,10 +510,10 @@ combine_ala_records = function(species_list,
   length(download)
   
   ## Now these lists are getting too long for the combine step.
-  ## Restrict them to just the strings that partially match the  species list for each run
-  spp.download <- paste(species_list, records_extension, sep = "")
+  ## Restrict them to just the strings that partially match the  taxa list for each run
+  spp.download <- paste(taxa_list, records_extension, sep = "")
   download     = download[download %in% spp.download ]
-  message('downloaded species ', length(download), ' analyzed species ', length(species_list))
+  message('downloaded taxa ', length(download), ' analyzed taxa ', length(taxa_list))
   
   
   ## Combine all the taxa into a single dataframe at once
@@ -538,7 +538,7 @@ combine_ala_records = function(species_list,
       ## Check if the dataframes have data
       if (nrow(d) >= 2) {
         
-        ## If the species has < 2 records, escape the loop
+        ## If the taxa has < 2 records, escape the loop
         print (paste ("Sufficient occurrence records for ", x, " processing "))
         
         ##  type standardisation
@@ -599,8 +599,8 @@ combine_ala_records = function(species_list,
   ## Clear the garbage
   gc()
   
-  ## Just get the newly downloaded species
-  ALL = ALL[ALL$searchTaxon %in% species_list, ]
+  ## Just get the newly downloaded taxa
+  ALL = ALL[ALL$searchTaxon %in% taxa_list, ]
   length(unique(ALL$searchTaxon))
   
   if (nrow(ALL) > 0) {
@@ -628,7 +628,7 @@ combine_ala_records = function(species_list,
             " % records retained using spatially valid records")
     
     ## Can use WORLDCIM rasters to get only records where wordlclim data is.
-    message('Removing ALA points outside raster bounds for ', length(species_list), ' species')
+    message('Removing ALA points outside raster bounds for ', length(taxa_list), ' taxa')
     
     ## Now get the XY centroids of the unique 1km * 1km WORLDCLIM blocks where ALA records are found
     ## Get cell number(s) of WORLDCLIM raster from row and/or column numbers. Cell numbers start at 1 in the upper left corner,
@@ -694,15 +694,15 @@ combine_ala_records = function(species_list,
 #' There are slight differences between ALA and GBIF, so separate functions are useful.
 #' It assumes that all the files come from the previous GBIF downloads function.
 #' Although you can download all the records for in one go, this is better for
-#' Doing small runs of species, or where you want to re-run them constantly
-#' @param species_list       List of species already downloaded
-#' @param records_path       File path for downloaded species
+#' Doing small runs of taxa, or where you want to re-run them constantly
+#' @param taxa_list       List of taxa already downloaded
+#' @param records_path       File path for downloaded taxa
 #' @param records_extension  Which R file type? RDS or RDA
 #' @param record_type        Adds a column to the data frame for the data source, EG ALA
 #' @param keep_cols          The columns we want to keep - a character list created by you
 #' @param world_raster       An Raster file of the enviro conditions used (assumed to be global)
 #' @export
-combine_gbif_records = function(species_list, 
+combine_gbif_records = function(taxa_list, 
                                 records_path, 
                                 records_extension, 
                                 record_type, 
@@ -713,10 +713,10 @@ combine_gbif_records = function(species_list,
   length(download)
   
   ## Now these lists are getting too long for the combine step.
-  ## Restrict them to just the strings that partially match the  species list for each run
-  spp.download <- paste(species_list, records_extension, sep = "")
+  ## Restrict them to just the strings that partially match the  taxa list for each run
+  spp.download <- paste(taxa_list, records_extension, sep = "")
   download     <- download[download %in% spp.download ]
-  message('downloaded species ', length(download), ' analyzed species ', length(species_list))
+  message('downloaded taxa ', length(download), ' analyzed taxa ', length(taxa_list))
   
   ALL.POINTS <- download %>%
     
@@ -754,7 +754,7 @@ combine_gbif_records = function(species_list,
           message ('Formatting occurrence data for ', x)
           searchtax <- gsub(records_extension, "",    x)
           
-          ## Filter the data for each species
+          ## Filter the data for each taxa
           message('filter records for ', searchtax)
           d <- d %>% mutate(searchTaxon = searchtax) %>%
             dplyr::select(one_of(keep_cols)) %>% 
@@ -796,12 +796,12 @@ combine_gbif_records = function(species_list,
     GBIF.TRIM <- ALL.POINTS %>%
       dplyr::select(one_of(keep_cols))
     
-    ## Just get the newly downloaded species
-    GBIF.TRIM = GBIF.TRIM[GBIF.TRIM$searchTaxon %in% species_list, ]
+    ## Just get the newly downloaded taxa
+    GBIF.TRIM = GBIF.TRIM[GBIF.TRIM$searchTaxon %in% taxa_list, ]
     formatC(nrow(GBIF.TRIM), format = "e", digits = 2)
     
-    ## What are the unique species?
-    length(unique(GBIF.TRIM$species))
+    ## What are the unique taxa?
+    length(unique(GBIF.TRIM$taxa))
     length(unique(GBIF.TRIM$searchTaxon))
     length(unique(GBIF.TRIM$scientificName))
     
@@ -810,14 +810,14 @@ combine_gbif_records = function(species_list,
     ## Now filter the GBIF records using conditions which are not too restrictive
     GBIF.CLEAN <- GBIF.TRIM 
     
-    ## How many species are there?
+    ## How many taxa are there?
     names(GBIF.CLEAN)
     length(unique(GBIF.CLEAN$searchTaxon))
     
     ## REMOVE POINTS OUTSIDE WORLDCLIM LAYERS
     
     ## Can use WORLDCIM rasters to get only records where wordlclim data is.
-    message('Removing GBIF points in the ocean for ', length(species_list), ' species')
+    message('Removing GBIF points in the ocean for ', length(taxa_list), ' taxa')
     xy_mat <- GBIF.CLEAN %>% dplyr::select(lon, lat) %>% as.matrix()
     
     ## Now get the XY centroids of the unique 1km * 1km WORLDCLIM blocks where GBIF records are found
@@ -838,7 +838,7 @@ combine_gbif_records = function(species_list,
                                  proj4string = CRS("+proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs"))
     
     ## Now extract the temperature values for the unique 1km centroids which contain GBIF data
-    message('Removing GBIF points in the ocean for ', length(species_list), ' species')
+    message('Removing GBIF points in the ocean for ', length(taxa_list), ' taxa')
     class(xy)
     z   = raster::extract(world_raster, xy)
     
@@ -883,7 +883,7 @@ combine_gbif_records = function(species_list,
 #' It assumes that both files come from the previous GBIF/ALA combine function.
 #' @param ala_df             Data frame of ALA records
 #' @param site_df           Data frame of site records (only used if you have site data, e.g. I-naturalist)
-#' @param species_list       List of species analysed, used to cut the dataframe down
+#' @param taxa_list       List of taxa analysed, used to cut the dataframe down
 #' @param thin_records       Do you want to thin the records out? If so, it will be 1 record per 1km*1km grid cell
 #' @param template_raster    A global R Raster used to thin records to 1 record per 1km grid cell
 #' @param world_raster       An global R Raster of the enviro conditions used to extract values for all records
@@ -893,14 +893,14 @@ combine_gbif_records = function(species_list,
 #' @param worldclim_divide    Are you using worldclim stored as long intergers? If so, divide by 10.
 #' @param save_data          Do you want to save the data frame?
 #' @param data_path          The file path used for saving the data frame
-#' @param save_run           A run name to append to the data frame (e.g. bat species, etc.). Useful for multiple runs.
+#' @param save_run           A run name to append to the data frame (e.g. bat taxa, etc.). Useful for multiple runs.
 #' @return                   Data frame of all ALA/GBIF records, with global enviro conditions for each record location (i.e. lat/lon)
 #' @export
 
 combine_records_extract = function(ala_df,
                                    site_df,
                                    add_site,
-                                   species_list,
+                                   taxa_list,
                                    template_raster,
                                    thin_records,
                                    world_raster,
@@ -948,14 +948,14 @@ combine_records_extract = function(ala_df,
     occurrence_cells_all  <- lapply(GBIF.ALA.84, function(x) cellFromXY(template_raster, x))
     
     ## Check with a message, but could check with a fail
-    message('Split prodcues ', length(occurrence_cells_all), ' data frames for ', length(species_list), ' species')
+    message('Split prodcues ', length(occurrence_cells_all), ' data frames for ', length(taxa_list), ' taxa')
     
     ## Now get just one record within each 1*1km cell.
     GBIF.ALA.84.THIN <- mapply(function(x, cells) {
       x[!duplicated(cells), ]
     }, GBIF.ALA.84, occurrence_cells_all, SIMPLIFY = FALSE) %>% do.call(rbind, .)
     
-    ## Check to see we have 19 variables + the species for the standard predictors, and 19 for all predictors
+    ## Check to see we have 19 variables + the taxa for the standard predictors, and 19 for all predictors
     message(round(nrow(GBIF.ALA.84.THIN)/nrow(GBIF.ALA.84)*100, 2), " % records retained at 1km resolution")
     
     ## Create points: the 'over' function seems to need geographic coordinates for this data...
@@ -969,7 +969,7 @@ combine_records_extract = function(ala_df,
   
   ## Bioclim variables
   ## Extract raster data
-  message('Extracting raster values for ', length(species_list), ' species in the set ', "'", save_run, "'")
+  message('Extracting raster values for ', length(taxa_list), ' taxa in the set ', "'", save_run, "'")
   message(projection(COMBO.POINTS));message(projection(world_raster))
   
   ## Extract the raster values
@@ -1002,7 +1002,7 @@ combine_records_extract = function(ala_df,
   COMBO.RASTER.CONVERT = completeFun(COMBO.RASTER.CONVERT, c(names(world_raster)))
   
   message(length(unique(COMBO.RASTER.CONVERT$searchTaxon)),
-          ' species processed of ', length(species_list), ' original species')
+          ' taxa processed of ', length(taxa_list), ' original taxa')
   
   ## save data
   if(save_data == TRUE) {
@@ -1024,10 +1024,10 @@ combine_records_extract = function(ala_df,
 ## Clean coordinates of occurrence records ----
 
 
-#' This function takes a data frame of all species records, and flag records as institutional or spatial outliers.
+#' This function takes a data frame of all taxa records, and flag records as institutional or spatial outliers.
 #' It uses the CoordinateCleaner package https://cran.r-project.org/web/packages/CoordinateCleaner/index.html.
 #' It assumes that the records data.frame is that returned by the combine_records_extract function
-#' @param records            Data.frame. DF of all species records returned by the combine_records_extract function
+#' @param records            Data.frame. DF of all taxa records returned by the combine_records_extract function
 #' @param capitals           Numeric. Remove records within an xkm radius of capital cites (see ?clean_coordinates)
 #' @param centroids          Numeric. Remove records within an xkm radius around country centroids (see ?clean_coordinates)
 #' @param save_run           Character string - run name to append to the data frame, useful for multiple runs.
@@ -1043,12 +1043,12 @@ coord_clean_records = function(records,
                                save_data) {
   
   ## Create a unique identifier. This is used for automated cleaing of the records, and also saving shapefiles
-  ## But this will not be run for all species linearly. So, it probably needs to be a combination of species and number
+  ## But this will not be run for all taxa linearly. So, it probably needs to be a combination of taxa and number
   records$CC.OBS <- 1:nrow(records)
   records$CC.OBS <- paste0(records$CC.OBS, "_CC_", records$searchTaxon)
   records$CC.OBS <- gsub(" ",     "_",  records$CC.OBS, perl = TRUE)
   length(records$CC.OBS);length(unique(records$CC.OBS))
-  records$species = records$searchTaxon
+  records$taxa = records$searchTaxon
   
   ## Rename the columns to fit the CleanCoordinates format and create a tibble.
   TIB.GBIF <- records %>% dplyr::rename(coord_spp        = searchTaxon,
@@ -1090,7 +1090,7 @@ coord_clean_records = function(records,
   message(identical(records$CC.OBS, TIB.GBIF$CC.OBS), ' records order matches')
   message(identical(records$searchTaxon, TIB.GBIF$coord_spp))
   
-  ## Is the species column the same as the searchTaxon column?
+  ## Is the taxa column the same as the searchTaxon column?
   COORD.CLEAN = join(records, TIB.GBIF)
   message(identical(records$searchTaxon, COORD.CLEAN$coord_spp), ' records order matches')
   identical(records$CC.OBS, COORD.CLEAN$CC.OBS)
@@ -1126,17 +1126,17 @@ coord_clean_records = function(records,
 ## Save spatial outliers to file ----
 
 
-#' This function takes a data frame of all species records,
+#' This function takes a data frame of all taxa records,
 #' flags records as spatial outliers (T/F for each record in the df), and saves images of the checks for each.
 #' Manual cleaning of spatial outliers is very tedious, but automated cleaning makes mistakes, so checking is handy
 #' It uses the CoordinateCleaner package https://cran.r-project.org/web/packages/CoordinateCleaner/index.html.
 #' It assumes that the input dfs are those returned by the coord_clean_records function
-#' @param all_df             Data.frame. DF of all species records returned by the coord_clean_records function
+#' @param all_df             Data.frame. DF of all taxa records returned by the coord_clean_records function
 #' @param site_df            Data.frame of site records (only used if you have site data, e.g. I-naturalist)
 #' @param land_shp           R object. Shapefile of the worlds land (e.g. https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-land/)
 #' @param clean_path         Character string -  The file path used for saving the checks
 #' @param spatial_mult       Numeric. The multiplier of the interquartile range (method == 'quantile', see ?cc_outl)
-#' @return                   Data.frame of species records, with spatial outlier T/F flag for each record
+#' @return                   Data.frame of taxa records, with spatial outlier T/F flag for each record
 #' @export
 check_spatial_outliers = function(all_df,
                                   site_df,
@@ -1210,7 +1210,7 @@ check_spatial_outliers = function(all_df,
     }
     
   } else {
-    message('Do not create maps of each species coord clean records')   ##
+    message('Do not create maps of each taxa coord clean records')   ##
   }
   
   ## Create a tibble to supply to coordinate cleaner
@@ -1226,7 +1226,7 @@ check_spatial_outliers = function(all_df,
     
     dplyr::select(searchTaxon, lon, lat, CC.OBS, SOURCE) %>%
     
-    dplyr::rename(species          = searchTaxon,
+    dplyr::rename(taxa          = searchTaxon,
                   decimallongitude = lon,
                   decimallatitude  = lat) %>%
     
@@ -1379,7 +1379,7 @@ check_spatial_outliers = function(all_df,
 #' @param aus_df             Data.frame of site records (only used if you have site data, e.g. I-naturalist)
 #' @param world_shp          .Rds object. Shapefile of the worlds land (e.g. https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-land/)
 #' @param kop_shp            .Rds object. Shapefile of the worlds koppen zones (e.g. https://www.climond.org/Koppen.aspx)
-#' @param species_list       Character string - List of species analysed, used to cut the dataframe down
+#' @param taxa_list       Character string - List of taxa analysed, used to cut the dataframe down
 #' @param env_vars           Character string - List of environmental variables analysed
 #' @param cell_size          Numeric. Value indicating the grid size in decimal degrees used for estimating Area of Occupancy (see ?AOO.computing)
 #' @param save_run           Character string - run name to append to the data frame, useful for multiple runs.
@@ -1392,7 +1392,7 @@ calc_1km_niches = function(coord_df,
                            world_shp,
                            kop_shp,
                            #ibra_shp,
-                           species_list,
+                           taxa_list,
                            env_vars,
                            cell_size,
                            save_run,
@@ -1400,7 +1400,7 @@ calc_1km_niches = function(coord_df,
                            save_data) {
   
   ## Create a spatial points object
-  message('Estimating global niches for ', length(species_list), ' species across ',
+  message('Estimating global niches for ', length(taxa_list), ' taxa across ',
           length(env_vars), ' climate variables')
   
   NICHE.1KM <- coord_df %>% as.data.frame () %>%
@@ -1416,27 +1416,27 @@ calc_1km_niches = function(coord_df,
   KOP.WGS   = spTransform(kop_shp,     prj)
   
   ## Intersect the points with the Global koppen file
-  message('Intersecting points with shapefiles for ', length(species_list), ' species')
+  message('Intersecting points with shapefiles for ', length(taxa_list), ' taxa')
   KOP.JOIN     = over(NICHE.1KM.84, KOP.WGS)
   
   ## Create global niche and Australian niche for website - So we need a subset for Australia
   ## The ,] acts just like a clip in a GIS
   NICHE.AUS <-  NICHE.1KM.84[AUS.WGS, ]
   
-  ## Aggregate the number of Koppen zones (and IBRA regions) each species is found in
+  ## Aggregate the number of Koppen zones (and IBRA regions) each taxa is found in
   COMBO.KOP <- NICHE.1KM.84 %>%
     cbind.data.frame(., KOP.JOIN)
   
   ## Aggregate the data
   KOP.AGG = tapply(COMBO.KOP$Koppen, COMBO.KOP$searchTaxon,
-                   function(x) length(unique(x))) %>% ## group Koppen by species name
+                   function(x) length(unique(x))) %>% ## group Koppen by taxa name
     as.data.frame()
   KOP.AGG =  setDT(KOP.AGG , keep.rownames = TRUE)[]
   names(KOP.AGG) = c("searchTaxon", "KOP_count")
   
-  ## Run join between species records and spatial units :: SUA, POA and KOPPEN zones
+  ## Run join between taxa records and spatial units :: SUA, POA and KOPPEN zones
   message('Joining occurence data to SUAs for ',
-          length(species_list), ' species in the set ', "'", save_run, "'")
+          length(taxa_list), ' taxa in the set ', "'", save_run, "'")
   
   ## CREATE NICHES FOR PROCESSED TAXA
   ## Create niche summaries for each environmental condition like this...commit
@@ -1454,7 +1454,7 @@ calc_1km_niches = function(coord_df,
   NICHE.GLO.DF = completeFun(NICHE.GLO.DF, env_vars[1])
   
   message('Estimating global niches for ',
-          length(species_list), ' species in the set ', "'", save_run, "'")
+          length(taxa_list), ' taxa in the set ', "'", save_run, "'")
   
   GLOB.NICHE <- env_vars %>%
     
@@ -1472,7 +1472,7 @@ calc_1km_niches = function(coord_df,
   GLOB.NICHE <- GLOB.NICHE %>% dplyr::select(-contains("."))
   message('Calculated global niches for ', names(GLOB.NICHE), ' variables')
   
-  message('Estimating Australian niches for ', length(species_list), ' species in the set ', "'", save_run, "'")
+  message('Estimating Australian niches for ', length(taxa_list), ' taxa in the set ', "'", save_run, "'")
   AUS.NICHE <- env_vars %>%
     
     ## Pipe the list into lapply
@@ -1491,7 +1491,7 @@ calc_1km_niches = function(coord_df,
   AUS.NICHE <- GLOB.NICHE %>% dplyr::select(-contains("."))
   message('Calculated Australia niches for ', names(AUS.NICHE), ' variables')
   
-  ## How are the AUS and GLOB niches related? Many species won't have both Australian and Global niches.
+  ## How are the AUS and GLOB niches related? Many taxa won't have both Australian and Global niches.
   ## So best to calculate the AUS niche as a separate table. Then, just use the global niche table for the rest of the code
   length(AUS.NICHE$searchTaxon); length(GLOB.NICHE$searchTaxon)
   
@@ -1500,7 +1500,7 @@ calc_1km_niches = function(coord_df,
   names(Aus_records) = c("searchTaxon", "Aus_records")
   identical(nrow(Aus_records), nrow(AUS.NICHE))
   
-  ## Add the counts of Australian records for each species to the niche database
+  ## Add the counts of Australian records for each taxa to the niche database
   GLOB.NICHE = join(Aus_records, GLOB.NICHE,  type = "right")
   
   ## Check the record and POA counts
@@ -1508,7 +1508,7 @@ calc_1km_niches = function(coord_df,
   head(GLOB.NICHE$KOP_count,  20)
   
   ## Check
-  message(round(nrow(AUS.NICHE)/nrow(GLOB.NICHE)*100, 2), " % species have records in Australia")
+  message(round(nrow(AUS.NICHE)/nrow(GLOB.NICHE)*100, 2), " % taxa have records in Australia")
   dim(GLOB.NICHE)
   dim(AUS.NICHE)
   
@@ -1519,7 +1519,7 @@ calc_1km_niches = function(coord_df,
   ## conservation status following Criterion B of IUCN.
   
   ## AREA OF OCCUPANCY (AOO).
-  ## For every species in the list: calculate the AOO
+  ## For every taxa in the list: calculate the AOO
   ## x = spp.geo[63]
   spp.geo = as.character(unique(COMBO.KOP$searchTaxon))
   
@@ -1582,12 +1582,12 @@ calc_1km_niches = function(coord_df,
     
     ## save .rds file for the next session
     message('Writing 1km resolution niche and raster data for ',
-            length(species_list), ' species in the set ', "'", save_run, "'")
+            length(taxa_list), ' taxa in the set ', "'", save_run, "'")
     saveRDS(GLOB.NICHE, paste0(data_path, 'GLOBAL_NICHES_',  save_run, '.rds'))
     return(GLOB.NICHE)
     
   } else {
-    message(' Return niches to the environment for ', length(species_list), ' species analysed')
+    message(' Return niches to the environment for ', length(taxa_list), ' taxa analysed')
     return(GLOB.NICHE)
   }
 }
@@ -1598,13 +1598,13 @@ calc_1km_niches = function(coord_df,
 
 ## Get a complete df ----
 
-#' Remove species records with NA enviro (i.e. Raster) values - records outside the exetent of rasters
+#' Remove taxa records with NA enviro (i.e. Raster) values - records outside the exetent of rasters
 #'
-#' This function downloads species occurrence files from GBIF (https://www.gbif.org/).
-#' It assumes that the species list supplied is taxonomically correct.
-#' It downloads the species without returning anything
+#' This function downloads taxa occurrence files from GBIF (https://www.gbif.org/).
+#' It assumes that the taxa list supplied is taxonomically correct.
+#' It downloads the taxa without returning anything
 #'
-#' @param data            Data.frame of species records
+#' @param data            Data.frame of taxa records
 #' @param desiredCols     Character string of columns to search for NA values EG c('rainfall', 'temp'), etc.
 #' @return                A df with NA records removed
 #' @export
@@ -1619,15 +1619,15 @@ completeFun <- function(data, desiredCols) {
 
 
 
-## Estimate the niche from species records ----
+## Estimate the niche from taxa records ----
 
 
-#' This function takes a data frame of all species records,
-#' and estimates the environmental niche for each species
+#' This function takes a data frame of all taxa records,
+#' and estimates the environmental niche for each taxa
 #' It assumes that the input df is that prepared by the calc_1km_niches function
-#' @param  DF                 Data.frame of all species records prepared by the calc_1km_niches function
+#' @param  DF                 Data.frame of all taxa records prepared by the calc_1km_niches function
 #' @param  colname            Character string - the columns to estimate niches for E.G. 'rainfall', etc.
-#' @return                    Data.frame of estimated environmental niches for each species
+#' @return                    Data.frame of estimated environmental niches for each taxa
 #' @export
 niche_estimate = function (DF,
                            colname) {
@@ -1639,8 +1639,8 @@ niche_estimate = function (DF,
     ux[which.max(tabulate(match(x, ux)))]
   }
   
-  ## Use ddply inside a function to create niche widths and medians for each species
-  ## Also, need to figure out how to make the aggregating column generic (species, genus, etc.)
+  ## Use ddply inside a function to create niche widths and medians for each taxa
+  ## Also, need to figure out how to make the aggregating column generic (taxa, genus, etc.)
   ## Try to un-wire the grouping column using !!
   summary = ddply(DF,
                   .(searchTaxon),           ## currently grouping column only works hard-wired
@@ -1671,7 +1671,7 @@ niche_estimate = function (DF,
   )
   
   ## Concatenate output
-  ## Figure out how to make the aggregating column generic (species, genus, etc.)
+  ## Figure out how to make the aggregating column generic (taxa, genus, etc.)
   ## currently it only works hard-wired
   colnames(summary) = c("searchTaxon",
                         paste0(colname,  "_min"),
@@ -1696,24 +1696,24 @@ niche_estimate = function (DF,
 ## Plot histograms and convex hulls for selected taxa ----
 
 
-#' This function takes a data frame of all species records,
-#' and plots histograms and convex hulls for each species in global enviromental space
+#' This function takes a data frame of all taxa records,
+#' and plots histograms and convex hulls for each taxa in global enviromental space
 #' It assumes that the input df is that prepared by the check_spatial_outliers function
-#' @param  coord_df           Data.frame of all species records prepared by the check_spatial_outliers function
-#' @param  species_list       Character string - the species analysed
+#' @param  coord_df           Data.frame of all taxa records prepared by the check_spatial_outliers function
+#' @param  taxa_list       Character string - the taxa analysed
 #' @param  range_path         Character string - file path for saving histograms and convex hulls
 #' @export
 plot_range_histograms = function(coord_df,
-                                 species_list,
+                                 taxa_list,
                                  range_path) {
   
   ## Subset the occurrence data to that used by maxent
-  message('Plotting global environmental ranges for ', length(species_list), ' species')
+  message('Plotting global environmental ranges for ', length(taxa_list), ' taxa')
   coord_df <- coord_df %>%
     as.data.frame()
   
   ## Plot histograms of temperature and rainfall
-  ## spp = species_list[1]
+  ## spp = taxa_list[1]
   spp.plot = as.character(unique(coord_df$searchTaxon))
   for (spp in spp.plot) {
     
@@ -1907,23 +1907,23 @@ plot_range_histograms = function(coord_df,
 #' Create SDM table ----
 
 
-#' @description  'This function takes a data frame of all species records,
-#' And prepares a table in the 'species with data' (swd) format for modelling uses the Maxent algorithm.
+#' @description  'This function takes a data frame of all taxa records,
+#' And prepares a table in the 'taxa with data' (swd) format for modelling uses the Maxent algorithm.
 #' It assumes that the input df is that returned by the coord_clean_records function'
-#' @param coord_df           Data.frame. DF of all species records returned by the coord_clean_records function
-#' @param species_list       Character string - the species analysed
-#' @param BG_points          Logical - Do we want to include a dataframe of background points? Otherwise, BG points taken from species not modelled
-#' @param sdm_table_vars     Character string - The enviro vars to be included in species models
-#' @param save_run           Character string - append a run name to the output (e.g. 'bat_species')
+#' @param coord_df           Data.frame. DF of all taxa records returned by the coord_clean_records function
+#' @param taxa_list       Character string - the taxa analysed
+#' @param BG_points          Logical - Do we want to include a dataframe of background points? Otherwise, BG points taken from taxa not modelled
+#' @param sdm_table_vars     Character string - The enviro vars to be included in taxa models
+#' @param save_run           Character string - append a run name to the output (e.g. 'bat_taxa')
 #' @param save_shp           Logical - Save a shapefile of the SDM table (T/F)?
 #' @param read_background    Logical - Read in an additional dataframe of background points (T/F)?
-#' @param background_points  Data.frame. DF of extra species records 
+#' @param background_points  Data.frame. DF of extra taxa records 
 #' @param save_data          Logical - do you want to save the data frame?
 #' @param data_path          Character string - The file path used for saving the data frame
-#' @param project_path       Paht of species records, with spatial outlier T/F flag for each record
+#' @param project_path       Paht of taxa records, with spatial outlier T/F flag for each record
 #' @export
 prepare_sdm_table = function(coord_df,
-                             species_list,
+                             taxa_list,
                              BG_points,
                              sdm_table_vars,
                              save_run,
@@ -1946,11 +1946,11 @@ prepare_sdm_table = function(coord_df,
   
   ## Create a table with all the variables needed for SDM analysis
   message('Preparing SDM table for ', length(unique(coord_df$searchTaxon)),
-          ' species in the set ', "'", save_run, "'",
+          ' taxa in the set ', "'", save_run, "'",
           'using ', unique(coord_df$SOURCE), ' data')
   
   ## Select only the columns needed. This also needs to use the variable names
-  coord_df         <- coord_df[coord_df$searchTaxon %in% species_list, ]
+  coord_df         <- coord_df[coord_df$searchTaxon %in% taxa_list, ]
   length(unique(coord_df$searchTaxon))
   
   COMBO.RASTER.ALL  <- coord_df %>%
@@ -1970,8 +1970,8 @@ prepare_sdm_table = function(coord_df,
   
   ## Create a unique identifier for spatial cleaning.
   ## This is used for automated cleaing of the records, and also saving shapefiles
-  ## But this will not be run for all species linearly.
-  ## So, it probably needs to be a combination of species and number
+  ## But this will not be run for all taxa linearly.
+  ## So, it probably needs to be a combination of taxa and number
   SDM.DATA.ALL$SPOUT.OBS <- 1:nrow(SDM.DATA.ALL)
   SDM.DATA.ALL$SPOUT.OBS <- paste0(SDM.DATA.ALL$SPOUT.OBS, "_SPOUT_", SDM.DATA.ALL$searchTaxon)
   SDM.DATA.ALL$SPOUT.OBS <- gsub(" ",     "_",  SDM.DATA.ALL$SPOUT.OBS, perl = TRUE)
@@ -2033,7 +2033,7 @@ prepare_sdm_table = function(coord_df,
                          value   = "flagged",
                          verbose = TRUE)
       
-      ## Now add attache column for species, and the flag for each record
+      ## Now add attache column for taxa, and the flag for each record
       d = cbind(searchTaxon = x,
                 SPAT_OUT = sp.flag, f)[c("searchTaxon", "SPAT_OUT", "SPOUT.OBS")]
       
@@ -2046,7 +2046,7 @@ prepare_sdm_table = function(coord_df,
     bind_rows
   gc()
   
-  ## How many species are flagged as spatial outliers?
+  ## How many taxa are flagged as spatial outliers?
   print(table(SPAT.OUT$SPAT_OUT, exclude = NULL))
   length(unique(SPAT.OUT$searchTaxon))
   head(SPAT.OUT)
@@ -2059,7 +2059,7 @@ prepare_sdm_table = function(coord_df,
           identical(SDM.DATA.ALL$searchTaxon, SPAT.OUT$searchTaxon))
   length(unique(SPAT.OUT$searchTaxon))
   
-  ## This explicit join is required. Check the species have been analysed in exactly the same order
+  ## This explicit join is required. Check the taxa have been analysed in exactly the same order
   SPAT.FLAG <- join(as.data.frame(SDM.DATA.ALL), SPAT.OUT,
                     by = c("SPOUT.OBS", "searchTaxon") ,
                     type = "left", match = "first")
@@ -2068,7 +2068,7 @@ prepare_sdm_table = function(coord_df,
   
   ## Check the join is working
   message('Checking spatial flags for ', length(unique(SPAT.FLAG$searchTaxon)),
-          ' species in the set ', "'", save_run, "'")
+          ' taxa in the set ', "'", save_run, "'")
   message(table(SPAT.FLAG$SPAT_OUT, exclude = NULL))
   
   ## Just get the records that were not spatial outliers.
@@ -2087,7 +2087,7 @@ prepare_sdm_table = function(coord_df,
                                         proj4string = CRS(sp_epsg54009))
   projection(SDM.SPAT.ALL)
   message(length(unique(SDM.SPAT.ALL$searchTaxon)),
-          ' species processed through from download to SDM table')
+          ' taxa processed through from download to SDM table')
   
   ## CREATE SHAPEFILES TO CHECK OUTLIERS ARCMAP
   ## Rename the fields so that ArcMap can handle them
@@ -2113,23 +2113,23 @@ prepare_sdm_table = function(coord_df,
              driver = 'ESRI Shapefile', overwrite_layer = TRUE)
     
   } else {
-    message(' skip file saving, not many species analysed')   ##
+    message(' skip file saving, not many taxa analysed')   ##
   }
   
   ## Now select the final columns needed
-  message(length(unique(SDM.SPAT.ALL$searchTaxon)), ' Species in occurrence and BG data')
+  message(length(unique(SDM.SPAT.ALL$searchTaxon)), ' taxa in occurrence and BG data')
   drops        <- c('CC.OBS', 'SPOUT.OBS')
   sdm_cols     <- names(dplyr::select(SDM.SPAT.ALL@data, searchTaxon, lon, lat, SOURCE, everything()))
   SDM.SPAT.ALL <- SDM.SPAT.ALL[,!(names(SDM.SPAT.ALL) %in% drops)]
   
   
   ## CREATE BACKGROUND POINTS AND VARIBALE NAMES
-  ## Use one data frame for all species analysis,
+  ## Use one data frame for all taxa analysis,
   ## to save mucking around with background points
   if(read_background == TRUE) {
     
     message('Read in background data for taxa analaysed')
-    background = background_points[!background_points$searchTaxon %in% species_list, ]
+    background = background_points[!background_points$searchTaxon %in% taxa_list, ]
     
     ## The BG points step needs to be ironed out.
     ## For some analysis, we need to do other taxa (e.g. animals)

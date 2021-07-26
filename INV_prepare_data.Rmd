@@ -1,5 +1,5 @@
 ---
-title: "nenswniche : a package for rapidly estimating multiple species ranges and habitat suitability"
+title: "nenswniche : a package for rapidly estimating multiple taxa ranges and habitat suitability"
 authors: "Hugh Burley, Shawn Laffan, Will Cornwell, Adrian Fisher"
 date: "October 2021"
 output:
@@ -30,7 +30,7 @@ word_document:
 
 \
 
-The text and code below summarises a workflow in R that can be used to relatively rapidly assess the environmental range of a species within Australia, from downloading occurrence records, through to creating maps of predicted climatic suitability across Australia at 1km*1km resolution. An example of this work is published in the journal Science of the Total Environment ::
+The text and code below summarises a workflow in R that can be used to relatively rapidly assess the environmental range of a taxa within Australia, from downloading occurrence records, through to creating maps of predicted climatic suitability across Australia at 1km*1km resolution. An example of this work is published in the journal Science of the Total Environment ::
 
 \
 
@@ -93,18 +93,18 @@ terraOptions(memfrac = 0.5,
 This code is being developed at UNSW, as part of a project investigating
 the impacts of the 2019/2020 bush fires on Insects in the North East Forests 
 of New South Wales. The aim is to create a pipeline that rapidly assesses 
-the habitat suitability of the threatened insect species under current 
+the habitat suitability of the threatened insect taxa under current 
 environmental conditions. 
 
 \
 
-# STEP 1 :: Download species occurrence data
+# STEP 1 :: Download taxa occurrence data
 
 \
 
 The backbone of the R workflow is a list of (taxonomically Ridgey-Didge!) Taxa names 
-that we supply. The analysis is designed to process data for one species at a time, 
-allowing species results to be updated as required. Unfortunately, Australia's insects
+that we supply. The analysis is designed to process data for one taxa at a time, 
+allowing taxa results to be updated as required. Unfortunately, Australia's insects
 are not very well sampled...so we can analyse at the family level.
 
 \
@@ -140,10 +140,10 @@ analysis_taxa
 ```
 
 
-The species list is supplied to a series of functions to calculate environmental ranges and habitat 
-suitability. The initial functions download all species records from the Atlas and living Australia
+The taxa list is supplied to a series of functions to calculate environmental ranges and habitat 
+suitability. The initial functions download all taxa records from the Atlas and living Australia
 (https://www.ala.org.au/) and the Global Biodiversity Information Facility (GBIF, https://www.gbif.org/). 
-The species data are downloaded as individual .Rdata files to the specified folders, which must exist first, 
+The taxa data are downloaded as individual .Rdata files to the specified folders, which must exist first, 
 without returning anything.
 
 \
@@ -183,16 +183,16 @@ for(i in dir_lists) {
 
 \
 
-Now download GBIF and ALA occurrence data for each species. The downloading functions 
+Now download GBIF and ALA occurrence data for each taxa. The downloading functions 
 are separated, because the ALA and GBIF columns are slightly different, but both 
-data sources are needed to properly quantify species ranges. The package functions 
+data sources are needed to properly quantify taxa ranges. The package functions 
 expect these folders (a typical R project structure), create them if they don't exist
 
 \
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Download ALA occurrence data for each species
+## Download ALA occurrence data for each taxa
 ## For some reason, this temporary directory needed to be created...
 ## dir.create('C:/Users/hughb/AppData/Local/Temp/RtmpyijnUR')
 
@@ -202,7 +202,7 @@ ala_env_cols = ala_fields("occurrence_stored", as_is = TRUE)$description[231:389
 
 
 ##
-download_ALA_all_species(species_list   = analysis_taxa,
+download_ALA_all_species(taxa_list   = analysis_taxa,
                          your_email     = 'hugh.burley@gmail.com',
                          download_path  = "./data/ALA/Insects/Species/",
                          ala_temp_dir   = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
@@ -211,7 +211,7 @@ download_ALA_all_species(species_list   = analysis_taxa,
                          quality_cols   = 'all')
 
 
-download_ALA_all_genera(species_list    = analysis_taxa,
+download_ALA_all_genera(taxa_list    = analysis_taxa,
                         your_email      = 'hugh.burley@gmail.com',
                         download_path   = "./data/ALA/Insects/Genus/",
                         ala_temp_dir    = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
@@ -221,7 +221,7 @@ download_ALA_all_genera(species_list    = analysis_taxa,
 
 
 ## Now download the data for all the families
-download_ALA_all_families(species_list   = analysis_taxa,
+download_ALA_all_families(taxa_list   = analysis_taxa,
                           your_email     = 'hugh.burley@gmail.com',
                           download_path  = "./data/ALA/Insects/Family/",
                           ala_temp_dir   = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
@@ -233,11 +233,11 @@ download_ALA_all_families(species_list   = analysis_taxa,
 
 \
 
-# STEP 2 :: Combine species occurrence data
+# STEP 2 :: Combine taxa occurrence data
 
 \
 
-This pipeline combines species occurrence points with raster data. It was developed using worldclim 
+This pipeline combines taxa occurrence points with raster data. It was developed using worldclim 
 climate raster data, but it can take any set of rasters. All the raster data is available here :: 
 
 \
@@ -338,7 +338,7 @@ world_annual_temp       <- worldclim_climate[[1]]
 
 # We also need a template raster of 1km * 1km cells, which is used to filter 
 # records to 1 per one 1km cell. This raster needs to have the same extent (global) 
-# resolution (1km) and projection (WGS84) of the data used to analyse the species 
+# resolution (1km) and projection (WGS84) of the data used to analyse the taxa 
 # distributions. It should have a value of 1 for land, and NA for the ocean. 
 # This takes ages in R.....
 template_raster_1km_WGS84 = raster("./data/world_koppen/template_1km_WGS84.tif")
@@ -352,7 +352,7 @@ template_raster_1km_mol   = raster("./data/world_koppen/template_has_data_1km.ti
 
 
 Next we filter the records to those taken after 1950, and those inside the raster boundaries 
-(i.e. species records in the ocean according to the raster boundaries will be excluded).
+(i.e. taxa records in the ocean according to the raster boundaries will be excluded).
 
 \
 
@@ -365,7 +365,7 @@ data('ALA_keep')
 
 
 ## Combine Family ALA data
-ALA.LAND.FAM <- combine_ala_records(species_list      =  all.insect.families,
+ALA.LAND.FAM <- combine_ala_records(taxa_list      =  all.insect.families,
                                     records_path      = "./data/ALA/Insects/Family/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
@@ -374,7 +374,7 @@ ALA.LAND.FAM <- combine_ala_records(species_list      =  all.insect.families,
 
 
 ## Combine Genus ALA data
-ALA.LAND.GEN <- combine_ala_records(species_list      = target.insect.genera,
+ALA.LAND.GEN <- combine_ala_records(taxa_list      = target.insect.genera,
                                     records_path      = "./data/ALA/Insects/Genus/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
@@ -382,8 +382,8 @@ ALA.LAND.GEN <- combine_ala_records(species_list      = target.insect.genera,
                                     world_raster      = world_annual_temp)
 
 
-## Combine Species ALA data
-ALA.LAND.SPP <- combine_ala_records(species_list      = target.insect.spp,
+## Combine taxa ALA data
+ALA.LAND.SPP <- combine_ala_records(taxa_list      = target.insect.spp,
                                     records_path      = "./data/ALA/Insects/Species/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
@@ -407,13 +407,13 @@ Next we combine occurrence files from ALA and GBIF into one table, and extracts 
 
 ## Combine GBIF and ALA data, and extract environmental values
 ## Note that the climate values are too small
-COMBO.RASTER.FAM = combine_records_extract(ala_df          = ALA.LAND.FAM,
-                                           site_df         = all_insect_site_df_families,
-                                           thin_records    = FALSE,
-                                           template_raster = template_raster_1km_WGS84,
-                                           world_raster    = aus.climate.veg.grids,
-                                           prj             = CRS("+init=epsg:4326"),
-                                           species_list    = analysis_taxa,
+COMBO.RASTER.FAM = combine_records_extract(ala_df           = ALA.LAND.FAM,
+                                           site_df          = all_insect_site_df_families,
+                                           thin_records     = FALSE,
+                                           template_raster  = template_raster_1km_WGS84,
+                                           world_raster     = aus.climate.veg.grids,
+                                           prj              = CRS("+init=epsg:4326"),
+                                           taxa_list        = analysis_taxa,
                                            
                                            ## This might need to change too
                                            raster_divide    = FALSE,
@@ -422,13 +422,13 @@ COMBO.RASTER.FAM = combine_records_extract(ala_df          = ALA.LAND.FAM,
                                            data_path        = "./output/results/")
 
 
-COMBO.RASTER.GEN = combine_records_extract(ala_df          = ALA.LAND.GEN,
-                                           site_df         = all_insect_site_df_genera,
-                                           thin_records    = FALSE,
-                                           template_raster = template_raster_1km_WGS84,
-                                           world_raster    = aus.climate.veg.grids,
-                                           prj             = CRS("+init=epsg:4326"),
-                                           species_list    = analysis_taxa,
+COMBO.RASTER.GEN = combine_records_extract(ala_df           = ALA.LAND.GEN,
+                                           site_df          = all_insect_site_df_genera,
+                                           thin_records     = FALSE,
+                                           template_raster  = template_raster_1km_WGS84,
+                                           world_raster     = aus.climate.veg.grids,
+                                           prj              = CRS("+init=epsg:4326"),
+                                           taxa_list        = analysis_taxa,
                                            
                                            ## These two will need to change.
                                            ## Specify them in the code
@@ -438,13 +438,13 @@ COMBO.RASTER.GEN = combine_records_extract(ala_df          = ALA.LAND.GEN,
                                            data_path        = "./output/results/")
 
 
-COMBO.RASTER.SPP = combine_records_extract(ala_df          = ALA.LAND.SPP,
-                                           site_df         = all_insect_site_df_species,
-                                           thin_records    = FALSE,
-                                           template_raster = template_raster_1km_WGS84,
-                                           world_raster    = aus.climate.veg.grids,
-                                           prj             = CRS("+init=epsg:4326"),
-                                           species_list    = analysis_taxa,
+COMBO.RASTER.SPP = combine_records_extract(ala_df           = ALA.LAND.SPP,
+                                           site_df          = all_insect_site_df_species,
+                                           thin_records     = FALSE,
+                                           template_raster  = template_raster_1km_WGS84,
+                                           world_raster     = aus.climate.veg.grids,
+                                           prj              = CRS("+init=epsg:4326"),
+                                           taxa_list        = analysis_taxa,
                                            
                                            ## These two will need to change.
                                            ## Specify them in the code
@@ -473,9 +473,9 @@ https://www.climond.org/Core/Authenticated/KoppenGeiger.aspx
 \
 
 The next stage of the workflow use a series of cleaning functions to automate the removal 
-of records for each species which are outliers. Doing this manually is extremely tedious, 
+of records for each taxa which are outliers. Doing this manually is extremely tedious, 
 and although errors will be made, automation is preferable across large suites of taxa. 
-The first cleaning function takes a data frame of all species records, and flag records 
+The first cleaning function takes a data frame of all taxa records, and flag records 
 as institutional or spatial outliers. This function uses the CoordinateCleaner package: 
 https://cran.r-project.org/web/packages/CoordinateCleaner/index.html. It takes the 
 records data.frame is that returned by the combine_records_extract function above.
@@ -498,11 +498,12 @@ COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.FAM.GEN.SPP,
 
 \
 
-The next cleaning function takes a data frame of all species records, flags records as 
+The next cleaning function takes a data frame of all taxa records, flags records as 
 spatial outliers (T/F for each record in the df), and saves images of the checks for each. 
 Manual cleaning of spatial outliers is very tedious, but automated cleaning makes mistakes, 
-so checking is handy. This function uses the CoordinateCleaner package https://cran.r-project.org/web/packages/CoordinateCleaner/index.html. 
-It assumes that the input dfs are those returned by the coord_clean_records function.
+so checking is handy. This function uses the CoordinateCleaner package 
+https://cran.r-project.org/web/packages/CoordinateCleaner/index.html. It assumes that the 
+input dfs are those returned by the coord_clean_records function.
 
 \
 
@@ -523,8 +524,8 @@ SPATIAL.CLEAN = check_spatial_outliers(all_df       = COORD.CLEAN,
 
 \
 
-The next cleaning function takes a data frame of all species records, estimates the geographic 
-and environmental ranges for each species, and creates a table of all species ranges. 
+The next cleaning function takes a data frame of all taxa records, estimates the geographic 
+and environmental ranges for each taxa, and creates a table of all taxa ranges. 
 It uses the AOO.computing function in the ConR package: https://cran.r-project.org/web/packages/ConR/index.html
 It assumes that the input df is that returned by the check_spatial_outliers function.
 
@@ -532,14 +533,14 @@ It assumes that the input df is that returned by the check_spatial_outliers func
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Estimate climate niches using species records
+## Estimate climate niches using taxa records
 ## Make this calculate niches for the target list
 GLOB.NICHE.ALL = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxon %in% analysis_taxa, ],
                                  prj          = CRS("+init=epsg:4326"),
                                  country_shp  = AUS,
                                  world_shp    = LAND,
                                  kop_shp      = Koppen_shp,
-                                 species_list = analysis_taxa,
+                                 taxa_list    = analysis_taxa,
                                  env_vars     = names(aus.climate.veg.grids),
                                  cell_size    = 2,
                                  save_data    = TRUE,
@@ -552,26 +553,26 @@ GLOB.NICHE.ALL = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxo
 #   bind_rows(readRDS('./output/results/GLOBAL_NICHES_TARGET_INSECT_GENUS.rds'))     %>%
 #   bind_rows(readRDS('./output/results/GLOBAL_NICHES_TARGET_INSECT_FAMILIES.rds'))  %>% .[.$searchTaxon %in% analysis_taxa, ]
 # 
-saveRDS(GLOB.NICHE.ALL,            './output/veg_climate_topo_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_ALL_TAXA.rds')
-write_csv(GLOBAL_NICHES_TARG_TAXA, './output/veg_climate_topo_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_ALL_TAXA.csv')
+saveRDS(GLOB.NICHE.ALL,   './output/veg_climate_topo_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_ALL_TAXA.rds')
+write_csv(GLOB.NICHE.ALL, './output/veg_climate_topo_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_ALL_TAXA.csv')
 
 
 ``` 
 
 \
 
-We can also plot the environmental ranges of each species. This function 
-takes a data frame of all species records, and plots histograms and convex hulls for 
-each species in global environmental space. It assumes that the input df is that 
+We can also plot the environmental ranges of each taxa. This function 
+takes a data frame of all taxa records, and plots histograms and convex hulls for 
+each taxa in global environmental space. It assumes that the input df is that 
 prepared by the check_spatial_outliers function
 
 \
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Plot species ranges using histograms and convex hulls for rainfall and temperature distributions
+## Plot taxa ranges using histograms and convex hulls for rainfall and temperature distributions
 plot_range_histograms(coord_df     = SPATIAL.CLEAN,
-                      species_list = analysis_taxa,
+                      taxa_list    = analysis_taxa,
                       range_path   = check_dir)
 ``` 
 
@@ -582,8 +583,8 @@ plot_range_histograms(coord_df     = SPATIAL.CLEAN,
 
 \
 
-Then we need to create at table we can use for species distribution modelling. This function takes 
-a data frame of all species records, and prepares a table in the 'species with data' (swd) format for 
+Then we need to create at table we can use for taxa distribution modelling. This function takes 
+a data frame of all taxa records, and prepares a table in the 'taxa with data' (swd) format for 
 modelling uses the Maxent algorithm. It assumes that the input df is that returned by the 
 coord_clean_records function.
 
@@ -596,25 +597,43 @@ sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0
 
 
 ## Final data set is a spatial points data frame in the Mollweide projection
-SDM.ALL.PLA.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_HOST_PLANT_SPP.rds')
-SDM.SPAT.OCC.BG    = prepare_sdm_table(coord_df          = COORD.CLEAN,
-                                       species_list      = unique(COORD.CLEAN$searchTaxon),
-                                       sdm_table_vars    = c('searchTaxon', 'lon', 'lat', 'SOURCE', 'SPAT_OUT',
-                                                             names(aus.climate.veg.grids)),
-                                       save_run          = "ALL_INSECT_SPP",
-                                       read_background   = TRUE,
-                                       background_points = SDM.ALL.PLA.SPP.BG, 
-                                       save_data         = TRUE,
-                                       save_shp          = FALSE,
-                                       data_path         = paste0(getwd(), '/output/results/'),
-                                       project_path      = 'G:/North_east_NSW_fire_recovery')
+SDM.ALL.PLA.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_HOST_PLANT_SPP.rds') %>% as.data.frame() %>%
+  
+  ## Add the columns we need
+  mutate(species = 'plant_spp',
+         genus   = 'plant_gen',
+         family  = 'plant_fam') %>% select(-lat.1, -lon.1) %>% 
+  
+  ## Save as spdf
+  SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
+                         data        = .,
+                         proj4string = CRS(sp_epsg54009))
+
+
+## Combine occ data with the bg data 
+SDM.SPAT.OCC.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN,
+                                     taxa_list         = unique(COORD.CLEAN$searchTaxon),
+                                     sdm_table_vars    = c('searchTaxon', 'species',  'genus', 'family', 'lon', 'lat', 'SOURCE', 'SPAT_OUT',
+                                                           names(aus.climate.veg.grids)),
+                                     save_run          = "ALL_INSECT_TAXA",
+                                     read_background   = TRUE,
+                                     background_points = SDM.ALL.PLA.SPP.BG, 
+                                     save_data         = TRUE,
+                                     save_shp          = FALSE,
+                                     data_path         = paste0(getwd(), '/output/results/'),
+                                     project_path      = 'G:/North_east_NSW_fire_recovery')
+
+
+## Check the taxonomic levels
+sum(is.na(SDM.SPAT.OCC.BG.GDA@data$searchTaxon));sum(is.na(SDM.SPAT.OCC.BG.GDA@data$species));
+sum(is.na(SDM.SPAT.OCC.BG.GDA@data$genus));sum(is.na(SDM.SPAT.OCC.BG.GDA@data$family))
 
 
 ## Save shape file separately - doesn't seem to work in R
 SDM.SPAT.OCC.BG.GDA <- spTransform(SDM.SPAT.OCC.BG, crs(sp_epsg3577))
 writeOGR(obj    = SDM.SPAT.OCC.BG.GDA,
          dsn    = 'G:/North_east_NSW_fire_recovery/output/results',
-         layer  = 'SDM_SPAT_OCC_BG_GDA_TARG_INSECT_SPP', 
+         layer  = 'SDM_SPAT_OCC_BG_GDA_TARG_INSECT_TAXA', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
 
 ``` 
