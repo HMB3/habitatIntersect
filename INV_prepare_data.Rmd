@@ -365,7 +365,7 @@ data('ALA_keep')
 
 
 ## Combine Family ALA data
-ALA.LAND.FAM <- combine_ala_records(species_list      = analysis_taxa,
+ALA.LAND.FAM <- combine_ala_records(species_list      =  all.insect.families,
                                     records_path      = "./data/ALA/Insects/Family/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
@@ -374,7 +374,7 @@ ALA.LAND.FAM <- combine_ala_records(species_list      = analysis_taxa,
 
 
 ## Combine Genus ALA data
-ALA.LAND.GEN <- combine_ala_records(species_list      = analysis_taxa,
+ALA.LAND.GEN <- combine_ala_records(species_list      = target.insect.genera,
                                     records_path      = "./data/ALA/Insects/Genus/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
@@ -383,12 +383,13 @@ ALA.LAND.GEN <- combine_ala_records(species_list      = analysis_taxa,
 
 
 ## Combine Species ALA data
-ALA.LAND.SPP <- combine_ala_records(species_list      = analysis_taxa,
+ALA.LAND.SPP <- combine_ala_records(species_list      = target.insect.spp,
                                     records_path      = "./data/ALA/Insects/Species/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
                                     keep_cols         = ALA_keep,
                                     world_raster      = world_annual_temp)
+
 
 ``` 
 
@@ -452,6 +453,11 @@ COMBO.RASTER.SPP = combine_records_extract(ala_df          = ALA.LAND.SPP,
                                            save_run         = "TARGET_INSECT_SPECIES",
                                            data_path        = "./output/results/")
 
+
+## Try combing the records into a "super table"
+COMBO.RASTER.FAM.GEN.SPP <- bind_rows(COMBO.RASTER.FAM, COMBO.RASTER.GEN, COMBO.RASTER.SPP)
+
+
 ``` 
 
 \
@@ -481,7 +487,7 @@ records data.frame is that returned by the combine_records_extract function abov
 ## Just create a background points version for each step 
 
 ## Flag records as institutional or spatial outliers
-COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.SPP,
+COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.FAM.GEN.SPP,
                                   capitals   = 10000,  
                                   centroids  = 5000,   
                                   save_data  = FALSE,
@@ -509,7 +515,7 @@ SPATIAL.CLEAN = check_spatial_outliers(all_df       = COORD.CLEAN,
                                        site_df      = FALSE, 
                                        clean_path   = './data/ALA/Check_Plots/',
                                        plot_points  = FALSE,
-                                       record_limit = 300000,
+                                       record_limit = 400000,
                                        spatial_mult = 10,
                                        prj          = CRS("+init=epsg:4326"))
 
@@ -528,17 +534,17 @@ It assumes that the input df is that returned by the check_spatial_outliers func
 
 ## Estimate climate niches using species records
 ## Make this calculate niches for the target list
-GLOB.NICHE = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxon %in% analysis_taxa, ],
-                             prj          = CRS("+init=epsg:4326"),
-                             country_shp  = AUS,
-                             world_shp    = LAND,
-                             kop_shp      = Koppen_shp,
-                             species_list = analysis_taxa,
-                             env_vars     = names(aus.climate.veg.grids),
-                             cell_size    = 2,
-                             save_data    = TRUE,
-                             save_run     = "TARGET_INSECT_SPP",
-                             data_path    = "./output/results/")
+GLOB.NICHE.ALL = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxon %in% analysis_taxa, ],
+                                 prj          = CRS("+init=epsg:4326"),
+                                 country_shp  = AUS,
+                                 world_shp    = LAND,
+                                 kop_shp      = Koppen_shp,
+                                 species_list = analysis_taxa,
+                                 env_vars     = names(aus.climate.veg.grids),
+                                 cell_size    = 2,
+                                 save_data    = TRUE,
+                                 save_run     = "TARGET_INSECT_TAXA",
+                                 data_path    = "./output/results/")
 
 
 ## Blend the niches together
@@ -546,9 +552,8 @@ GLOB.NICHE = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxon %i
 #   bind_rows(readRDS('./output/results/GLOBAL_NICHES_TARGET_INSECT_GENUS.rds'))     %>%
 #   bind_rows(readRDS('./output/results/GLOBAL_NICHES_TARGET_INSECT_FAMILIES.rds'))  %>% .[.$searchTaxon %in% analysis_taxa, ]
 # 
-# saveRDS(GLOBAL_NICHES_TARG_TAXA,   './output/veg_climate_topo_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_TAXA.rds')
-# write_csv(GLOBAL_NICHES_TARG_TAXA, './output/veg_climate_topo_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_TAXA.csv')
-
+saveRDS(GLOB.NICHE.ALL,            './output/veg_climate_topo_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_ALL_TAXA.rds')
+write_csv(GLOBAL_NICHES_TARG_TAXA, './output/veg_climate_topo_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_ALL_TAXA.csv')
 
 
 ``` 

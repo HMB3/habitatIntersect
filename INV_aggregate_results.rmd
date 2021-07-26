@@ -84,21 +84,16 @@ Create a function that loops through all species, and multiples the thresholded 
 the fire severity layers (the FESM layers). 
 
 
-Consider the extent and resolution issues - FESM is 10m fire scars?
-GEEBAM is the Keith Class veg units, but only for the areas that burnt...
-SVTM
-
-How can we intersect the 1km rasters with the 10m layers? What do we want at the end,
-a measure of % remaining/burnt for each species, overall, and in each veg class?
+First, re-sample all the layers to 100m
 
 
 \
 
 First, get the rasters to compare with SDM modelling :
 
-- Fire layers    (FESM)
-- NSW Vegetation (Veg maps) 
-- SDM output     (Binary habitat suitability, 0-1)
+- Fire layers    (FESM, 0-4, 100m)
+- NSW Vegetation (Veg maps, categorical, 100m) 
+- SDM output     (Binary habitat suitability, 0-1, 100m)
 
 \
 
@@ -107,14 +102,15 @@ First, get the rasters to compare with SDM modelling :
 
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
 ## VALUES : 1-4, burn intensity from 2019-2020 fires @ 10m resolution
-FESM_1000m_GDA_study <- raster('./data/Remote_sensing/FESM/fesm_20200420_1000m_meanx_GDA_study.tif')
+FESM_1000m_GDA_study <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/GBAM_100m.tif', RAT = TRUE)
 xres(FESM_1000m_GDA_study)
 yres(FESM_1000m_GDA_study)
 
 
 ## SVTM Rasters : https://www.environment.nsw.gov.au/vegetation/state-vegetation-type-map.htm
 # The State Vegetation Type Map (SVTM)  of Plant Community Types across NSW @ 5m resolution
-SVTM           <- raster('./data/Remote_sensing/Veg_data/NSW_vegetation_types/SVTM_PCTID_mar2020_coastLUTv5p5.tif')
+SVTM           <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/SVTM_100m.tif', RAT = TRUE)
+GBAM           <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/GBAM_100m.tif', RAT = TRUE)
 SVTM_GDA_study <- raster('./data/Remote_sensing/Veg_data/NSW_vegetation_types/SVTM_PCTID_study.tif')
 xres(SVTM)
 yres(SVTM_GDA_study)
@@ -170,10 +166,20 @@ SVTM_study <- align_rasters(unaligned     = SVTM,
 
 \
 
-Next, get the rasters to compare with SDM modelling :
+Next, compare SDM modells with the Fire and Veg layers :
 
 - Fire layers    (FESM)
-- NSW Vegetation (Veg maps)  
+- NSW Vegetation (Veg maps)
+
+
+
+We cqn use the “combine” tool to run queries on the raster.
+
+ 
+
+For example, we can combine the Keith Class from the SVTM map, with the expected range of each species (a and b). 
+You will be able to search the geotiff attribute table using Keith Class = x,d,f etc. where species range = b. 
+We can then extract by attributes to create a new raster with the Keith Class you want, only inside the species range.
 
 
 \

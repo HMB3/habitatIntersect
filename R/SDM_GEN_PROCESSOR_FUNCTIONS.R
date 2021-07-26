@@ -999,8 +999,7 @@ combine_records_extract = function(ala_df,
   }
   
   ## Get the complete data
-  COMBO.RASTER.CONVERT = completeFun(COMBO.RASTER.CONVERT, c(names(world_raster)[1], 
-                                                             names(world_raster)[20]))
+  COMBO.RASTER.CONVERT = completeFun(COMBO.RASTER.CONVERT, c(names(world_raster)))
   
   message(length(unique(COMBO.RASTER.CONVERT$searchTaxon)),
           ' species processed of ', length(species_list), ' original species')
