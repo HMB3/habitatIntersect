@@ -59,8 +59,12 @@ run_sdm_analysis = function(taxa_list,
                             country_shp ) {
   
   
-  ## Convert to SF object
-  sdm_df <- st_as_sf(sdm_df)
+  ## Convert to SF object for selection - inefficient
+  message('Preparing spatial data for SDMs')
+  rem          <- c("geometry") # list of column names
+  sdm_df       <- st_as_sf(sdm_df) 
+  sdm_df       <- st_as_sf[,!(names(.) %in% rem)]
+  sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
   
   ## Loop over all the taxa
   ## taxa <- taxa_list[3]
@@ -95,6 +99,16 @@ run_sdm_analysis = function(taxa_list,
         background <- filter(sdm_df, searchTaxon != taxa & !!sym(taxa_level) != taxa)
         
         message('Using ', nrow(background), ' background records from ', unique(background$SOURCE))
+        
+        ## reconvert SF objects to SPDF objects
+        message('Converting occ and bg data to SPDF for ', taxa)
+        occurrence <- occurrence %>% as.data.frame() %>% SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
+                                                                                data        = .,
+                                                                                proj4string = CRS(sp_epsg54009))
+        
+        background <- background %>% as.data.frame() %>% SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
+                                                                                data        = .,
+                                                                                proj4string = CRS(sp_epsg54009))
         
         ## Finally fit the models using FIT_MAXENT_TARG_BG. Also use tryCatch to skip any exceptions
         tryCatch(
@@ -339,10 +353,10 @@ fit_maxent_targ_bg_back_sel <- function(occ,
         
         message(name, ' writing occ and bg shapefiles')
         writeOGR(SpatialPolygonsDataFrame(buffer, data.frame(ID = seq_len(length(buffer)))),
-                 outdir_sp, paste0(save_name, '_bg_buffer'),          'ESRI Shapefile', overwrite_layer = TRUE)
-        writeOGR(bg.samp,  outdir_sp, paste0(save_name, '_bg'),       'ESRI Shapefile', overwrite_layer = TRUE)
-        writeOGR(occ,           outdir_sp, paste0(save_name, '_occ'), 'ESRI Shapefile', overwrite_layer = TRUE)
-        
+                 outdir_sp, paste0(save_name, '_bg_buffer'),       'ESRI Shapefile', overwrite_layer = TRUE)
+        writeOGR(bg.samp,   outdir_sp, paste0(save_name, '_bg'),   'ESRI Shapefile', overwrite_layer = TRUE)
+        writeOGR(occ,       outdir_sp, paste0(save_name, '_occ'),  'ESRI Shapefile', overwrite_layer = TRUE)
+         
       })
       
     }

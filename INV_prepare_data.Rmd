@@ -631,6 +631,8 @@ sum(is.na(SDM.SPAT.OCC.BG.GDA@data$genus));sum(is.na(SDM.SPAT.OCC.BG.GDA@data$fa
 
 ## Save shape file separately - doesn't seem to work in R
 SDM.SPAT.OCC.BG.GDA <- spTransform(SDM.SPAT.OCC.BG, crs(sp_epsg3577))
+saveRDS(SDM.SPAT.OCC.BG.GDA, './output/results/SDM_SPAT_OCC_BG_GDA_ALL_TAXA.rds')
+
 writeOGR(obj    = SDM.SPAT.OCC.BG.GDA,
          dsn    = 'G:/North_east_NSW_fire_recovery/output/results',
          layer  = 'SDM_SPAT_OCC_BG_GDA_TARG_INSECT_TAXA', 
