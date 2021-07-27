@@ -127,14 +127,7 @@ data('target.insect.families')
 data('target.host.plants')
 data('all.insect.plant.spp')
 
-# analysis_taxa <- str_trim(c(target.insect.spp)) %>% unique()
-# analysis_taxa <- str_trim(c(target.insect.genera)) %>% unique()
-# analysis_taxa <- str_trim(c(target.insect.families)) %>% unique()
-# analysis_taxa <- str_trim(c(all.insect.families)) %>% unique()
 analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
-# analysis_taxa <- str_trim(c(target.insect.spp, all.insect.spp)) %>% unique()
-# analysis_taxa <- c(all.insect.plant.spp, target.host.plants)    %>% unique()
-# analysis_taxa <- str_trim(target.host.plants)
 analysis_taxa
 
 ```

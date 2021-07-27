@@ -123,7 +123,7 @@ SDM.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TAXA.rds
 
 
 ## Run family-level models
-run_sdm_analysis(taxa_list               = sort(target.insect.families),
+run_sdm_analysis(taxa_list               = rev(sort(all.insect.families)),
                  taxa_level              = 'family',
                  maxent_dir              = 'output/veg_climate_topo_maxent/full_models',     
                  bs_dir                  = 'output/veg_climate_topo_maxent/back_sel_models',
@@ -150,7 +150,7 @@ run_sdm_analysis(taxa_list               = sort(target.insect.families),
 
 ## Run genus-level models
 run_sdm_analysis(taxa_list               = sort(target.insect.genera),
-                 taxa_level              = 'family',vvvvvvvvv
+                 taxa_level              = 'genus',
                  maxent_dir              = 'output/veg_climate_topo_maxent/full_models',     
                  bs_dir                  = 'output/veg_climate_topo_maxent/back_sel_models',
                  sdm_df                  = SDM.SPAT.OCC.BG.GDA,
@@ -175,7 +175,8 @@ run_sdm_analysis(taxa_list               = sort(target.insect.genera),
 
 
 ## Run family-level models
-run_sdm_analysis(taxa_list            = sort(target.insect.spp),
+run_sdm_analysis(taxa_list               = sort(target.insect.spp),
+                 taxa_level              = 'species',
                  maxent_dir              = 'output/veg_climate_topo_maxent/full_models',     
                  bs_dir                  = 'output/veg_climate_topo_maxent/back_sel_models',
                  sdm_df                  = SDM.SPAT.OCC.BG.GDA,
