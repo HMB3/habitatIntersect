@@ -385,7 +385,6 @@ ALA.LAND.SPP <- combine_ala_records(taxa_list      = target.insect.spp,
                                     keep_cols         = ALA_keep,
                                     world_raster      = world_annual_temp)
 
-
 ``` 
 
 \
