@@ -2,8 +2,8 @@
 % Please edit documentation in R/SDM_GEN_MAXENT_FUNCTIONS.R
 \name{fit_maxent_targ_bg_back_sel}
 \alias{fit_maxent_targ_bg_back_sel}
-\title{This function takes a data frame of all species records,
-and runs a specialised maxent analysis for each species.
+\title{This function takes a data frame of all taxa records,
+and runs a specialised maxent analysis for each taxa.
 It uses the rmaxent package https://github.com/johnbaums/rmaxent
 It assumes that the input df is that returned by the prepare_sdm_table function}
 \usage{
@@ -32,7 +32,7 @@ fit_maxent_targ_bg_back_sel(
 )
 }
 \arguments{
-\item{occ}{SpatialPointsDataFrame - Spdf of all species records returned by the 'prepare_sdm_table' function}
+\item{occ}{SpatialPointsDataFrame - Spdf of all taxa records returned by the 'prepare_sdm_table' function}
 
 \item{bg}{SpatialPointsDataFrame - Spdf of of candidate background points}
 
@@ -73,8 +73,8 @@ fit_maxent_targ_bg_back_sel(
 \item{full_args}{Dataframe of global koppen zones, with columns : GRIDCODE, Koppen}
 }
 \description{
-This function takes a data frame of all species records,
-and runs a specialised maxent analysis for each species.
+This function takes a data frame of all taxa records,
+and runs a specialised maxent analysis for each taxa.
 It uses the rmaxent package https://github.com/johnbaums/rmaxent
 It assumes that the input df is that returned by the prepare_sdm_table function
 }

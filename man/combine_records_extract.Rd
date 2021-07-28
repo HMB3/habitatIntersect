@@ -9,7 +9,7 @@ combine_records_extract(
   ala_df,
   site_df,
   add_site,
-  species_list,
+  taxa_list,
   template_raster,
   thin_records,
   world_raster,
@@ -26,7 +26,7 @@ combine_records_extract(
 
 \item{site_df}{Data frame of site records (only used if you have site data, e.g. I-naturalist)}
 
-\item{species_list}{List of species analysed, used to cut the dataframe down}
+\item{taxa_list}{List of taxa analysed, used to cut the dataframe down}
 
 \item{template_raster}{A global R Raster used to thin records to 1 record per 1km grid cell}
 
@@ -40,7 +40,7 @@ combine_records_extract(
 
 \item{data_path}{The file path used for saving the data frame}
 
-\item{save_run}{A run name to append to the data frame (e.g. bat species, etc.). Useful for multiple runs.}
+\item{save_run}{A run name to append to the data frame (e.g. bat taxa, etc.). Useful for multiple runs.}
 
 \item{biocl_vars}{The variables used - eg the standard bioclim names (https://www.worldclim.org/).}
 

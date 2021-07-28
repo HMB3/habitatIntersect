@@ -682,7 +682,8 @@ local_simplify = function (occ, bg, path, taxa_column = "taxa", response_curves 
 
 #' This function calculates variables importance.
 #' @param mod   object - maxent model object
-var.importance <- function(mod) {
+#' @export
+var_importance <- function(mod) {
   res <- mod@results
   pc <- res[grepl('contribution', rownames(res)),]
   pi <- res[grepl('permutation', rownames(res)),]
@@ -735,7 +736,7 @@ compile_sdm_results = function(taxa_list,
   
   ## How many taxa have been modelled?
   message(paste("maxent.tables has this many entries:", length(maxent.tables)))
-  message(paste(head (maxent.tables), collapse=","))
+  message(paste(head (maxent.tables), collapse = ","))
   sdm.exists = lapply(maxent.tables, FUN = function (x) {file.exists (x)}) %>% unlist()
   
   ## Only list the intersection between the modelled taxa and
@@ -773,7 +774,7 @@ compile_sdm_results = function(taxa_list,
       mxt.records = nrow(m@presence)
       
       ## Get variable importance
-      m.vars    = var.importance(m)
+      m.vars    = var_importance(m)
       var.pcont = m.vars[rev(order(m.vars[["percent.contribution"]])),][["variable"]][1:4]
       pcont     = m.vars[rev(order(m.vars[["percent.contribution"]])),][["percent.contribution"]][1:4]
       Var_pcont = paste(var.pcont, pcont, sep = ' = ')
@@ -808,7 +809,7 @@ compile_sdm_results = function(taxa_list,
                      Omission_rate)
       
       ## Remove path gunk, and taxa
-      d$taxa     = NULL
+      d$Species     = NULL
       d$searchTaxon = gsub("/full/maxent_fitted.rds", "", d$searchTaxon)
       row.names(d)  <- NULL
       return(d)
@@ -829,7 +830,7 @@ compile_sdm_results = function(taxa_list,
     .[["Logistic_threshold"]]
   
   ## Create a list of the omission files - again, don't do this for all the files, just the intersection
-  omission.tables = lapply (map_spp_list, FUN = function (x) {paste(results_dir , x, "full/taxa_omission.csv", sep="/")})
+  omission.tables = lapply (map_spp_list, FUN = function (x) {paste(results_dir , x, "full/species_omission.csv", sep = "/")})
   message (head (omission.tables))
   
   ## Only process the existing files

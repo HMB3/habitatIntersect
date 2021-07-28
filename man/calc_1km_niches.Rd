@@ -13,7 +13,7 @@ calc_1km_niches(
   country_shp,
   world_shp,
   kop_shp,
-  species_list,
+  taxa_list,
   env_vars,
   cell_size,
   save_run,
@@ -28,7 +28,7 @@ calc_1km_niches(
 
 \item{kop_shp}{.Rds object. Shapefile of the worlds koppen zones (e.g. https://www.climond.org/Koppen.aspx)}
 
-\item{species_list}{Character string - List of species analysed, used to cut the dataframe down}
+\item{taxa_list}{Character string - List of taxa analysed, used to cut the dataframe down}
 
 \item{env_vars}{Character string - List of environmental variables analysed}
 

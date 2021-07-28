@@ -9,7 +9,7 @@ project_maxent_current_grids_mess(
   country_prj,
   save_novel_poly,
   local_prj,
-  species_list,
+  taxa_list,
   maxent_path,
   current_grids,
   create_mess
@@ -24,7 +24,7 @@ project_maxent_current_grids_mess(
 
 \item{local_prj}{CRS object  - Local projection for mapping maxent results}
 
-\item{species_list}{Character string - The species to run maxent predictions for}
+\item{taxa_list}{Character string - The species to run maxent predictions for}
 
 \item{maxent_path}{Character string - The file path containin the existing maxent models}
 

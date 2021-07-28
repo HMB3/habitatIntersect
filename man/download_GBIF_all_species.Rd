@@ -14,7 +14,7 @@ download_GBIF_all_species(species_list, download_path, download_limit)
 \item{download_limit}{Numeric - How many records can be downloaded at one time? Set by server}
 }
 \description{
-This function downloads species occurrence files from GBIF (https://www.gbif.org/).
-It assumes that the species list supplied is taxonomically correct (haha!).
-It downloads the species to the specified folders without returning anything
+This function downloads taxa occurrence files from GBIF (https://www.gbif.org/).
+It assumes that the taxa list supplied is taxonomically correct (haha!).
+It downloads the taxa to the specified folders without returning anything
 }

@@ -6,10 +6,10 @@
 There are slight differences between ALA and GBIF, so separate functions are useful.
 It assumes that all the files come from the previous GBIF downloads function.
 Although you can download all the records for in one go, this is better for
-Doing small runs of species, or where you want to re-run them constantly}
+Doing small runs of taxa, or where you want to re-run them constantly}
 \usage{
 combine_gbif_records(
-  species_list,
+  taxa_list,
   records_path,
   records_extension,
   record_type,
@@ -18,9 +18,9 @@ combine_gbif_records(
 )
 }
 \arguments{
-\item{species_list}{List of species already downloaded}
+\item{taxa_list}{List of taxa already downloaded}
 
-\item{records_path}{File path for downloaded species}
+\item{records_path}{File path for downloaded taxa}
 
 \item{records_extension}{Which R file type? RDS or RDA}
 
@@ -35,5 +35,5 @@ This function combines all occurrence files from GBIF into one table.
 There are slight differences between ALA and GBIF, so separate functions are useful.
 It assumes that all the files come from the previous GBIF downloads function.
 Although you can download all the records for in one go, this is better for
-Doing small runs of species, or where you want to re-run them constantly
+Doing small runs of taxa, or where you want to re-run them constantly
 }

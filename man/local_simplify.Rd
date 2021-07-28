@@ -14,7 +14,7 @@ local_simplify(
   occ,
   bg,
   path,
-  species_column = "species",
+  taxa_column = "taxa",
   response_curves = TRUE,
   logistic_format = TRUE,
   type = "PI",
@@ -27,13 +27,13 @@ local_simplify(
 )
 }
 \arguments{
-\item{occ}{SpatialPointsDataFrame - Spdf of all species records returned by the 'prepare_sdm_table' function}
+\item{occ}{SpatialPointsDataFrame - Spdf of all taxa records returned by the 'prepare_sdm_table' function}
 
 \item{bg}{SpatialPointsDataFrame - Spdf of of candidate background points}
 
 \item{path}{Character string - Vector of enviro conditions that you want to include}
 
-\item{species_column}{Character string - Vector of enviro conditions that you want to include}
+\item{taxa_column}{Character string - Vector of enviro conditions that you want to include}
 
 \item{logistic_format}{Logical value indicating whether maxentResults.csv should report logistic value thresholds}
 

@@ -15,7 +15,7 @@
 #' @param country_shp        SpatialPolygonsDataFrame - Spdf of the country for mapping maxent results (e.g. Australia)
 #' @param country_prj        CRS object  - Local projection for mapping maxent results
 #' @param local_prj          CRS object  - Local projection for mapping maxent results
-#' @param species_list       Character string - The species to run maxent predictions for
+#' @param taxa_list       Character string - The species to run maxent predictions for
 #' @param maxent_path        Character string - The file path containin the existing maxent models
 #' @param climate_path       Character string - The file path where the climate data is saved
 #' @param grid_names         Character string - Vector of enviro conditions that you want to include
@@ -26,7 +26,7 @@
 #' @export
 project_maxent_current_grids_mess = function(country_shp, 
                                              country_prj,   save_novel_poly,
-                                             local_prj,     species_list,
+                                             local_prj,     taxa_list,
                                              maxent_path,   
                                              current_grids, 
                                              create_mess) {
@@ -41,7 +41,7 @@ project_maxent_current_grids_mess = function(country_shp,
   # names(current_grids) <- grid_names
   
   ## First, run a loop over each scenario:
-  lapply(species_list, function(x) {
+  lapply(taxa_list, function(x) {
     
     ## Then apply each GCM to each species.
     ## First, check if the maxent model exists
@@ -96,7 +96,7 @@ project_maxent_current_grids_mess = function(country_shp,
               
               pred.current <- rmaxent::project(
                 m, current_grids[[colnames(m@presence)]])$prediction_logistic
-              raster::writeRaster(pred.current, f_current, overwrite = TRUE)
+              terra::writeRaster(pred.current, f_current, overwrite = TRUE)
               
               gc()
               
@@ -289,7 +289,7 @@ project_maxent_current_grids_mess = function(country_shp,
     }
     
     ## Check this is the best way to run parallel
-    lapply(species_list, maxent_predict_fun)
+    lapply(taxa_list, maxent_predict_fun)
   })
 }
 
@@ -415,7 +415,7 @@ habitat_threshold = function(taxa_list,
 #' @param world_prj          CRS object  - Global projection for mapping maxent results
 #' @param local_prj          CRS object  - Local projection for mapping maxent results
 #' @param scen_list          Character string - The list of global circulation models to create predictions for
-#' @param species_list       Character string - The species to run maxent predictions for
+#' @param taxa_list       Character string - The species to run maxent predictions for
 #' @param maxent_path        Character string - The file path containin the existing maxent models
 #' @param climate_path       Character string - The file path where the climate data is saved
 #' @param grid_names         Character string - Vector of enviro conditions that you want to include
@@ -429,7 +429,7 @@ habitat_threshold = function(taxa_list,
 #' @export
 project_maxent_grids_mess = function(country_shp,   world_shp,
                                      country_prj,   world_prj, local_prj,
-                                     scen_list,     species_list,
+                                     scen_list,     taxa_list,
                                      maxent_path,   climate_path,
                                      grid_names,    time_slice,
                                      current_grids, create_mess,
@@ -906,13 +906,13 @@ project_maxent_grids_mess = function(country_shp,   world_shp,
     ## Check this is the best way to run parallel
     if (nclust == 1) {
       
-      lapply(species_list, maxent_predict_fun)
+      lapply(taxa_list, maxent_predict_fun)
       
     } else {
       ## Export all objects from the function call
-      message('Running project_maxent_grids_mess for ', length(species_list),
+      message('Running project_maxent_grids_mess for ', length(taxa_list),
               ' species on ', nclust, ' cores for GCM ', x)
-      parLapply(cl, species_list, maxent_predict_fun)
+      parLapply(cl, taxa_list, maxent_predict_fun)
     }
   })
 }
@@ -1030,14 +1030,14 @@ shapefile_vector_from_raster = function (shp_file,
 #' @param agg_var            Character string - The field name in the shapefile to use for aggregating SDM results (e.g. Urban area codes)
 #' @param unit_vec           Character string - The field name in the shapefile to use for aggregating SDM results (e.g. Urban area codes)
 #' @param scen_list          Character string - The list of global circulation models to create predictions for
-#' @param species_list       Character string - The species to run maxent predictions for
+#' @param taxa_list       Character string - The species to run maxent predictions for
 #' @param maxent_path        Character string - The file path containin the existing maxent models
 #' @param time_slice         Character string - The time period to create predictions for (e.g. '2050', or '2070')
 #' @export
 sdm_area_cell_count = function(unit_shp, country_shp,
                                world_shp, sort_var,
                                agg_var, unit_vec,
-                               DIR_list, species_list, number_gcms,
+                               DIR_list, taxa_list, number_gcms,
                                maxent_path, thresholds,
                                time_slice, write_rasters) {
   
@@ -1053,8 +1053,8 @@ sdm_area_cell_count = function(unit_shp, country_shp,
     
     ## And each species - although we don't want all possible
     ## combinations. use mapply in the function call
-    ## species = species_list[1]
-    lapply(species_list, function(species) {
+    ## species = taxa_list[1]
+    lapply(taxa_list, function(species) {
       
       ## Then, create rasters that meet habitat suitability criteria
       ## thresholds, determined by the rmaxent function
@@ -1226,7 +1226,7 @@ sdm_area_cell_count = function(unit_shp, country_shp,
             
             ## Create a table of the gain/loss/stable :: write this to file as well
             gain_loss_table      = table(z[, 1], z[, 2])
-            gain_loss_df         = as.data.frame(raster::freq(gain_loss))
+            gain_loss_df         = as.data.frame(terra::freq(gain_loss))
             gain_loss_df$SPECIES = species
             gain_loss_df$PERIOD  = time_slice
             

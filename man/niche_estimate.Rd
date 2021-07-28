@@ -2,22 +2,22 @@
 % Please edit documentation in R/SDM_GEN_PROCESSOR_FUNCTIONS.R
 \name{niche_estimate}
 \alias{niche_estimate}
-\title{This function takes a data frame of all species records,
-and estimates the environmental niche for each species
+\title{This function takes a data frame of all taxa records,
+and estimates the environmental niche for each taxa
 It assumes that the input df is that prepared by the calc_1km_niches function}
 \usage{
 niche_estimate(DF, colname)
 }
 \arguments{
-\item{DF}{Data.frame of all species records prepared by the calc_1km_niches function}
+\item{DF}{Data.frame of all taxa records prepared by the calc_1km_niches function}
 
 \item{colname}{Character string - the columns to estimate niches for E.G. 'rainfall', etc.}
 }
 \value{
-Data.frame of estimated environmental niches for each species
+Data.frame of estimated environmental niches for each taxa
 }
 \description{
-This function takes a data frame of all species records,
-and estimates the environmental niche for each species
+This function takes a data frame of all taxa records,
+and estimates the environmental niche for each taxa
 It assumes that the input df is that prepared by the calc_1km_niches function
 }

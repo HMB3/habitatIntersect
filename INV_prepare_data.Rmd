@@ -195,7 +195,7 @@ ala_env_cols = ala_fields("occurrence_stored", as_is = TRUE)$description[231:389
 
 
 ##
-download_ALA_all_species(taxa_list   = analysis_taxa,
+download_ALA_all_species(taxa_list      = analysis_taxa,
                          your_email     = 'hugh.burley@gmail.com',
                          download_path  = "./data/ALA/Insects/Species/",
                          ala_temp_dir   = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
@@ -214,7 +214,7 @@ download_ALA_all_genera(taxa_list    = analysis_taxa,
 
 
 ## Now download the data for all the families
-download_ALA_all_families(taxa_list   = analysis_taxa,
+download_ALA_all_families(taxa_list      = analysis_taxa,
                           your_email     = 'hugh.burley@gmail.com',
                           download_path  = "./data/ALA/Insects/Family/",
                           ala_temp_dir   = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',

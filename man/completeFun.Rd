@@ -2,12 +2,12 @@
 % Please edit documentation in R/SDM_GEN_PROCESSOR_FUNCTIONS.R
 \name{completeFun}
 \alias{completeFun}
-\title{Remove species records with NA enviro (i.e. Raster) values - records outside the exetent of rasters}
+\title{Remove taxa records with NA enviro (i.e. Raster) values - records outside the exetent of rasters}
 \usage{
 completeFun(data, desiredCols)
 }
 \arguments{
-\item{data}{Data.frame of species records}
+\item{data}{Data.frame of taxa records}
 
 \item{desiredCols}{Character string of columns to search for NA values EG c('rainfall', 'temp'), etc.}
 }
@@ -15,7 +15,7 @@ completeFun(data, desiredCols)
 A df with NA records removed
 }
 \description{
-This function downloads species occurrence files from GBIF (https://www.gbif.org/).
-It assumes that the species list supplied is taxonomically correct.
-It downloads the species without returning anything
+This function downloads taxa occurrence files from GBIF (https://www.gbif.org/).
+It assumes that the taxa list supplied is taxonomically correct.
+It downloads the taxa without returning anything
 }

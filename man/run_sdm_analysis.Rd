@@ -2,13 +2,14 @@
 % Please edit documentation in R/SDM_GEN_MAXENT_FUNCTIONS.R
 \name{run_sdm_analysis}
 \alias{run_sdm_analysis}
-\title{This function takes a data frame of all species records,
-and runs a specialised maxent analysis for each species.
+\title{This function takes a data frame of all taxa records,
+and runs a specialised maxent analysis for each taxa.
 It uses the rmaxent package https://github.com/johnbaums/rmaxent
 It assumes that the input df is that returned by the prepare_sdm_table function}
 \usage{
 run_sdm_analysis(
-  species_list,
+  taxa_list,
+  taxa_level,
   sdm_df,
   sdm_predictors,
   maxent_dir,
@@ -32,9 +33,9 @@ run_sdm_analysis(
 )
 }
 \arguments{
-\item{species_list}{Character string - the species to run maxent models for}
+\item{taxa_list}{Character string - the taxa to run maxent models for}
 
-\item{sdm_df}{SpatialPointsDataFrame. Spdf of all species records returned by the 'prepare_sdm_table' function}
+\item{sdm_df}{SpatialPointsDataFrame. Spdf of all taxa records returned by the 'prepare_sdm_table' function}
 
 \item{sdm_predictors}{Character string - Vector of enviro conditions that you want to include}
 
@@ -75,8 +76,8 @@ run_sdm_analysis(
 \item{country_shp}{.Rds object - SpatialPolygonsDataFrame of Australia for mapping maxent points}
 }
 \description{
-This function takes a data frame of all species records,
-and runs a specialised maxent analysis for each species.
+This function takes a data frame of all taxa records,
+and runs a specialised maxent analysis for each taxa.
 It uses the rmaxent package https://github.com/johnbaums/rmaxent
 It assumes that the input df is that returned by the prepare_sdm_table function
 }

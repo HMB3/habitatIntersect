@@ -6,7 +6,7 @@
 \usage{
 prepare_sdm_table(
   coord_df,
-  species_list,
+  taxa_list,
   BG_points,
   sdm_table_vars,
   save_run,
@@ -19,30 +19,30 @@ prepare_sdm_table(
 )
 }
 \arguments{
-\item{coord_df}{Data.frame. DF of all species records returned by the coord_clean_records function}
+\item{coord_df}{Data.frame. DF of all taxa records returned by the coord_clean_records function}
 
-\item{species_list}{Character string - the species analysed}
+\item{taxa_list}{Character string - the taxa analysed}
 
-\item{BG_points}{Logical - Do we want to include a dataframe of background points? Otherwise, BG points taken from species not modelled}
+\item{BG_points}{Logical - Do we want to include a dataframe of background points? Otherwise, BG points taken from taxa not modelled}
 
-\item{sdm_table_vars}{Character string - The enviro vars to be included in species models}
+\item{sdm_table_vars}{Character string - The enviro vars to be included in taxa models}
 
-\item{save_run}{Character string - append a run name to the output (e.g. 'bat_species')}
+\item{save_run}{Character string - append a run name to the output (e.g. 'bat_taxa')}
 
 \item{save_shp}{Logical - Save a shapefile of the SDM table (T/F)?}
 
 \item{read_background}{Logical - Read in an additional dataframe of background points (T/F)?}
 
-\item{background_points}{Data.frame. DF of extra species records}
+\item{background_points}{Data.frame. DF of extra taxa records}
 
 \item{save_data}{Logical - do you want to save the data frame?}
 
 \item{data_path}{Character string - The file path used for saving the data frame}
 
-\item{project_path}{Paht of species records, with spatial outlier T/F flag for each record}
+\item{project_path}{Paht of taxa records, with spatial outlier T/F flag for each record}
 }
 \description{
-'This function takes a data frame of all species records,
-And prepares a table in the 'species with data' (swd) format for modelling uses the Maxent algorithm.
+'This function takes a data frame of all taxa records,
+And prepares a table in the 'taxa with data' (swd) format for modelling uses the Maxent algorithm.
 It assumes that the input df is that returned by the coord_clean_records function'
 }

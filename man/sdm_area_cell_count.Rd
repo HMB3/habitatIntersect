@@ -20,7 +20,7 @@ sdm_area_cell_count(
   agg_var,
   unit_vec,
   DIR_list,
-  species_list,
+  taxa_list,
   number_gcms,
   maxent_path,
   thresholds,
@@ -41,7 +41,7 @@ sdm_area_cell_count(
 
 \item{unit_vec}{Character string - The field name in the shapefile to use for aggregating SDM results (e.g. Urban area codes)}
 
-\item{species_list}{Character string - The species to run maxent predictions for}
+\item{taxa_list}{Character string - The species to run maxent predictions for}
 
 \item{maxent_path}{Character string - The file path containin the existing maxent models}
 

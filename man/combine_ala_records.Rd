@@ -5,7 +5,7 @@
 \title{Combine all ala records into one file}
 \usage{
 combine_ala_records(
-  species_list,
+  taxa_list,
   records_path,
   records_extension,
   record_type,
@@ -14,9 +14,9 @@ combine_ala_records(
 )
 }
 \arguments{
-\item{species_list}{Character Vector - List of species already downloaded}
+\item{taxa_list}{Character Vector - List of taxa already downloaded}
 
-\item{records_path}{File path for downloaded species}
+\item{records_path}{File path for downloaded taxa}
 
 \item{records_extension}{Which R file type? RDS or RDA}
 

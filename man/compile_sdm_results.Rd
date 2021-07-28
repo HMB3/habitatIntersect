@@ -5,7 +5,7 @@
 \title{This function extracts the SDM results from the folders.}
 \usage{
 compile_sdm_results(
-  species_list,
+  taxa_list,
   results_dir,
   save_data,
   data_path,
@@ -14,7 +14,7 @@ compile_sdm_results(
 )
 }
 \arguments{
-\item{species_list}{Character string - the species to run maxent models for}
+\item{taxa_list}{Character string - the taxa to run maxent models for}
 
 \item{results_dir}{Character string - The file path used for saving the maxent output}
 
