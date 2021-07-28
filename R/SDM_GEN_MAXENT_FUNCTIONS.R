@@ -280,7 +280,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
     
     ## Find which of these cells fall within the Koppen-Geiger zones that the taxa occupies
     ## Crop the Kopppen raster to the extent of the occurrences, and snap it
-    if(koppen_crop == TRUE) {
+    if(koppen_crop) {
       
       message(name, ' intersecting background cells with Koppen zones')
       Koppen_crop <- crop(Koppen_raster, occ, snap = 'out')
@@ -375,10 +375,8 @@ fit_maxent_targ_bg_back_sel <- function(occ,
     
     ## Save the SWD tables as shapefiles
     if(shapefiles) {
-      
       writeOGR(swd_occ, outdir_sp,  paste0(save_name, '_occ_swd'), 'ESRI Shapefile', overwrite_layer = TRUE)
       writeOGR(swd_bg,  outdir_sp,  paste0(save_name, '_bg_swd'),  'ESRI Shapefile', overwrite_layer = TRUE)
-      
     }
     
     ## Now combine the occurrence and background data
