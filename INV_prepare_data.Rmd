@@ -161,8 +161,10 @@ climate_dir   <- './data/worldclim/world/2070'
 check_dir     <- './data/GBIF/Check_plots/'
 temp_dir      <- 'G:/Raster_temp'
 
+
 dir_lists     <- c(ALA_dir,  GBIF_dir,    back_dir, check_dir, veg_back_dir, veg_full_dir,
                    full_dir, results_dir, climate_dir, temp_dir)
+
 
 ## Create the folders if they don't exist
 for(i in dir_lists) {

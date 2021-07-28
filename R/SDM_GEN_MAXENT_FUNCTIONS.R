@@ -66,7 +66,7 @@ run_sdm_analysis = function(taxa_list,
   sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
   
   ## Loop over all the taxa
-  ## taxa <- taxa_list[3]
+  ## taxa <- taxa_list[1]
   lapply(taxa_list, function(taxa){
     
     ## Skip the taxa if the directory already exists, before the loop
@@ -77,7 +77,7 @@ run_sdm_analysis = function(taxa_list,
     dir_name = file.path(outdir, gsub(' ', '_', taxa))
     
     if(!dir.exists(dir_name)) {
-      message('Maxent not run for ', taxa, ' - running')
+      message('Maxent not yet run for ', taxa, ' - running')
       
       ## Create the directory for the taxa in progress,
       ## so other parallel runs don't run the same taxa
@@ -88,15 +88,13 @@ run_sdm_analysis = function(taxa_list,
       if(taxa %in% sdm_df$searchTaxon) {
         message('Doing ', taxa)
         
-        ## Subset the records to only the taxa being processed
-        occurrence <- filter(sdm_df, searchTaxon == taxa | !!sym(taxa_level) == taxa)
+        ## Subset the records to only the taxa being processed - in the searched taxa or returned
+        occurrence <- subset(sdm_df, searchTaxon == taxa | !!sym(taxa_level) == taxa)
         message('Using ', nrow(occurrence), ' occ records from ', unique(occurrence$SOURCE))
         
         ## Now get the background points. These can come from any taxa, other than the modelled taxa.
         ## However, they should be limited to the same SOURCE as the occ data
-        background <- subset(sdm_df, searchTaxon != taxa)
-        background <- filter(sdm_df, searchTaxon != taxa & !!sym(taxa_level) != taxa)
-        
+        background <- subset(sdm_df, searchTaxon != taxa & !!sym(taxa_level) != taxa)
         message('Using ', nrow(background), ' background records from ', unique(background$SOURCE))
         
         ## reconvert SF objects to SPDF objects
