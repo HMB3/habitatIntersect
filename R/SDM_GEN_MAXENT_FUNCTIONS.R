@@ -118,7 +118,7 @@ run_sdm_analysis = function(taxa_list,
                                       name                    = taxa,
                                       outdir                  = maxent_dir,
                                       bsdir                   = bs_dir,
-                                      backwards_sel           = "TRUE",
+                                      backwards_sel           = TRUE,
                                       cor_thr                 = cor_thr,
                                       pct_thr                 = pct_thr,
                                       k_thr                   = k_thr,
@@ -430,7 +430,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
                  koppen_gridcode = as.character(Koppen_zones$Koppen[match(unique(zones), Koppen_zones$GRIDCODE)])),
             file.path(outdir_sp, 'full', 'maxent_fitted.rds'))
     
-    if (backwards_sel == "TRUE") {
+    if (backwards_sel) {
       
       ## Coerce the "taxa with data" (SWD) files to regular data.frames
       ## This is needed to use the simplify function
