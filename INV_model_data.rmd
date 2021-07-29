@@ -174,7 +174,7 @@ run_sdm_analysis(taxa_list               = rev(sort(target.insect.genera)),
                  Koppen_raster           = Koppen_1975_1km)
 
 
-## Run family-level models
+## Run species-level models
 run_sdm_analysis(taxa_list               = sort(target.insect.spp),
                  taxa_level              = 'species',
                  maxent_dir              = 'output/veg_climate_topo_maxent/full_models',     
@@ -260,6 +260,7 @@ package https://github.com/johnbaums/rmaxent. It assumes that the maxent models 
 ## Create a local projection for mapping : Australian Albers
 aus_albers <- CRS('+proj=aea +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=132 +x_0=0 +y_0=0 
                    +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs')
+
 
 ## Try and set the raster temp directory to a location not on the partition, to save space
 rasterOptions(tmpdir = 'G:/North_east_NSW_fire_recovery/TEMP')
