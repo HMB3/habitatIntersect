@@ -567,27 +567,30 @@ SDM.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TAXA.rds
 
 
 ## Check the records for a subset of taxa in the final data (ALA + SITE)
-Lygaeidae           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
-Malandiola          <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Malandiola' | genus  == 'Malandiola')
-Miridae             <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Miridae'    | family == 'Miridae')
-Nysius_vinitor      <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Nysius vinitor'  | species == 'Nysius vinitor')
-Onthophagus_turrbal <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Onthophagus turrbal'  | family == 'Onthophagus turrbal')
-Lygaeidae           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
-Lygaeidae           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
-Lygaeidae           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
-Lygaeidae           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
+Lygaeidae_ALA           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
+Malandiola_ALA          <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Malandiola' | genus  == 'Malandiola')
+Miridae_ALA             <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Miridae'    | family == 'Miridae')
+Nysius_vinitor_ALA      <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Nysius vinitor'  | species == 'Nysius vinitor')
+Onthophagus_turrbal_ALA <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Onthophagus turrbal'  | family == 'Onthophagus turrbal')
+Oxycarenidae_ALA        <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Oxycarenidae'  | family == 'Oxycarenidae')
+
+Pachygronthidae_ALA     <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Pachygronthidae'  | family == 'Pachygronthidae')
+Pentatomidae_ALA        <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Pentatomidae'     | family == 'Pentatomidae')
+Scutelleridae_ALA       <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Scutelleridae'    | family == 'Scutelleridae')
 
 
 ## Check the records for a subset of taxa in the SITE data
-Lygaeidae           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
-Malandiola          <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Malandiola' | genus  == 'Malandiola')
-Miridae             <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Miridae'    | family == 'Miridae')
-Nysius_vinitor      <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Nysius vinitor'  | species == 'Nysius vinitor')
-Onthophagus_turrbal <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Onthophagus turrbal'  | family == 'Onthophagus turrbal')
-Lygaeidae           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
-Lygaeidae           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
-Lygaeidae           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
-Lygaeidae           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
+Lygaeidae_site           <- all_insect_site_df_families %>% filter(searchTaxon == 'Lygaeidae')
+Malandiola_site          <- all_insect_site_df_genera   %>% filter(searchTaxon == 'Malandiola')
+Miridae_site             <- all_insect_site_df_families %>% filter(searchTaxon == 'Miridae')
+Nysius_vinitor_site      <- all_insect_site_df_species  %>% filter(searchTaxon == 'Nysius vinitor')
+Onthophagus_turrbal_site <- all_insect_site_df_species  %>% filter(searchTaxon == 'Onthophagus turrbal')
+
+
+Oxycarenidae_site        <- all_insect_site_df_families %>% filter(searchTaxon == 'Oxycarenidae')
+Pachygronthidae_site     <- all_insect_site_df_families %>% filter(searchTaxon == 'Pachygronthidae')
+Pentatomidae_site        <- all_insect_site_df_families %>% filter(searchTaxon == 'Pentatomidae')
+Scutelleridae_site       <- all_insect_site_df_families %>% filter(searchTaxon == 'Scutelleridae')
 
 
 ``` 

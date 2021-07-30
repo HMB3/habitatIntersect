@@ -102,7 +102,7 @@ First, get the rasters to compare with SDM modelling :
 
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
 ## VALUES : 1-4, burn intensity from 2019-2020 fires, originally @ 10m resolution, re-sampled to 100m
-FESM_1000m_GDA_study <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/GBAM_100m.tif', RAT = TRUE)
+FESM_1000m_GDA_study <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/FESM_500m_meanx_100m.tif', RAT = TRUE)
 xres(FESM_1000m_GDA_study)
 yres(FESM_1000m_GDA_study)
 
@@ -130,13 +130,54 @@ xres(FESM_1000m_GDA_study);xres(SVTM);xres(study_sdm_binary[[1]])
 
 \
 
-Now try resampling and aligning the Fire and Veg rasters to the same grid as the SDMs
+Create Look up tables of Veg classes - use this to assign Insects to Veg types
+
+\
 
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 
+## Align the
+SVTM_LUT <- read_csv('./output/veg_climate_topo_maxent/Habitat_suitability/SVTM_attribute_table.csv') %>% 
+  select(PCTID, Count, PCTname, vegClass, vegForm,  temp)
 
+
+## Create a LUT of the Veg class
+NSW_RS_Veg_Class <- SVTM_LUT %>%
+  
+  ## Group by Veg class and calculate % of each class
+  group_by(vegClass) %>% 
+  summarise(Pixel_Count = sum(Count)) %>%
+  mutate(Proportion     = Pixel_Count/sum(Pixel_Count),
+         Proportion     = round(Proportion, 5),
+         Proportion     = formattable::percent(Proportion))
+  
+
+## Create a LUT of the Veg Form
+NSW_RS_Veg_Form <- SVTM_LUT %>%
+  
+  ## Group by Veg Form and calculate % of each form
+  group_by(vegForm) %>% 
+  summarise(Pixel_Count = sum(Count)) %>%
+  mutate(Proportion     = Pixel_Count/sum(Pixel_Count),
+         Proportion     = round(Proportion, 5),
+         Proportion     = formattable::percent(Proportion))
+
+
+## Save the output, and use in the LUT of all taxa
+write_csv(NSW_RS_Veg_Class, './output/veg_climate_topo_maxent/Habitat_suitability/NSW_RS_Veg_Class_LUT.csv')
+write_csv(NSW_RS_Veg_Form,  './output/veg_climate_topo_maxent/Habitat_suitability/NSW_RS_Veg_Form_LUT.csv')
+
+
+``` 
+
+\
+
+Now try resampling and aligning the Fire and Veg rasters to the same grid as the SDMs
+
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 
 ## Align the
