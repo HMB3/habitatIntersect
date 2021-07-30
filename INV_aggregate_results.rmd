@@ -101,19 +101,17 @@ First, get the rasters to compare with SDM modelling :
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
-## VALUES : 1-4, burn intensity from 2019-2020 fires @ 10m resolution
+## VALUES : 1-4, burn intensity from 2019-2020 fires, originally @ 10m resolution, re-sampled to 100m
 FESM_1000m_GDA_study <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/GBAM_100m.tif', RAT = TRUE)
 xres(FESM_1000m_GDA_study)
 yres(FESM_1000m_GDA_study)
 
 
 ## SVTM Rasters : https://www.environment.nsw.gov.au/vegetation/state-vegetation-type-map.htm
-# The State Vegetation Type Map (SVTM)  of Plant Community Types across NSW @ 5m resolution
+# The State Vegetation Type Map (SVTM)  of Plant Community Types across NSW, originally @ 5m resolution, re-sampled to 100m
 SVTM           <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/SVTM_100m.tif', RAT = TRUE)
 GBAM           <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/GBAM_100m.tif', RAT = TRUE)
 SVTM_GDA_study <- raster('./data/Remote_sensing/Veg_data/NSW_vegetation_types/SVTM_PCTID_study.tif')
-xres(SVTM)
-yres(SVTM_GDA_study)
 
 
 ## SDM output, re-sampled to 100m
@@ -124,7 +122,7 @@ study_sdm_binary <- stack(
 
 ## All in GDA Albers
 projection(FESM_1000m_GDA_study);projection(SVTM_GDA_study);projection(study_sdm_binary[[1]])
-xres(FESM_1000m_GDA_study);xres(SVTM_GDA_study);xres(study_sdm_binary[[1]])
+xres(FESM_1000m_GDA_study);xres(SVTM);xres(study_sdm_binary[[1]])
 
 
 ``` 
@@ -137,23 +135,12 @@ Now try resampling and aligning the Fire and Veg rasters to the same grid as the
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Upscale the Veg data from 10m to 100m 
-SVTM_100m <- terra::disaggregate(SVTM, fact = 9)
 
-
-## First, make the resample layer binary
-# FESM_1000m_binary <- FESM_1000m_GDA_study[FESM_1000m_GDA_study > 0] <- 1
-# FESM_1000m_binary[FESM_1000m_binary > 0] <- 1
-# 
-# template_raster_1km_mol[template_raster_1km_mol < 0] <- 1
-
-
-## Extract how many cells fall into each FESM class for each species?
 
 
 
 ## Align the
-SVTM_study <- align_rasters(unaligned     = SVTM,
+SVTM_align <- align_rasters(unaligned     = SVTM,
                             reference     = study_sdm_binary[[1]],
                             # dstfile       = './output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/SVTM_NENSW.tif',
                             output_Raster = FALSE,
@@ -175,7 +162,7 @@ Next, compare SDM modells with the Fire and Veg layers :
 
 We cqn use the “combine” tool to run queries on the raster.
 
- 
+
 
 For example, we can combine the Keith Class from the SVTM map, with the expected range of each species (a and b). 
 You will be able to search the geotiff attribute table using Keith Class = x,d,f etc. where species range = b. 

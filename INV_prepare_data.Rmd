@@ -115,6 +115,11 @@ Let's use all the insect families that we think might be threatened by the 2019/
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=TRUE}
 
+
+## Get the site data
+source('./R/Processing/CREATE_SPECIES_LIST.R')
+
+
 ## Create lists of all taxa that we will model at all levels
 data('insect_data_families')
 data('all.insect.families')
@@ -549,6 +554,40 @@ GLOB.NICHE.ALL = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxo
 # 
 # saveRDS(GLOB.NICHE.ALL,   './output/veg_climate_topo_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_ALL_TAXA.rds')
 # write_csv(GLOB.NICHE.ALL, './output/veg_climate_topo_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_ALL_TAXA.csv')
+
+
+``` 
+
+\
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+## Check the records for a subset of taxa in the final data
+SDM.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TAXA.rds')
+
+
+## Check the records for a subset of taxa in the final data (ALA + SITE)
+Lygaeidae           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
+Malandiola          <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Malandiola' | genus  == 'Malandiola')
+Miridae             <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Miridae'    | family == 'Miridae')
+Nysius_vinitor      <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Nysius vinitor'  | species == 'Nysius vinitor')
+Onthophagus_turrbal <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Onthophagus turrbal'  | family == 'Onthophagus turrbal')
+Lygaeidae           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
+Lygaeidae           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
+Lygaeidae           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
+Lygaeidae           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
+
+
+## Check the records for a subset of taxa in the SITE data
+Lygaeidae           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
+Malandiola          <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Malandiola' | genus  == 'Malandiola')
+Miridae             <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Miridae'    | family == 'Miridae')
+Nysius_vinitor      <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Nysius vinitor'  | species == 'Nysius vinitor')
+Onthophagus_turrbal <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Onthophagus turrbal'  | family == 'Onthophagus turrbal')
+Lygaeidae           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
+Lygaeidae           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
+Lygaeidae           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
+Lygaeidae           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
 
 
 ``` 
