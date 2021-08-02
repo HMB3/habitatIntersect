@@ -921,15 +921,13 @@ combine_records_extract = function(ala_df,
   ## Now filter the records to those where the searched and returned taxa match
   ## More matching is in : 4_ALA_GBIF_TAXO_COMBINE.R from Green Cities
   ## The matching has to be done at the same taxonomic level
-  #!!sym(taxa_level)
   ALA.COMBO <- ALA.COMBO %>% mutate(Match_SN_ST = str_detect(!!sym(taxa_level), searchTaxon)) %>% 
     filter(Match_SN_ST == 'TRUE')
   
   ## If site = TRUE
   if(site_df != 'NONE') {
     
-    # site_cols <- intersect(names(ALA.COMBO), names(site_df))
-    # site_df   <- dplyr::select(site_df, site_cols)
+    site_df   <- site_df[site_df$searchTaxon %in% taxa_list, ]
     ALA.COMBO <- bind_rows(ALA.COMBO, site_df)
     
   } else {
@@ -1053,10 +1051,15 @@ coord_clean_records = function(records,
   length(records$CC.OBS);length(unique(records$CC.OBS))
   records$taxa = records$searchTaxon
   
+  ## Split the site data up from the ALA data
+  # records      <- records %>% mutate(coord_summary = ifelse(SOURCE == 'ALA', coord_summary = '', coord_summary = TRUE))
+  ala_records  <- records %>% filter(SOURCE == 'ALA')
+  site_records <- records %>% filter(SOURCE == 'SITE') %>% mutate(coord_summary = TRUE)
+  
   ## Rename the columns to fit the CleanCoordinates format and create a tibble.
-  TIB.GBIF <- records %>% dplyr::rename(coord_spp        = searchTaxon,
-                                        decimallongitude = lon,
-                                        decimallatitude  = lat) %>%
+  TIB.GBIF <- ala_records %>% dplyr::rename(coord_spp        = searchTaxon,
+                                            decimallongitude = lon,
+                                            decimallatitude  = lat) %>%
     
     ## Then create a tibble for running the spatial outlier cleaning
     timetk::tk_tbl() %>%
@@ -1094,7 +1097,7 @@ coord_clean_records = function(records,
   message(identical(records$searchTaxon, TIB.GBIF$coord_spp))
   
   ## Is the taxa column the same as the searchTaxon column?
-  COORD.CLEAN = join(records, TIB.GBIF)
+  COORD.CLEAN = left_join(ala_records, TIB.GBIF, by = "CC.OBS")
   message(identical(records$searchTaxon, COORD.CLEAN$coord_spp), ' records order matches')
   identical(records$CC.OBS, COORD.CLEAN$CC.OBS)
   
@@ -1109,13 +1112,15 @@ coord_clean_records = function(records,
   COORD.CLEAN <- COORD.CLEAN[ , !(names(COORD.CLEAN) %in% drops)]
   unique(COORD.CLEAN$SOURCE)
   
-  CLEAN.TRUE <- subset(COORD.CLEAN, coord_summary == TRUE)
+  CLEAN.TRUE <- subset(COORD.CLEAN, coord_summary == TRUE) %>% bind_rows(., site_records)
   message(round(nrow(CLEAN.TRUE)/nrow(COORD.CLEAN)*100, 2), " % records retained")
   message(table(COORD.CLEAN$coord_summary))
   
   if(save_data == TRUE) {
     ## save .rds file for the next session
     saveRDS(COORD.CLEAN, paste0(data_path, 'COORD_CLEAN_', save_run, '.rds'))
+    return(COORD.CLEAN)
+    
   } else {
     message('Return the cleaned occurrence data to the global environment')   ##
     return(COORD.CLEAN)
@@ -1223,39 +1228,27 @@ check_spatial_outliers = function(all_df,
   
   SDM.COORDS  <- test.geo %>%
     
-    spTransform(., prj) %>%
-    
-    as.data.frame() %>%
-    
+    spTransform(., prj) %>% as.data.frame() %>%
     dplyr::select(searchTaxon, lon, lat, CC.OBS, SOURCE) %>%
-    
     dplyr::rename(taxa          = searchTaxon,
                   decimallongitude = lon,
                   decimallatitude  = lat) %>%
     
     timetk::tk_tbl()
   
-  ## Check
-  nrow(SDM.COORDS)
-  head(SDM.COORDS)
-  class(SDM.COORDS)
-  summary(SDM.COORDS$decimallongitude)
-  identical(SDM.COORDS$index, SDM.COORDS$CC.OBS)
-  length(unique(SDM.COORDS$species))
-  
   ## Check how many records each spp has...
   COMBO.LUT <- SDM.COORDS %>%
     as.data.frame() %>%
-    dplyr::select(species) %>%
+    dplyr::select(taxa) %>%
     table() %>%
     as.data.frame()
   COMBO.LUT <- setDT(COMBO.LUT, keep.rownames = FALSE)[]
-  names(COMBO.LUT) = c("species", "FREQUENCY")
+  names(COMBO.LUT) = c("taxa", "FREQUENCY")
   COMBO.LUT = COMBO.LUT[with(COMBO.LUT, rev(order(FREQUENCY))), ]
   
   ## Watch out here - this sorting could cause problems for the order of the data frame once it's stitched back together
   ## If we we use spp to join the data back together, will it preserve the order?
-  LUT.100K = as.character(subset(COMBO.LUT, FREQUENCY < record_limit)$species)
+  LUT.100K = as.character(subset(COMBO.LUT, FREQUENCY < record_limit)$taxa)
   LUT.100K = trimws(LUT.100K [order(LUT.100K)])
   length(LUT.100K)
   
@@ -1266,7 +1259,7 @@ check_spatial_outliers = function(all_df,
     lapply(function(x) {
       
       ## Create the spp df by subsetting by spp
-      f <- subset(SDM.COORDS, species == x)
+      f <- subset(SDM.COORDS, taxa == x)
       
       ## Run the spatial outlier detection
       message("Running spatial outlier detection for ", x)
@@ -1274,7 +1267,7 @@ check_spatial_outliers = function(all_df,
       sp.flag <- cc_outl(f,
                          lon     = "decimallongitude",
                          lat     = "decimallatitude",
-                         species = "species",
+                         species = "taxa",
                          method  = "quantile",
                          mltpl   = spatial_mult,
                          value   = "flagged",
@@ -1303,11 +1296,11 @@ check_spatial_outliers = function(all_df,
   if(plot_points == TRUE) {
     
     spat.taxa <- as.character(unique(SPAT.FLAG$searchTaxon))
-    for (spp in spat.taxa) {
+    for (taxa in spat.taxa) {
       
       ## Plot a subset of taxa
       ## spp = spat.taxa[1]
-      SPAT.PLOT <- SPAT.FLAG %>% filter(searchTaxon == spp) %>%
+      SPAT.PLOT <- SPAT.FLAG %>% filter(searchTaxon == taxa) %>%
         SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
                                data        = .,
                                proj4string = prj)
@@ -1318,8 +1311,8 @@ check_spatial_outliers = function(all_df,
       ## Plot true and false points for the world
       ## Black == FALSE
       ## Red   == TRUE
-      message('Writing map of global coord clean records for ', spp)
-      png(sprintf("%s%s_%s", clean_path, spp, "global_spatial_outlier_check.png"),
+      message('Writing map of global coord clean records for ', taxa)
+      png(sprintf("%s%s_%s", clean_path, taxa, "global_spatial_outlier_check.png"),
           16, 10, units = 'in', res = 500)
       
       par(mfrow = c(1,1))
@@ -1335,7 +1328,7 @@ check_spatial_outliers = function(all_df,
       ## Plot true and false points for the world
       ## Black == FALSE
       ## Red   == TRUE
-      plot(AUS.84, main = paste0("Australian points for ", spp),
+      plot(AUS.84, main = paste0("Australian points for ", taxa),
            lwd = 0.01, asp = 1, bg = 'sky blue', col = 'grey')
       
       points(SPAT.PLOT,
