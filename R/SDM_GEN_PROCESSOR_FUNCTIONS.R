@@ -901,6 +901,7 @@ combine_records_extract = function(ala_df,
                                    site_df,
                                    add_site,
                                    taxa_list,
+                                   taxa_level,
                                    template_raster,
                                    thin_records,
                                    world_raster,
@@ -917,9 +918,11 @@ combine_records_extract = function(ala_df,
   message('Processing ' , length(unique(ALA.COMBO$searchTaxon)), ' searched taxa')
   length(unique(ALA.COMBO$scientificName))
   
-  ## Now filter the records to those where the searhed and returned taxa match
-  ## More matching is in : 4_ALA_GBIF_TAXO_COMBINE.R from GreenCities
-  ALA.COMBO <- ALA.COMBO %>% mutate(Match_SN_ST = str_detect(scientificName, searchTaxon)) %>% 
+  ## Now filter the records to those where the searched and returned taxa match
+  ## More matching is in : 4_ALA_GBIF_TAXO_COMBINE.R from Green Cities
+  ## The matching has to be done at the same taxonomic level
+  #!!sym(taxa_level)
+  ALA.COMBO <- ALA.COMBO %>% mutate(Match_SN_ST = str_detect(!!sym(taxa_level), searchTaxon)) %>% 
     filter(Match_SN_ST == 'TRUE')
   
   ## If site = TRUE

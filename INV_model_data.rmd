@@ -204,7 +204,7 @@ run_sdm_analysis(taxa_list               = sort(target.insect.spp),
 
 \
 
-# STEP 7 :: Project SDMs across Australia
+# Project Species Distribution Models across Australia
 
 \
 

@@ -221,7 +221,7 @@ download_ALA_all_genera(taxa_list    = analysis_taxa,
 
 
 ## Now download the data for all the families
-download_ALA_all_families(taxa_list      = analysis_taxa,
+download_ALA_all_families(family_list    = all.insect.families,
                           your_email     = 'hugh.burley@gmail.com',
                           download_path  = "./data/ALA/Insects/Family/",
                           ala_temp_dir   = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
@@ -364,8 +364,8 @@ Next we filter the records to those taken after 1950, and those inside the raste
 data('ALA_keep')
 
 
-## Combine Family ALA data
-ALA.LAND.FAM <- combine_ala_records(taxa_list      =  all.insect.families,
+## Combine Family ALA data ~ 50% of records are knocked out by cleaning  
+ALA.LAND.FAM <- combine_ala_records(taxa_list         =  sort(all.insect.families)[45],
                                     records_path      = "./data/ALA/Insects/Family/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
@@ -407,12 +407,13 @@ Next we combine occurrence files from ALA and GBIF into one table, and extracts 
 ## Combine GBIF and ALA data, and extract environmental values
 ## Note that the climate values are too small
 COMBO.RASTER.FAM = combine_records_extract(ala_df           = ALA.LAND.FAM,
-                                           site_df          = all_insect_site_df_families,
+                                           site_df          = all_insect_site_df_families %>% filter(searchTaxon == "Miridae"),
                                            thin_records     = FALSE,
                                            template_raster  = template_raster_1km_WGS84,
                                            world_raster     = aus.climate.veg.grids,
                                            prj              = CRS("+init=epsg:4326"),
-                                           taxa_list        = analysis_taxa,
+                                           taxa_list        = sort(all.insect.families)[45],
+                                           taxa_level       = 'family',   
                                            
                                            ## This might need to change too
                                            raster_divide    = FALSE,
@@ -422,12 +423,13 @@ COMBO.RASTER.FAM = combine_records_extract(ala_df           = ALA.LAND.FAM,
 
 
 COMBO.RASTER.GEN = combine_records_extract(ala_df           = ALA.LAND.GEN,
-                                           site_df          = all_insect_site_df_genera,
+                                           site_df          = all_insect_site_df_genera %>% filter(searchTaxon == "Malandiola"),
                                            thin_records     = FALSE,
                                            template_raster  = template_raster_1km_WGS84,
                                            world_raster     = aus.climate.veg.grids,
                                            prj              = CRS("+init=epsg:4326"),
-                                           taxa_list        = analysis_taxa,
+                                           taxa_list        = sort(target.insect.genera)[38],
+                                           taxa_level       = 'genus', 
                                            
                                            ## These two will need to change.
                                            ## Specify them in the code
@@ -443,7 +445,8 @@ COMBO.RASTER.SPP = combine_records_extract(ala_df           = ALA.LAND.SPP,
                                            template_raster  = template_raster_1km_WGS84,
                                            world_raster     = aus.climate.veg.grids,
                                            prj              = CRS("+init=epsg:4326"),
-                                           taxa_list        = analysis_taxa,
+                                           taxa_list        = target.insect.spp,
+                                           taxa_level       = 'species', 
                                            
                                            ## These two will need to change.
                                            ## Specify them in the code
@@ -573,6 +576,7 @@ Miridae_ALA             <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(s
 Nysius_vinitor_ALA      <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Nysius vinitor'  | species == 'Nysius vinitor')
 Onthophagus_turrbal_ALA <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Onthophagus turrbal'  | family == 'Onthophagus turrbal')
 Oxycarenidae_ALA        <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Oxycarenidae'  | family == 'Oxycarenidae')
+Oxycarenus_ALA          <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Oxycarenus'    | genus == 'Oxycarenus')
 
 Pachygronthidae_ALA     <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Pachygronthidae'  | family == 'Pachygronthidae')
 Pentatomidae_ALA        <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Pentatomidae'     | family == 'Pentatomidae')
@@ -671,7 +675,7 @@ saveRDS(SDM.SPAT.OCC.BG.GDA, './output/results/SDM_SPAT_OCC_BG_GDA_ALL_TAXA.rds'
 
 writeOGR(obj    = SDM.SPAT.OCC.BG.GDA,
          dsn    = 'G:/North_east_NSW_fire_recovery/output/results',
-         layer  = 'SDM_SPAT_OCC_BG_GDA_TARG_INSECT_TAXA', 
+         layer  = 'SDM_SPAT_OCC_BG_GDA_ALL_INSECT_TAXA', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
 
 ``` 
