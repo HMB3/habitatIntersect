@@ -374,7 +374,7 @@ ALA.LAND.FAM <- combine_ala_records(taxa_list         =  target.insect.families,
 
 
 ## Combine Genus ALA data
-ALA.LAND.GEN <- combine_ala_records(taxa_list         = sort(target.insect.genera)[38],
+ALA.LAND.GEN <- combine_ala_records(taxa_list         = target.insect.genera,
                                     records_path      = "./data/ALA/Insects/Genus/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
@@ -383,7 +383,7 @@ ALA.LAND.GEN <- combine_ala_records(taxa_list         = sort(target.insect.gener
 
 
 ## Combine taxa ALA data
-ALA.LAND.SPP <- combine_ala_records(taxa_list      = target.insect.spp,
+ALA.LAND.SPP <- combine_ala_records(taxa_list         = target.insect.spp,
                                     records_path      = "./data/ALA/Insects/Species/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
@@ -489,7 +489,7 @@ records data.frame is that returned by the combine_records_extract function abov
 ## Just create a background points version for each step 
 
 ## Flag records as institutional or spatial outliers
-COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.FAM,
+COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.FAM.GEN.SPP,
                                   capitals   = 10000,  
                                   centroids  = 5000,   
                                   save_data  = FALSE,
@@ -545,7 +545,7 @@ GLOB.NICHE.ALL = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxo
                                  taxa_list    = analysis_taxa,
                                  env_vars     = names(aus.climate.veg.grids),
                                  cell_size    = 2,
-                                 save_data    = FALSE,
+                                 save_data    = TRUE,
                                  save_run     = "ALL_TARGET_INSECT_TAXA",
                                  data_path    = "./output/results/")
 

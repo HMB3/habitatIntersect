@@ -109,10 +109,6 @@ minimum number of predictors remains.
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## SDM.ALL.PLA.SPP.BG  = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_PLANT_SPP.rds')
-## SDM.TARG.INS.FAM.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_TARG_INSECT_FAM.rds')
-## SDM.TARG.INS.GEN.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_TARG_INSECT_GENERA.rds')
-## SDM.TARG.INS.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_TARG_INSECT_SPP.rds')
-## SDM.ALL.INS.SPP.BG  = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_INSECT_SPP.rds')
 SDM.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TAXA.rds')
 
 
@@ -123,7 +119,7 @@ SDM.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TAXA.rds
 
 
 ## Run family-level models
-run_sdm_analysis(taxa_list               = rev(sort(all.insect.families)),
+run_sdm_analysis(taxa_list               = rev(sort(target.insect.families)),
                  taxa_level              = 'family',
                  maxent_dir              = 'output/veg_climate_topo_maxent/full_models',     
                  bs_dir                  = 'output/veg_climate_topo_maxent/back_sel_models',

@@ -99,13 +99,13 @@ run_sdm_analysis = function(taxa_list,
         
         ## reconvert SF objects to SPDF objects
         message('Converting occ and bg data to SPDF for ', taxa)
-        occurrence <- occurrence %>% as.data.frame() %>% 
+        occurrence <- occurrence %>% as.data.frame() %>%
           SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
                                  data        = .,
                                  proj4string = CRS(sp_epsg54009)) %>% .[,!(names(.) %in% drops)]
-        
-        
-        background <- background %>% as.data.frame() %>% 
+
+
+        background <- background %>% as.data.frame() %>%
           SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
                                  data        = .,
                                  proj4string = CRS(sp_epsg54009)) %>% .[,!(names(.) %in% drops)]
