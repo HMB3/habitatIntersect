@@ -489,7 +489,7 @@ records data.frame is that returned by the combine_records_extract function abov
 ## Just create a background points version for each step 
 
 ## Flag records as institutional or spatial outliers
-COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.FAM.GEN.SPP,
+COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.FAM,
                                   capitals   = 10000,  
                                   centroids  = 5000,   
                                   save_data  = FALSE,
@@ -546,7 +546,7 @@ GLOB.NICHE.ALL = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxo
                                  env_vars     = names(aus.climate.veg.grids),
                                  cell_size    = 2,
                                  save_data    = FALSE,
-                                 save_run     = "TARGET_INSECT_TAXA",
+                                 save_run     = "ALL_TARGET_INSECT_TAXA",
                                  data_path    = "./output/results/")
 
 

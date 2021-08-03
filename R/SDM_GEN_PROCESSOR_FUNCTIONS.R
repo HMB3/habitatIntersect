@@ -1113,17 +1113,17 @@ coord_clean_records = function(records,
   unique(COORD.CLEAN$SOURCE)
   
   CLEAN.TRUE <- subset(COORD.CLEAN, coord_summary == TRUE) %>% bind_rows(., site_records)
-  message(round(nrow(CLEAN.TRUE)/nrow(COORD.CLEAN)*100, 2), " % records retained")
+  message(round(nrow(CLEAN.TRUE)/nrow(records)*100, 2), " % records retained")
   message(table(COORD.CLEAN$coord_summary))
   
   if(save_data == TRUE) {
     ## save .rds file for the next session
-    saveRDS(COORD.CLEAN, paste0(data_path, 'COORD_CLEAN_', save_run, '.rds'))
-    return(COORD.CLEAN)
+    saveRDS(CLEAN.TRUE, paste0(data_path, 'COORD_CLEAN_', save_run, '.rds'))
+    return(CLEAN.TRUE)
     
   } else {
     message('Return the cleaned occurrence data to the global environment')   ##
-    return(COORD.CLEAN)
+    return(CLEAN.TRUE)
   }
 }
 

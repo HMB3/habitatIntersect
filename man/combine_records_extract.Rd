@@ -10,6 +10,7 @@ combine_records_extract(
   site_df,
   add_site,
   taxa_list,
+  taxa_level,
   template_raster,
   thin_records,
   world_raster,
