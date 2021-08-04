@@ -21,7 +21,6 @@
 #' @param download_path  Character string - File path for species downloads
 #' @param download_limit Numeric - How many records can be downloaded at one time? Set by server
 #' @export
-#' 
 download_GBIF_all_species = function(species_list, 
                                      download_path, 
                                      download_limit) {

@@ -6,8 +6,6 @@
 ## Below are the functions used to run the SDM models
 
 
-## Run the SDM analysis ----
-
 
 #' This function takes a data frame of all taxa records,
 #' and runs a specialised maxent analysis for each taxa.
@@ -167,13 +165,12 @@ run_sdm_analysis = function(taxa_list,
 
 
 
-## Run maxent with backwards selection ----
-
-
 #' This function takes a data frame of all taxa records,
 #' and runs a specialised maxent analysis for each taxa.
 #' It uses the rmaxent package https://github.com/johnbaums/rmaxent
 #' It assumes that the input df is that returned by the prepare_sdm_table function
+
+#' @title Maxent Backwards selection
 #' @param occ                SpatialPointsDataFrame - Spdf of all taxa records returned by the 'prepare_sdm_table' function
 #' @param bg                 SpatialPointsDataFrame - Spdf of of candidate background points
 #' @param sdm_predictors     Character string - Vector of enviro conditions that you want to include

@@ -116,7 +116,7 @@ Let's use all the insect families that we think might be threatened by the 2019/
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=TRUE}
 
 
-## Get the site data
+## Get the invertebrate site data
 source('./R/Processing/CREATE_SPECIES_LIST.R')
 
 
@@ -167,7 +167,7 @@ check_dir     <- './data/GBIF/Check_plots/'
 temp_dir      <- 'G:/Raster_temp'
 
 
-dir_lists     <- c(ALA_dir,  GBIF_dir,    back_dir, check_dir, veg_back_dir, veg_full_dir,
+dir_lists     <- c(ALA_dir,  GBIF_dir,    back_dir,    check_dir, veg_back_dir, veg_full_dir,
                    full_dir, results_dir, climate_dir, temp_dir)
 
 
@@ -310,6 +310,7 @@ names(worldclim_climate)   <- c("Annual_mean_temp",
                                 "Precip_dry_qu",
                                 "Precip_warm_qu",
                                 "Precip_col_qu")
+
 
 names(aus.grids.current)   <- names(worldclim_climate)
 names(study.grids.current) <- names(worldclim_climate)
