@@ -2,10 +2,7 @@
 % Please edit documentation in R/SDM_GEN_MAXENT_FUNCTIONS.R
 \name{fit_maxent_targ_bg_back_sel}
 \alias{fit_maxent_targ_bg_back_sel}
-\title{This function takes a data frame of all taxa records,
-and runs a specialised maxent analysis for each taxa.
-It uses the rmaxent package https://github.com/johnbaums/rmaxent
-It assumes that the input df is that returned by the prepare_sdm_table function}
+\title{Maxent Backwards selection}
 \usage{
 fit_maxent_targ_bg_back_sel(
   occ,
