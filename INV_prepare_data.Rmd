@@ -202,7 +202,7 @@ ala_env_cols = ala_fields("occurrence_stored", as_is = TRUE)$description[231:389
 
 
 ##
-download_ALA_all_species(species_list      = analysis_taxa,
+download_ALA_all_species(species_list   = analysis_taxa,
                          your_email     = 'hugh.burley@gmail.com',
                          download_path  = "./data/ALA/Insects/Species/",
                          ala_temp_dir   = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
@@ -211,7 +211,7 @@ download_ALA_all_species(species_list      = analysis_taxa,
                          quality_cols   = 'all')
 
 
-download_ALA_all_genera(genera_list    = analysis_taxa,
+download_ALA_all_genera(genera_list     = analysis_taxa,
                         your_email      = 'hugh.burley@gmail.com',
                         download_path   = "./data/ALA/Insects/Genus/",
                         ala_temp_dir    = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
@@ -290,26 +290,26 @@ study.vbf <- raster('./data/Remote_sensing/Topography/mrvbf_int_study_1km.tif')
 
 
 ## Rename the raster grids
-names(worldclim_climate)   <- c("Annual_mean_temp",
-                                "Mean_diurnal_range",
-                                "Isothermality",
-                                "Temp_seasonality",
-                                "Max_temp_warm_month",
-                                "Min_temp_cold_month",
-                                "Temp_annual_range",
-                                "Mean_temp_wet_qu",
-                                "Mean_temp_dry_qu",
-                                "Mean_temp_warm_qu",
-                                "Mean_temp_cold_qu",
-                                
-                                "Annual_precip",
-                                "Precip_wet_month",
-                                "Precip_dry_month",
-                                "Precip_seasonality",
-                                "Precip_wet_qu",
-                                "Precip_dry_qu",
-                                "Precip_warm_qu",
-                                "Precip_col_qu")
+names(worldclim_climate) <- c("Annual_mean_temp",
+                              "Mean_diurnal_range",
+                              "Isothermality",
+                              "Temp_seasonality",
+                              "Max_temp_warm_month",
+                              "Min_temp_cold_month",
+                              "Temp_annual_range",
+                              "Mean_temp_wet_qu",
+                              "Mean_temp_dry_qu",
+                              "Mean_temp_warm_qu",
+                              "Mean_temp_cold_qu",
+                              
+                              "Annual_precip",
+                              "Precip_wet_month",
+                              "Precip_dry_month",
+                              "Precip_seasonality",
+                              "Precip_wet_qu",
+                              "Precip_dry_qu",
+                              "Precip_warm_qu",
+                              "Precip_col_qu")
 
 
 names(aus.grids.current)   <- names(worldclim_climate)

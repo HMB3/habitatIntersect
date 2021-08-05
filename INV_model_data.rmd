@@ -109,7 +109,8 @@ minimum number of predictors remains.
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## SDM.ALL.PLA.SPP.BG  = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_PLANT_SPP.rds')
-SDM.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TAXA.rds')
+SDM.SPAT.OCC.BG.GDA       = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TAXA.rds')
+SDM.PLANT.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_HOST_PLANTS.rds')
 
 
 ## To Do :
@@ -197,11 +198,11 @@ run_sdm_analysis(taxa_list               = target.host.plants,
 
 
 ## Run species-level plnat models
-run_sdm_analysis(taxa_list               = target.host.plants,
+run_sdm_analysis(taxa_list               = rev(sort(target.host.plants)),
                  taxa_level              = 'species',
                  maxent_dir              = 'output/plant_maxent/full_models',     
                  bs_dir                  = 'output/plant_maxent/back_sel_models',
-                 sdm_df                  = SDM.SPAT.OCC.BG.GDA,
+                 sdm_df                  = SDM.PLANT.SPAT.OCC.BG.GDA,
                  sdm_predictors          = names(aus.climate.veg.grids),
                  
                  backwards_sel           = TRUE,      
@@ -245,11 +246,18 @@ across Australia ().
 
 ## Create a table of maxent results
 ## This function aggregates the results for models that ran successfully
-MAXENT.RESULTS = compile_sdm_results(taxa_list    = analysis_taxa,
-                                     results_dir  = 'output/veg_climate_topo_maxent/back_sel_models',
+MAXENT.RESULTS = compile_sdm_results(taxa_list    = target.host.plants,
+                                     
+                                     # results_dir  = 'output/veg_climate_topo_maxent/back_sel_models',
+                                     results_dir  = 'output/plant_maxent/back_sel_models',
+                                     
+                                     # data_path    = "./output/veg_climate_topo_maxent/Habitat_suitability/",
+                                     # sdm_path     = "./output/veg_climate_topo_maxent/back_sel_models/",
+                                     
+                                     data_path    = "./output/plant_maxent/Habitat_suitability/",
+                                     sdm_path     = "./output/plant_maxent/back_sel_models/",
                                      save_data    = FALSE,
-                                     data_path    = "./output/veg_climate_topo_maxent/Habitat_suitability/",
-                                     sdm_path     = "./output/veg_climate_topo_maxent/back_sel_models/",
+                                     
                                      save_run     = "TARG_INSECT_SPP")
 
 
@@ -298,7 +306,8 @@ tryCatch(
                                     local_prj       = aus_albers,
                                     
                                     taxa_list       = map_taxa,    
-                                    maxent_path     = './output/veg_climate_topo_maxent/back_sel_models/',
+                                    # maxent_path     = './output/veg_climate_topo_maxent/back_sel_models/',
+                                    maxent_path     = './output/plant_maxent/back_sel_models/',
                                     
                                     current_grids   = study.climate.veg.grids,         
                                     create_mess     = TRUE,
