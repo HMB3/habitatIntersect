@@ -171,7 +171,7 @@ run_sdm_analysis(taxa_list               = rev(sort(target.insect.genera)),
 
 
 ## Run species-level models
-run_sdm_analysis(taxa_list               = sort(target.insect.spp),
+run_sdm_analysis(taxa_list               = target.host.plants,
                  taxa_level              = 'species',
                  maxent_dir              = 'output/veg_climate_topo_maxent/full_models',     
                  bs_dir                  = 'output/veg_climate_topo_maxent/back_sel_models',
@@ -194,6 +194,33 @@ run_sdm_analysis(taxa_list               = sort(target.insect.spp),
                  koppen_crop             = TRUE,
                  Koppen_zones            = Koppen_zones,
                  Koppen_raster           = Koppen_1975_1km)
+
+
+## Run species-level plnat models
+run_sdm_analysis(taxa_list               = target.host.plants,
+                 taxa_level              = 'species',
+                 maxent_dir              = 'output/plant_maxent/full_models',     
+                 bs_dir                  = 'output/plant_maxent/back_sel_models',
+                 sdm_df                  = SDM.SPAT.OCC.BG.GDA,
+                 sdm_predictors          = names(aus.climate.veg.grids),
+                 
+                 backwards_sel           = TRUE,      
+                 template_raster         = template_raster_1km_mol,
+                 cor_thr                 = 0.8,  
+                 pct_thr                 = 5, 
+                 k_thr                   = 4, 
+                 min_n                   = 10,  
+                 max_bg_size             = 70000,
+                 background_buffer_width = 200000,
+                 shapefiles              = TRUE,
+                 features                = 'lpq',
+                 replicates              = 5,
+                 responsecurves          = TRUE,
+                 country_shp             = AUS,
+                 koppen_crop             = TRUE,
+                 Koppen_zones            = Koppen_zones,
+                 Koppen_raster           = Koppen_1975_1km)
+
 
 
 ``` 

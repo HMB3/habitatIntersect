@@ -202,7 +202,7 @@ ala_env_cols = ala_fields("occurrence_stored", as_is = TRUE)$description[231:389
 
 
 ##
-download_ALA_all_species(taxa_list      = analysis_taxa,
+download_ALA_all_species(species_list      = analysis_taxa,
                          your_email     = 'hugh.burley@gmail.com',
                          download_path  = "./data/ALA/Insects/Species/",
                          ala_temp_dir   = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
@@ -211,7 +211,7 @@ download_ALA_all_species(taxa_list      = analysis_taxa,
                          quality_cols   = 'all')
 
 
-download_ALA_all_genera(taxa_list    = analysis_taxa,
+download_ALA_all_genera(genera_list    = analysis_taxa,
                         your_email      = 'hugh.burley@gmail.com',
                         download_path   = "./data/ALA/Insects/Genus/",
                         ala_temp_dir    = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
@@ -639,7 +639,8 @@ sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0
 
 
 ## Final data set is a spatial points data frame in the Mollweide projection
-SDM.ALL.PLA.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_HOST_PLANT_SPP.rds') %>% as.data.frame() %>%
+## SDM_SPAT_OCC_BG_HOST_PLANT_SPP
+SDM.ALL.PLA.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_HOST_PLANTS.rds') %>% as.data.frame() %>%
   
   ## Add the columns we need
   mutate(species = 'plant_spp',
@@ -652,13 +653,20 @@ SDM.ALL.PLA.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_HOST_PLANT_SPP.rd
                          proj4string = CRS(sp_epsg54009))
 
 
+## Which plants aren't on the target list 
+bg_plant_list = setdiff(all.insect.plant.spp, target.host.plants)
+bg_plant_list %in% target.host.plants %>% table()
+
+
 ## Combine occ data with the bg data 
 SDM.SPAT.OCC.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN,
-                                     taxa_list         = unique(COORD.CLEAN$searchTaxon),
+                                     taxa_list         = target.host.plants,
+                                     
                                      sdm_table_vars    = c('searchTaxon', 'species',  'genus', 'family', 'lon', 'lat', 'SOURCE', 'SPAT_OUT',
                                                            names(aus.climate.veg.grids)),
-                                     save_run          = "ALL_INSECT_TAXA",
-                                     read_background   = TRUE,
+                                     save_run          = "TARGET_HOST_PLANTS",
+                                     
+                                     read_background   = FALSE,
                                      background_points = SDM.ALL.PLA.SPP.BG, 
                                      save_data         = TRUE,
                                      save_shp          = FALSE,
@@ -667,18 +675,20 @@ SDM.SPAT.OCC.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN,
 
 
 ## Check the taxonomic levels
-sum(is.na(SDM.SPAT.OCC.BG.GDA@data$searchTaxon));sum(is.na(SDM.SPAT.OCC.BG.GDA@data$species));
-sum(is.na(SDM.SPAT.OCC.BG.GDA@data$genus));sum(is.na(SDM.SPAT.OCC.BG.GDA@data$family))
+sum(is.na(SDM.SPAT.OCC.BG@data$searchTaxon));sum(is.na(SDM.SPAT.OCC.BG@data$species));
+sum(is.na(SDM.SPAT.OCC.BG@data$genus));sum(is.na(SDM.SPAT.OCC.BG@data$family))
 
 
 ## Save shape file separately - doesn't seem to work in R
 SDM.SPAT.OCC.BG.GDA <- spTransform(SDM.SPAT.OCC.BG, crs(sp_epsg3577))
-saveRDS(SDM.SPAT.OCC.BG.GDA, './output/results/SDM_SPAT_OCC_BG_GDA_ALL_TAXA.rds')
+saveRDS(SDM.SPAT.OCC.BG.GDA, './output/results/SDM_SPAT_OCC_BG_GDA_TARGET_HOST_PLANTS.rds')
+
 
 writeOGR(obj    = SDM.SPAT.OCC.BG.GDA,
          dsn    = 'G:/North_east_NSW_fire_recovery/output/results',
-         layer  = 'SDM_SPAT_OCC_BG_GDA_ALL_INSECT_TAXA', 
+         layer  = 'SDM_SPAT_OCC_BG_GDA_TARGET_HOST_PLANTS', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
+
 
 ``` 
 

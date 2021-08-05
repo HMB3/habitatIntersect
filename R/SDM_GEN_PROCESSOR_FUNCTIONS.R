@@ -207,7 +207,7 @@ download_ALA_all_species = function (species_list,
 #' @param download_limit Numeric - How many records can be downloaded at one time? Set by server
 #' @return               Data frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)
 #' @export
-download_ALA_all_genera = function (species_list, 
+download_ALA_all_genera = function (genera_list, 
                                     your_email, 
                                     download_path, 
                                     ala_temp_dir, 
