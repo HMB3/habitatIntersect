@@ -346,14 +346,25 @@ is not considered present. Here we've chosen the 10th% Logistic threshold for ea
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Threshold the SDM models to be either 0 or 1
-habitat_threshold(taxa_list     = unique(MAXENT.RESULTS$searchTaxon),
+## Threshold the invertebrate SDM models to be either 0 or 1
+habitat_threshold(taxa_list     = sort(unique(MAXENT.RESULTS$searchTaxon)),
                   maxent_table  = MAXENT.RESULTS,
                   maxent_path   = './output/veg_climate_topo_maxent/back_sel_models/',
                   cell_factor   = 9,
                   country_shp   = 'AUS',
                   country_prj   = CRS("+init=EPSG:3577"),
                   write_rasters = TRUE)
+
+
+## Threshold the Plant SDM models to be either 0 or 1
+habitat_threshold(taxa_list     = sort(unique(MAXENT.RESULTS$searchTaxon)),
+                  maxent_table  = MAXENT.RESULTS,
+                  maxent_path   = './output/plant_maxent/back_sel_models/',
+                  cell_factor   = 9,
+                  country_shp   = 'AUS',
+                  country_prj   = CRS("+init=EPSG:3577"),
+                  write_rasters = TRUE)
+
 
 ``` 
 

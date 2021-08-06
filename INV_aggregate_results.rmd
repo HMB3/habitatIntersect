@@ -80,8 +80,8 @@ For each Invertebrate species, let's calculate the % of suitable habitat that wa
 2019-2020 fires. We can do this using raster multiplication...
 
 
-Create a function that loops through all species, and multiples the thresholded SDM rasters by
-the fire severity layers (the FESM layers). 
+Create a function that loops through all species, and multiplies the thresholded SDM rasters by
+the fire severity layers (i.e. the FESM layers). 
 
 
 First, re-sample all the layers to 100m
@@ -89,7 +89,7 @@ First, re-sample all the layers to 100m
 
 \
 
-First, get the rasters to compare with SDM modelling :
+First, get all the rasters to compare with SDM modelling :
 
 - Fire layers    (FESM, 0-4, 100m)
 - NSW Vegetation (Veg maps, categorical, 100m) 
