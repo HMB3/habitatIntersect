@@ -133,7 +133,7 @@ data('target.host.plants')
 data('all.insect.plant.spp')
 
 analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
-analysis_taxa
+analysis_test <- c('Ausejanus femoralis', 'Mutusca brevicornis', 'Rayieria basifer')
 
 ```
 
@@ -516,7 +516,7 @@ input dfs are those returned by the coord_clean_records function.
 ## This one doesn't quite work - it doesn't loop over the figures :
 SPATIAL.CLEAN = check_spatial_outliers(all_df       = COORD.CLEAN,
                                        land_shp     = LAND,
-                                       site_df      = FALSE, 
+                                       site_records = TRUE, 
                                        clean_path   = './data/ALA/Check_Plots/',
                                        plot_points  = FALSE,
                                        record_limit = 400000,
@@ -564,44 +564,6 @@ GLOB.NICHE.ALL = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxo
 
 \
 
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
-
-## Check the records for a subset of taxa in the final data
-SDM.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TAXA.rds')
-
-
-## Check the records for a subset of taxa in the final data (ALA + SITE)
-Lygaeidae_ALA            <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
-Malandiola_ALA           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Malandiola' | genus  == 'Malandiola')
-Miridae_ALA              <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Miridae'    | family == 'Miridae')
-Nysius_vinitor_ALA       <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Nysius vinitor'  | species == 'Nysius vinitor')
-Onthophagus_turrbal_ALA  <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Onthophagus turrbal'  | family == 'Onthophagus turrbal')
-Oxycarenidae_ALA         <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Oxycarenidae'  | family == 'Oxycarenidae')
-Oxycarenus_ALA           <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Oxycarenus'    | genus == 'Oxycarenus')
-
-Pachygronthidae_ALA      <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Pachygronthidae'  | family == 'Pachygronthidae')
-Pentatomidae_ALA         <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Pentatomidae'     | family == 'Pentatomidae')
-Scutelleridae_ALA        <- SDM.SPAT.OCC.BG.GDA %>% as.data.frame () %>% filter(searchTaxon == 'Scutelleridae'    | family == 'Scutelleridae')
-
-
-## Check the records for a subset of taxa in the SITE data
-Lygaeidae_site           <- all_insect_site_df_families %>% filter(searchTaxon == 'Lygaeidae')
-Malandiola_site          <- all_insect_site_df_genera   %>% filter(searchTaxon == 'Malandiola')
-Miridae_site             <- all_insect_site_df_families %>% filter(searchTaxon == 'Miridae')
-Nysius_vinitor_site      <- all_insect_site_df_species  %>% filter(searchTaxon == 'Nysius vinitor')
-Onthophagus_turrbal_site <- all_insect_site_df_species  %>% filter(searchTaxon == 'Onthophagus turrbal')
-
-
-Oxycarenidae_site        <- all_insect_site_df_families %>% filter(searchTaxon == 'Oxycarenidae')
-Pachygronthidae_site     <- all_insect_site_df_families %>% filter(searchTaxon == 'Pachygronthidae')
-Pentatomidae_site        <- all_insect_site_df_families %>% filter(searchTaxon == 'Pentatomidae')
-Scutelleridae_site       <- all_insect_site_df_families %>% filter(searchTaxon == 'Scutelleridae')
-
-
-``` 
-
-\
-
 We can also plot the environmental ranges of each taxa. This function 
 takes a data frame of all taxa records, and plots histograms and convex hulls for 
 each taxa in global environmental space. It assumes that the input df is that 
@@ -633,6 +595,7 @@ coord_clean_records function.
 \
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
 ## Two projection systems 
 sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
 sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs"
@@ -660,16 +623,16 @@ bg_plant_list %in% target.host.plants %>% table()
 
 ## Combine occ data with the bg data 
 SDM.SPAT.OCC.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN,
-                                     taxa_list         = target.host.plants,
+                                     taxa_list         = analysis_test,
                                      
                                      sdm_table_vars    = c('searchTaxon', 'species',  'genus', 'family', 'lon', 'lat', 'SOURCE', 'SPAT_OUT',
                                                            names(aus.climate.veg.grids)),
                                      save_run          = "TARGET_HOST_PLANTS",
                                      
-                                     read_background   = FALSE,
+                                     site_records      = TRUE,
+                                     read_background   = TRUE,
                                      background_points = SDM.ALL.PLA.SPP.BG, 
-                                     save_data         = TRUE,
-                                     save_shp          = FALSE,
+                                     save_data         = FALSE,
                                      data_path         = paste0(getwd(), '/output/results/'),
                                      project_path      = 'G:/North_east_NSW_fire_recovery')
 
@@ -689,6 +652,76 @@ writeOGR(obj    = SDM.SPAT.OCC.BG.GDA,
          layer  = 'SDM_SPAT_OCC_BG_GDA_TARGET_HOST_PLANTS', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
 
+
+``` 
+
+\
+
+\
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+## Check the records for a subset of taxa in the final data
+SDM.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TAXA.rds')
+
+
+## Where are the records going missing?
+## Are the still there in coord.clean?
+## Isolate the records
+
+
+## Check the records for a subset of taxa in the final data (ALA + SITE)
+Lygaeidae_ALA            <- COORD.CLEAN  %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
+Malandiola_ALA           <- SDM.SPAT.OCC.BG  %>% as.data.frame () %>% filter(searchTaxon == 'Malandiola' | genus  == 'Malandiola')
+Miridae_ALA              <- COORD.CLEAN  %>% as.data.frame () %>% filter(searchTaxon == 'Miridae'    | family == 'Miridae')
+Nysius_vinitor_ALA       <- SDM.SPAT.OCC.BG  %>% as.data.frame () %>% filter(searchTaxon == 'Nysius vinitor'  | species == 'Nysius vinitor')
+Onthophagus_turrbal_ALA  <- SDM.SPAT.OCC.BG  %>% as.data.frame () %>% filter(searchTaxon == 'Onthophagus turrbal' | family == 'Onthophagus turrbal')
+Oxycarenidae_ALA         <- SDM.SPAT.OCC.BG  %>% as.data.frame () %>% filter(searchTaxon == 'Oxycarenidae'  | family == 'Oxycarenidae')
+Oxycarenus_ALA           <- SDM.SPAT.OCC.BG  %>% as.data.frame () %>% filter(searchTaxon == 'Oxycarenus'    | genus == 'Oxycarenus')
+
+Pachygronthidae_ALA      <- SDM.SPAT.OCC.BG  %>% as.data.frame () %>% filter(searchTaxon == 'Pachygronthidae'  | family == 'Pachygronthidae')
+Pentatomidae_ALA         <- SDM.SPAT.OCC.BG  %>% as.data.frame () %>% filter(searchTaxon == 'Pentatomidae'     | family == 'Pentatomidae')
+Scutelleridae_ALA        <- SDM.SPAT.OCC.BG  %>% as.data.frame () %>% filter(searchTaxon == 'Scutelleridae'    | family == 'Scutelleridae')
+
+
+## Check the records for a subset of taxa in the SITE data
+Lygaeidae_site           <- all_insect_site_df_families %>% filter(searchTaxon == 'Lygaeidae')
+Malandiola_site          <- all_insect_site_df_genera   %>% filter(searchTaxon == 'Malandiola')
+Miridae_site             <- all_insect_site_df_families %>% filter(searchTaxon == 'Miridae')
+Nysius_vinitor_site      <- all_insect_site_df_species  %>% filter(searchTaxon == 'Nysius vinitor')
+Onthophagus_turrbal_site <- all_insect_site_df_species  %>% filter(searchTaxon == 'Onthophagus turrbal')
+
+
+Oxycarenidae_site        <- all_insect_site_df_families %>% filter(searchTaxon == 'Oxycarenidae')
+Pachygronthidae_site     <- all_insect_site_df_families %>% filter(searchTaxon == 'Pachygronthidae')
+Pentatomidae_site        <- all_insect_site_df_families %>% filter(searchTaxon == 'Pentatomidae')
+Scutelleridae_site       <- all_insect_site_df_families %>% filter(searchTaxon == 'Scutelleridae')
+
+
+## Check a few of them
+table(Lygaeidae_ALA$SOURCE)
+nrow(Lygaeidae_site)
+
+table(Malandiola_ALA$SOURCE)
+nrow(Malandiola_site)
+
+table(Miridae_ALA$SOURCE)
+nrow(Miridae_site)
+
+table(Nysius_vinitor_ALA$SOURCE)
+nrow(Nysius_vinitor_site)
+
+table(Onthophagus_turrbal_ALA$SOURCE)
+nrow(Onthophagus_turrbal_site)
+
+table(Oxycarenidae_ALA$SOURCE)
+nrow(Oxycarenidae_site)
+
+table(Pachygronthidae_ALA$SOURCE)
+nrow(Pachygronthidae_site)
+
+table(Scutelleridae_ALA$SOURCE)
+nrow(Scutelleridae_site)
 
 ``` 
 
