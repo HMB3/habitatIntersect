@@ -12,9 +12,8 @@
 ## GBIF download ----
 
 
-#' Download species occurrence files from GBIF
-#'
-#' This function downloads taxa occurrence files from GBIF (https://www.gbif.org/).
+#' @title Download GBIF occurrences
+#' @description  This function downloads taxa occurrence files from GBIF (https://www.gbif.org/).
 #' It assumes that the taxa list supplied is taxonomically correct (haha!).
 #' It downloads the taxa to the specified folders without returning anything
 #' @param species_list   Character vector - List of species binomials to download
@@ -105,9 +104,9 @@ download_GBIF_all_species = function(species_list,
 ## ALA Species download ----
 
 
-#' Download species occurrence files from the Atlas of Living Australia (ALA)
-#'
-#' This function downloads species occurrence files from ALA (https://www.ala.org.au/).
+
+#' @title Download ALA occurrences
+#' @description This function downloads species occurrence files from ALA (https://www.ala.org.au/).
 #' It assumes that the species list supplied is taxonomically correct.
 #' It downloads the species without returning anything
 #'
@@ -1907,9 +1906,7 @@ plot_range_histograms = function(coord_df,
 
 
 
-#' Create SDM table ----
-
-
+#' @title Prepare SDM table
 #' @description  'This function takes a data frame of all taxa records,
 #' And prepares a table in the 'taxa with data' (swd) format for modelling uses the Maxent algorithm.
 #' It assumes that the input df is that returned by the coord_clean_records function'
@@ -2108,36 +2105,7 @@ prepare_sdm_table = function(coord_df,
     SPAT.TRUE <- SDM.SPAT.ALL
   }
   
-  
-  ## Convert back to format for SDMs :: use Mollweide projection
-  # SDM.SPAT.ALL = SpatialPointsDataFrame(coords      = SDM.SPAT.ALL[c("lon", "lat")],
-  #                                       data        = SDM.SPAT.ALL,
-  #                                       proj4string = CRS(sp_epsg54009))
-  # projection(SDM.SPAT.ALL)
-  # message(length(unique(SDM.SPAT.ALL$searchTaxon)),
-  #         ' taxa processed through from download to SDM table')
-  # 
-  # ## CREATE SHAPEFILES TO CHECK OUTLIERS ARCMAP
-  # ## Rename the fields so that ArcMap can handle them
-  # SPAT.OUT.CHECK = SPAT.FLAG %>%
-  #   dplyr::select(SPOUT.OBS, searchTaxon, lat, lon, SOURCE, SPAT_OUT) %>%
-  #   dplyr::rename(TAXON     = searchTaxon,
-  #                 LAT       = lat,
-  #                 LON       = lon)
-  # names(SPAT.OUT.CHECK)
-  # 
-  # ## Then create a SPDF
-  # SPAT.OUT.SPDF = SpatialPointsDataFrame(coords      = SPAT.OUT.CHECK[c("LON", "LAT")],
-  #                                        data        = SPAT.OUT.CHECK,
-  #                                        proj4string = CRS("+init=epsg:3577"))
-  # 
-  # ## Now select the final columns needed
-  # message(length(unique(SDM.SPAT.ALL$searchTaxon)), ' taxa in occurrence and BG data')
-  # drops        <- c('CC.OBS', 'SPOUT.OBS')
-  # sdm_cols     <- names(dplyr::select(SDM.SPAT.ALL@data, searchTaxon, lon, lat, SOURCE, everything()))
-  # SDM.SPAT.ALL <- SDM.SPAT.ALL[,!(names(SDM.SPAT.ALL) %in% drops)]
-  
-  
+
   ## CREATE BACKGROUND POINTS AND VARIBALE NAMES
   ## Use one data frame for all taxa analysis,
   ## to save mucking around with background points
