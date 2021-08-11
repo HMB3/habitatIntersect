@@ -6,8 +6,8 @@
 ## Below are the functions used to run the SDM models
 
 
-
-#' This function takes a data frame of all taxa records,
+#' @title Run SDM analyses
+#' @description This function takes a data frame of all taxa records,
 #' and runs a specialised maxent analysis for each taxa.
 #' It uses the rmaxent package https://github.com/johnbaums/rmaxent
 #' It assumes that the input df is that returned by the prepare_sdm_table function
@@ -165,12 +165,13 @@ run_sdm_analysis = function(taxa_list,
 
 
 
+#' @title Maxent Backwards selection
+#' @description 
 #' This function takes a data frame of all taxa records,
 #' and runs a specialised maxent analysis for each taxa.
 #' It uses the rmaxent package https://github.com/johnbaums/rmaxent
 #' It assumes that the input df is that returned by the prepare_sdm_table function
-
-#' @title Maxent Backwards selection
+#' 
 #' @param occ                SpatialPointsDataFrame - Spdf of all taxa records returned by the 'prepare_sdm_table' function
 #' @param bg                 SpatialPointsDataFrame - Spdf of of candidate background points
 #' @param sdm_predictors     Character string - Vector of enviro conditions that you want to include
@@ -509,15 +510,14 @@ fit_maxent_targ_bg_back_sel <- function(occ,
 
 
 
-## Simplify the maxent models ----
-
-
-#' This is a local version of rmaxent::simplify (https://github.com/johnbaums/rmaxent)
+#' @title Simplify maxent model
+#' @description This is a local version of rmaxent::simplify (https://github.com/johnbaums/rmaxent)
 #' Given a candidate set of predictor variables, this function identifies
 #' a subset that meets specified multicollinearity criteria. Subsequently,
 #' backward stepwise variable selection is used to iteratively drop the variable
 #' that contributes least to the model, until the contribution of each variable
 #' meets a specified minimum, or until a predetermined minimum number of predictors remains.
+#' 
 #' It assumes that the input df is that returned by the fit_maxent_targ_bg_back_sel function
 #' @param occ                SpatialPointsDataFrame - Spdf of all taxa records returned by the 'prepare_sdm_table' function
 #' @param bg                 SpatialPointsDataFrame - Spdf of of candidate background points
@@ -672,8 +672,8 @@ local_simplify = function (occ, bg, path, taxa_column = "taxa", response_curves 
 
 
 
-
-#' This function calculates variables importance.
+#' @title Variable importance
+#' @description This function calculates variables importance.
 #' @param mod   object - maxent model object
 #' @export
 var_importance <- function(mod) {
@@ -689,10 +689,8 @@ var_importance <- function(mod) {
 
 
 
-## Compile the SDM results -----
-
-
-#' This function extracts the SDM results from the folders.
+#' @title Compile SDM results
+#' @description This function extracts the SDM results from the folders.
 #' @param taxa_list      Character string - the taxa to run maxent models for
 #' @param results_dir       Character string - The file path used for saving the maxent output
 #' @param save_data         Logical or character - do you want to save the data frame?

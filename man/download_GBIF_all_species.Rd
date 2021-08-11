@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_PROCESSOR_FUNCTIONS.R
 \name{download_GBIF_all_species}
 \alias{download_GBIF_all_species}
-\title{Download species occurrence files from GBIF}
+\title{Download GBIF occurrences}
 \usage{
 download_GBIF_all_species(species_list, download_path, download_limit)
 }

@@ -2,13 +2,7 @@
 % Please edit documentation in R/SDM_GEN_MAXENT_FUNCTIONS.R
 \name{local_simplify}
 \alias{local_simplify}
-\title{This is a local version of rmaxent::simplify (https://github.com/johnbaums/rmaxent)
-Given a candidate set of predictor variables, this function identifies
-a subset that meets specified multicollinearity criteria. Subsequently,
-backward stepwise variable selection is used to iteratively drop the variable
-that contributes least to the model, until the contribution of each variable
-meets a specified minimum, or until a predetermined minimum number of predictors remains.
-It assumes that the input df is that returned by the fit_maxent_targ_bg_back_sel function}
+\title{Simplify maxent model}
 \usage{
 local_simplify(
   occ,
@@ -58,5 +52,6 @@ a subset that meets specified multicollinearity criteria. Subsequently,
 backward stepwise variable selection is used to iteratively drop the variable
 that contributes least to the model, until the contribution of each variable
 meets a specified minimum, or until a predetermined minimum number of predictors remains.
+
 It assumes that the input df is that returned by the fit_maxent_targ_bg_back_sel function
 }

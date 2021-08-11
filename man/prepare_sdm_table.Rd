@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_PROCESSOR_FUNCTIONS.R
 \name{prepare_sdm_table}
 \alias{prepare_sdm_table}
-\title{Create SDM table ----}
+\title{Prepare SDM table}
 \usage{
 prepare_sdm_table(
   coord_df,

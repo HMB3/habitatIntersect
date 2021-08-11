@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_PROCESSOR_FUNCTIONS.R
 \name{download_ALA_all_species}
 \alias{download_ALA_all_species}
-\title{Download species occurrence files from the Atlas of Living Australia (ALA)}
+\title{Download ALA occurrences}
 \usage{
 download_ALA_all_species(
   species_list,

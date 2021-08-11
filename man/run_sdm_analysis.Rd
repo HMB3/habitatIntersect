@@ -2,10 +2,7 @@
 % Please edit documentation in R/SDM_GEN_MAXENT_FUNCTIONS.R
 \name{run_sdm_analysis}
 \alias{run_sdm_analysis}
-\title{This function takes a data frame of all taxa records,
-and runs a specialised maxent analysis for each taxa.
-It uses the rmaxent package https://github.com/johnbaums/rmaxent
-It assumes that the input df is that returned by the prepare_sdm_table function}
+\title{Run SDM analyses}
 \usage{
 run_sdm_analysis(
   taxa_list,
