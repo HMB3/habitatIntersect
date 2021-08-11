@@ -368,7 +368,7 @@ data('ALA_keep')
 
 
 ## Combine Family ALA data ~ 50% of records are knocked out by cleaning  
-ALA.LAND.FAM <- combine_ala_records(taxa_list         =  analysis_test,
+ALA.LAND.FAM <- combine_ala_records(taxa_list         =  target.insect.families,
                                     records_path      = "./data/ALA/Insects/Family/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
@@ -377,7 +377,7 @@ ALA.LAND.FAM <- combine_ala_records(taxa_list         =  analysis_test,
 
 
 ## Combine Genus ALA data
-ALA.LAND.GEN <- combine_ala_records(taxa_list         = analysis_test,
+ALA.LAND.GEN <- combine_ala_records(taxa_list         = target.insect.genera,
                                     records_path      = "./data/ALA/Insects/Genus/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
@@ -386,7 +386,7 @@ ALA.LAND.GEN <- combine_ala_records(taxa_list         = analysis_test,
 
 
 ## Combine taxa ALA data
-ALA.LAND.SPP <- combine_ala_records(taxa_list         = analysis_test,
+ALA.LAND.SPP <- combine_ala_records(taxa_list         = target.insect.spp,
                                     records_path      = "./data/ALA/Insects/Species/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
@@ -626,9 +626,16 @@ bg_plant_list %in% target.host.plants %>% table()
 
 ## Combine occ data with the bg data 
 SDM.SPAT.OCC.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN,
-                                     taxa_list         = analysis_test,
+                                     taxa_list         = analysis_taxa,
                                      
-                                     sdm_table_vars    = c('searchTaxon', 'species',  'genus', 'family', 'lon', 'lat', 'SOURCE', 'SPAT_OUT',
+                                     sdm_table_vars    = c('searchTaxon', 
+                                                           'species',  
+                                                           'genus', 
+                                                           'family',      
+                                                           'lon',      
+                                                           'lat', 
+                                                           'SOURCE', 
+                                                           'SPAT_OUT',
                                                            names(aus.climate.veg.grids)),
                                      save_run          = "TARGET_HOST_PLANTS",
                                      
