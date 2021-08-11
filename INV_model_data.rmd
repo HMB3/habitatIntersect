@@ -246,18 +246,17 @@ across Australia ().
 
 ## Create a table of maxent results
 ## This function aggregates the results for models that ran successfully
-MAXENT.RESULTS = compile_sdm_results(taxa_list    = target.host.plants,
+MAXENT.RESULTS = compile_sdm_results(taxa_list    = analysis_taxa,
                                      
-                                     # results_dir  = 'output/veg_climate_topo_maxent/back_sel_models',
-                                     results_dir  = 'output/plant_maxent/back_sel_models',
+                                     results_dir  = 'output/veg_climate_topo_maxent/back_sel_models',
+                                     # results_dir  = 'output/plant_maxent/back_sel_models',
                                      
-                                     # data_path    = "./output/veg_climate_topo_maxent/Habitat_suitability/",
-                                     # sdm_path     = "./output/veg_climate_topo_maxent/back_sel_models/",
+                                     data_path    = "./output/veg_climate_topo_maxent/Habitat_suitability/",
+                                     sdm_path     = "./output/veg_climate_topo_maxent/back_sel_models/",
                                      
-                                     data_path    = "./output/plant_maxent/Habitat_suitability/",
-                                     sdm_path     = "./output/plant_maxent/back_sel_models/",
+                                     # data_path    = "./output/plant_maxent/Habitat_suitability/",
+                                     # sdm_path     = "./output/plant_maxent/back_sel_models/",
                                      save_data    = FALSE,
-                                     
                                      save_run     = "TARG_INSECT_SPP")
 
 
@@ -269,11 +268,8 @@ sdm.results.dir <- MAXENT.RESULTS$results_dir
 
 
 ## Combine maxent results together for the different taxa
-# write_csv(MAXENT.RESULTS, './output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_ALA_TAXA.csv')
-# MAXENT.COMBINED <- readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_FAM.rds') %>%
-#   bind_rows(readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_GENERA.rds'))    %>%
-#   bind_rows(readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_SPP.rds'))
-# saveRDS(MAXENT.COMBINED, './output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_TAXA.rds')
+write_csv(MAXENT.RESULTS, './output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_ALA_TAXA.csv')
+
 
 ``` 
 

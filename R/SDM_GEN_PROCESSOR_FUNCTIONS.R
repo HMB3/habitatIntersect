@@ -870,7 +870,6 @@ combine_gbif_records = function(taxa_list,
 #' @param save_data          Do you want to save the data frame?
 #' @param data_path          The file path used for saving the data frame
 #' @param save_run           A run name to append to the data frame (e.g. bat taxa, etc.). Useful for multiple runs.
-#' @return                   Data frame of all ALA/GBIF records, with global enviro conditions for each record location (i.e. lat/lon)
 #' @export
 
 combine_records_extract = function(ala_df,
