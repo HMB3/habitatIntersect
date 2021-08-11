@@ -367,7 +367,7 @@ Next we filter the records to those taken after 1950, and those inside the raste
 data('ALA_keep')
 
 
-## Combine Family ALA data ~ 50% of records are knocked out by cleaning  
+## Combine Family ALA data up to 50% of records are knocked out by cleaning  
 ALA.LAND.FAM <- combine_ala_records(taxa_list         =  target.insect.families,
                                     records_path      = "./data/ALA/Insects/Family/",
                                     records_extension = "_ALA_records.RData",
