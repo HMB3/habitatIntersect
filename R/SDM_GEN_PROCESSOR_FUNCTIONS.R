@@ -9,11 +9,10 @@
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
 
-## GBIF download ----
 
 
 #' @title Download GBIF occurrences
-#' @description  This function downloads taxa occurrence files from GBIF (https://www.gbif.org/).
+#' @description This function downloads taxa occurrence files from GBIF (https://www.gbif.org/).
 #' It assumes that the taxa list supplied is taxonomically correct (haha!).
 #' It downloads the taxa to the specified folders without returning anything
 #' @param species_list   Character vector - List of species binomials to download
@@ -98,10 +97,6 @@ download_GBIF_all_species = function(species_list,
 }
 
 
-
-
-
-## ALA Species download ----
 
 
 
@@ -193,8 +188,7 @@ download_ALA_all_species = function (species_list,
 
 
 
-#' ALA download Genus Records -----
-
+#' @title Download ALA genus occurrences
 #' @description  This function downloads genus occurrence files from ALA (https://www.ala.org.au/).
 #' It assumes that the genus list supplied is taxonomically correct.
 #' It downloads the genus to fiel without returning anything to the global environment
@@ -287,11 +281,8 @@ download_ALA_all_genera = function (genera_list,
 
 
 
-## ALA download Family Records ----
-
-
-#' Download species occurrence files from the Atlas of Living Australia (ALA)
-#'
+#' @title Download ALA family occurrences
+#' @description Download species occurrence files from the Atlas of Living Australia (ALA)
 #' This function downloads family occurrence files from ALA (https://www.ala.org.au/).
 #' It assumes that the species list supplied is taxonomically correct.
 #' It downloads the species to fiel without returning anything to the global environment
@@ -382,14 +373,10 @@ download_ALA_all_families = function (species_list,
 
 
 
-## ALA download Tribe Records ----
-
-
-#' Download species occurrence files from the Atlas of Living Australia (ALA)
-#'
-#' This function downloads family occurrence files from ALA (https://www.ala.org.au/).
+#' @title Download ALA species occurrences
+#' @description This function downloads family occurrence files from ALA (https://www.ala.org.au/).
 #' It assumes that the species list supplied is taxonomically correct.
-#' It downloads the species to fiel without returning anything to the global environment
+#' It downloads the species to field without returning anything to the global environment
 #'
 #' @param species_list   Character vector - List of species binomials to download
 #' @param download_path  Character string - File path for species downloads
@@ -479,13 +466,8 @@ download_ALA_all_tribes = function (species_list,
 
 
 
-## Combining ALA records -----
-
-
-#' Combine all ala records into one file
-#'
-#' This function combines all occurrence files from ALA into.
-#' There are slight differences between ALA and GBIF, so separate functions are useful.
+#' @title Combine ALA Records
+#' @description Combines all occurrence files from ALA into one table.
 #' It assumes that all the files come from the previous downloads function.
 #' Although you can download all the records for in one go, this is better for
 #' Doing small runs of species, or where you want to re-run them constantly
@@ -685,12 +667,9 @@ combine_ala_records = function(taxa_list,
 
 
 
-## Combining GBIF records -----
-
-
-#' This function combines all occurrence files from GBIF into one table.
+#' @title Combine ALA Records
+#' @description Combines all occurrence files from GBIF into one table.
 #' There are slight differences between ALA and GBIF, so separate functions are useful.
-#' It assumes that all the files come from the previous GBIF downloads function.
 #' Although you can download all the records for in one go, this is better for
 #' Doing small runs of taxa, or where you want to re-run them constantly
 #' @param taxa_list       List of taxa already downloaded
@@ -874,10 +853,8 @@ combine_gbif_records = function(taxa_list,
 
 
 
-## Extract environmental values for occurrence records -----
-
-
-#' This function combines occurrence files from ALA and GBIF into one table, and extracts enviro values.
+#' @title Extract Raster Values for Occurrence Records
+#' @description This function combines occurrence files from ALA and GBIF into one table, and extracts enviro values.
 #' It assumes that both files come from the previous GBIF/ALA combine function.
 #' @param ala_df             Data frame of ALA records
 #' @param site_df           Data frame of site records (only used if you have site data, e.g. I-naturalist)
@@ -997,12 +974,17 @@ combine_records_extract = function(ala_df,
     COMBO.RASTER.CONVERT = COMBO.RASTER
   }
   
-  ## Get the complete data
+  ## Get the complete data - this is the step where the site records could be disappearing,
+  ## as the records could be on the coast, etc.
   COMBO.RASTER.CONVERT = completeFun(COMBO.RASTER.CONVERT, c(names(world_raster)))
   
   message(length(unique(COMBO.RASTER.CONVERT$searchTaxon)),
           ' taxa processed of ', length(taxa_list), ' original taxa')
   
+  ## What percentage of records are retained?
+  message(round(nrow(COMBO.RASTER.CONVERT)/nrow(ALA.COMBO)*100, 2),
+          " % records retained after raster extraction")
+
   ## save data
   if(save_data == TRUE) {
     
@@ -1020,10 +1002,9 @@ combine_records_extract = function(ala_df,
 
 
 
-## Clean coordinates of occurrence records ----
 
-
-#' This function takes a data frame of all taxa records, and flag records as institutional or spatial outliers.
+#' @title Clean occurrence data
+#' @description Takes a data frame of all taxa records, and flag records as institutional or spatial outliers.
 #' It uses the CoordinateCleaner package https://cran.r-project.org/web/packages/CoordinateCleaner/index.html.
 #' It assumes that the records data.frame is that returned by the combine_records_extract function
 #' @param records            Data.frame. DF of all taxa records returned by the combine_records_extract function
@@ -1370,10 +1351,8 @@ check_spatial_outliers = function(all_df,
 
 
 
-## Calculate niches using occurrence data ----
-
-
-#' This function takes a data frame of all species records,
+#' @title Calculate niches
+#' @description Takes a data frame of all species records,
 #' estimates geographic and environmental ranges for each, and creates a table of each.
 #' It uses the AOO.computing function in the ConR package https://cran.r-project.org/web/packages/ConR/index.html
 #' It assumes that the input df is that returned by the check_spatial_outliers function
@@ -1598,17 +1577,11 @@ calc_1km_niches = function(coord_df,
 
 
 
-## Get a complete df ----
-
-#' Remove taxa records with NA enviro (i.e. Raster) values - records outside the exetent of rasters
-#'
-#' This function downloads taxa occurrence files from GBIF (https://www.gbif.org/).
-#' It assumes that the taxa list supplied is taxonomically correct.
-#' It downloads the taxa without returning anything
-#'
-#' @param data            Data.frame of taxa records
-#' @param desiredCols     Character string of columns to search for NA values EG c('rainfall', 'temp'), etc.
-#' @return                A df with NA records removed
+#' @title Complete data frame
+#' @description Remove taxa records with NA enviro (i.e. Raster) values - records outside the exetent of rasters
+#' @param data         Data.frame of taxa records
+#' @param desiredCols  Character string of columns to search for NA values EG c('rainfall', 'temp'), etc.
+#' @return             A df with NA records removed
 #' @export
 completeFun <- function(data, desiredCols) {
   
@@ -1621,15 +1594,13 @@ completeFun <- function(data, desiredCols) {
 
 
 
-## Estimate the niche from taxa records ----
-
-
-#' This function takes a data frame of all taxa records,
+#' @title Estimate niches
+#' @description  Takes a data frame of all taxa records,
 #' and estimates the environmental niche for each taxa
 #' It assumes that the input df is that prepared by the calc_1km_niches function
-#' @param  DF                 Data.frame of all taxa records prepared by the calc_1km_niches function
-#' @param  colname            Character string - the columns to estimate niches for E.G. 'rainfall', etc.
-#' @return                    Data.frame of estimated environmental niches for each taxa
+#' @param  DF        Data.frame of all taxa records prepared by the calc_1km_niches function
+#' @param  colname   Character string - the columns to estimate niches for E.G. 'rainfall', etc.
+#' @return           Data.frame of estimated environmental niches for each taxa
 #' @export
 niche_estimate = function (DF,
                            colname) {
@@ -1695,10 +1666,8 @@ niche_estimate = function (DF,
 
 
 
-## Plot histograms and convex hulls for selected taxa ----
-
-
-#' This function takes a data frame of all taxa records,
+#' @title Plot Histograms
+#' @description This function takes a data frame of all taxa records,
 #' and plots histograms and convex hulls for each taxa in global enviromental space
 #' It assumes that the input df is that prepared by the check_spatial_outliers function
 #' @param  coord_df           Data.frame of all taxa records prepared by the check_spatial_outliers function
@@ -1937,7 +1906,6 @@ prepare_sdm_table = function(coord_df,
   ## Define GDA ALBERS. This is hard-wired, not user supplied
   ## Change this to GDA ALBERS
   sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
-  # sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs"
   
   ## Just add clean_df to this step
   coord_df <- subset(coord_df, coord_summary == TRUE)
@@ -2057,17 +2025,17 @@ prepare_sdm_table = function(coord_df,
   ## FILTER DATA TO REMOVE SPATIAL OUTLIERS
   ## Join data :: Best to use the 'OBS' column here
   message('Is the number records identical before joining?',
-          identical(nrow(SDM.COORDS.ALA), nrow(SPAT.OUT)))
+          identical(nrow(SDM.COORDS), nrow(SPAT.OUT)))
   
   message('Is the order of records identical after joining?',
-          identical(SDM.COORDS.ALA$species, SPAT.OUT$searchTaxon))
+          identical(SDM.COORDS$species, SPAT.OUT$searchTaxon))
   
   ## This explicit join is required. Check the taxa have been analyzed in exactly the same order
   SPAT.FLAG <- left_join(as.data.frame(SDM.DATA.ALL), SPAT.OUT,
                          by = c("SPOUT.OBS", "searchTaxon"), match = "first")
   
   message('Is the order or records identical after joining?',
-          identical(SDM.DATA.ALA$searchTaxon, SPAT.FLAG$searchTaxon))
+          identical(SDM.DATA.ALL$searchTaxon, SPAT.FLAG$searchTaxon))
   
   ## Check the join is working
   message('Checking spatial flags for ', length(unique(SPAT.FLAG$searchTaxon)),
@@ -2082,7 +2050,7 @@ prepare_sdm_table = function(coord_df,
   length(unique(SDM.SPAT.ALL$searchTaxon))
   
   ## What percentage of records are retained?
-  message(round(nrow(SDM.SPAT.ALL)/nrow(SPAT.FLAG)*100, 2),
+  message(round(nrow(SDM.SPAT.ALL)/nrow(SPAT.FLAG)*100, 5),
           " % records retained after spatial outlier detection")
   
   if(site_records) {
@@ -2104,7 +2072,6 @@ prepare_sdm_table = function(coord_df,
     message('Dont add site data' )
     SPAT.TRUE <- SDM.SPAT.ALL
   }
-  
 
   ## CREATE BACKGROUND POINTS AND VARIBALE NAMES
   ## Use one data frame for all taxa analysis,

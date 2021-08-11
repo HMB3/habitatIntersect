@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_PROCESSOR_FUNCTIONS.R
 \name{completeFun}
 \alias{completeFun}
-\title{Remove taxa records with NA enviro (i.e. Raster) values - records outside the exetent of rasters}
+\title{Complete data frame}
 \usage{
 completeFun(data, desiredCols)
 }
@@ -15,7 +15,5 @@ completeFun(data, desiredCols)
 A df with NA records removed
 }
 \description{
-This function downloads taxa occurrence files from GBIF (https://www.gbif.org/).
-It assumes that the taxa list supplied is taxonomically correct.
-It downloads the taxa without returning anything
+Remove taxa records with NA enviro (i.e. Raster) values - records outside the exetent of rasters
 }

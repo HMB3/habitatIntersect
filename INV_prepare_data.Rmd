@@ -133,7 +133,9 @@ data('target.host.plants')
 data('all.insect.plant.spp')
 
 analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
-analysis_test <- c('Ausejanus femoralis', 'Mutusca brevicornis', 'Rayieria basifer')
+analysis_test <- c('Lygaeidae',           'Malandiola',       'Miridae',      'Nysius vinitor', 'Onthophagus turrbal', 'Oxycarenidae', 
+                   'Pachygronthidae',     'Pentatomidae',     'Rhopalidae',   'Scutelleridae',  'Ausejanus femoralis', 
+                   'Mutusca brevicornis', 'Rayieria basifer', 'Wallabicoris', 'Molycria',       'Figulus')
 
 ```
 
@@ -366,7 +368,7 @@ data('ALA_keep')
 
 
 ## Combine Family ALA data ~ 50% of records are knocked out by cleaning  
-ALA.LAND.FAM <- combine_ala_records(taxa_list         =  target.insect.families,
+ALA.LAND.FAM <- combine_ala_records(taxa_list         =  analysis_test,
                                     records_path      = "./data/ALA/Insects/Family/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
@@ -375,7 +377,7 @@ ALA.LAND.FAM <- combine_ala_records(taxa_list         =  target.insect.families,
 
 
 ## Combine Genus ALA data
-ALA.LAND.GEN <- combine_ala_records(taxa_list         = target.insect.genera,
+ALA.LAND.GEN <- combine_ala_records(taxa_list         = analysis_test,
                                     records_path      = "./data/ALA/Insects/Genus/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
@@ -384,7 +386,7 @@ ALA.LAND.GEN <- combine_ala_records(taxa_list         = target.insect.genera,
 
 
 ## Combine taxa ALA data
-ALA.LAND.SPP <- combine_ala_records(taxa_list         = target.insect.spp,
+ALA.LAND.SPP <- combine_ala_records(taxa_list         = analysis_test,
                                     records_path      = "./data/ALA/Insects/Species/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
@@ -406,7 +408,8 @@ Next we combine occurrence files from ALA and GBIF into one table, and extracts 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Combine GBIF and ALA data, and extract environmental values
-## Note that the climate values are too small
+## Some of the site records will be removed here, if they are outside the raster bounds.
+## This seems strange, but maybe they are right on the coast
 COMBO.RASTER.FAM = combine_records_extract(ala_df           = ALA.LAND.FAM,
                                            site_df          = all_insect_site_df_families,
                                            thin_records     = FALSE,
@@ -671,9 +674,9 @@ SDM.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TAXA.rds
 
 
 ## Check the records for a subset of taxa in the final data (ALA + SITE)
-Lygaeidae_ALA            <- COORD.CLEAN  %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
+Lygaeidae_ALA            <- SDM.SPAT.OCC.BG   %>% as.data.frame () %>% filter(searchTaxon == 'Lygaeidae'  | family == 'Lygaeidae')
 Malandiola_ALA           <- SDM.SPAT.OCC.BG  %>% as.data.frame () %>% filter(searchTaxon == 'Malandiola' | genus  == 'Malandiola')
-Miridae_ALA              <- COORD.CLEAN  %>% as.data.frame () %>% filter(searchTaxon == 'Miridae'    | family == 'Miridae')
+Miridae_ALA              <- SDM.SPAT.OCC.BG  %>% as.data.frame () %>% filter(searchTaxon == 'Miridae'    | family == 'Miridae')
 Nysius_vinitor_ALA       <- SDM.SPAT.OCC.BG  %>% as.data.frame () %>% filter(searchTaxon == 'Nysius vinitor'  | species == 'Nysius vinitor')
 Onthophagus_turrbal_ALA  <- SDM.SPAT.OCC.BG  %>% as.data.frame () %>% filter(searchTaxon == 'Onthophagus turrbal' | family == 'Onthophagus turrbal')
 Oxycarenidae_ALA         <- SDM.SPAT.OCC.BG  %>% as.data.frame () %>% filter(searchTaxon == 'Oxycarenidae'  | family == 'Oxycarenidae')

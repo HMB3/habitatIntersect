@@ -2,10 +2,7 @@
 % Please edit documentation in R/SDM_GEN_PROCESSOR_FUNCTIONS.R
 \name{calc_1km_niches}
 \alias{calc_1km_niches}
-\title{This function takes a data frame of all species records,
-estimates geographic and environmental ranges for each, and creates a table of each.
-It uses the AOO.computing function in the ConR package https://cran.r-project.org/web/packages/ConR/index.html
-It assumes that the input df is that returned by the check_spatial_outliers function}
+\title{Calculate niches}
 \usage{
 calc_1km_niches(
   coord_df,
@@ -43,7 +40,7 @@ calc_1km_niches(
 \item{aus_df}{Data.frame of site records (only used if you have site data, e.g. I-naturalist)}
 }
 \description{
-This function takes a data frame of all species records,
+Takes a data frame of all species records,
 estimates geographic and environmental ranges for each, and creates a table of each.
 It uses the AOO.computing function in the ConR package https://cran.r-project.org/web/packages/ConR/index.html
 It assumes that the input df is that returned by the check_spatial_outliers function

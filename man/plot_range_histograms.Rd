@@ -2,9 +2,7 @@
 % Please edit documentation in R/SDM_GEN_PROCESSOR_FUNCTIONS.R
 \name{plot_range_histograms}
 \alias{plot_range_histograms}
-\title{This function takes a data frame of all taxa records,
-and plots histograms and convex hulls for each taxa in global enviromental space
-It assumes that the input df is that prepared by the check_spatial_outliers function}
+\title{Plot Histograms}
 \usage{
 plot_range_histograms(coord_df, taxa_list, range_path)
 }

@@ -2,8 +2,7 @@
 % Please edit documentation in R/SDM_GEN_PROCESSOR_FUNCTIONS.R
 \name{combine_records_extract}
 \alias{combine_records_extract}
-\title{This function combines occurrence files from ALA and GBIF into one table, and extracts enviro values.
-It assumes that both files come from the previous GBIF/ALA combine function.}
+\title{Extract Raster Values for Occurrence Records}
 \usage{
 combine_records_extract(
   ala_df,

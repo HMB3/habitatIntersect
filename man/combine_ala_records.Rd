@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_PROCESSOR_FUNCTIONS.R
 \name{combine_ala_records}
 \alias{combine_ala_records}
-\title{Combine all ala records into one file}
+\title{Combine ALA Records}
 \usage{
 combine_ala_records(
   taxa_list,
@@ -27,8 +27,7 @@ combine_ala_records(
 \item{world_raster}{An Raster file of the enviro conditions used (assumed to be global)}
 }
 \description{
-This function combines all occurrence files from ALA into.
-There are slight differences between ALA and GBIF, so separate functions are useful.
+Combines all occurrence files from ALA into one table.
 It assumes that all the files come from the previous downloads function.
 Although you can download all the records for in one go, this is better for
 Doing small runs of species, or where you want to re-run them constantly

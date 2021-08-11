@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_PROCESSOR_FUNCTIONS.R
 \name{download_ALA_all_families}
 \alias{download_ALA_all_families}
-\title{Download species occurrence files from the Atlas of Living Australia (ALA)}
+\title{Download ALA family occurrences}
 \usage{
 download_ALA_all_families(
   species_list,
@@ -29,6 +29,7 @@ download_ALA_all_families(
 Data frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)
 }
 \description{
+Download species occurrence files from the Atlas of Living Australia (ALA)
 This function downloads family occurrence files from ALA (https://www.ala.org.au/).
 It assumes that the species list supplied is taxonomically correct.
 It downloads the species to fiel without returning anything to the global environment

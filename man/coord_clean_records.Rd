@@ -2,9 +2,7 @@
 % Please edit documentation in R/SDM_GEN_PROCESSOR_FUNCTIONS.R
 \name{coord_clean_records}
 \alias{coord_clean_records}
-\title{This function takes a data frame of all taxa records, and flag records as institutional or spatial outliers.
-It uses the CoordinateCleaner package https://cran.r-project.org/web/packages/CoordinateCleaner/index.html.
-It assumes that the records data.frame is that returned by the combine_records_extract function}
+\title{Clean occurrence data}
 \usage{
 coord_clean_records(
   records,
@@ -32,7 +30,7 @@ coord_clean_records(
 Data.frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)
 }
 \description{
-This function takes a data frame of all taxa records, and flag records as institutional or spatial outliers.
+Takes a data frame of all taxa records, and flag records as institutional or spatial outliers.
 It uses the CoordinateCleaner package https://cran.r-project.org/web/packages/CoordinateCleaner/index.html.
 It assumes that the records data.frame is that returned by the combine_records_extract function
 }
