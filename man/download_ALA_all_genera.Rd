@@ -5,7 +5,7 @@
 \title{ALA download Genus Records -----}
 \usage{
 download_ALA_all_genera(
-  species_list,
+  genera_list,
   your_email,
   download_path,
   ala_temp_dir,
@@ -15,8 +15,6 @@ download_ALA_all_genera(
 )
 }
 \arguments{
-\item{species_list}{Character vector - List of genus binomials to download}
-
 \item{download_path}{Character string - File path for genus downloads}
 
 \item{download_limit}{Numeric - How many records can be downloaded at one time? Set by server}
@@ -24,6 +22,8 @@ download_ALA_all_genera(
 \item{extra_cols}{Character - extra ALA columns, eg environmental vatriables}
 
 \item{quality_cols}{Character - quality ALA columns, eg spatial accuracy}
+
+\item{species_list}{Character vector - List of genus binomials to download}
 }
 \value{
 Data frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)

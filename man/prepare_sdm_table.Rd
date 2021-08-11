@@ -10,8 +10,8 @@ prepare_sdm_table(
   BG_points,
   sdm_table_vars,
   save_run,
-  save_shp,
   read_background,
+  site_records,
   background_points,
   save_data,
   data_path,
@@ -29,8 +29,6 @@ prepare_sdm_table(
 
 \item{save_run}{Character string - append a run name to the output (e.g. 'bat_taxa')}
 
-\item{save_shp}{Logical - Save a shapefile of the SDM table (T/F)?}
-
 \item{read_background}{Logical - Read in an additional dataframe of background points (T/F)?}
 
 \item{background_points}{Data.frame. DF of extra taxa records}
@@ -40,6 +38,8 @@ prepare_sdm_table(
 \item{data_path}{Character string - The file path used for saving the data frame}
 
 \item{project_path}{Paht of taxa records, with spatial outlier T/F flag for each record}
+
+\item{save_shp}{Logical - Save a shapefile of the SDM table (T/F)?}
 }
 \description{
 'This function takes a data frame of all taxa records,
