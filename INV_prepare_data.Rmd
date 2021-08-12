@@ -135,7 +135,7 @@ data('all.insect.plant.spp')
 analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
 analysis_test <- c('Lygaeidae',           'Malandiola',       'Miridae',      'Nysius vinitor', 'Onthophagus turrbal', 'Oxycarenidae', 
                    'Pachygronthidae',     'Pentatomidae',     'Rhopalidae',   'Scutelleridae',  'Ausejanus femoralis', 
-                   'Mutusca brevicornis', 'Rayieria basifer', 'Wallabicoris', 'Molycria',       'Figulus')
+                   'Mutusca brevicornis', 'Rayieria basifer', 'Wallabicoris', 'Molycria',       'Figulus') %>% .[1:2]
 
 ```
 
@@ -554,11 +554,6 @@ GLOB.NICHE.ALL = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxo
                                  data_path    = "./output/results/")
 
 
-## Blend the niches together
-# GLOBAL_NICHES_TARG_TAXA <- readRDS('./output/results/GLOBAL_NICHES_TARGET_INSECT_SPP.rds') %>%
-#   bind_rows(readRDS('./output/results/GLOBAL_NICHES_TARGET_INSECT_GENUS.rds'))     %>%
-#   bind_rows(readRDS('./output/results/GLOBAL_NICHES_TARGET_INSECT_FAMILIES.rds'))  %>% .[.$searchTaxon %in% analysis_taxa, ]
-# 
 # saveRDS(GLOB.NICHE.ALL,   './output/veg_climate_topo_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_ALL_TAXA.rds')
 # write_csv(GLOB.NICHE.ALL, './output/veg_climate_topo_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_ALL_TAXA.csv')
 
@@ -637,8 +632,8 @@ SDM.SPAT.OCC.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN,
                                                            'SOURCE', 
                                                            'SPAT_OUT',
                                                            names(aus.climate.veg.grids)),
-                                     save_run          = "ALL_TARGET_INVERT_TAXA",
                                      
+                                     save_run          = "ALL_TARGET_INVERT_TAXA",
                                      site_records      = TRUE,
                                      read_background   = TRUE,
                                      background_points = SDM.ALL.PLA.SPP.BG, 

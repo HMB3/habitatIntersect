@@ -109,7 +109,7 @@ minimum number of predictors remains.
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## SDM.ALL.PLA.SPP.BG  = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_PLANT_SPP.rds')
-SDM.SPAT.OCC.BG.GDA       = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TAXA.rds')
+SDM.SPAT.OCC.BG.GDA       = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
 SDM.PLANT.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_HOST_PLANTS.rds')
 
 
@@ -119,8 +119,8 @@ SDM.PLANT.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_HOS
 ## 3). 
 
 
-## Run family-level models
-run_sdm_analysis(taxa_list               = rev(sort(target.insect.families)),
+## Run family-level models for invertebrates
+run_sdm_analysis(taxa_list               = sort(target.insect.families),
                  taxa_level              = 'family',
                  maxent_dir              = 'output/veg_climate_topo_maxent/full_models',     
                  bs_dir                  = 'output/veg_climate_topo_maxent/back_sel_models',
@@ -145,7 +145,7 @@ run_sdm_analysis(taxa_list               = rev(sort(target.insect.families)),
                  Koppen_raster           = Koppen_1975_1km)
 
 
-## Run genus-level models
+## Run genus-level models for invertebrates
 run_sdm_analysis(taxa_list               = rev(sort(target.insect.genera)),
                  taxa_level              = 'genus',
                  maxent_dir              = 'output/veg_climate_topo_maxent/full_models',     
@@ -171,7 +171,7 @@ run_sdm_analysis(taxa_list               = rev(sort(target.insect.genera)),
                  Koppen_raster           = Koppen_1975_1km)
 
 
-## Run species-level models
+## Run species-level models for invertebrates
 run_sdm_analysis(taxa_list               = target.host.plants,
                  taxa_level              = 'species',
                  maxent_dir              = 'output/veg_climate_topo_maxent/full_models',     
@@ -197,7 +197,7 @@ run_sdm_analysis(taxa_list               = target.host.plants,
                  Koppen_raster           = Koppen_1975_1km)
 
 
-## Run species-level plnat models
+## Run species-level models for plants
 run_sdm_analysis(taxa_list               = rev(sort(target.host.plants)),
                  taxa_level              = 'species',
                  maxent_dir              = 'output/plant_maxent/full_models',     

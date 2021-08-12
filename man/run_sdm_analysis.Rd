@@ -32,6 +32,8 @@ run_sdm_analysis(
 \arguments{
 \item{taxa_list}{Character string - the taxa to run maxent models for}
 
+\item{taxa_level}{Character string - the taxnomic level to run maxent models for}
+
 \item{sdm_df}{SpatialPointsDataFrame. Spdf of all taxa records returned by the 'prepare_sdm_table' function}
 
 \item{sdm_predictors}{Character string - Vector of enviro conditions that you want to include}

@@ -11,7 +11,8 @@
 #' and runs a specialised maxent analysis for each taxa.
 #' It uses the rmaxent package https://github.com/johnbaums/rmaxent
 #' It assumes that the input df is that returned by the prepare_sdm_table function
-#' @param taxa_list       Character string - the taxa to run maxent models for
+#' @param taxa_list          Character string - the taxa to run maxent models for
+#' @param taxa_level         Character string - the taxnomic level to run maxent models for
 #' @param sdm_df             SpatialPointsDataFrame. Spdf of all taxa records returned by the 'prepare_sdm_table' function
 #' @param sdm_predictors     Character string - Vector of enviro conditions that you want to include
 #' @param maxent_dir         Character string - The file path used for saving the maxent output

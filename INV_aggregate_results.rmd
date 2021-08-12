@@ -48,6 +48,11 @@ To install, run :
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
+## Set environments 
+## java memory limit and temporary raster dir
+rm(list = ls())
+options(java.parameters = "-Xmx64000m")
+
 ## Function to load or install packages
 ipak <- function(pkg){
   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
@@ -72,7 +77,7 @@ terraOptions(memfrac = 0.5,
 \
 
 
-# Assess the exent of suitable habitat burnt for each species
+# Read Raster data
 
 \
 
@@ -125,12 +130,17 @@ projection(FESM_1000m_GDA_study);projection(SVTM_GDA_study);projection(study_sdm
 xres(FESM_1000m_GDA_study);xres(SVTM);xres(study_sdm_binary[[1]])
 
 
+## Read in the SDM data, to intersect with the Veg layers
+SDM.SPAT.OCC.BG.GDA       = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
+SDM.PLANT.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_HOST_PLANTS.rds')
+
+
 ``` 
 
 
 \
 
-Create Look up tables of Veg classes - use this to assign Insects to Veg types
+# Create Look up tables of Veg classes - use this to assign Insects to Veg types
 
 \
 
@@ -174,7 +184,29 @@ write_csv(NSW_RS_Veg_Form,  './output/veg_climate_topo_maxent/Habitat_suitabilit
 
 \
 
-Now try resampling and aligning the Fire and Veg rasters to the same grid as the SDMs
+# Re-sample the Fire and Veg rasters to the same grid as the SDMs
+
+\
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+
+## Align the
+SVTM_align <- align_rasters(unaligned     = SVTM,
+                            reference     = study_sdm_binary[[1]],
+                            # dstfile       = './output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/SVTM_NENSW.tif',
+                            output_Raster = FALSE,
+                            nThreads      = 5,
+                            projres_only  = FALSE,
+                            verbose       = FALSE)
+
+
+``` 
+
+
+# Select pixels from the Veg layers 
+
+\
 
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
@@ -192,9 +224,10 @@ SVTM_align <- align_rasters(unaligned     = SVTM,
 
 ``` 
 
+
 \
 
-Next, compare SDM modells with the Fire and Veg layers :
+# Compare SDM models with the Fire and Veg layers
 
 - Fire layers    (FESM)
 - NSW Vegetation (Veg maps)
