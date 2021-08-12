@@ -871,7 +871,6 @@ combine_gbif_records = function(taxa_list,
 #' @param data_path          The file path used for saving the data frame
 #' @param save_run           A run name to append to the data frame (e.g. bat taxa, etc.). Useful for multiple runs.
 #' @export
-
 combine_records_extract = function(ala_df,
                                    site_df,
                                    add_site,
@@ -1013,7 +1012,6 @@ combine_records_extract = function(ala_df,
 #' @param save_run           Character string - run name to append to the data frame, useful for multiple runs.
 #' @param save_data          Logical or character - do you want to save the data frame?
 #' @param data_path          Character string - The file path used for saving the data frame
-#' @return                   Data.frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)
 #' @export
 coord_clean_records = function(records,
                                capitals,
@@ -1111,10 +1109,8 @@ coord_clean_records = function(records,
 
 
 
-## Save spatial outliers to file ----
-
-
-#' This function takes a data frame of all taxa records,
+#' @title Check Spatial Outliers
+#' @description This function takes a data frame of all taxa records,
 #' flags records as spatial outliers (T/F for each record in the df), and saves images of the checks for each.
 #' Manual cleaning of spatial outliers is very tedious, but automated cleaning makes mistakes, so checking is handy
 #' It uses the CoordinateCleaner package https://cran.r-project.org/web/packages/CoordinateCleaner/index.html.
@@ -1124,7 +1120,6 @@ coord_clean_records = function(records,
 #' @param land_shp           R object. Shapefile of the worlds land (e.g. https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-land/)
 #' @param clean_path         Character string -  The file path used for saving the checks
 #' @param spatial_mult       Numeric. The multiplier of the interquartile range (method == 'quantile', see ?cc_outl)
-#' @return                   Data.frame of taxa records, with spatial outlier T/F flag for each record
 #' @export
 check_spatial_outliers = function(all_df,
                                   site_records,

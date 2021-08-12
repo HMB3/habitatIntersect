@@ -2,11 +2,7 @@
 % Please edit documentation in R/SDM_GEN_PROCESSOR_FUNCTIONS.R
 \name{check_spatial_outliers}
 \alias{check_spatial_outliers}
-\title{This function takes a data frame of all taxa records,
-flags records as spatial outliers (T/F for each record in the df), and saves images of the checks for each.
-Manual cleaning of spatial outliers is very tedious, but automated cleaning makes mistakes, so checking is handy
-It uses the CoordinateCleaner package https://cran.r-project.org/web/packages/CoordinateCleaner/index.html.
-It assumes that the input dfs are those returned by the coord_clean_records function}
+\title{Check Spatial Outliers}
 \usage{
 check_spatial_outliers(
   all_df,
@@ -29,9 +25,6 @@ check_spatial_outliers(
 \item{spatial_mult}{Numeric. The multiplier of the interquartile range (method == 'quantile', see ?cc_outl)}
 
 \item{site_df}{Data.frame of site records (only used if you have site data, e.g. I-naturalist)}
-}
-\value{
-Data.frame of taxa records, with spatial outlier T/F flag for each record
 }
 \description{
 This function takes a data frame of all taxa records,

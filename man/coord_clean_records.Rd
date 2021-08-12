@@ -26,9 +26,6 @@ coord_clean_records(
 
 \item{save_data}{Logical or character - do you want to save the data frame?}
 }
-\value{
-Data.frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)
-}
 \description{
 Takes a data frame of all taxa records, and flag records as institutional or spatial outliers.
 It uses the CoordinateCleaner package https://cran.r-project.org/web/packages/CoordinateCleaner/index.html.

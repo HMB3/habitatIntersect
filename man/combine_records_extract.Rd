@@ -50,9 +50,6 @@ combine_records_extract(
 
 \item{worldclim_divide}{Are you using worldclim stored as long intergers? If so, divide by 10.}
 }
-\value{
-Data frame of all ALA/GBIF records, with global enviro conditions for each record location (i.e. lat/lon)
-}
 \description{
 This function combines occurrence files from ALA and GBIF into one table, and extracts enviro values.
 It assumes that both files come from the previous GBIF/ALA combine function.
