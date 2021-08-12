@@ -858,8 +858,8 @@ combine_gbif_records = function(taxa_list,
 #' It assumes that both files come from the previous GBIF/ALA combine function.
 #' @param ala_df             Data frame of ALA records
 #' @param site_df            Data frame of site records (only used if you have site data, e.g. I-naturalist)
-#' @param taxa_list          List of taxa analysed, used to cut the dataframe down
-#' @param taxa_level         What taxonomic level to analyse at?
+#' @param taxa_list          List of taxa analyzed, used to cut the dataframe down
+#' @param taxa_level         What taxonomic level to analyze at?
 #' @param thin_records       Do you want to thin the records out? If so, it will be 1 record per 1km*1km grid cell
 #' @param template_raster    A global R Raster used to thin records to 1 record per 1km grid cell
 #' @param world_raster       An global R Raster of the enviro conditions used to extract values for all records

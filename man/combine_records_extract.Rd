@@ -26,9 +26,9 @@ combine_records_extract(
 
 \item{site_df}{Data frame of site records (only used if you have site data, e.g. I-naturalist)}
 
-\item{taxa_list}{List of taxa analysed, used to cut the dataframe down}
+\item{taxa_list}{List of taxa analyzed, used to cut the dataframe down}
 
-\item{taxa_level}{What taxonomic level to analyse at?}
+\item{taxa_level}{What taxonomic level to analyze at?}
 
 \item{template_raster}{A global R Raster used to thin records to 1 record per 1km grid cell}
 
