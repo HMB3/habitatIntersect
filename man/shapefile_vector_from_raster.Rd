@@ -2,10 +2,7 @@
 % Please edit documentation in R/SDM_GEN_MAPPING_FUNCTIONS.R
 \name{shapefile_vector_from_raster}
 \alias{shapefile_vector_from_raster}
-\title{This function takes a raster of a shapefile (for example the urban areas of Australia),
-and creates a shapefile (i.e. a vector).
-It uses the rmaxent package https://github.com/johnbaums/rmaxent
-It assumes that the input df is that returned by the prepare_sdm_table function}
+\title{Create vector from a raster}
 \usage{
 shapefile_vector_from_raster(shp_file, prj, agg_var, temp_ras, targ_ras)
 }

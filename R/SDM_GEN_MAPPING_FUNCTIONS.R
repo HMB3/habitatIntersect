@@ -8,10 +8,10 @@
 
 
 
-#' This function takes the maxent models created by the 'fit_maxent_targ_bg_back_sel' function,
-#' and projects the model across geographic space - currently just for Australia.
-#' 
+
 #' @title Project current maxent files
+#' @description This function takes the maxent models created by the 'fit_maxent_targ_bg_back_sel' function,
+#' and projects the model across geographic space - currently just for Australia.
 #' @param country_shp        SpatialPolygonsDataFrame - Spdf of the country for mapping maxent results (e.g. Australia)
 #' @param country_prj        CRS object  - Local projection for mapping maxent results
 #' @param local_prj          CRS object  - Local projection for mapping maxent results
@@ -297,9 +297,9 @@ project_maxent_current_grids_mess = function(country_shp,
 
 
 
-#' Takes a habitat suitability layer, and creates a binary suitability layer (0, 1) using a threshold value.
-#' 
+
 #' @title Threshold current habitat suitability predictions
+#' @description Takes a habitat suitability layer, and creates a binary suitability layer (0, 1) using a threshold value.
 #' @param taxa_list          Character string - The species to run maxent predictions for
 #' @param maxent_path        Character string - The file path containing the existing maxent models
 #' @param maxent_table       Data frame       - A table of maxent results to be used for mapping 
@@ -411,9 +411,10 @@ habitat_threshold = function(taxa_list,
 
 
 
-#' takes the maxent models created by the 'fit_maxent_targ_bg_back_sel' function,
-#' and projects the model across geographic space 
-#' @title Project Habitat Suitability models into Grids 
+
+#' @title Project Habitat Suitability models into Grids
+#' @description takes the maxent models created by the 'fit_maxent_targ_bg_back_sel' function,
+#' and projects the model across geographic space  
 
 
 #' @param country_shp        SpatialPolygonsDataFrame - Spdf of the country for mapping maxent results (e.g. Australia)
@@ -926,10 +927,9 @@ project_maxent_grids_mess = function(country_shp,   world_shp,
 
 
 
-
-## Plot a rasterVis::levelplot with a colour ramp diverging around zero ----
-## A gist by John Baumgartner for the (https://gist.github.com/johnbaums?direction=desc&sort=updated), adpated here locally
-
+#' @title       Plot a rasterVis::levelplot
+#' @description Plot a rasterVis::levelplot with a colour ramp diverging around zero
+#' Adapted from a gist by John Baumgartner for the (https://gist.github.com/johnbaums?direction=desc&sort=updated).
 
 #' @param p    A trellis object resulting from rasterVis::levelplot
 #' @param ramp Character string - The name of an RColorBrewer palette (as character), a character
@@ -966,13 +966,14 @@ diverge0 <- function(p, ramp) {
 
 
 
-## Create vector of raster -----
+#' @title Create vector from a raster 
 
 
-#' This function takes a raster of a shapefile (for example the urban areas of Australia),
+#' @description This function takes a raster of a shapefile (for example the urban areas of Australia),
 #' and creates a shapefile (i.e. a vector).
 #' It uses the rmaxent package https://github.com/johnbaums/rmaxent
 #' It assumes that the input df is that returned by the prepare_sdm_table function
+#' 
 #' @param shp_file           SpatialPolygonsDataFrame - Spdf of spatial units used to aggregate the SDMs (e.g. urban areas of Australia)
 #' @param prj                CRS object - Local projection for mapping the shapefile (e.g. Australian Albers)
 #' @param sort_var           Character string - The field name in the shapefile to use for sorting (e.g. Urban area names)
@@ -1018,10 +1019,10 @@ shapefile_vector_from_raster = function (shp_file,
 
 
 
-## Function to aggregate sdm predictions ----
+#' @title Function to aggregate sdm predictions
 
 
-#' This  function uses the 10th% Logistic threshold for each species from the maxent
+#' @description This  function uses the 10th% Logistic threshold for each species from the maxent
 #' models to threhsold the rasters of habitat suitability (0-1) For each GCM. For each
 #' species, summ the 6 GCMS to create a binary raster with cell values between 0-6.
 #' These cell values represent the number of GCMs where that cell had a suitability
