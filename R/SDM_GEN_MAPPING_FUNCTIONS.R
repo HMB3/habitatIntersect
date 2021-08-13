@@ -3,13 +3,10 @@
 #########################################################################################################################
 
 
-
 ## Below are the functions used to project SDM models across geographic areas.
 
 
-
-
-#' @title Project current maxent files
+#' @title Project current maxent models
 #' @description This function takes the maxent models created by the 'fit_maxent_targ_bg_back_sel' function,
 #' and projects the model across geographic space - currently just for Australia.
 #' @param country_shp        SpatialPolygonsDataFrame - Spdf of the country for mapping maxent results (e.g. Australia)
@@ -298,12 +295,14 @@ project_maxent_current_grids_mess = function(country_shp,
 
 
 
-#' @title Threshold current habitat suitability predictions
+#' @title Threshold current habitat suitability rasters
 #' @description Takes a habitat suitability layer, and creates a binary suitability layer (0, 1) using a threshold value.
 #' @param taxa_list          Character string - The species to run maxent predictions for
 #' @param maxent_path        Character string - The file path containing the existing maxent models
 #' @param maxent_table       Data frame       - A table of maxent results to be used for mapping 
 #' @param cell_size          Numeric          - Cell size to resample output
+#' @param country_shp        Character string - Shapefile name that has already been read into R (e.g. in the Package)
+#' @param country_prj        Character string - Name of projection
 #' @param write_rasters      Logical          - Save rasters (T/F)?
 #' @export
 habitat_threshold = function(taxa_list,
@@ -369,7 +368,7 @@ habitat_threshold = function(taxa_list,
           
           ## Now write the rasters
           ## If the rasters don't exist, write them for each taxa/threshold
-          if(write_rasters == "TRUE") {
+          if(write_rasters) {
             
             ## Write the current suitability raster, thresholded using the Maximum training
             ## sensitivity plus specificity Logistic threshold
@@ -412,7 +411,7 @@ habitat_threshold = function(taxa_list,
 
 
 
-#' @title Project Habitat Suitability models into Grids
+#' @title Project Current Habitat Suitability models into Grids
 #' @description takes the maxent models created by the 'fit_maxent_targ_bg_back_sel' function,
 #' and projects the model across geographic space  
 
@@ -1264,7 +1263,7 @@ sdm_area_cell_count = function(unit_shp, country_shp,
             
             ## Now write the rasters
             ## If the rasters don't exist, write them for each species/threshold
-            if(write_rasters == "TRUE") {
+            if(write_rasters) {
               
               ## Write the current suitability raster, thresholded using the Maximum training
               ## sensitivity plus specificity Logistic threshold

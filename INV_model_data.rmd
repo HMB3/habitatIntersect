@@ -268,7 +268,7 @@ sdm.results.dir <- MAXENT.RESULTS$results_dir
 
 
 ## Combine maxent results together for the different taxa
-write_csv(MAXENT.RESULTS, './output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_ALA_TAXA.csv')
+# write_csv(MAXENT.RESULTS, './output/veg_climate_topo_maxent/Habitat_suitability/MAXENT_RESULTS_TARG_INSECT_ALA_TAXA.csv')
 
 
 ``` 

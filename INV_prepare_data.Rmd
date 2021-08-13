@@ -344,9 +344,9 @@ world_annual_temp       <- worldclim_climate[[1]]
 # resolution (1km) and projection (WGS84) of the data used to analyse the taxa 
 # distributions. It should have a value of 1 for land, and NA for the ocean. 
 # This takes ages in R.....
-template_raster_1km_WGS84 = raster("./data/world_koppen/template_1km_WGS84.tif")
-Koppen_1975_1km           = raster('data/world_koppen/Koppen_1000m_Mollweide54009.tif')
-template_raster_1km_mol   = raster("./data/world_koppen/template_has_data_1km.tif")
+template_raster_1km_WGS84 <- raster("./data/world_koppen/template_1km_WGS84.tif")
+Koppen_1975_1km           <- raster('data/world_koppen/Koppen_1000m_Mollweide54009.tif')
+template_raster_1km_mol   <- raster("./data/world_koppen/template_has_data_1km.tif")
 
 ```
 
