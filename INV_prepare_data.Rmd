@@ -53,11 +53,14 @@ options(java.parameters = "-Xmx64000m")
 
 ## Function to load or install packages
 ipak <- function(pkg){
+  
   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
   if (length(new.pkg))
     install.packages(new.pkg, dependencies = TRUE, 
                      repos = "https://cran.csiro.au/")
+  
   sapply(pkg, require, character.only = TRUE)
+  
 }
 
 ## These packages are not on cran, but are needed
