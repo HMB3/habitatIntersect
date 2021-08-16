@@ -1,4 +1,4 @@
-nenswniche : rapidly estimate environmental ranges for invertebrates and
+nenswniche : rapidly estimate habitat suitability for invertebrates and
 plants in NE-NSW
 ================
 March 2021
@@ -179,8 +179,8 @@ MAXENT.RESULTS = compile_sdm_results(taxa_list    = analysis_taxa,
   
 
 The sdm projection function below takes the maxent models created by the
-sdm function, and projects the models across geographic space -
-currently just for Australia. It uses the rmaxent package
+sdm function, and projects the models across geographic space - here
+just for North Eastern NSW. It uses the rmaxent package
 <https://github.com/johnbaums/rmaxent>. This step is also best with &gt;
 32GB of RAM.
 
