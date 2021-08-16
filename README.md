@@ -10,7 +10,7 @@ relatively rapidly assess the environmental range of a species within
 Australia, from downloading occurrence records, through to creating maps
 of predicted climatic suitability across Australia at 1km\*1km
 resolution. An example of this work is published in the journal Science
-of the Total Environment ::
+of the Total Environment -
 
   
 
@@ -109,18 +109,19 @@ SDM.PLANT.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_HOS
 
 
 ## Run SDMs for a list of taxa
-run_sdm_analysis(species_list            = rev(analysis_taxa),    ## taxa list
-                 maxent_dir              = 'output/plant_maxent/full_models',     ## full model output folder    
-                 bs_dir                  = 'output/plant_maxent/back_sel_models', ## bs output folder 
-                 sdm_df                  = SDM.ALL.PLA.SPP.BG,                    ## SPDF of occurrence data
-                 sdm_predictors          = names(aus.climate.veg.grids),          ## variables to include into the models 
+run_sdm_analysis(taxa_list               = sort(target.insect.families),
+                 taxa_level              = 'family',
+                 maxent_dir              = 'output/veg_climate_topo_maxent/full_models',     
+                 bs_dir                  = 'output/veg_climate_topo_maxent/back_sel_models',
+                 sdm_df                  = SDM.SPAT.OCC.BG.GDA,
+                 sdm_predictors          = names(aus.climate.veg.grids),
                  
                  backwards_sel           = TRUE,      
-                 template_raster         = template_raster_1km_mol,               ## Template raster
-                 cor_thr                 = 0.8,                                    
+                 template_raster         = template_raster_1km_mol,
+                 cor_thr                 = 0.8,  
                  pct_thr                 = 5, 
                  k_thr                   = 4, 
-                 min_n                   = 20,  
+                 min_n                   = 10,  
                  max_bg_size             = 70000,
                  background_buffer_width = 200000,
                  shapefiles              = TRUE,
@@ -135,13 +136,13 @@ run_sdm_analysis(species_list            = rev(analysis_taxa),    ## taxa list
 
   
 
-![fig1](https://github.com/HMB3/sdmgen/blob/master/output/Amphistomus_buffer_occ.png?raw=true)
-![fig1](https://github.com/HMB3/sdmgen/blob/master/output/Amphistomus_bs_predictor_correlation?raw=true)
+![fig1](https://github.com/HMB3/nenswniche/blob/master/output/Amphistomus_buffer_occ.png?raw=true)
+![fig2](https://github.com/HMB3/nenswniche/blob/master/output/Amphistomus_bs_predictor_correlation.png?raw=true)
 
 <!-- ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE} -->
 <!-- ## Create a table of maxent results -->
-<!-- plot_grid(https://github.com/HMB3/sdmgen/blob/master/output/Amphistomus_buffer_occ.png?raw=true, -->
-<!--           https://github.com/HMB3/sdmgen/blob/master/Amphistomus_bs_predictor_correlation.png?raw=true) -->
+<!-- plot_grid(https://github.com/HMB3/nenswniche/blob/master/output/Amphistomus_buffer_occ.png?raw=true, -->
+<!--           https://github.com/HMB3/nenswniche/blob/master/Amphistomus_bs_predictor_correlation.png?raw=true) -->
 <!-- ```  -->
 
   
@@ -154,7 +155,7 @@ variables in the backwards selection maxent model.
 
   
 
-# Project SDMs across a study area : North-Eastern NSW
+# Project SDMs across North-Eastern NSW
 
   
 
@@ -220,7 +221,7 @@ tryCatch(
 
   
 
-![fig1](https://github.com/HMB3/sdmgen/blob/master/output/Amphistomus_mess_panel.png?raw=true)
+![fig3](https://github.com/HMB3/nenswniche/blob/master/output/Amphistomus_mess_panel.png?raw=true)
 
 **Figure 2.** Example of a continuous habitat suitability map for for
 the invertebrate Genus Amphistomus under current conditions. Species
@@ -252,7 +253,7 @@ habitat_threshold(taxa_list     = sort(unique(MAXENT.RESULTS$searchTaxon)),
 
   
 
-![fig1](https://github.com/HMB3/sdmgen/blob/master/output/Amphistomus_mess_panel.png?raw=true)
+![fig4](https://github.com/HMB3/nenswniche/blob/master/output/Amphistomus_current_suit_not_novel_above_0.1401.png?raw=true)
 
 **Figure 3.** Example of a thresholded continuous habitat suitability
 map for for the invertebrate Genus Amphistomus under current conditions.
