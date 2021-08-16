@@ -57,9 +57,9 @@ ipak(sdmgen_packages)
 This code is being developed at UNSW, to help investigate the impacts of
 the 2019/2020 bush fires on Insects in the Forests of North Eastern New
 South Wales. The aim is to create a pipeline that rapidly assesses the
-habitat suitability of the threatened insect species under current
-environmental conditions. There are three ways to estimate habitat
-suitability :
+habitat suitability of the threatened insect taxa under current
+environmental conditions. There are three key ways to estimate habitat
+suitability for invertebrates:
 
   
 
@@ -67,8 +67,8 @@ suitability :
     invertebrate taxon
 -   Habitat Suitability Models using geographic records of host plants
     for each invertebrate taxon
--   Intersecting geographic records of each invertebrate taxon with
-    vegetation maps (e.g. remote sensed vegetation layers)
+-   Intersecting geographic records with vegetation maps (e.g. remote
+    sensed vegetation layers)
 
   
 
@@ -132,6 +132,25 @@ run_sdm_analysis(species_list            = rev(analysis_taxa),    ## taxa list
                  Koppen_zones            = Koppen_zones,
                  Koppen_raster           = Koppen_1975_1km)
 ```
+
+  
+
+![fig1](https://github.com/HMB3/sdmgen/blob/master/output/Amphistomus_buffer_occ.png?raw=true)
+![fig1](https://github.com/HMB3/sdmgen/blob/master/output/Amphistomus_bs_predictor_correlation?raw=true)
+
+<!-- ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE} -->
+<!-- ## Create a table of maxent results -->
+<!-- plot_grid(https://github.com/HMB3/sdmgen/blob/master/output/Amphistomus_buffer_occ.png?raw=true, -->
+<!--           https://github.com/HMB3/sdmgen/blob/master/Amphistomus_bs_predictor_correlation.png?raw=true) -->
+<!-- ```  -->
+
+  
+
+**Figure 1.** Top : occurrence data used in the habitat suitability
+model for the invertebrate Genus Amphistomus (blue points are occurrence
+data, red zone is the 200km buffer around the points, from where
+background points are selected). Bottom : Correlations between the final
+variables in the backwards selection maxent model.
 
   
 
@@ -201,14 +220,13 @@ tryCatch(
 
   
 
-![fig1](https://github.com/HMB3/sdmgen/blob/master/output/Acacia_dealbata_mess_panel.png?raw=true)
+![fig1](https://github.com/HMB3/sdmgen/blob/master/output/Amphistomus_mess_panel.png?raw=true)
 
-**Figure 1.** Example of a continuous climatic suitability map for one
-plant species under current conditions. Species occurrence points are
-plotted in red on the left panel. The cells in the right panel are coded
-from 0 : no to low suitability, to 1 : highly suitable. The shaded areas
-on the right panel indicate where the maxent model is extrapolating
-beyond the training data (i.e. the result of a MESS map).
+**Figure 2.** Example of a continuous habitat suitability map for for
+the invertebrate Genus Amphistomus under current conditions. Species
+occurrence points are plotted in red on the left panel. The cells in the
+right panel are coded from 0 : no to low suitability, to 1 : highly
+suitable.
 
   
 
@@ -231,3 +249,13 @@ habitat_threshold(taxa_list     = sort(unique(MAXENT.RESULTS$searchTaxon)),
                   country_prj   = CRS("+init=EPSG:3577"),
                   write_rasters = TRUE)
 ```
+
+  
+
+![fig1](https://github.com/HMB3/sdmgen/blob/master/output/Amphistomus_mess_panel.png?raw=true)
+
+**Figure 3.** Example of a thresholded continuous habitat suitability
+map for for the invertebrate Genus Amphistomus under current conditions.
+The Logistic threshold is used here.
+
+  

@@ -151,13 +151,25 @@ run_sdm_analysis(species_list            = rev(analysis_taxa),    ## taxa list
 
 \
 
-![fig1](https://github.com/HMB3/sdmgen/blob/master/output/Acacia_dealbata_mess_panel.png?raw=true)
+![fig1](https://github.com/HMB3/sdmgen/blob/master/output/Amphistomus_buffer_occ.png?raw=true)
+![fig1](https://github.com/HMB3/sdmgen/blob/master/output/Amphistomus_bs_predictor_correlation?raw=true)
 
 
-**Figure 1.** Example of a continuous climatic suitability map for one plant species under 
-current conditions. Species occurrence points are plotted in red on the left panel. The cells in the right 
-panel are coded from 0 : no to low suitability, to 1 : highly suitable. The shaded areas on the right panel
-indicate where the maxent model is extrapolating beyond the training data (i.e. the result of a MESS map).
+<!-- ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE} -->
+
+<!-- ## Create a table of maxent results -->
+<!-- plot_grid(https://github.com/HMB3/sdmgen/blob/master/output/Amphistomus_buffer_occ.png?raw=true, -->
+<!--           https://github.com/HMB3/sdmgen/blob/master/Amphistomus_bs_predictor_correlation.png?raw=true) -->
+
+<!-- ```  -->
+
+
+\
+
+
+**Figure 1.** Top : occurrence data used in the habitat suitability model for the invertebrate Genus Amphistomus (blue
+points are occurrence data, red zone is the 200km buffer around the points, from where background points 
+are selected). Bottom : Correlations between the final variables in the backwards selection maxent model.  
 
 \
 
@@ -229,13 +241,12 @@ tryCatch(
 
 \
 
-![fig1](https://github.com/HMB3/sdmgen/blob/master/output/Acacia_dealbata_mess_panel.png?raw=true)
+![fig1](https://github.com/HMB3/sdmgen/blob/master/output/Amphistomus_mess_panel.png?raw=true)
 
 
-**Figure 1.** Example of a continuous climatic suitability map for one plant species under 
+**Figure 2.** Example of a continuous habitat suitability map for for the invertebrate Genus Amphistomus under
 current conditions. Species occurrence points are plotted in red on the left panel. The cells in the right 
-panel are coded from 0 : no to low suitability, to 1 : highly suitable. The shaded areas on the right panel
-indicate where the maxent model is extrapolating beyond the training data (i.e. the result of a MESS map).
+panel are coded from 0 : no to low suitability, to 1 : highly suitable.
 
 \
 
@@ -259,6 +270,14 @@ habitat_threshold(taxa_list     = sort(unique(MAXENT.RESULTS$searchTaxon)),
 
 ``` 
 
+\
 
+![fig1](https://github.com/HMB3/sdmgen/blob/master/output/Amphistomus_mess_panel.png?raw=true)
+
+
+**Figure 3.** Example of a thresholded continuous habitat suitability map for for the invertebrate Genus Amphistomus under
+current conditions. The Logistic threshold is used here.
+
+\
 
 
