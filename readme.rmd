@@ -79,14 +79,14 @@ This code is being developed at UNSW, to help investigate
 the impacts of the 2019/2020 bush fires on Insects in the Forests 
 of North Eastern New South Wales. The aim is to create a pipeline that 
 rapidly assesses the habitat suitability of the threatened insect 
-species under current environmental conditions. 
-There are three ways to estimate habitat suitability :
+taxa under current environmental conditions. 
+There are three key ways to estimate habitat suitability for invertebrates:
 
 \
 
 - Habitat Suitability Models using geographic records for each invertebrate taxon
 - Habitat Suitability Models using geographic records of host plants for each invertebrate taxon
-- Intersecting geographic records of each invertebrate taxon with vegetation maps (e.g. remote sensed vegetation layers) 
+- Intersecting geographic records with vegetation maps (e.g. remote sensed vegetation layers) 
 
 \
 
@@ -148,6 +148,16 @@ run_sdm_analysis(species_list            = rev(analysis_taxa),    ## taxa list
                  Koppen_raster           = Koppen_1975_1km)
 
 ``` 
+
+\
+
+![fig1](https://github.com/HMB3/sdmgen/blob/master/output/Acacia_dealbata_mess_panel.png?raw=true)
+
+
+**Figure 1.** Example of a continuous climatic suitability map for one plant species under 
+current conditions. Species occurrence points are plotted in red on the left panel. The cells in the right 
+panel are coded from 0 : no to low suitability, to 1 : highly suitable. The shaded areas on the right panel
+indicate where the maxent model is extrapolating beyond the training data (i.e. the result of a MESS map).
 
 \
 
