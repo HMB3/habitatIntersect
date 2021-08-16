@@ -30,7 +30,7 @@ word_document:
 
 \
 
-The text and code below summarises a workflow in R that can be used to relatively rapidly assess the environmental range of a species within Australia, from downloading occurrence records, through to creating maps of predicted climatic suitability across Australia at 1km*1km resolution. An example of this work is published in the journal Science of the Total Environment ::
+The text and code below summarises a workflow in R that can be used to relatively rapidly assess the environmental range of a taxon within Australia, from downloading occurrence records, through to creating maps of predicted climatic suitability across Australia at 1km*1km resolution. An example of this work is published in the journal Science of the Total Environment ::
 
 \
 
@@ -86,7 +86,7 @@ environmental conditions. There are three ways to estimate habitat suitability :
 
 - Habitat Suitability Models using geographic records for each invertebrate taxon
 - Habitat Suitability Models using geographic records of host plants for each invertebrate taxon
-- Intersect geographic records of each invertebrate taxon with vegetation maps (e.g. remote sensed vegetation layers) 
+- Intersecting geographic records of each invertebrate taxon with vegetation maps (e.g. remote sensed vegetation layers) 
 
 \
 
@@ -94,9 +94,7 @@ environmental conditions. There are three ways to estimate habitat suitability :
 
 \
 
-Start the wiki from here, using the pre-prepared data (include data with pacakge)
-
-The next process is to run species distribution models using global records of each species.
+Once the geographic data for all taxa has been processed and cleaned, we can run species distribution models.
 The sdm function runs two maxent models: a full model using all variables, and backwards selection. 
 Given a candidate set of predictor variables, the backwards selection function identifies a subset 
 of variables that meets specified multi-collinearity criteria. Subsequently, backward step-wise variable 
