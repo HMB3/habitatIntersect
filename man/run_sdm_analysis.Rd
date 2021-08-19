@@ -77,6 +77,5 @@ run_sdm_analysis(
 \description{
 This function takes a data frame of all taxa records,
 and runs a specialised maxent analysis for each taxa.
-It uses the rmaxent package https://github.com/johnbaums/rmaxent
-It assumes that the input df is that returned by the prepare_sdm_table function
+It uses the dismo package https://github.com/johnbaums/rmaxent
 }
