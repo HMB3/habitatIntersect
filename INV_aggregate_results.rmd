@@ -53,6 +53,7 @@ To install, run :
 rm(list = ls())
 options(java.parameters = "-Xmx64000m")
 
+
 ## Function to load or install packages
 ipak <- function(pkg){
   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
@@ -116,6 +117,7 @@ yres(FESM_1000m_GDA_study)
 ## The State Vegetation Type Map (SVTM)  of Plant Community Types across NSW, originally @ 5m resolution, re-sampled to 100m
 ## Values categorical :
 SVTM           <- terra::rast('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/SVTM_100m.tif')
+SVTM_ras       <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/SVTM_100m.tif')
 GBAM           <- terra::rast('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/GBAM_100m.tif')
 SVTM_GDA_study <- terra::rast('./data/Remote_sensing/Veg_data/NSW_vegetation_types/SVTM_PCTID_study.tif')
 
@@ -201,7 +203,6 @@ levels(SVTM) <- SVTM_LUT$vegClass
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-
 ## Align the
 SVTM_align <- align_rasters(unaligned     = SVTM,
                             reference     = study_sdm_binary[[1]],
@@ -210,7 +211,6 @@ SVTM_align <- align_rasters(unaligned     = SVTM,
                             nThreads      = 5,
                             projres_only  = FALSE,
                             verbose       = FALSE)
-
 
 ``` 
 
@@ -261,7 +261,7 @@ taxa_records_habitat_intersect(taxa_df       = SDM.SPAT.OCC.BG.GDA,
 - NSW Vegetation (Veg maps)
 
 
-We cqn use the “combine” tool to run queries on the raster.
+We can use the “combine” tool to run queries on the raster.
 
 
 For example, we can combine the Keith Class from the SVTM map, with the expected range of each species (a and b). 
@@ -275,32 +275,7 @@ We can then extract by attributes to create a new raster with the Keith Class yo
 
 ## Combine GCM predictions and calculate gain and loss for 2030 
 ## Then loop over the species folders and climate scenarios
-tryCatch(mapply(sdm_area_cell_count,                      
-                unit_shp      = './data/SUA_albers.rds',  ## This would have to change
-                unit_vec      = areal_unit_vec, 
-                sort_var      = "SUA_NAME16",
-                agg_var       = "SUA_CODE16",
-                world_shp     = './data/LAND_albers.rds', ## This would have to change
-                country_shp   = './data/AUS_albers.rds',  ## This would have to change
-                
-                DIR_list      = sdm.results.dir,  
-                species_list  = map_taxa,
-                number_gcms   = 6,
-                maxent_path   = 'output/maxent/back_sel_models/', 
-                thresholds    = percent.10.log,
-                time_slice    = 30,                     
-                write_rasters = TRUE),
-         
-         ## If the species fails, write a fail message to file.
-         error = function(cond) {
-           
-           ## This will write the error message inside the text file,
-           file.create(file.path("output/maxent/back_sel_models/sua_count_failed_2030.txt"))
-           cat(cond$message, 
-               file=file.path("output/maxent/back_sel_models/sua_count_failed_2030.txt"))
-           warning(cond$message)
-           
-         })
+
 
 ``` 
 
