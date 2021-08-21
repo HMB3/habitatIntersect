@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_PROCESSOR_FUNCTIONS.R
 \name{combine_records_extract}
 \alias{combine_records_extract}
-\title{Extract Raster Values for Occurrence Records}
+\title{Extract environmental records for occurrence data}
 \usage{
 combine_records_extract(
   ala_df,

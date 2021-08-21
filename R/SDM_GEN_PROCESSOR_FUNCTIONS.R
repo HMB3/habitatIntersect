@@ -853,7 +853,7 @@ combine_gbif_records = function(taxa_list,
 
 
 
-#' @title Extract Raster Values for Occurrence Records
+#' @title Extract environmental records for occurrence data
 #' @description This function combines occurrence files from ALA and GBIF into one table, and extracts enviro values.
 #' It assumes that both files come from the previous GBIF/ALA combine function.
 #' @param ala_df             Data frame of ALA records
