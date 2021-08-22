@@ -2065,7 +2065,9 @@ prepare_sdm_table = function(coord_df,
     
   } else {
     message('Dont add site data' )
-    SPAT.TRUE <- SDM.SPAT.ALL
+    SPAT.TRUE <- SpatialPointsDataFrame(coords      = SDM.SPAT.ALL[c("lon", "lat")],
+                                        data        = SDM.SPAT.ALL,
+                                        proj4string = CRS(sp_epsg54009))
   }
 
   ## CREATE BACKGROUND POINTS AND VARIBALE NAMES

@@ -560,6 +560,9 @@ GLOB.NICHE.ALL = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxo
 # saveRDS(GLOB.NICHE.ALL,   './output/veg_climate_topo_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_ALL_TAXA.rds')
 # write_csv(GLOB.NICHE.ALL, './output/veg_climate_topo_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_ALL_TAXA.csv')
 
+# saveRDS(GLOB.NICHE.ALL,   './output/plant_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_PLANT_TAXA.rds')
+# write_csv(GLOB.NICHE.ALL, './output/plant_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_PLANT_TAXA.csv')
+
 
 ``` 
 
@@ -653,6 +656,7 @@ sum(is.na(SDM.SPAT.OCC.BG@data$genus));sum(is.na(SDM.SPAT.OCC.BG@data$family))
 ## Save shape file separately - doesn't seem to work in R
 SDM.SPAT.OCC.BG.GDA <- spTransform(SDM.SPAT.OCC.BG, crs(sp_epsg3577))
 saveRDS(SDM.SPAT.OCC.BG.GDA, './output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
+saveRDS(SDM.SPAT.OCC.BG.GDA, './output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_PLANT_TAXA.rds')
 
 
 writeOGR(obj    = SDM.SPAT.OCC.BG.GDA,
