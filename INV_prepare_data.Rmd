@@ -665,6 +665,102 @@ writeOGR(obj    = SDM.SPAT.OCC.BG.GDA,
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
 
 
+## Save each taxa as an individual shapefile
+SDM.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
+
+
+
+
+
+## Loop through families
+for(taxa in target.insect.families) {
+  
+  if(taxa %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)) {
+    
+    taxa_shp <- paste0('G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data/',
+                       taxa, '_SDM_points.shp')
+    
+    if(!file.exists(taxa_shp)) {
+      
+      message('Subsetting ', taxa, ' shapefile')
+      taxa_occ <- subset(SDM.SPAT.OCC.BG.GDA, searchTaxon == taxa | family == taxa) %>% 
+        spTransform(., crs(sp_epsg3577))
+                    
+                    writeOGR(obj    = taxa_occ,
+                             dsn    = 'G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data',
+                             layer  = paste0(taxa, '_SDM_points'), 
+                             driver = 'ESRI Shapefile', overwrite_layer = FALSE)
+                    
+    } else {
+      message(taxa, ' SDM .shp already exists')}
+    
+  } else {
+    message(taxa, ' has no data')}
+}
+
+
+
+
+
+## Loop through genera
+for(taxa in target.insect.genera) {
+  
+  if(taxa %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)) {
+    
+    taxa_shp <- paste0('G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data/',
+                       taxa, '_SDM_points.shp')
+    
+    if(!file.exists(taxa_shp)) {
+      
+      message('Subsetting ', taxa, ' shapefile')
+      taxa_occ <- subset(SDM.SPAT.OCC.BG.GDA, searchTaxon == taxa | genus == taxa) %>% 
+        spTransform(., crs(sp_epsg3577))
+                    
+                    writeOGR(obj    = taxa_occ,
+                             dsn    = 'G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data',
+                             layer  = paste0(taxa, '_SDM_points'), 
+                             driver = 'ESRI Shapefile', overwrite_layer = FALSE)
+                    
+    } else {
+      message(taxa, ' SDM .shp already exists')}
+    
+  } else {
+    message(taxa, ' has no data')}
+}
+
+
+
+
+
+## Loop through species
+for(taxa in target.insect.spp) {
+  
+  if(taxa %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)) {
+    
+    taxa_shp <- paste0('G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data/',
+                       taxa, '_SDM_points.shp')
+    
+    if(!file.exists(taxa_shp)) {
+      
+      message('Subsetting ', taxa, ' shapefile')
+      taxa_occ <- subset(SDM.SPAT.OCC.BG.GDA, searchTaxon == taxa | species == taxa) %>% 
+        spTransform(., crs(sp_epsg3577))
+                    
+                    writeOGR(obj    = taxa_occ,
+                             dsn    = 'G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data',
+                             layer  = paste0(taxa, '_SDM_points'), 
+                             driver = 'ESRI Shapefile', overwrite_layer = FALSE)
+                    
+    } else {
+      message(taxa, ' SDM .shp already exists')}
+    
+  } else {
+    message(taxa, ' has no data')}
+}
+
+
+
+
 ``` 
 
 \

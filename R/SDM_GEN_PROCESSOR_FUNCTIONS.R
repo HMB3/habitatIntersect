@@ -983,7 +983,7 @@ combine_records_extract = function(ala_df,
   ## What percentage of records are retained?
   message(round(nrow(COMBO.RASTER.CONVERT)/nrow(ALA.COMBO)*100, 2),
           " % records retained after raster extraction")
-
+  
   ## save data
   if(save_data == TRUE) {
     
@@ -2069,7 +2069,7 @@ prepare_sdm_table = function(coord_df,
                                         data        = SDM.SPAT.ALL,
                                         proj4string = CRS(sp_epsg54009))
   }
-
+  
   ## CREATE BACKGROUND POINTS AND VARIBALE NAMES
   ## Use one data frame for all taxa analysis,
   ## to save mucking around with background points
@@ -2100,6 +2100,42 @@ prepare_sdm_table = function(coord_df,
   }
   gc()
 }
+
+
+
+
+
+#' @title Split SDM table
+#' @description  'This function takes a shapefile of all taxa records,
+#' and splits in into shp files for each taxa
+#' @param taxa_list     Character string - List of species    
+#' @param data_path     Character string - The file path used for saving the data frame
+#' @param sdm_  Path of taxa records, with spatial outlier T/F flag for each record
+#' @export
+split_shp <- function(taxa_list,
+                      sdm_df,
+                      data_path) {
+  
+  for(taxa in taxa_list) {
+    
+    taxa_shp <- paste0(data_path, taxa, '_SDM_points.shp')
+    
+    if(!file.exists(taxa_shp)) {
+      
+      message('Subsetting ', taxa, ' shapefile')
+      taxa_occ <- subset(sdm_df, searchTaxon == taxa | family == taxa) %>% 
+        spTransform(., crs(sp_epsg3577))
+      
+      writeOGR(obj    = taxa_occ,
+               dsn    = data_path,
+               layer  = paste0(taxa, '_SDM_points'), 
+               driver = 'ESRI Shapefile', overwrite_layer = FALSE)
+      
+    } else {
+      message(taxa, ' SDM .shp already exists')}
+  }
+}
+
 
 
 

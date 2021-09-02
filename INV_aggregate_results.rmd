@@ -203,8 +203,8 @@ levels(SVTM) <- SVTM_LUT$vegClass
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Align the
-SVTM_align <- align_rasters(unaligned     = SVTM,
+## Align the rasters
+SVTM_align <- align_rasters(unaligned     = SVTM_ras,
                             reference     = study_sdm_binary[[1]],
                             # dstfile       = './output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/SVTM_NENSW.tif',
                             output_Raster = FALSE,
