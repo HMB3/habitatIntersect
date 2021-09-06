@@ -190,7 +190,7 @@ NSW_RS_Veg_Form <- SVTM_LUT %>%
 
 ## Now set the attributes for the SVTM data.
 ## Use the 'VegClass' - 97 categories, rather than 'form, 20 categories
-levels(SVTM) <- SVTM_LUT$vegClass
+# levels(SVTM) <- SVTM_LUT$vegClass
 
 
 ``` 

@@ -659,6 +659,7 @@ saveRDS(SDM.SPAT.OCC.BG.GDA, './output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_IN
 saveRDS(SDM.SPAT.OCC.BG.GDA, './output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_PLANT_TAXA.rds')
 
 
+## Save the big table of all taxa, including background taxa, as a SPDF
 writeOGR(obj    = SDM.SPAT.OCC.BG.GDA,
          dsn    = 'G:/North_east_NSW_fire_recovery/output/results',
          layer  = 'SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA', 
@@ -669,7 +670,13 @@ writeOGR(obj    = SDM.SPAT.OCC.BG.GDA,
 SDM.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
 
 
+## Also save a big table of just the background taxa
+SDM.SPAT.OCC.BG.TARG.GDA <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysis_taxa,]
 
+writeOGR(obj    = SDM.SPAT.OCC.BG.TARG.GDA,
+         dsn    = 'G:/North_east_NSW_fire_recovery/output/results',
+         layer  = 'SDM_SPAT_OCC_BG_GDA_ONLY_TARGET_INVERT_TAXA', 
+         driver = 'ESRI Shapefile', overwrite_layer = TRUE)
 
 
 ## Loop through families
