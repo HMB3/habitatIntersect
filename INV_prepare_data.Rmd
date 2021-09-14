@@ -68,11 +68,11 @@ ipak <- function(pkg){
 # install_github('johnbaums/things')
 # install_github('johnbaums/rmaxent')
 # install_github('traitecoevo/taxonlookup')
+# install.packages("arcgisbinding", repos="https://r.esri.com", type="win.binary")
 
 ## Create documentation and install package
 # roxygen2::roxygenise()
 # devtools::install_github("HMB3/nenswniche")
-
 
 ## Load packages 
 library(nenswniche)
@@ -134,6 +134,7 @@ data('target.insect.genera')
 data('target.insect.families')
 data('target.host.plants')
 data('all.insect.plant.spp')
+
 
 analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
 analysis_test <- c('Lygaeidae',           'Malandiola',       'Miridae',      'Nysius vinitor', 'Onthophagus turrbal', 'Oxycarenidae', 
