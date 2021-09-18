@@ -1601,14 +1601,14 @@ niche_estimate = function (DF,
                            colname) {
   
   ## R doesn't seem to have a built-in mode function
-  ## This doesn't really handel multiple modes...
+  ## This doesn't really handle multiple modes...
   Mode <- function(x) {
     ux <- unique(x)
     ux[which.max(tabulate(match(x, ux)))]
   }
   
-  ## Use ddply inside a function to create niche widths and medians for each taxa
-  ## Also, need to figure out how to make the aggregating column generic (taxa, genus, etc.)
+  ## Use ddply inside a function to create niche widths and medians for each species
+  ## Also, need to figure out how to make the aggregating column generic (species, genus, etc.)
   ## Try to un-wire the grouping column using !!
   summary = ddply(DF,
                   .(searchTaxon),           ## currently grouping column only works hard-wired
@@ -1632,14 +1632,14 @@ niche_estimate = function (DF,
                     q98_q02  = (q98 - q02)
                     
                     ## Then crunch them together
-                    c(min, max, median, mode, mean, range, q05, q95,  q95_q05, q98_q02)
+                    c(min, max, median, mode, mean, range, q02, q05, q95, q98, q95_q05, q98_q02)
                     
                   },
                   colname
   )
   
   ## Concatenate output
-  ## Figure out how to make the aggregating column generic (taxa, genus, etc.)
+  ## Figure out how to make the aggregating column generic (species, genus, etc.)
   ## currently it only works hard-wired
   colnames(summary) = c("searchTaxon",
                         paste0(colname,  "_min"),
@@ -1648,8 +1648,10 @@ niche_estimate = function (DF,
                         paste0(colname,  "_mode"),
                         paste0(colname,  "_mean"),
                         paste0(colname,  "_range"),
+                        paste0(colname,  "_q02"),
                         paste0(colname,  "_q05"),
                         paste0(colname,  "_q95"),
+                        paste0(colname,  "_q98"),
                         paste0(colname,  "_q95_q05"),
                         paste0(colname,  "_q98_q02"))
   

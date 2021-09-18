@@ -352,6 +352,13 @@ template_raster_1km_WGS84 <- raster("./data/world_koppen/template_1km_WGS84.tif"
 Koppen_1975_1km           <- raster('data/world_koppen/Koppen_1000m_Mollweide54009.tif')
 template_raster_1km_mol   <- raster("./data/world_koppen/template_has_data_1km.tif")
 
+
+## Add shapefiles
+NENSW_study_area <- readOGR(dsn              = './data/Spatial_data/NE_NSW_study_area_buffer_GDA.shp',
+                            layer            = "NE_NSW_study_area_buffer_GDA",
+                            stringsAsFactors = FALSE)
+
+
 ```
 
 
@@ -603,7 +610,7 @@ coord_clean_records function.
 
 ## Two projection systems 
 sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
-sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs"
+sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 
 
 ## Final data set is a spatial points data frame in the Mollweide projection
@@ -655,9 +662,11 @@ sum(is.na(SDM.SPAT.OCC.BG@data$genus));sum(is.na(SDM.SPAT.OCC.BG@data$family))
 
 
 ## Save shape file separately - doesn't seem to work in R
-SDM.SPAT.OCC.BG.GDA <- spTransform(SDM.SPAT.OCC.BG, crs(sp_epsg3577))
-saveRDS(SDM.SPAT.OCC.BG.GDA, './output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
-saveRDS(SDM.SPAT.OCC.BG.GDA, './output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_PLANT_TAXA.rds')
+# SDM.SPAT.OCC.BG          <- readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
+# SDM.SPAT.OCC.BG.GDA      <- spTransform(SDM.SPAT.OCC.BG,  CRS(sp_epsg3577))
+# crs(SDM.SPAT.OCC.BG.GDA) <- sp_epsg3577
+# saveRDS(SDM.SPAT.OCC.BG.GDA, './output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
+# saveRDS(SDM.SPAT.OCC.BG.GDA, './output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_PLANT_TAXA.rds')
 
 
 ## Save the big table of all taxa, including background taxa, as a SPDF
@@ -672,12 +681,32 @@ SDM.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_I
 
 
 ## Also save a big table of just the background taxa
-SDM.SPAT.OCC.BG.TARG.GDA <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysis_taxa,]
+SDM.SPAT.OCC.BG.TARG.GDA <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% MAXENT.RESULTS$searchTaxon,]
+SDM.SPAT.OCC.BG.TARG.FAM <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% target.insect.families,]
+SDM.SPAT.OCC.BG.TARG.GEN <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% target.insect.genera,]
+SDM.SPAT.OCC.BG.TARG.SPP <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% target.insect.spp,]
+
 
 writeOGR(obj    = SDM.SPAT.OCC.BG.TARG.GDA,
          dsn    = 'G:/North_east_NSW_fire_recovery/output/results',
-         layer  = 'SDM_SPAT_OCC_BG_GDA_ONLY_TARGET_INVERT_TAXA', 
+         layer  = 'SDM_SPAT_OCC_BG_GDA_ONLY_ANALYSIS_INVERT_TAXA', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
+
+writeOGR(obj    = SDM.SPAT.OCC.BG.TARG.FAM,
+         dsn    = 'G:/North_east_NSW_fire_recovery/output/results',
+         layer  = 'SDM_SPAT_OCC_BG_GDA_ONLY_ANALYSIS_INVERT_FAMILIES', 
+         driver = 'ESRI Shapefile', overwrite_layer = TRUE)
+
+writeOGR(obj    = SDM.SPAT.OCC.BG.TARG.GEN,
+         dsn    = 'G:/North_east_NSW_fire_recovery/output/results',
+         layer  = 'SDM_SPAT_OCC_BG_GDA_ONLY_ANALYSIS_INVERT_GENERA', 
+         driver = 'ESRI Shapefile', overwrite_layer = TRUE)
+
+writeOGR(obj    = SDM.SPAT.OCC.BG.TARG.SPP,
+         dsn    = 'G:/North_east_NSW_fire_recovery/output/results',
+         layer  = 'SDM_SPAT_OCC_BG_GDA_ONLY_ANALYSIS_INVERT_GENERA', 
+         driver = 'ESRI Shapefile', overwrite_layer = TRUE)
+
 
 
 ## Loop through families
@@ -693,12 +722,12 @@ for(taxa in target.insect.families) {
       message('Subsetting ', taxa, ' shapefile')
       taxa_occ <- subset(SDM.SPAT.OCC.BG.GDA, searchTaxon == taxa | family == taxa) %>% 
         spTransform(., crs(sp_epsg3577))
-                    
-                    writeOGR(obj    = taxa_occ,
-                             dsn    = 'G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data',
-                             layer  = paste0(taxa, '_SDM_points'), 
-                             driver = 'ESRI Shapefile', overwrite_layer = FALSE)
-                    
+      
+      writeOGR(obj    = taxa_occ,
+               dsn    = 'G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data',
+               layer  = paste0(taxa, '_SDM_points'), 
+               driver = 'ESRI Shapefile', overwrite_layer = FALSE)
+      
     } else {
       message(taxa, ' SDM .shp already exists')}
     
@@ -723,12 +752,12 @@ for(taxa in target.insect.genera) {
       message('Subsetting ', taxa, ' shapefile')
       taxa_occ <- subset(SDM.SPAT.OCC.BG.GDA, searchTaxon == taxa | genus == taxa) %>% 
         spTransform(., crs(sp_epsg3577))
-                    
-                    writeOGR(obj    = taxa_occ,
-                             dsn    = 'G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data',
-                             layer  = paste0(taxa, '_SDM_points'), 
-                             driver = 'ESRI Shapefile', overwrite_layer = FALSE)
-                    
+      
+      writeOGR(obj    = taxa_occ,
+               dsn    = 'G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data',
+               layer  = paste0(taxa, '_SDM_points'), 
+               driver = 'ESRI Shapefile', overwrite_layer = FALSE)
+      
     } else {
       message(taxa, ' SDM .shp already exists')}
     
@@ -753,12 +782,12 @@ for(taxa in target.insect.spp) {
       message('Subsetting ', taxa, ' shapefile')
       taxa_occ <- subset(SDM.SPAT.OCC.BG.GDA, searchTaxon == taxa | species == taxa) %>% 
         spTransform(., crs(sp_epsg3577))
-                    
-                    writeOGR(obj    = taxa_occ,
-                             dsn    = 'G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data',
-                             layer  = paste0(taxa, '_SDM_points'), 
-                             driver = 'ESRI Shapefile', overwrite_layer = FALSE)
-                    
+      
+      writeOGR(obj    = taxa_occ,
+               dsn    = 'G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data',
+               layer  = paste0(taxa, '_SDM_points'), 
+               driver = 'ESRI Shapefile', overwrite_layer = FALSE)
+      
     } else {
       message(taxa, ' SDM .shp already exists')}
     
