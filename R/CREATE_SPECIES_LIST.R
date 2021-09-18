@@ -1,4 +1,4 @@
-######################################## READ SPECIES DATA FOR SDM MODELLING ############################################
+######################################## READ INVERT SITE DATA ############################################
 
 
 ## For this analysis, we need lots of background records for the species we are analyzing.
@@ -7,6 +7,20 @@
 
 ## Delete small files
 ## find . -name "*.tif" -type 'f' -size -160k -delete
+
+
+## Load excel
+library(readxl)
+library(tidyverse)
+library(R.utils)
+
+## 
+completeFun <- function(data, desiredCols) {
+  
+  completeVec <- complete.cases(data[, desiredCols])
+  return(data[completeVec, ])
+  
+}
 
 
 ## 1). TARGET INSECT SPECIES LISTS =============================================================

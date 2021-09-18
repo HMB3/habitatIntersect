@@ -24,5 +24,5 @@ download_ALA_all_species(
 \description{
 This function downloads species occurrence files from ALA (https://www.ala.org.au/).
 It assumes that the species list supplied is taxonomically correct.
-It downloads the species without returning anything
+It downloads the species without returning anything. Add Galah!
 }

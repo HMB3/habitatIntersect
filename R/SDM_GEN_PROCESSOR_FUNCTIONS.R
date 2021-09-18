@@ -103,7 +103,7 @@ download_GBIF_all_species = function(species_list,
 #' @title Download ALA occurrences
 #' @description This function downloads species occurrence files from ALA (https://www.ala.org.au/).
 #' It assumes that the species list supplied is taxonomically correct.
-#' It downloads the species without returning anything
+#' It downloads the species without returning anything. Add Galah!
 #'
 #' @param species_list   Character vector - List of species binomials to download
 #' @param download_path  Character string - File path for species downloads
