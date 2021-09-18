@@ -896,7 +896,7 @@ combine_records_extract = function(ala_df,
   ## More matching is in : 4_ALA_GBIF_TAXO_COMBINE.R from Green Cities
   ## The matching has to be done at the same taxonomic level
   ALA.COMBO <- ALA.COMBO %>% mutate(Match_SN_ST = str_detect(!!sym(taxa_level), searchTaxon)) %>% 
-    filter(Match_SN_ST == 'TRUE')
+    filter(Match_SN_ST == 'TRUE') %>% as.data.frame()
   
   ## If site = TRUE
   if(site_df != 'NONE') {
