@@ -77,7 +77,7 @@ QLD.insect.sites.ALA <-  QLD.insects %>%
   
   ## Now clean up the data so it can be combined with the ALA
   mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>%
-  rename(genus           = Genus,
+  dplyr::rename(genus           = Genus,
          locality        = Locality,
          country         = Country,
          family          = Family,
@@ -121,7 +121,7 @@ NSW.insect.sites.ALA <-  NSW.insects %>%
   
   ## Now clean up the data so it can be combined with the ALA
   mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>%
-  rename(genus           = Genus,
+  dplyr::rename(genus           = Genus,
          locality        = Locality,
          country         = Country,
          family          = Family,
@@ -164,7 +164,7 @@ VIC.insect.sites.ALA <-  VIC.insects %>%
   
   ## Now clean up the data so it can be combined with the ALA
   mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>%
-  rename(genus           = Genus,
+  dplyr::rename(genus           = Genus,
          locality        = Locality,
          country         = Country,
          family          = Family,
@@ -206,7 +206,7 @@ TAS.insect.sites.ALA <-  TAS.insects %>%
   
   ## Now clean up the data so it can be combined with the ALA
   mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>%
-  rename(genus           = Genus,
+  dplyr::rename(genus           = Genus,
          locality        = Locality,
          country         = Country,
          family          = Family,
@@ -249,7 +249,7 @@ SA.insect.sites.ALA <-  SA.insects %>%
   
   ## Now clean up the data so it can be combined with the ALA
   mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>%
-  rename(genus           = Genus,
+  dplyr::rename(genus           = Genus,
          locality        = Locality,
          country         = Country,
          family          = Family,
@@ -292,7 +292,7 @@ WA.insect.sites.ALA <-  WA.insects %>%
   
   ## Now clean up the data so it can be combined with the ALA
   mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>%
-  rename(genus           = Genus,
+  dplyr::rename(genus           = Genus,
          locality        = Locality,
          country         = Country,
          family          = Family,
@@ -334,7 +334,7 @@ NT.insect.sites.ALA <-  NT.insects %>%
   
   ## Now clean up the data so it can be combined with the ALA
   mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>%
-  rename(genus           = Genus,
+  dplyr::rename(genus           = Genus,
          locality        = Locality,
          country         = Country,
          family          = Family,
@@ -378,7 +378,7 @@ ACT.insect.sites.ALA <-  ACT.insects %>%
   
   ## Now clean up the data so it can be combined with the ALA
   mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>%
-  rename(genus           = Genus,
+  dplyr::rename(genus           = Genus,
          locality        = Locality,
          country         = Country,
          family          = Family,
@@ -469,9 +469,9 @@ all.insect.plant.genera <- c(QLD.insect.plants, NSW.insect.plants, VIC.insect.pl
 
 
 ## Save taxa out for manual cleaning
-# insect_species_data <- as_tibble(all.insect.spp)     %>% rename(searchTaxon = value)
-# insect_genus_data <- as_tibble(all.insect.genera)    %>% rename(searchTaxon = value)
-# plant_species_data  <- as_tibble(all.insect.plant.spp) %>% rename(searchTaxon = value)
+# insect_species_data <- as_tibble(all.insect.spp)     %>% dplyr::rename(searchTaxon = value)
+# insect_genus_data <- as_tibble(all.insect.genera)    %>% dplyr::rename(searchTaxon = value)
+# plant_species_data  <- as_tibble(all.insect.plant.spp) %>% dplyr::rename(searchTaxon = value)
 # write_csv(insect_species_data, './data/Taxonomy/insect_species_data.csv')
 # write_csv(plant_species_data,  './data/Taxonomy/insect_plant_data.csv')
 
@@ -500,12 +500,12 @@ all_insect_site_df_species <- bind_rows(QLD.insect.sites.ALA,
 ## Genera
 all_insect_site_df_genera <- all_insect_site_df_species  %>%
   dplyr::select(-searchTaxon) %>% 
-  rename(searchTaxon = genus) %>% dplyr::select(searchTaxon, everything())
+  dplyr::rename(searchTaxon = genus) %>% dplyr::select(searchTaxon, everything())
 
 ## Families
 all_insect_site_df_families <- all_insect_site_df_species %>%
   dplyr::select(-searchTaxon)  %>% 
-  rename(searchTaxon = family) %>% dplyr::select(searchTaxon, everything())
+  dplyr::rename(searchTaxon = family) %>% dplyr::select(searchTaxon, everything())
 
 
 ## Target families

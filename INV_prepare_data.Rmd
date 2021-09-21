@@ -81,8 +81,10 @@ ipak(sdmgen_packages)
 
 
 ## Set temporary raster dir for the terra package
+rasterOptions(tmpdir = 'G:/North_east_NSW_fire_recovery/TEMP')
 terraOptions(memfrac = 0.5, 
              tempdir = 'G:/North_east_NSW_fire_recovery/TEMP')
+
 
 
 ```
@@ -704,7 +706,7 @@ writeOGR(obj    = SDM.SPAT.OCC.BG.TARG.GEN,
 
 writeOGR(obj    = SDM.SPAT.OCC.BG.TARG.SPP,
          dsn    = 'G:/North_east_NSW_fire_recovery/output/results',
-         layer  = 'SDM_SPAT_OCC_BG_GDA_ONLY_ANALYSIS_INVERT_GENERA', 
+         layer  = 'SDM_SPAT_OCC_BG_GDA_ONLY_ANALYSIS_INVERT_SPECIES', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
 
 
