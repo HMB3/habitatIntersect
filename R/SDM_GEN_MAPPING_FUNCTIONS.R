@@ -440,19 +440,19 @@ taxa_records_habitat_intersect = function(analysis_df,
       
       if(!file.exists(raster_int)) {
         
-        ## 1). For each taxa, get the same records that were used in the SDM analysis 
+        ## For each taxa, get the same records that were used in the SDM analysis 
         taxa_df   <- subset(analysis_df, searchTaxon == taxa | !!sym(taxa_level) == taxa)
         
-        ## 2). Buffer the points by 50km
+        ## Buffer the points by 50km
         taxa_buffer <- gBuffer(taxa_df, width = buffer)
         
-        ## 3). Clip the habitat polygon by the 50km buffer
+        ## Clip the habitat polygon by the 50km buffer
         message('Clip habitat layer to the taxa df for ', taxa)
         habitat_subset <- habitat_poly[taxa_buffer, ]
         
         if(nrow(habitat_subset@data) >0 ) {
           
-          ## 4). Intersect clipped habitat with buffer
+          ## Intersect clipped habitat with buffer
           message('Intersect taxa df with SVTM for ', taxa)
           taxa_intersects           <- gIntersects(habitat_subset, taxa_buffer, byid = TRUE) 
           taxa_SVTM_intersects      <- habitat_subset[as.vector(taxa_intersects), ]

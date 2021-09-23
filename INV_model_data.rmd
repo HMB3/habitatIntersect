@@ -113,7 +113,7 @@ SDM.PLANT.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_HOS
 
 ## To Do :
 ## 1). Ryan has checked the taxonomy
-## 2). CHeck the errors that Finlay may have found
+## 2). Check the errors that Finlay may have found
 
 
 ## Run family-level models for invertebrates
@@ -242,7 +242,8 @@ across Australia ().
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 
-## This table needs added to it :
+## To do :
+## Add to this table needs added to it :
 ## Host taxa
 ## Veg Community
 
