@@ -170,26 +170,15 @@ full_dir      <- './output/climate_maxent/full_models'
 comb_back_dir <- './output/full_maxent/back_sel_models'
 comb_full_dir <- './output/full_maxent/full_models'
 
+
 veg_back_dir  <- './output/veg_maxent/back_sel_models'
 veg_full_dir  <- './output/veg_maxent/full_models'
+host_back_dir <- 'output/plant_maxent/back_sel_models/'
 
 results_dir   <- './output/results'
 climate_dir   <- './data/worldclim/world/2070'
 check_dir     <- './data/GBIF/Check_plots/'
 temp_dir      <- 'G:/Raster_temp'
-
-
-dir_lists     <- c(ALA_dir,  GBIF_dir,    back_dir,    check_dir, veg_back_dir, veg_full_dir,
-                   full_dir, results_dir, climate_dir, temp_dir)
-
-
-## Create the folders if they don't exist
-for(i in dir_lists) {
-  if(!dir.exists(i)) {
-    message('Creating ', i, ' directory')
-    dir.create(i) } else {
-      message(i, ' directory already exists')}
-}
 
 ```
 

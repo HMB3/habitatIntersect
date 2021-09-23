@@ -371,3 +371,25 @@ habitat_threshold(taxa_list     = sort(unique(MAXENT.RESULTS$searchTaxon)),
 
 
 \
+
+
+# Add Host Plants to the Maxent LUT 
+
+\
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+## Read in the host plant species
+host_plants <- read_excel('./output/veg_climate_topo_maxent/Habitat_suitability/NENSW_INVERTEBRATES_SPATIAL_DATA_LUT_SEP2021.xlsm',
+                          sheet = 'NENSW_INV_TAXA_ASSOCIATIONS') %>% filter(Target_taxon == "Yes") %>% 
+  select(searchTaxon, Host_Plant_taxon) 
+
+
+MAXENT.RESULTS.HOSTS <- MAXENT.RESULTS %>% left_join(., host_plants, by = "searchTaxon") %>% 
+  mutate(host_dir = gsub(' ', '_', Host_Plant_taxon)) %>% 
+  mutate(host_dir = ifelse(!is.na(Host_Plant_taxon),  paste0(host_back_dir, host_dir, '/full/'), NA))
+
+
+``` 
+
+
