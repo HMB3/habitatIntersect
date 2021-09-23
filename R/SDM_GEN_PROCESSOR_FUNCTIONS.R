@@ -1119,9 +1119,12 @@ coord_clean_records = function(records,
 #' @param site_df            Data.frame of site records (only used if you have site data, e.g. I-naturalist)
 #' @param land_shp           R object. Shapefile of the worlds land (e.g. https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-land/)
 #' @param clean_path         Character string -  The file path used for saving the checks
+#' @param record_limit       Numeric - limit for records
+#' @param multi_source       Numeric - use multiple sources?
 #' @param spatial_mult       Numeric. The multiplier of the interquartile range (method == 'quantile', see ?cc_outl)
 #' @export
-check_spatial_outliers = function(all_df,
+check_spatial_outliers = function(occ_df,
+                                  multi_source,
                                   site_records,
                                   land_shp,
                                   clean_path,
@@ -1133,11 +1136,11 @@ check_spatial_outliers = function(all_df,
   ## Try plotting the points which are outliers for a subset of spp and label them
   if(plot_points == TRUE) {
     
-    ALL.PLOT = SpatialPointsDataFrame(coords      = all_df[c("lon", "lat")],
-                                      data        = all_df,
+    ALL.PLOT = SpatialPointsDataFrame(coords      = occ_df[c("lon", "lat")],
+                                      data        = occ_df,
                                       proj4string = prj)
     
-    CLEAN.TRUE = subset(all_df, coord_summary == TRUE)
+    CLEAN.TRUE = subset(occ_df, coord_summary == TRUE)
     CLEAN.PLOT = SpatialPointsDataFrame(coords      = CLEAN.TRUE[c("lon", "lat")],
                                         data        = CLEAN.TRUE,
                                         proj4string = prj)
@@ -1167,18 +1170,6 @@ check_spatial_outliers = function(all_df,
           16, 10, units = 'in', res = 500)
       
       par(mfrow = c(1,1))
-      # plot(LAND.84, main = paste0(nrow(subset(CLEAN.PLOT.PI, coord_summary == FALSE)),
-      #                             " Global clean_coord 'FALSE' points for ", spp),
-      #      lwd = 0.01, asp = 1, col = 'grey', bg = 'sky blue')
-      # 
-      # points(CLEAN.PLOT.PI,
-      #        pch = ".", cex = 3.3, cex.lab = 3, cex.main = 4, cex.axis = 2,
-      #        xlab = "", ylab = "", asp = 1,
-      #        col = factor(ALL.PLOT$coord_summary))
-      
-      ## Plot true and false points for the world
-      ## Black == FALSE
-      ## Red   == TRUE
       plot(AUS.84, main = paste0(nrow(subset(CLEAN.PLOT.PI, coord_summary == FALSE)),
                                  " Global clean_coord 'FALSE' points for ", spp),
            lwd = 0.01, asp = 1, bg = 'sky blue', col = 'grey')
@@ -1196,13 +1187,20 @@ check_spatial_outliers = function(all_df,
     message('Do not create maps of each taxa coord clean records')   ##
   }
   
-  ## Split the table into ALA and site data 
-  ala_df  <- all_df %>% filter(SOURCE == 'ALA')
-  site_df <- all_df %>% filter(SOURCE == 'SITE') %>% mutate(SPAT_OUT = TRUE)
+  ## Split the table into ALA and site data
+  if(multi_source){
+    
+  occ_df  <- occ_df %>% filter(SOURCE == 'ALA')
+  site_df <- occ_df %>% filter(SOURCE == 'SITE') %>% mutate(SPAT_OUT = TRUE)
+  
+  } else {
+    message('Do not subset data by source')
+  }
+  
   
   ## Create a tibble to supply to coordinate cleaner
-  test.geo = SpatialPointsDataFrame(coords      = ala_df[c("lon", "lat")],
-                                    data        = ala_df,
+  test.geo = SpatialPointsDataFrame(coords      = occ_df[c("lon", "lat")],
+                                    data        = occ_df,
                                     proj4string = prj)
   
   SDM.COORDS  <- test.geo %>%

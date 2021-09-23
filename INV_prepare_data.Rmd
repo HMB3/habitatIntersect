@@ -86,7 +86,6 @@ terraOptions(memfrac = 0.5,
              tempdir = 'G:/North_east_NSW_fire_recovery/TEMP')
 
 
-
 ```
 
 \
@@ -530,12 +529,13 @@ input dfs are those returned by the coord_clean_records function.
 
 ## Flag spatial outliers
 ## This one doesn't quite work - it doesn't loop over the figures :
-SPATIAL.CLEAN = check_spatial_outliers(all_df       = COORD.CLEAN,
+SPATIAL.CLEAN = check_spatial_outliers(occ_df       = COORD.CLEAN,
                                        land_shp     = LAND,
                                        site_records = TRUE, 
                                        clean_path   = './data/ALA/Check_Plots/',
                                        plot_points  = FALSE,
                                        record_limit = 400000,
+                                       multi_source = TRUE,
                                        spatial_mult = 10,
                                        prj          = CRS("+init=epsg:4326"))
 

@@ -5,7 +5,8 @@
 \title{Check Spatial Outliers}
 \usage{
 check_spatial_outliers(
-  all_df,
+  occ_df,
+  multi_source,
   site_records,
   land_shp,
   clean_path,
@@ -16,13 +17,17 @@ check_spatial_outliers(
 )
 }
 \arguments{
-\item{all_df}{Data.frame. DF of all taxa records returned by the coord_clean_records function}
+\item{multi_source}{Numeric - use multiple sources?}
 
 \item{land_shp}{R object. Shapefile of the worlds land (e.g. https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-land/)}
 
 \item{clean_path}{Character string -  The file path used for saving the checks}
 
+\item{record_limit}{Numeric - limit for records}
+
 \item{spatial_mult}{Numeric. The multiplier of the interquartile range (method == 'quantile', see ?cc_outl)}
+
+\item{all_df}{Data.frame. DF of all taxa records returned by the coord_clean_records function}
 
 \item{site_df}{Data.frame of site records (only used if you have site data, e.g. I-naturalist)}
 }

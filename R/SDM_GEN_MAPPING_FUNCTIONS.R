@@ -409,6 +409,115 @@ habitat_threshold = function(taxa_list,
 
 
 
+#' @title Taxa records intersect 
+#' @description Take a table of taxa records, and intersect the records for each taxa with a shapefile  
+#' of habitat (e.g. Vegetation).
+
+#' @param analysis_df     SpatialPolygonsDataFrame - Spdf of all the taxa analysed
+#' @param taxa_list       Character string - The species to run maxent predictions for
+#' @param taxa_level      Character string - the taxnomic level to run maxent models for
+#' @param habitat_raster  Character string - The habitat raster which has already been read in
+#' @param country_shp     Character string - Shapefile name that has already been read into R (e.g. in the Package)
+#' @param buffer          Numeric          - Distance by which to buffer the points (metres using a projected system)
+#' @param write_rasters   Logical          - Save rasters (T/F)?
+#' @export
+taxa_records_habitat_intersect = function(analysis_df,
+                                          taxa_list,
+                                          taxa_level,
+                                          habitat_poly,
+                                          output_path,
+                                          buffer) {
+  
+  ## Loop over each directory
+  ## taxa = taxa_list[17]
+  lapply(taxa_list, function(taxa) {
+    
+    ## Check if the taxa exists
+    if(taxa %in%  unique(analysis_df$searchTaxon)) {
+      
+      taxa_name  <- gsub(' ', '_', taxa)
+      raster_int <- paste0(output_path, taxa_name, "_SVTM_intersection.tif")
+      
+      if(!file.exists(raster_int)) {
+        
+        ## 1). For each taxa, get the same records that were used in the SDM analysis 
+        taxa_df   <- subset(analysis_df, searchTaxon == taxa | !!sym(taxa_level) == taxa)
+        
+        ## 2). Buffer the points by 50km
+        taxa_buffer <- gBuffer(taxa_df, width = buffer)
+        
+        ## 3). Clip the habitat polygon by the 50km buffer
+        message('Clip habitat layer to the taxa df for ', taxa)
+        habitat_subset <- habitat_poly[taxa_buffer, ]
+        
+        if(nrow(habitat_subset@data) >0 ) {
+          
+          ## 4). Intersect clipped habitat with buffer
+          message('Intersect taxa df with SVTM for ', taxa)
+          taxa_intersects           <- gIntersects(habitat_subset, taxa_buffer, byid = TRUE) 
+          taxa_SVTM_intersects      <- habitat_subset[as.vector(taxa_intersects), ]
+          taxa_SVTM_intersects_clip <- raster::crop(taxa_SVTM_intersects, taxa_buffer)
+          
+          ## Save intersection as a raster
+          ## Set the ncol/nrow to match 100m resolutions
+          message('convert shapefile to raster for ', taxa)
+          extent   <- extent(taxa_SVTM_intersects_clip)
+          x_length <- (extent[2] - extent[1])/100
+          x_length <- round(x_length)
+          y_length <- (extent[4] - extent[3])/100
+          y_length <- round(y_length)
+          
+          ## Set the values to 1 : any veg within xkm is considered decent habitat
+          r          <- raster(ncol = x_length, nrow = y_length)
+          extent(r)  <- extent
+          taxa_SVTM_intersects_raster <- terra::rasterize(taxa_SVTM_intersects_clip, r)
+          taxa_SVTM_intersects_raster[taxa_SVTM_intersects_raster > 0] <- 1
+          taxa_SVTM_intersects_raster[taxa_SVTM_intersects_raster < 0] <- 1
+          
+          ## Raster intersect :: doesn't work because the LUT is not working
+          ## Get the cells from the raster at those points
+          # habitat_id      = cellFromXY(habitat_raster, taxa_df[c("lon", "lat")])  ## Index
+          # taxa_rs_habitat = habitat_raster[habitat_id, drop = FALSE]              ## Values
+          writeOGR(obj    = taxa_SVTM_intersects_clip,
+                   dsn    = 'G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SVTM_intersect',
+                   layer  = paste0(taxa_name, '_SVTM_intersect'), 
+                   driver = 'ESRI Shapefile', 
+                   overwrite_layer = TRUE)
+          
+          ## Save the taxa * habitat intersection as a raster
+          message('writing threshold png for ', taxa)
+          png(paste0(output_path, taxa_name, "_SVTM_intersection.png"),
+              16, 10, units = 'in', res = 500)
+          
+          ##
+          plot(taxa_SVTM_intersects_raster, main = paste0(taxa, ' SVTM Intersection'))
+          plot(taxa_df, add = TRUE, col = "red", lwd = 3)
+          dev.off()
+          
+          ## Save in two places, in the taxa folder, 
+          ## and in the habitat suitability folder
+          writeRaster(taxa_SVTM_intersects_raster, 
+                      paste0(output_path, taxa_name, '_SVTM_intersection_', buffer, 'm.tif'),
+                      overwrite = TRUE)
+          
+        } else {
+          message('Habitat does not intersect with ', taxa, ' skip')
+        }
+        
+      } else {
+        message('Habitat intersect already done for ', taxa, ' skip')
+      }
+      
+    } else {
+      message('Skip habitat intersect for ', taxa, ' no data')
+    }
+    
+  })
+  
+}
+
+
+
 
 
 #' @title Project Current Habitat Suitability models into Grids
