@@ -120,6 +120,11 @@ Let's use all the insect families that we think might be threatened by the 2019/
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=TRUE}
 
 
+## To Do :
+## 1). Ryan has checked the taxonomy
+## 2). CHeck the errors that Finlay may have found
+
+
 ## Get the invertebrate site data
 source('./R/CREATE_SPECIES_LIST.R')
 

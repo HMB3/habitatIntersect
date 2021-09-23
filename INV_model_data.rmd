@@ -113,8 +113,7 @@ SDM.PLANT.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_HOS
 
 ## To Do :
 ## 1). Ryan has checked the taxonomy
-## 2). Many of the Family-level taxa do not include all species within that family, combine data sets
-## 3). 
+## 2). CHeck the errors that Finlay may have found
 
 
 ## Run family-level models for invertebrates
