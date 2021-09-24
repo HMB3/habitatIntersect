@@ -300,7 +300,7 @@ project_maxent_current_grids_mess = function(country_shp,
 #' @param taxa_list          Character string - The species to run maxent predictions for
 #' @param maxent_path        Character string - The file path containing the existing maxent models
 #' @param maxent_table       Data frame       - A table of maxent results to be used for mapping 
-#' @param cell_size          Numeric          - Cell size to resample output
+#' @param cell_factor        Numeric          - Cell size to resample output
 #' @param country_shp        Character string - Shapefile name that has already been read into R (e.g. in the Package)
 #' @param country_prj        Character string - Name of projection
 #' @param write_rasters      Logical          - Save rasters (T/F)?
