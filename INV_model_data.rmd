@@ -236,9 +236,6 @@ across Australia ().
 
 \
 
-## Why did I want to get the dismo object first, before re-running the model?
-## Would running the models again make any difference?
-
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Create a table of maxent results
