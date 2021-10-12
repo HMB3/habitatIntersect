@@ -85,7 +85,6 @@ rasterOptions(tmpdir = 'G:/North_east_NSW_fire_recovery/TEMP')
 terraOptions(memfrac = 0.5, 
              tempdir = 'G:/North_east_NSW_fire_recovery/TEMP')
 
-
 ```
 
 \

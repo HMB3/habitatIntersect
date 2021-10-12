@@ -304,7 +304,6 @@ tryCatch(
   })
 
 
-
 ## Project SDMs across the Study area for the plant taxa
 tryCatch(
   project_maxent_current_grids_mess(country_shp     = AUS, 
