@@ -103,12 +103,6 @@ sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +un
 sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 
 
-## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
-## VALUES : 1-4, burn intensity from 2019-2020 fires, originally @ 10m resolution, re-sampled to 100m
-FESM_2_100m <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/FESM_2_100m_align.tif')
-FESM_100m   <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/FESM_100m_align.tif')
-
-
 ## SVTM Rasters : https://www.environment.nsw.gov.au/vegetation/state-vegetation-type-map.htm
 ## The State Vegetation Type Map (SVTM)  of Plant Community Types across NSW, originally @ 5m resolution, re-sampled to 100m
 ## Values categorical :
@@ -128,6 +122,15 @@ study_sdm_binary <- stack(
 # SVTM_Veg_Class     <- readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/SVTM_Veg_Class.rds')
 # SVTM_Veg_Class_GDA <- spTransform(SVTM_Veg_Class,  CRS(sp_epsg3577))
 # saveRDS(SVTM_Veg_Class_GDA, './output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/SVTM_Veg_Class_GDA.rds')
+
+
+## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
+## VALUES : 1-4, burn intensity from 2019-2020 fires, originally @ 10m resolution, re-sampled to 100m
+FESM_2_100m     <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/FESM_2_100m_align.tif')
+FESM_100m       <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/FESM_100m_align.tif')
+# FESM_100m_align <- raster::resample(FESM_100m, study_sdm_binary[[1]], "bilinear", exent = extent(study_sdm_binary[[1]]))
+# saveRDS(FESM_100m_align, './output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/FESM_100m_align.rds')
+FESM_100m_align <- readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/FESM_100m_align.rds')
 
 
 ## Read in the SDM data, to intersect with the Veg layers
