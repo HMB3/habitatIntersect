@@ -188,34 +188,34 @@ taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
 
 \
 
-# 3). Select pixels from the Veg Raster by expert opinion   
+<!-- # 3). Select pixels from the Veg Raster by expert opinion    -->
 
-\
+<!-- \ -->
 
-Adam Roff : We can use the “combine” tool to run queries on the raster.
-
-
-For example, we can combine the Keith Class from the SVTM map, with the expected range of each species (a and b). 
-You will be able to search the geotiff attribute table using Keith Class = x,d,f etc. where species range = b. 
-We can then extract by attributes to create a new raster with the Keith Class you want, only inside the species range.
+<!-- Adam Roff : We can use the “combine” tool to run queries on the raster. -->
 
 
-\
+<!-- For example, we can combine the Keith Class from the SVTM map, with the expected range of each species (a and b).  -->
+<!-- You will be able to search the geotiff attribute table using Keith Class = x,d,f etc. where species range = b.  -->
+<!-- We can then extract by attributes to create a new raster with the Keith Class you want, only inside the species range. -->
 
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Threshold the Plant SDM models to be either 0 or 1
-taxa_records_habitat_intersect(taxa_df       = SDM.SPAT.OCC.BG.GDA,
-                               taxa_list     = analysis_taxa,
-                               maxent_table  = MAXENT.RESULTS,
-                               output_path   = './output/veg_climate_topo_maxent/Habitat_suitability/SVTM_selection/',
-                               country_shp   = 'AUS',
-                               country_prj   = CRS("+init=EPSG:3577"),
-                               write_rasters = TRUE)
+<!-- \ -->
 
-``` 
+<!-- ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE} -->
 
-\
+<!-- ## Threshold the Plant SDM models to be either 0 or 1 -->
+<!-- taxa_records_habitat_intersect(taxa_df       = SDM.SPAT.OCC.BG.GDA, -->
+<!--                                taxa_list     = analysis_taxa, -->
+<!--                                maxent_table  = MAXENT.RESULTS, -->
+<!--                                output_path   = './output/veg_climate_topo_maxent/Habitat_suitability/SVTM_selection/', -->
+<!--                                country_shp   = 'AUS', -->
+<!--                                country_prj   = CRS("+init=EPSG:3577"), -->
+<!--                                write_rasters = TRUE) -->
+
+<!-- ```  -->
+
+<!-- \ -->
 
 
 # 4). Calculate Estimated fire habitat after the 2019-2020 Fires
@@ -250,8 +250,6 @@ calculate_taxa_habitat(taxa_list          = sort(unique(MAXENT.RESULTS.HOSTS$sea
                        country_shp        = 'AUS',
                        country_prj        = CRS("+init=EPSG:3577"),
                        write_rasters      = TRUE)
-
-
 
 ``` 
 

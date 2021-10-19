@@ -54,7 +54,7 @@ options(java.parameters = "-Xmx64000m")
 ipak <- function(pkg){
   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
   if (length(new.pkg))
-    install.packages(new.pkg, dependencies = TRUE, repos="https://cran.csiro.au/")
+    install.packages(new.pkg, dependencies = TRUE, repos = "https://cran.csiro.au/")
   sapply(pkg, require, character.only = TRUE)
 }
 
@@ -422,7 +422,6 @@ host_plants <- read_excel('./output/veg_climate_topo_maxent/Habitat_suitability/
 MAXENT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>% left_join(., host_plants, by = "searchTaxon") %>% 
   mutate(host_dir = gsub(' ', '_', Host_Plant_taxon)) %>% 
   mutate(host_dir = ifelse(!is.na(Host_Plant_taxon),  paste0(host_back_dir, host_dir, '/full/'), NA))
-
 
 ``` 
 
