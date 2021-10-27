@@ -286,8 +286,8 @@ study.veg.grids <- stack(
   list.files('./data/Remote_sensing/Veg_data/height_and_cover/Study', 
              '_1km_study.tif', full.names = TRUE))
 
-aus.vbf   <- raster('./data/Remote_sensing/Topography/mrvbf_int_1km.tif')
-study.vbf <- raster('./data/Remote_sensing/Topography/mrvbf_int_study_1km.tif')
+aus.vbf   <- raster('./data/Topography/mrvbf_int_1km.tif')
+study.vbf <- raster('./data/Topography/mrvbf_int_study_1km.tif')
 
 
 ## Rename the raster grids
