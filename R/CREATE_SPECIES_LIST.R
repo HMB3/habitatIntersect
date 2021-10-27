@@ -9,6 +9,10 @@
 ## find . -name "*.tif" -type 'f' -size -160k -delete
 
 
+## Copy file structure
+# xcopy "G:\North_east_NSW_fire_recovery" "G:\GITHUB" /T /E
+
+
 ## Load excel
 library(readxl)
 library(tidyverse)
