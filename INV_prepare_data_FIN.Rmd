@@ -362,7 +362,7 @@ NENSW_study_area <- readOGR(dsn              = './data/Spatial_data/NE_NSW_study
 \
 
 
-Next we filter the records to those taken after 1950, and those inside the raster boundaries 
+Next, we filter the records to those taken after 1950, and those inside the raster boundaries 
 (i.e. taxa records in the ocean according to the raster boundaries will be excluded).
 
 \
@@ -385,7 +385,7 @@ ALA.LAND.FAM <- combine_ala_records(taxa_list         =  target.insect.families[
 
 
 ## Combine Genus ALA data
-ALA.LAND.GEN <- combine_ala_records(taxa_list         = target.insect.genera{1:2],
+ALA.LAND.GEN <- combine_ala_records(taxa_list         = target.insect.genera[1:2],
                                     records_path      = "./data/ALA/Insects/Genus/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
@@ -468,7 +468,7 @@ COMBO.RASTER.SPP = combine_records_extract(ala_df           = ALA.LAND.SPP,
                                            data_path        = "./output/results/")
 
 
-## Try combing the records into a "super table"
+## Try combing the records into a "super table" with all taxonomic levels
 COMBO.RASTER.FAM.GEN.SPP <- bind_rows(COMBO.RASTER.FAM, COMBO.RASTER.GEN, COMBO.RASTER.SPP)
 
 
