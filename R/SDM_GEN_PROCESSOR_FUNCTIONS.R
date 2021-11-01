@@ -564,7 +564,6 @@ combine_ala_records = function(taxa_list,
         message ('Formatting numeric occurrence data for ', x)
         # d[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(d["coordinateUncertaintyInMetres"]))
         d["year"]  = as.numeric(unlist(d["year"]))
-        d["month"] = as.numeric(unlist(d["month"]))
         d["id"]    = as.character(unlist(d["id"]))
         
       } else {
