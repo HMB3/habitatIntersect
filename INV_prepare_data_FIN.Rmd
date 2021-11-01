@@ -468,7 +468,7 @@ COMBO.RASTER.SPP = combine_records_extract(ala_df           = ALA.LAND.SPP,
                                            data_path        = "./output/results/")
 
 
-## Try combing the records into a "super table" with all taxonomic levels
+## Try combing the records into a "super table" with all taxonomic levels...
 COMBO.RASTER.FAM.GEN.SPP <- bind_rows(COMBO.RASTER.FAM, COMBO.RASTER.GEN, COMBO.RASTER.SPP)
 
 
