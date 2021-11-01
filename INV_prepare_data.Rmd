@@ -81,9 +81,9 @@ ipak(sdmgen_packages)
 
 
 ## Set temporary raster dir for the terra package
-rasterOptions(tmpdir = 'G:/North_east_NSW_fire_recovery/TEMP')
+rasterOptions(tmpdir = 'G:/GITHUB/North_east_NSW_fire_recovery/TEMP')
 terraOptions(memfrac = 0.5, 
-             tempdir = 'G:/North_east_NSW_fire_recovery/TEMP')
+             tempdir = 'G:/GITHUB/North_east_NSW_fire_recovery/TEMP')
 
 ```
 
@@ -178,12 +178,13 @@ host_back_dir <- 'output/plant_maxent/back_sel_models/'
 results_dir   <- './output/results'
 climate_dir   <- './data/worldclim/world/2070'
 check_dir     <- './data/GBIF/Check_plots/'
-temp_dir      <- 'G:/Raster_temp'
+temp_dir      <- 'G:/GITHUB/Raster_temp'
 
 ```
 
 \
 
+Skip this step for data test
 Now download GBIF and ALA occurrence data for each taxa. The downloading functions 
 are separated, because the ALA and GBIF columns are slightly different, but both 
 data sources are needed to properly quantify taxa ranges. The package functions 
@@ -286,8 +287,9 @@ study.veg.grids <- stack(
   list.files('./data/Remote_sensing/Veg_data/height_and_cover/Study', 
              '_1km_study.tif', full.names = TRUE))
 
-aus.vbf   <- raster('./data/Remote_sensing/Topography/mrvbf_int_1km.tif')
-study.vbf <- raster('./data/Remote_sensing/Topography/mrvbf_int_study_1km.tif')
+## Topography
+aus.vbf   <- raster('./data/Topography/mrvbf_int_1km.tif')
+study.vbf <- raster('./data/Topography/mrvbf_int_study_1km.tif')
 
 
 ## Rename the raster grids
@@ -374,7 +376,7 @@ data('ALA_keep')
 
 
 ## Combine Family ALA data up to 50% of records are knocked out by cleaning  
-ALA.LAND.FAM <- combine_ala_records(taxa_list         =  target.insect.families,
+ALA.LAND.FAM <- combine_ala_records(taxa_list         =  target.insect.families[1:2],
                                     records_path      = "./data/ALA/Insects/Family/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
@@ -383,7 +385,7 @@ ALA.LAND.FAM <- combine_ala_records(taxa_list         =  target.insect.families,
 
 
 ## Combine Genus ALA data
-ALA.LAND.GEN <- combine_ala_records(taxa_list         = target.insect.genera,
+ALA.LAND.GEN <- combine_ala_records(taxa_list         = target.insect.genera{1:2],
                                     records_path      = "./data/ALA/Insects/Genus/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
@@ -392,7 +394,7 @@ ALA.LAND.GEN <- combine_ala_records(taxa_list         = target.insect.genera,
 
 
 ## Combine taxa ALA data
-ALA.LAND.SPP <- combine_ala_records(taxa_list         = target.insect.spp,
+ALA.LAND.SPP <- combine_ala_records(taxa_list         = target.insect.spp[1:2],
                                     records_path      = "./data/ALA/Insects/Species/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
@@ -649,7 +651,7 @@ SDM.SPAT.OCC.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN,
                                      background_points = SDM.ALL.PLA.SPP.BG, 
                                      save_data         = FALSE,
                                      data_path         = paste0(getwd(), '/output/results/'),
-                                     project_path      = 'G:/North_east_NSW_fire_recovery')
+                                     project_path      = 'G:/GITHUB/North_east_NSW_fire_recovery')
 
 
 ## Check the taxonomic levels
@@ -667,7 +669,7 @@ sum(is.na(SDM.SPAT.OCC.BG@data$genus));sum(is.na(SDM.SPAT.OCC.BG@data$family))
 
 ## Save the big table of all taxa, including background taxa, as a SPDF
 writeOGR(obj    = SDM.SPAT.OCC.BG.GDA,
-         dsn    = 'G:/North_east_NSW_fire_recovery/output/results',
+         dsn    = 'G:/GITHUB/North_east_NSW_fire_recovery/output/results',
          layer  = 'SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
 
@@ -684,22 +686,22 @@ SDM.SPAT.OCC.BG.TARG.SPP <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% target.
 
 
 writeOGR(obj    = SDM.SPAT.OCC.BG.TARG.GDA,
-         dsn    = 'G:/North_east_NSW_fire_recovery/output/results',
+         dsn    = 'G:/GITHUB/North_east_NSW_fire_recovery/output/results',
          layer  = 'SDM_SPAT_OCC_BG_GDA_ONLY_ANALYSIS_INVERT_TAXA', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
 
 writeOGR(obj    = SDM.SPAT.OCC.BG.TARG.FAM,
-         dsn    = 'G:/North_east_NSW_fire_recovery/output/results',
+         dsn    = 'G:/GITHUB/North_east_NSW_fire_recovery/output/results',
          layer  = 'SDM_SPAT_OCC_BG_GDA_ONLY_ANALYSIS_INVERT_FAMILIES', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
 
 writeOGR(obj    = SDM.SPAT.OCC.BG.TARG.GEN,
-         dsn    = 'G:/North_east_NSW_fire_recovery/output/results',
+         dsn    = 'G:/GITHUB/North_east_NSW_fire_recovery/output/results',
          layer  = 'SDM_SPAT_OCC_BG_GDA_ONLY_ANALYSIS_INVERT_GENERA', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
 
 writeOGR(obj    = SDM.SPAT.OCC.BG.TARG.SPP,
-         dsn    = 'G:/North_east_NSW_fire_recovery/output/results',
+         dsn    = 'G:/GITHUB/North_east_NSW_fire_recovery/output/results',
          layer  = 'SDM_SPAT_OCC_BG_GDA_ONLY_ANALYSIS_INVERT_SPECIES', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
 
@@ -710,7 +712,7 @@ for(taxa in target.insect.families) {
   
   if(taxa %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)) {
     
-    taxa_shp <- paste0('G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data/',
+    taxa_shp <- paste0('G:/GITHUB/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data/',
                        taxa, '_SDM_points.shp')
     
     if(!file.exists(taxa_shp)) {
@@ -720,7 +722,7 @@ for(taxa in target.insect.families) {
         spTransform(., crs(sp_epsg3577))
       
       writeOGR(obj    = taxa_occ,
-               dsn    = 'G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data',
+               dsn    = 'G:/GITHUB/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data',
                layer  = paste0(taxa, '_SDM_points'), 
                driver = 'ESRI Shapefile', overwrite_layer = FALSE)
       
@@ -740,7 +742,7 @@ for(taxa in target.insect.genera) {
   
   if(taxa %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)) {
     
-    taxa_shp <- paste0('G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data/',
+    taxa_shp <- paste0('G:/GITHUB/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data/',
                        taxa, '_SDM_points.shp')
     
     if(!file.exists(taxa_shp)) {
@@ -750,7 +752,7 @@ for(taxa in target.insect.genera) {
         spTransform(., crs(sp_epsg3577))
       
       writeOGR(obj    = taxa_occ,
-               dsn    = 'G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data',
+               dsn    = 'G:/GITHUB/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data',
                layer  = paste0(taxa, '_SDM_points'), 
                driver = 'ESRI Shapefile', overwrite_layer = FALSE)
       
@@ -770,7 +772,7 @@ for(taxa in target.insect.spp) {
   
   if(taxa %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)) {
     
-    taxa_shp <- paste0('G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data/',
+    taxa_shp <- paste0('G:/GITHUB/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data/',
                        taxa, '_SDM_points.shp')
     
     if(!file.exists(taxa_shp)) {
@@ -780,7 +782,7 @@ for(taxa in target.insect.spp) {
         spTransform(., crs(sp_epsg3577))
       
       writeOGR(obj    = taxa_occ,
-               dsn    = 'G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data',
+               dsn    = 'G:/GITHUB/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data',
                layer  = paste0(taxa, '_SDM_points'), 
                driver = 'ESRI Shapefile', overwrite_layer = FALSE)
       
