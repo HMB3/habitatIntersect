@@ -141,7 +141,7 @@ SDM.PLANT.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_HOS
 
 ## Check projections and resolutions
 projection(FESM_100m);projection(study_sdm_binary[[1]]);projection(GBAM);projection(SDM.SPAT.OCC.BG.GDA)
-xres(FESM_100m);xres(study_sdm_binary[[1]]);xres(GBAM)
+raster::xres(FESM_100m);raster::xres(study_sdm_binary[[1]]);raster::xres(GBAM)
 
 
 ``` 
@@ -155,7 +155,7 @@ xres(FESM_100m);xres(study_sdm_binary[[1]]);xres(GBAM)
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 
-## These still need more exception handling, some taxa fail...
+## These still need more exception handling, some taxa fail...why do they fail?
 
 
 ## Select the Vegetation pixels that intersect with the records of each invertebrate species
