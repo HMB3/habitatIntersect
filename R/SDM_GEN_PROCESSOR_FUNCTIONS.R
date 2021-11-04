@@ -508,13 +508,8 @@ combine_ala_records = function(taxa_list,
       f <- sprintf(paste0(records_path, "%s"), x)
       
       ## Load each file - check if some are already dataframes
-      d <- get(load(f))
-      if (length(class(d)) > 1) {
-        d <- d[["data"]]
-      } else {
-        d = d
-      }
-      
+      d <- get(load(f)) %>% as.data.frame()
+
       ## Check if the dataframes have data
       if (nrow(d) >= 2) {
         
@@ -522,8 +517,15 @@ combine_ala_records = function(taxa_list,
         print (paste ("Sufficient occurrence records for ", x, " processing "))
         
         ##  type standardisation
-        names(d)[names(d) == 'latitude']  <- 'lat'
-        names(d)[names(d) == 'longitude'] <- 'lon'
+        if("latitude" %in% colnames(d)) {
+          names(d)[names(d) == 'latitude']  <- 'lat'
+          names(d)[names(d) == 'longitude'] <- 'lon'
+        }
+        
+        if("decimalLatitude" %in% colnames(d)) {
+          names(d)[names(d) == 'decimalLatitude']  <- 'lat'
+          names(d)[names(d) == 'decimalLongitude'] <- 'lon'
+        }
         
         ##  standardi[sz]e catnum colname
         if("catalogueNumber" %in% colnames(d)) {
