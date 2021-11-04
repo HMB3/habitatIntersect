@@ -429,7 +429,7 @@ taxa_records_habitat_intersect = function(analysis_df,
                                           buffer) {
   
   ## Loop over each directory
-  ## taxa = taxa_list[17]
+  ## taxa = taxa_list[7]
   lapply(taxa_list, function(taxa) {
     
     ## Check if the taxa exists
@@ -446,6 +446,8 @@ taxa_records_habitat_intersect = function(analysis_df,
         ## Buffer the points by 50km
         taxa_buffer <- gBuffer(taxa_df, width = buffer)
         
+        ## If the taxa don't intersect with the veg layer, we need an exception there
+        
         ## Clip the habitat polygon by the 50km buffer
         message('Clip habitat layer to the taxa df for ', taxa)
         habitat_subset <- habitat_poly[taxa_buffer, ]
@@ -453,6 +455,7 @@ taxa_records_habitat_intersect = function(analysis_df,
         if(nrow(habitat_subset@data) >0 ) {
           
           ## Intersect clipped habitat with buffer
+          ## This step might be failing...
           message('Intersect taxa df with SVTM for ', taxa)
           taxa_intersects           <- gIntersects(habitat_subset, taxa_buffer, byid = TRUE) 
           taxa_SVTM_intersects      <- habitat_subset[as.vector(taxa_intersects), ]
