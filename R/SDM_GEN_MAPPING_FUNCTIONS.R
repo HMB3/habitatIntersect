@@ -457,7 +457,7 @@ taxa_records_habitat_intersect = function(analysis_df,
           ## Intersect clipped habitat with buffer
           ## do we need another exception here?
           message('Intersect taxa df with SVTM for ', taxa)
-          taxa_intersects           <- gIntersects(habitat_subset, taxa_buffer, byid=TRUE, width=0) 
+          taxa_intersects           <- gIntersects(habitat_subset, taxa_buffer, byid = TRUE) 
           taxa_SVTM_intersects      <- habitat_subset[as.vector(taxa_intersects), ]
           taxa_SVTM_intersects_clip <- raster::crop(taxa_SVTM_intersects, taxa_buffer)
           

@@ -156,6 +156,7 @@ raster::xres(FESM_100m);raster::xres(study_sdm_binary[[1]]);raster::xres(GBAM)
 
 
 ## These still need more exception handling, some taxa fail...why do they fail?
+## Are they failing outside the loop, but not inside?
 
 
 ## Select the Vegetation pixels that intersect with the records of each invertebrate species
