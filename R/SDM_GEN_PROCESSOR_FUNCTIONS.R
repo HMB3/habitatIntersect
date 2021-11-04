@@ -466,7 +466,7 @@ download_ALA_all_tribes = function (species_list,
 
 
 
-#' @title Combine ALA Records
+#' @title Combine ALA Records for different taxa
 #' @description Combines all occurrence files from ALA into one table.
 #' It assumes that all the files come from the previous downloads function.
 #' Although you can download all the records for in one go, this is better for
