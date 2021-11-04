@@ -108,8 +108,9 @@ minimum number of predictors remains.
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## SDM.ALL.PLA.SPP.BG  = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_PLANT_SPP.rds')
-SDM.SPAT.OCC.BG.GDA       = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
-SDM.PLANT.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_HOST_PLANTS.rds')
+SDM.SPAT.OCC.BG.GDA         = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
+SDM.PLANT.SPAT.OCC.BG.GDA   = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_HOST_PLANTS.rds')
+SDM.REPTILE.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_REPTILE_TAXA.rds')
 
 
 ## To Do :
@@ -201,6 +202,32 @@ run_sdm_analysis(taxa_list               = target.host.plants,
                  maxent_dir              = 'output/veg_climate_topo_maxent/full_models',     
                  bs_dir                  = 'output/veg_climate_topo_maxent/back_sel_models',
                  sdm_df                  = SDM.SPAT.OCC.BG.GDA,
+                 sdm_predictors          = names(aus.climate.veg.grids),
+                 
+                 backwards_sel           = TRUE,      
+                 template_raster         = template_raster_1km_mol,
+                 cor_thr                 = 0.8,  
+                 pct_thr                 = 5, 
+                 k_thr                   = 4, 
+                 min_n                   = 10,  
+                 max_bg_size             = 70000,
+                 background_buffer_width = 200000,
+                 shapefiles              = TRUE,
+                 features                = 'lpq',
+                 replicates              = 5,
+                 responsecurves          = TRUE,
+                 country_shp             = AUS,
+                 koppen_crop             = TRUE,
+                 Koppen_zones            = Koppen_zones,
+                 Koppen_raster           = Koppen_1975_1km)
+
+
+## Run species-level models for reptiles
+run_sdm_analysis(taxa_list               = reptile_test,
+                 taxa_level              = 'species',
+                 maxent_dir              = 'output/reptile_maxent/full_models',     
+                 bs_dir                  = 'output/reptile_maxent/back_sel_models',
+                 sdm_df                  = SDM.SPAT.OCC.REP.BG,
                  sdm_predictors          = names(aus.climate.veg.grids),
                  
                  backwards_sel           = TRUE,      
