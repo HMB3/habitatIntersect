@@ -604,7 +604,7 @@ combine_ala_records = function(taxa_list,
     ## How many records were removed by filtering?
     message(nrow(TRIM) - nrow(CLEAN), " records removed")
     message(round((nrow(CLEAN))/nrow(TRIM)*100, 2),
-            " % records retained using spatially valid records")
+            " % records retained using records with valid coordinates and year")
     
     ## Can use WORLDCIM rasters to get only records where wordlclim data is.
     message('Removing ALA points outside raster bounds for ', length(taxa_list), ' taxa')
@@ -612,13 +612,15 @@ combine_ala_records = function(taxa_list,
     ## Now get the XY centroids of the unique 1km * 1km WORLDCLIM blocks where ALA records are found
     ## Get cell number(s) of WORLDCLIM raster from row and/or column numbers. Cell numbers start at 1 in the upper left corner,
     ## and increase from left to right, and then from top to bottom. The last cell number equals the number of raster cell
-    xy <- cellFromXY(world_raster, CLEAN[c("lon", "lat")]) %>%
+    world_raster_spat <- rast(world_raster)
+    mat <- cbind(lon = CLEAN$lon, lat = CLEAN$lat) 
+    xy  <- terra::cellFromXY(world_raster_spat, mat) %>% 
       
       ## get the unique raster cells
       unique %>%
       
       ## Get coordinates of the center of raster cells for a row, column, or cell number of WORLDCLIM raster
-      xyFromCell(world_raster, .) %>%
+      xyFromCell(world_raster_spat, .) %>%
       na.omit()
     
     ## For some reason, we need to convert the xy coords to a spatial points data frame, in order to avoid this error:
@@ -635,8 +637,8 @@ combine_ala_records = function(taxa_list,
     
     ## Finally, filter the cleaned ALA data to only those points on land.
     ## This is achieved with the final [onland]
-    LAND.POINTS = filter(CLEAN, cellFromXY(world_raster, CLEAN[c("lon", "lat")]) %in%
-                           unique(cellFromXY(world_raster, CLEAN[c("lon", "lat")]))[onland])
+    LAND.POINTS = filter(CLEAN, terra::cellFromXY(world_raster_spat, mat) %in%
+                           unique(terra::cellFromXY(world_raster_spat, mat))[onland])
     
     ## how many records were on land?
     records.ocean = nrow(CLEAN) - nrow(LAND.POINTS)
@@ -646,7 +648,7 @@ combine_ala_records = function(taxa_list,
     ## Add a source column
     LAND.POINTS$SOURCE = record_type
     message(round((nrow(LAND.POINTS))/nrow(CLEAN)*100, 2),
-            " % records retained using spatially valid records")
+            " % records retained using records inside raster bounds")
     
     ## save data
     nrow(LAND.POINTS)
@@ -1189,9 +1191,9 @@ check_spatial_outliers = function(occ_df,
   ## Split the table into ALA and site data
   if(multi_source){
     
-  occ_df  <- occ_df %>% filter(SOURCE == 'ALA')
-  site_df <- occ_df %>% filter(SOURCE == 'SITE') %>% mutate(SPAT_OUT = TRUE)
-  
+    occ_df  <- occ_df %>% filter(SOURCE == 'ALA')
+    site_df <- occ_df %>% filter(SOURCE == 'SITE') %>% mutate(SPAT_OUT = TRUE)
+    
   } else {
     message('Do not subset data by source')
   }

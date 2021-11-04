@@ -63,16 +63,16 @@ ipak <- function(pkg){
   
 }
 
-## These packages are not on cran, but are needed
-# library(devtools)
-# install_github('johnbaums/things')
-# install_github('johnbaums/rmaxent')
-# install_github('traitecoevo/taxonlookup')
-# install.packages("arcgisbinding", repos="https://r.esri.com", type="win.binary")
+## These packages are not on cran, but are needed - Fin you'll need to load them
+library(devtools)
+install_github('johnbaums/things')
+install_github('johnbaums/rmaxent')
+install_github('traitecoevo/taxonlookup')
+install.packages("arcgisbinding", repos="https://r.esri.com", type="win.binary")
 
-## Create documentation and install package
-# roxygen2::roxygenise()
-# devtools::install_github("HMB3/nenswniche")
+## Create documentation and install package - run this too, but only once
+devtools::install_github("HMB3/nenswniche")
+
 
 ## Load packages 
 library(nenswniche)
@@ -80,7 +80,7 @@ data('sdmgen_packages')
 ipak(sdmgen_packages)
 
 
-## Set temporary raster dir for the terra package
+## Set temporary raster dir for the terra package - need to create these folders
 rasterOptions(tmpdir = 'G:/GITHUB/North_east_NSW_fire_recovery/TEMP')
 terraOptions(memfrac = 0.5, 
              tempdir = 'G:/GITHUB/North_east_NSW_fire_recovery/TEMP')
@@ -121,7 +121,7 @@ Let's use all the insect families that we think might be threatened by the 2019/
 
 ## To Do :
 ## 1). Ryan has checked the taxonomy
-## 2). CHeck the errors that Finlay may have found
+## 2). Check the errors that Finlay may have found
 
 
 ## Get the invertebrate site data
@@ -362,7 +362,7 @@ NENSW_study_area <- readOGR(dsn              = './data/Spatial_data/NE_NSW_study
 \
 
 
-Next we filter the records to those taken after 1950, and those inside the raster boundaries 
+Next, we filter the records to those taken after 1950, and those inside the raster boundaries 
 (i.e. taxa records in the ocean according to the raster boundaries will be excluded).
 
 \
@@ -385,7 +385,7 @@ ALA.LAND.FAM <- combine_ala_records(taxa_list         =  target.insect.families[
 
 
 ## Combine Genus ALA data
-ALA.LAND.GEN <- combine_ala_records(taxa_list         = target.insect.genera{1:2],
+ALA.LAND.GEN <- combine_ala_records(taxa_list         = target.insect.genera[1:2],
                                     records_path      = "./data/ALA/Insects/Genus/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
@@ -468,7 +468,7 @@ COMBO.RASTER.SPP = combine_records_extract(ala_df           = ALA.LAND.SPP,
                                            data_path        = "./output/results/")
 
 
-## Try combing the records into a "super table"
+## Try combing the records into a "super table" with all taxonomic levels...
 COMBO.RASTER.FAM.GEN.SPP <- bind_rows(COMBO.RASTER.FAM, COMBO.RASTER.GEN, COMBO.RASTER.SPP)
 
 
