@@ -1962,7 +1962,6 @@ prepare_sdm_table = function(coord_df,
                   decimallatitude  = lat) %>%
     timetk::tk_tbl()
   
-  
   ## Check
   message(identical(SDM.COORDS$index, SDM.COORDS$SPOUT.OBS))
   length(unique(SDM.COORDS$species))
