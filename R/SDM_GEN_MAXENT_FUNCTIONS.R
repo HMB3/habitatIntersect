@@ -248,7 +248,12 @@ fit_maxent_targ_bg_back_sel <- function(occ,
   buffer <- aggregate(gBuffer(occ, width = background_buffer_width, byid = TRUE))
   
   ## Get unique cell numbers for taxa occurrences
-  cells <- cellFromXY(template_raster, occ)
+  # cells <- cellFromXY(template_raster, occ)
+  
+  template_raster_spat <- terra::rast(template_raster)
+  mat    <- cbind(lon = occ$lon, lat = occ$lat) 
+  cells  <- terra::cellFromXY(template_raster_spat, mat)
+  
   
   ## Clean out duplicate cells and NAs (including points outside extent of predictor data)
   ## Note this will get rid of a lot of duplicate records not filtered out by GBIF columns, etc.
