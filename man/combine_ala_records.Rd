@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_PROCESSOR_FUNCTIONS.R
 \name{combine_ala_records}
 \alias{combine_ala_records}
-\title{Combine ALA Records}
+\title{Combine ALA Records for different taxa}
 \usage{
 combine_ala_records(
   taxa_list,
