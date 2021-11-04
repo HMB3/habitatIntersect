@@ -485,7 +485,7 @@ combine_ala_records = function(taxa_list,
                                keep_cols, 
                                world_raster) {
   
-  ##
+  ## Should work outside the loop
   download = list.files(records_path, pattern = ".RData")
   length(download)
   
