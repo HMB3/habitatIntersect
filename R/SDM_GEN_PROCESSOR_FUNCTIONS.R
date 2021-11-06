@@ -205,7 +205,6 @@ download_ALA_all_genera = function (genera_list,
                                     download_path, 
                                     ala_temp_dir, 
                                     download_limit,
-                                    extra_cols,
                                     quality_cols) {
   
   ## create variables
@@ -213,7 +212,7 @@ download_ALA_all_genera = function (genera_list,
   
   ## for every genus in the list
   ## sp.n = species_list[1]
-  for(sp.n in species_list) {
+  for(sp.n in genera_list) {
     
     ## First, check if the f*&%$*# file exists
     message('Searching for records from ', sp.n)
@@ -263,7 +262,6 @@ download_ALA_all_genera = function (genera_list,
       ALA = ALA4R::occurrences(taxon              = paste0("genus:", sp.n), 
                                download_reason_id = 7, 
                                email              = your_email,
-                               extra              = extra_cols,
                                qa                 = quality_cols) %>% .[["data"]]
       
       ## Save records to .Rdata file
