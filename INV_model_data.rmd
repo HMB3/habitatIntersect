@@ -306,8 +306,7 @@ package https://github.com/johnbaums/rmaxent. It assumes that the maxent models 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Create a local projection for mapping : Australian Albers
-aus_albers <- CRS('+proj=aea +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=132 +x_0=0 +y_0=0 
-                   +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs')
+aus_albers <- CRS('+proj=aea +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=132 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs')
 
 
 ## Project SDMs across the Study area for the invert taxa

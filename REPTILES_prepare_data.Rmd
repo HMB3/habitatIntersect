@@ -122,8 +122,6 @@ Let's use all the insect families that we think might be threatened by the 2019/
 ## To Do :
 ## 1). Get the Reptile dataaset
 ## 2). Check for lists of geckoes and snakes
-
-
 target_reptiles  <- c('Phyllurus platurus',  'Eulamprus tympanum',      'Hoplocephalus bungaroides', 'Dysdalia rhodogaster', 
                       'Amalosia lesuerii',   'Cryptophis nigrescens',   'Eulamprus heatwolei',       'Varanus varius',
                       'Morelia spilota',     'Pseudechis porphyriacus', 'Varanus rosenbergi')

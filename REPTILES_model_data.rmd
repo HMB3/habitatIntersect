@@ -170,7 +170,7 @@ REPTILES.MAXENT.RESULTS    = compile_sdm_results(taxa_list    = target_reptiles,
 
 ## Get map_taxa from the maxent results table above, change the species column,
 ## then create a list of logistic thresholds
-reptile_map_taxa <- REPTILES.MAXENT.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
+reptiles_map_taxa <- REPTILES.MAXENT.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
 
 ``` 
 
@@ -186,8 +186,7 @@ package https://github.com/johnbaums/rmaxent. It assumes that the maxent models 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Create a local projection for mapping : Australian Albers
-aus_albers <- CRS('+proj=aea +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=132 +x_0=0 +y_0=0 
-                   +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs')
+aus_albers <- CRS('+proj=aea +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=132 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs')
 
 
 ## Project SDMs across the Study area for the REPTILES taxa
@@ -196,7 +195,7 @@ tryCatch(
                                     country_prj     = CRS("+init=EPSG:3577"),
                                     local_prj       = aus_albers,
                                     
-                                    taxa_list       = REPTILES_map_taxa,    
+                                    taxa_list       = reptiles_map_taxa,    
                                     maxent_path     ='./output/reptile_maxent/back_sel_models/',
                                     
                                     current_grids   = study.climate.veg.grids,         

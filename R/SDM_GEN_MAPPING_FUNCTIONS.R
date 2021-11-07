@@ -93,7 +93,7 @@ project_maxent_current_grids_mess = function(country_shp,
               
               pred.current <- rmaxent::project(
                 m, current_grids[[colnames(m@presence)]])$prediction_logistic
-              terra::writeRaster(pred.current, f_current, overwrite = TRUE)
+              raster::writeRaster(pred.current, f_current, overwrite = TRUE)
               
               gc()
               
