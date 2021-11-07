@@ -297,10 +297,8 @@ fit_maxent_targ_bg_back_sel <- function(occ,
       Koppen_rast         <- terra::rast(Koppen_raster)
       cells_in_zones      <- terra::cellFromXY(Koppen_rast, terra::xyFromCell(Koppen_crop_rast, cells_in_zones_crop))
       
-      
-      # cells_in_zones      <- cellFromXY(Koppen_raster, xyFromCell(Koppen_crop, cells_in_zones_crop))
       bg_cells            <- intersect(bg_cells, cells_in_zones)  ## this is 0 for 5km
-      i                   <  terra::cellFromXY(template_raster_spat, bg_mat)
+      i                   <- terra::cellFromXY(template_raster_spat, bg_mat)
       bg                  <- bg[which(i %in% bg_cells), ]
       
       ## For some taxa, we have the problem that the proportion of ALA/INV data is
@@ -309,7 +307,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
       
     } else {
       message(name, ' Do not intersect background cells with Koppen zones')
-      i                   <- cellFromXY(template_raster, bg)
+      i                   <- terra::cellFromXY(template_raster_spat, bg_mat)
       bg                  <- bg[which(i %in% bg_cells), ]
     }
     
