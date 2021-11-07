@@ -333,7 +333,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
     aus.mol = country_shp  %>%
       spTransform(projection(buffer))
     
-    aus.kop = crop(Koppen_crop, aus.mol)
+    aus.kop = raster::crop(Koppen_crop, aus.mol)
     occ.mol <- occ %>%
       spTransform(projection(buffer))
     
