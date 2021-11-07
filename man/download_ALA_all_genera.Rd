@@ -10,7 +10,6 @@ download_ALA_all_genera(
   download_path,
   ala_temp_dir,
   download_limit,
-  extra_cols,
   quality_cols
 )
 }
@@ -19,11 +18,11 @@ download_ALA_all_genera(
 
 \item{download_limit}{Numeric - How many records can be downloaded at one time? Set by server}
 
-\item{extra_cols}{Character - extra ALA columns, eg environmental vatriables}
-
 \item{quality_cols}{Character - quality ALA columns, eg spatial accuracy}
 
 \item{species_list}{Character vector - List of genus binomials to download}
+
+\item{extra_cols}{Character - extra ALA columns, eg environmental vatriables}
 }
 \value{
 Data frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)
