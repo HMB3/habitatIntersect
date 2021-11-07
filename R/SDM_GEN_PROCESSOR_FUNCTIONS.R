@@ -668,6 +668,152 @@ combine_ala_records = function(taxa_list,
 
 
 
+#' @title Format ALA Records from a big data download
+#' @description Combines all occurrence files from ALA into one table.
+#' It assumes that all the input table comes from the ALA data dump.
+#' @param ALA_table       Character Vector - List of taxa already downloaded
+#' @param record_type        Adds a column to the data frame for the data source, EG ALA
+#' @param keep_cols          The columns we want to keep - a character list created by you
+#' @param world_raster       An Raster file of the enviro conditions used (assumed to be global)
+#' @export
+format_ala_dump = function(ALA_table, 
+                           record_type, 
+                           keep_cols, 
+                           world_raster) {
+  
+  message ("formatting ALA data dump to niche analysis format")
+  
+  ## Combine all the taxa into a single dataframe at once
+  ALL <- ALA_table %>% as.data.frame()
+  
+  ##  type standardisation
+  if("latitude" %in% colnames(ALL)) {
+    names(ALL)[names(ALL) == 'latitude']  <- 'lat'
+    names(ALL)[names(ALL) == 'longitude'] <- 'lon'
+  }
+  
+  if("decimalLatitude" %in% colnames(ALL)) {
+    names(ALL)[names(ALL) == 'decimalLatitude']  <- 'lat'
+    names(ALL)[names(ALL) == 'decimalLongitude'] <- 'lon'
+  }
+  
+  ##  standardi[sz]e catnum colname
+  if("catalogueNumber" %in% colnames(ALL)) {
+    ALL <- ALL %>% dplyr::select(-catalogueNumber)
+  }
+  
+  if("eventDate" %in% colnames(ALL)) {
+    ALL <- ALL %>% dplyr::select(-eventDate)
+  }
+  
+  ## standardi[sz]e catnum colname
+  if('coordinateUncertaintyinMetres' %in% colnames(ALL)) {
+    message ("Renaming recordID column to id")
+    names(ALL)[names(ALL) == 'coordinateUncertaintyinMetres'] <- 'coordinateUncertaintyInMetres'
+    ALL[,"coordinateUncertaintyInMetres"] = as.numeric(unlist(ALL["coordinateUncertaintyInMetres"]))}
+  
+  ## standardi[sz]e catnum colname
+  if('recordID' %in% colnames(ALL)) {
+    message ("Renaming recordID column to id")
+    names(ALL)[names(ALL) == 'recordID'] <- 'id'}
+  
+  ## Create the searchTaxon column - check how to put the data in here
+  ALL[,"searchTaxon"] = ALL[,"scientificName"]
+  
+  if(!is.character(ALL["id"])) {
+    ALL["id"] <- as.character(ALL["id"])}
+  
+  ## Choose only the desired columns
+  ALL = ALL %>%
+    dplyr::select(one_of(keep_cols))
+  
+  ## Then print warnings
+  warnings()
+  
+  ## This is a list of columns in different ALA files which have weird characters
+  message ('Formatting numeric occurrence data for all ALA records')
+  ALL["year"]  = as.numeric(unlist(ALL["year"]))
+  ALL["id"]    = as.character(unlist(ALL["id"]))
+  
+  ## Clear the garbage
+  gc()
+  
+  ## What names get returned?
+  TRIM <- ALL
+  (sum(is.na(TRIM$scientificName)) + nrow(subset(TRIM, scientificName == "")))/nrow(TRIM)*100
+  
+  ## 3). FILTER RECORDS TO THOSE WITH COORDINATES, AND AFTER 1950
+  ## Now filter the ALA records using conditions which are not too restrictive
+  CLEAN <- TRIM %>%
+    
+    ## Note that these filters are very forgiving...
+    ## Unless we include the NAs, very few records are returned!
+    filter(!is.na(lon) & !is.na(lat)) %>%
+    filter(lon < 180 & lat > -90) %>%
+    filter(lon < 180 & lat > -90) %>%
+    filter(year >= 1950) %>%
+    filter(!is.na(year))
+  
+  ## How many records were removed by filtering?
+  message(nrow(TRIM) - nrow(CLEAN), " records removed")
+  message(round((nrow(CLEAN))/nrow(TRIM)*100, 2),
+          " % records retained using records with valid coordinates and year")
+  
+  ## Now get the XY centroids of the unique 1km * 1km WORLDCLIM blocks where ALA records are found
+  ## Get cell number(s) of WORLDCLIM raster from row and/or column numbers. Cell numbers start at 1 in the upper left corner,
+  ## and increase from left to right, and then from top to bottom. The last cell number equals the number of raster cell
+  world_raster_spat <- rast(world_raster)
+  mat <- cbind(lon = CLEAN$lon, lat = CLEAN$lat) 
+  xy  <- terra::cellFromXY(world_raster_spat, mat) %>% 
+    
+    ## get the unique raster cells
+    unique %>%
+    
+    ## Get coordinates of the center of raster cells for a row, column, or cell number of WORLDCLIM raster
+    xyFromCell(world_raster_spat, .) %>%
+    na.omit()
+  
+  ## For some reason, we need to convert the xy coords to a spatial points data frame, in order to avoid this error:
+  ## 'NAs introduced by coercion to integer range'
+  xy <- SpatialPointsDataFrame(coords = xy, data = as.data.frame(xy),
+                               proj4string = CRS("+proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs"))
+  
+  ## Now extract the temperature values for the unique 1km centroids which contain ALA data
+  class(xy)
+  z   = raster::extract(world_raster, xy)
+  
+  ## Then track which values of Z are on land or not
+  onland = z %>% is.na %>%  `!` # %>% xy[.,]  cells on land or not
+  
+  ## Finally, filter the cleaned ALA data to only those points on land.
+  ## This is achieved with the final [onland]
+  LAND.POINTS = filter(CLEAN, terra::cellFromXY(world_raster_spat, mat) %in%
+                         unique(terra::cellFromXY(world_raster_spat, mat))[onland])
+  
+  ## how many records were on land?
+  records.ocean = nrow(CLEAN) - nrow(LAND.POINTS)
+  nrow(LAND.POINTS)
+  length(unique(LAND.POINTS$searchTaxon))
+  
+  ## Add a source column
+  LAND.POINTS$SOURCE = record_type
+  message(round((nrow(LAND.POINTS))/nrow(CLEAN)*100, 2),
+          " % records retained using records inside raster bounds")
+  
+  ## save data
+  nrow(LAND.POINTS)
+  length(unique(LAND.POINTS$searchTaxon))
+  
+  ## get rid of some memory
+  gc()
+  
+  return(LAND.POINTS)
+}
+
+
+
+
+
 #' @title Combine ALA Records
 #' @description Combines all occurrence files from GBIF into one table.
 #' There are slight differences between ALA and GBIF, so separate functions are useful.
