@@ -313,17 +313,17 @@ fit_maxent_targ_bg_back_sel <- function(occ,
     }
     
     ## Reduce background sample, if it's larger than max_bg_size
-    if (nrow(bg) > max_bg_size) {
+    if (nrow(bg_crop) > max_bg_size) {
       
-      message(nrow(bg), ' target taxa background records for ', name,
-              ', reduced to random ', max_bg_size, ' using random points from :: ', unique(bg$SOURCE))
-      bg.samp <- bg[sample(nrow(bg), max_bg_size), ]
+      message(nrow(bg_crop), ' target taxa background records for ', name,
+              ', reduced to random ', max_bg_size, ' using random points from :: ', unique(bg_crop$SOURCE))
+      bg.samp <- bg_crop[sample(nrow(bg_crop), max_bg_size), ]
       
     } else {
       ## If the bg points are smaller that the max_bg_size, just get all the points
-      message(nrow(bg), ' target taxa background records for ', name,
+      message(nrow(bg_crop), ' target taxa background records for ', name,
               ' using all points from :: ', unique(bg$SOURCE))
-      bg.samp <- bg
+      bg.samp <- bg_crop
     }
     
     ## Now save an image of the background points
