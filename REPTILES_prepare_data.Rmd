@@ -124,9 +124,12 @@ Let's use all the insect families that we think might be threatened by the 2019/
 ## 2). Check for lists of geckoes and snakes
 
 
-target_reptiles  <- c('Phyllurus platurus',  'Eulamprus tympanum',    'Hoplocephalus bungaroides', 'Dysdalia rhodogaster', 
-                      'Amalosia lesuerii',   'Cryptophis nigrescens', 'Eulamprus heatwolei')
-habitat_reptiles <- c('Phyllurus platurus',  'Eulamprus tympanum',    'Hoplocephalus bungaroides', 'Dysdalia rhodogaster')
+target_reptiles  <- c('Phyllurus platurus',  'Eulamprus tympanum',      'Hoplocephalus bungaroides', 'Dysdalia rhodogaster', 
+                      'Amalosia lesuerii',   'Cryptophis nigrescens',   'Eulamprus heatwolei',       'Varanus varius',
+                      'Morelia spilota',     'Pseudechis porphyriacus', 'Varanus rosenbergi')
+
+habitat_reptiles <- c('Phyllurus platurus',  'Eulamprus tympanum',      'Hoplocephalus bungaroides', 'Dysdalia rhodogaster', 
+                      'Morelia spilota',     'Pseudechis porphyriacus', 'Varanus rosenbergi')
 
 
 ```
@@ -150,7 +153,7 @@ full_dir      <- './output/reptile_maxent/full_models'
 
 results_dir   <- './output/reptiles/results'
 climate_dir   <- './data/worldclim/world/2070'
-check_dir     <- './data/GBIF/Check_plots/'
+check_dir     <- './data/ALA/Check_Plots/Reptiles/'
 temp_dir      <- 'G:/GITHUB/Raster_temp'
 
 ```
@@ -335,19 +338,19 @@ data('ALA_keep')
 
 
 ## Combine ALA data for individual reptile species and format for niche analysis
-ALA.LAND.SPP <- combine_ala_records(taxa_list         = target_reptiles,
-                                    records_path      = "./data/ALA/Reptiles/",
-                                    records_extension = "_ALA_records.RData",
-                                    record_type       = "ALA",
-                                    keep_cols         = ALA_keep,
-                                    world_raster      = world_annual_temp)
+ALA.LAND.SPP       <- combine_ala_records(taxa_list         = target_reptiles,
+                                          records_path      = "./data/ALA/Reptiles/",
+                                          records_extension = "_ALA_records.RData",
+                                          record_type       = "ALA",
+                                          keep_cols         = ALA_keep,
+                                          world_raster      = world_annual_temp)
 
 
 ## Take a data dump from the ALA of all the reptiles, and format it to the columns names we want for the niche analyses 
-BACKG.SPP    <- format_ala_dump(ALA_table         = Reptiles_ALA,
-                                record_type       = "ALA",
-                                keep_cols         = ALA_keep,
-                                world_raster      = world_annual_temp)
+ALA.LAND.BACKG.SPP  <- format_ala_dump(ALA_table         = Reptiles_ALA,
+                                       record_type       = "ALA",
+                                       keep_cols         = ALA_keep,
+                                       world_raster      = world_annual_temp)
 
 
 ``` 
@@ -513,7 +516,7 @@ GLOB.NICHE.ALL = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxo
                                  cell_size    = 2,
                                  save_data    = TRUE,
                                  save_run     = "ALL_TARGET_REPTILE_TAXA",
-                                 data_path    = "./reptile_maxent/results/")
+                                 data_path    = "./output/reptile_maxent/results/")
 
 
 ``` 
@@ -522,8 +525,7 @@ GLOB.NICHE.ALL = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxo
 
 We can also plot the environmental ranges of each taxa. This function 
 takes a data frame of all taxa records, and plots histograms and convex hulls for 
-each taxa in global environmental space. It assumes that the input df is that 
-prepared by the check_spatial_outliers function
+each taxa in global environmental space. 
 
 \
 
@@ -559,7 +561,7 @@ sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0
 
 ## Final data set is a spatial points data frame in the Mollweide projection
 ## SDM_SPAT_OCC_BG_HOST_PLANT_SPP
-SDM.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
+SDM.SPAT.OCC.BG.INV.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
 
 
 ## Create SDM table for all the backhround reptile species
@@ -576,7 +578,7 @@ SDM.SPAT.OCC.ALL.REPTILE.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN
                                                                        'SPAT_OUT',
                                                                        names(aus.climate.veg.grids)),
                                                  
-                                                 save_run          = "TEST_REPTILE_TAXA",
+                                                 save_run          = "CONTROL_REPTILE_TAXA",
                                                  site_records      = FALSE,
                                                  read_background   = FALSE,
                                                  save_data         = FALSE,
@@ -600,11 +602,11 @@ SDM.SPAT.OCC.TARG.REPTILE.BG <- prepare_sdm_table(coord_df          = COORD.CLEA
                                                                         names(aus.climate.veg.grids)),
                                                   
                                                   save_run          = "TEST_REPTILE_TAXA",
-                                                  site_records      = TRUE,
+                                                  site_records      = FALSE,
                                                   read_background   = TRUE,
                                                   background_points = SDM.SPAT.OCC.ALL.REPTILE.BG, 
-                                                  save_data         = FALSE,
-                                                  data_path         = paste0(getwd(), '/output/results/'),
+                                                  save_data         = TRUE,
+                                                  data_path         = paste0(getwd(), '/output/reptile_maxent/results/'),
                                                   project_path      = 'G:/GITHUB/North_east_NSW_fire_recovery')
 
 
@@ -614,15 +616,15 @@ sum(is.na(SDM.SPAT.OCC.BG@data$genus));sum(is.na(SDM.SPAT.OCC.BG@data$family))
 
 
 ## Save the big table of all taxa, including background taxa, as a SPDF
-writeOGR(obj    = SDM.SPAT.OCC.BG.GDA,
+writeOGR(obj    = SDM.SPAT.OCC.TARG.REPTILE.BG,
          dsn    = 'G:/GITHUB/North_east_NSW_fire_recovery/reptile_maxent/results',
          layer  = 'SDM_SPAT_OCC_BG_GDA_ALL_TARGET_REPTILE_TAXA', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
 
 
-writeOGR(obj    = SDM.SPAT.OCC.BG.GDA,
+writeOGR(obj    = SDM.SPAT.OCC.TARG.REPTILE.BG,
          dsn    = 'G:/GITHUB/North_east_NSW_fire_recovery/reptile_maxent/results',
-         layer  = 'SDM_SPAT_OCC_BG_GDA_ALL_TARGET_REPTILE_TAXA', 
+         layer  = 'SDM_SPAT_OCC_BG_GDA_ALL_CONTROL_REPTILE_TAXA', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
 
 

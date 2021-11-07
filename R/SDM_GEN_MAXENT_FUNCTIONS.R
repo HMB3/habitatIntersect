@@ -248,12 +248,9 @@ fit_maxent_targ_bg_back_sel <- function(occ,
   buffer <- aggregate(gBuffer(occ, width = background_buffer_width, byid = TRUE))
   
   ## Get unique cell numbers for taxa occurrences
-  # cells <- cellFromXY(template_raster, occ)
-  
   template_raster_spat <- terra::rast(template_raster)
-  mat    <- cbind(lon = occ$lon, lat = occ$lat) 
-  cells  <- terra::cellFromXY(template_raster_spat, mat)
-  
+  occ_mat              <- cbind(lon = occ$lon, lat = occ$lat) 
+  cells                <- terra::cellFromXY(template_raster_spat, occ_mat)
   
   ## Clean out duplicate cells and NAs (including points outside extent of predictor data)
   ## Note this will get rid of a lot of duplicate records not filtered out by GBIF columns, etc.
@@ -274,8 +271,9 @@ fit_maxent_targ_bg_back_sel <- function(occ,
     ## Subset the background records to the 200km buffered polygon
     message(name, ' creating background cells')
     system.time(o <- over(bg, buffer))
-    bg <- bg[which(!is.na(o)), ]
-    bg_cells <- cellFromXY(template_raster, bg)
+    bg        <- bg[which(!is.na(o)), ]
+    bg_mat    <- cbind(lon = bg$lon, lat = bg$lat) 
+    bg_cells  <- terra::cellFromXY(template_raster_spat, bg_mat)
     
     ## Clean out duplicates and NAs (including points outside extent of predictor data)
     bg_not_dupes <- which(!duplicated(bg_cells) & !is.na(bg_cells))
@@ -287,19 +285,22 @@ fit_maxent_targ_bg_back_sel <- function(occ,
     if(koppen_crop) {
       
       message(name, ' intersecting background cells with Koppen zones')
-      Koppen_crop <- crop(Koppen_raster, occ, snap = 'out')
+      Koppen_crop <- raster::crop(Koppen_raster, occ, snap = 'out')
       
       ## Only extract and match those cells that overlap between the ::
       ## 1). cropped koppen zone,
       ## 2). occurrences and
       ## 3). background points
-      message(xres(template_raster), ' metre cell size for template raster')
-      message(xres(Koppen_raster),   ' metre cell size for Koppen raster')
       zones               <- raster::extract(Koppen_crop, occ)
       cells_in_zones_crop <- Which(Koppen_crop %in% zones, cells = TRUE)
-      cells_in_zones      <- cellFromXY(Koppen_raster, xyFromCell(Koppen_crop, cells_in_zones_crop))
+      Koppen_crop_rast    <- terra::rast(Koppen_crop)
+      Koppen_rast         <- terra::rast(Koppen_raster)
+      cells_in_zones      <- terra::cellFromXY(Koppen_rast, terra::xyFromCell(Koppen_crop_rast, cells_in_zones_crop))
+      
+      
+      # cells_in_zones      <- cellFromXY(Koppen_raster, xyFromCell(Koppen_crop, cells_in_zones_crop))
       bg_cells            <- intersect(bg_cells, cells_in_zones)  ## this is 0 for 5km
-      i                   <- cellFromXY(template_raster, bg)
+      i                   <  terra::cellFromXY(template_raster_spat, bg_mat)
       bg                  <- bg[which(i %in% bg_cells), ]
       
       ## For some taxa, we have the problem that the proportion of ALA/INV data is
