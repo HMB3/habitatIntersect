@@ -276,9 +276,10 @@ fit_maxent_targ_bg_back_sel <- function(occ,
     bg_cells  <- terra::cellFromXY(template_raster_spat, bg_mat)
     
     ## Clean out duplicates and NAs (including points outside extent of predictor data)
-    bg_not_dupes <- which(!duplicated(bg_cells) & !is.na(bg_cells))
-    bg           <- bg[bg_not_dupes, ]
-    bg_cells     <- bg_cells[bg_not_dupes]
+    bg_not_dupes       <- which(!duplicated(bg_cells) & !is.na(bg_cells))
+    bg_unique          <- bg[bg_not_dupes, ]
+    bg_cells_unique    <- bg_cells[bg_not_dupes]
+    bg_mat_unique      <- cbind(lon = bg_unique$lon, lat = bg_unique$lat) 
     
     ## Find which of these cells fall within the Koppen-Geiger zones that the taxa occupies
     ## Crop the Kopppen raster to the extent of the occurrences, and snap it
@@ -297,9 +298,9 @@ fit_maxent_targ_bg_back_sel <- function(occ,
       Koppen_rast         <- terra::rast(Koppen_raster)
       cells_in_zones      <- terra::cellFromXY(Koppen_rast, terra::xyFromCell(Koppen_crop_rast, cells_in_zones_crop))
       
-      bg_cells            <- intersect(bg_cells, cells_in_zones)  ## this is 0 for 5km
-      i                   <- terra::cellFromXY(template_raster_spat, bg_mat)
-      bg                  <- bg[which(i %in% bg_cells), ]
+      bg_cells_zones      <- intersect(bg_cells_unique, cells_in_zones)  ## this is 0 for 5km
+      i                   <- terra::cellFromXY(template_raster_spat, bg_mat_unique)
+      bg_crop             <- bg_unique[which(i %in% bg_cells_zones), ]
       
       ## For some taxa, we have the problem that the proportion of ALA/INV data is
       ## very different in the occurrence vs the bg records.
@@ -307,8 +308,8 @@ fit_maxent_targ_bg_back_sel <- function(occ,
       
     } else {
       message(name, ' Do not intersect background cells with Koppen zones')
-      i                   <- terra::cellFromXY(template_raster_spat, bg_mat)
-      bg                  <- bg[which(i %in% bg_cells), ]
+      i                   <- terra::cellFromXY(template_raster_spat, bg_mat_unique)
+      bg_crop             <- bg_unique[which(i %in% bg_cells_unique), ]
     }
     
     ## Reduce background sample, if it's larger than max_bg_size
