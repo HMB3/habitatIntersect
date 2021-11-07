@@ -581,7 +581,7 @@ SDM.SPAT.OCC.ALL.REPTILE.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN
                                                  save_run          = "CONTROL_REPTILE_TAXA",
                                                  site_records      = FALSE,
                                                  read_background   = FALSE,
-                                                 save_data         = FALSE,
+                                                 save_data         = TRUE,
                                                  data_path         = paste0(getwd(), '/output/results/'),
                                                  project_path      = 'G:/GITHUB/North_east_NSW_fire_recovery')
 
