@@ -202,7 +202,7 @@ tryCatch(
                                     create_mess     = TRUE,
                                     save_novel_poly = TRUE),
   
-  ## If the species fails, write a fail message to file
+  ## If the species fails, write a fail message to file.
   error = function(cond) {
     
     ## This will write the error message inside the text file, but it won't include the species
