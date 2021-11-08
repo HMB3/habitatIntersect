@@ -99,8 +99,8 @@ project_maxent_current_grids_mess = function(country_shp,
               
             } else {
               message('Use existing prediction for ', species)
-              pred.current = raster(sprintf('%s/%s/full/%s_current.tif',
-                                            maxent_path, species, species))
+              pred.current = raster::raster(sprintf('%s/%s/full/%s_current.tif',
+                                                    maxent_path, species, species))
             }
             
             ## Report current mess map in progress
@@ -132,7 +132,7 @@ project_maxent_current_grids_mess = function(country_shp,
             } else {
               ## Otherwise, read in the current novel layer
               message(species, ' Current similarity analysis already run')
-              novel_current = raster(sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel"))
+              novel_current = raster::raster(sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel"))
             }
             
             ## Write out the current mess maps -
@@ -174,8 +174,8 @@ project_maxent_current_grids_mess = function(country_shp,
             if(!file.exists(sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel")))  {
               
               message('Writing currently novel environments to file for ', species)
-              writeRaster(novel_current, sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel"),
-                          overwrite = TRUE)
+              raster::writeRaster(novel_current, sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel"),
+                                  overwrite = TRUE)
               
             } else {
               message(species, ' Current MESS file already saved')
@@ -192,9 +192,9 @@ project_maxent_current_grids_mess = function(country_shp,
             if(!file.exists(sprintf('%s%s/full/%s%s.tif', maxent_path, species, species, "_current_not_novel"))) {
               
               message('Writing currently un-novel environments to file for ', species)
-              writeRaster(hs_current_not_novel, sprintf('%s%s/full/%s%s.tif', maxent_path,
-                                                        species, species, 
-                                                        "_current_not_novel"), overwrite = TRUE)
+              raster::writeRaster(hs_current_not_novel, sprintf('%s%s/full/%s%s.tif', maxent_path,
+                                                                species, species, 
+                                                                "_current_not_novel"), overwrite = TRUE)
               
             } else {
               message(species, ' Current un-novel environments file already saved')
@@ -231,7 +231,7 @@ project_maxent_current_grids_mess = function(country_shp,
             
             ## Now create a panel of PNG files for maxent projections and MESS maps
             ## All the projections and extents need to match
-            empty_ras <- init(current_grids, function(x) NA)
+            empty_ras <- raster::init(current_grids, function(x) NA)
             
             ## Use the 'levelplot' function to make a multipanel output:
             ## occurrence points, current raster and future raster
@@ -244,9 +244,9 @@ project_maxent_current_grids_mess = function(country_shp,
               png(sprintf('%s/%s/full/%s_%s.png', maxent_path, species, species, "mess_panel"),
                   11, 4, units = 'in', res = 300)
               
-              print(levelplot(stack(empty_ras,
-                                    hs_current_not_novel, 
-                                    quick = TRUE), margin = FALSE,
+              print(levelplot(raster::stack(empty_ras,
+                                            hs_current_not_novel, 
+                                            quick = TRUE), margin = FALSE,
                               
                               ## Create a colour scheme using colbrewer: 100 is to make it continuos
                               ## Also, make it a one-directional colour scheme
