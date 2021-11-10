@@ -282,7 +282,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
     bg_mat_unique      <- cbind(lon = bg_unique$lon, lat = bg_unique$lat) 
     
     ## Find which of these cells fall within the Koppen-Geiger zones that the taxa occupies
-    ## Crop the Kopppen raster to the extent of the occurrences, and snap it
+    ## Crop the Kopppen raster to the extent of the occurrences, and snap it.
     if(koppen_crop) {
       
       message(name, ' intersecting background cells with Koppen zones')
