@@ -52,7 +52,7 @@ run_sdm_analysis = function(taxa_list,
                             features,
                             replicates,
                             responsecurves,
-                            koppen_crop,
+                            crop_Koppen,
                             Koppen_raster,
                             Koppen_zones,
                             country_shp ) {
@@ -122,7 +122,7 @@ run_sdm_analysis = function(taxa_list,
                                       pct_thr                 = pct_thr,
                                       k_thr                   = k_thr,
                                       
-                                      koppen_crop             = koppen_crop,
+                                      crop_Koppen             = crop_Koppen,
                                       template_raster         = template_raster,
                                       min_n                   = min_n,
                                       max_bg_size             = max_bg_size,
@@ -186,7 +186,7 @@ run_sdm_analysis = function(taxa_list,
 #' @param k_thr              Numeric - The min number of variables to be kept in the model
 #' @param min_n              Numeric - The min number of records for running maxent
 #' @param max_bg_size        Numeric - The max number of background points to keep
-#' @param koppen_crop        Logical - Should we use a koppen zone raster to select background points?
+#' @param crop_Koppen        Logical - Should we use a koppen zone raster to select background points?
 #' @param shapefiles         Logical - Save shapefiles of the occ and bg data (T/F)?
 #' @param features           Character string - Which features should be used? (e.g. linear, product, quadratic 'lpq')
 #' @param replicates         Numeric - The number of replicates to use
@@ -210,7 +210,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
                                         max_bg_size,
                                         background_buffer_width,
                                         Koppen_raster,
-                                        koppen_crop,
+                                        crop_Koppen,
                                         shapefiles,
                                         features,
                                         replicates,
@@ -283,7 +283,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
     
     ## Find which of these cells fall within the Koppen-Geiger zones that the taxa occupies
     ## Crop the Kopppen raster to the extent of the occurrences, and snap it.
-    if(koppen_crop == TRUE) {
+    if(crop_Koppen == TRUE) {
       
       message(name, ' intersecting background cells with Koppen zones')
       Koppen_crop <- raster::crop(Koppen_raster, occ, snap = 'out')
@@ -306,10 +306,57 @@ fit_maxent_targ_bg_back_sel <- function(occ,
       ## very different in the occurrence vs the bg records.
       ## This should be caused by the 200km / koppen restriction, etc.
       
+      ## Now save an image of the background points
+      ## This is useful to quality control the models
+      save_name = gsub(' ', '_', name)
+      
+      aus.mol = country_shp  %>%
+        spTransform(projection(buffer))
+      
+      aus.kop = raster::crop(Koppen_crop, aus.mol)
+      occ.mol <- occ %>%
+        spTransform(projection(buffer))
+      
+      ## Then save the occurrence points
+      png(sprintf('%s/%s/%s_%s.png', outdir, save_name, save_name, "buffer_occ"),
+          16, 10, units = 'in', res = 300)
+      
+      plot(Koppen_crop, legend = FALSE,
+           main = paste0('Occurence SDM records for ', name))
+      
+      plot(aus.mol, add = TRUE)
+      plot(buffer,  add = TRUE, col = "red")
+      plot(occ.mol, add = TRUE, col = "blue")
+      
+      dev.off()
+      
+      
     } else {
       message(name, ' Do not intersect background cells with Koppen zones')
       i                   <- terra::cellFromXY(template_raster_spat, bg_mat_unique)
       bg_crop             <- bg_unique[which(i %in% bg_cells_unique), ]
+      
+      ## Now save an image of the background points
+      ## This is useful to quality control the models
+      save_name = gsub(' ', '_', name)
+      
+      aus.mol = country_shp  %>%
+        spTransform(projection(buffer))
+      
+      occ.mol <- occ %>%
+        spTransform(projection(buffer))
+      
+      ## Then save the occurrence points
+      png(sprintf('%s/%s/%s_%s.png', outdir, save_name, save_name, "buffer_occ"),
+          16, 10, units = 'in', res = 300)
+      
+      plot(aus.mol, legend = FALSE,
+           main = paste0('Occurence SDM records for ', name))
+      plot(buffer,  add = TRUE, col = "red")
+      plot(occ.mol, add = TRUE, col = "blue")
+      
+      dev.off()
+      
     }
     
     ## Reduce background sample, if it's larger than max_bg_size
@@ -325,30 +372,6 @@ fit_maxent_targ_bg_back_sel <- function(occ,
               ' using all points from :: ', unique(bg$SOURCE))
       bg.samp <- bg_crop
     }
-    
-    ## Now save an image of the background points
-    ## This is useful to quality control the models
-    save_name = gsub(' ', '_', name)
-    
-    aus.mol = country_shp  %>%
-      spTransform(projection(buffer))
-    
-    aus.kop = raster::crop(Koppen_crop, aus.mol)
-    occ.mol <- occ %>%
-      spTransform(projection(buffer))
-    
-    ## Then save the occurrence points
-    png(sprintf('%s/%s/%s_%s.png', outdir, save_name, save_name, "buffer_occ"),
-        16, 10, units = 'in', res = 300)
-    
-    plot(Koppen_crop, legend = FALSE,
-         main = paste0('Occurence SDM records for ', name))
-    
-    plot(aus.mol, add = TRUE)
-    plot(buffer,  add = TRUE, col = "red")
-    plot(occ.mol, add = TRUE, col = "blue")
-    
-    dev.off()
     
     ## Now save the buffer, the occ and bg points as shapefiles
     if(shapefiles) {

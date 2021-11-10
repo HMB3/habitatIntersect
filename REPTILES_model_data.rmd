@@ -117,7 +117,7 @@ SDM.SPAT.OCC.REPTILE.BG = readRDS('./output/reptile_maxent/results/SDM_SPAT_OCC_
 
 
 ## Run species-level models for REPTILES
-run_sdm_analysis(taxa_list               = target_reptiles,
+run_sdm_analysis(taxa_list               = rev(target_reptiles),
                  taxa_level              = 'species',
                  maxent_dir              = 'output/reptile_maxent/full_models',     
                  bs_dir                  = 'output/reptile_maxent/back_sel_models',
@@ -137,7 +137,7 @@ run_sdm_analysis(taxa_list               = target_reptiles,
                  replicates              = 5,
                  responsecurves          = TRUE,
                  country_shp             = AUS,
-                 koppen_crop             = FALSE,
+                 crop_Koppen             = FALSE,
                  Koppen_zones            = Koppen_zones,
                  Koppen_raster           = Koppen_1975_1km)
 
