@@ -125,7 +125,7 @@ run_sdm_analysis(taxa_list               = target_reptiles,
                  sdm_predictors          = names(aus.climate.veg.grids),
                  
                  backwards_sel           = TRUE,      
-                 template_raster         = template_raster_1km_mol,
+                 template_raster         = template_rasterr_1km_mol,
                  cor_thr                 = 0.8,  
                  pct_thr                 = 5, 
                  k_thr                   = 4, 
@@ -137,7 +137,7 @@ run_sdm_analysis(taxa_list               = target_reptiles,
                  replicates              = 5,
                  responsecurves          = TRUE,
                  country_shp             = AUS,
-                 koppen_crop             = TRUE,
+                 koppen_crop             = FALSE,
                  Koppen_zones            = Koppen_zones,
                  Koppen_raster           = Koppen_1975_1km)
 

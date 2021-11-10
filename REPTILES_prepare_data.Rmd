@@ -228,31 +228,31 @@ worldclim_climate = raster::stack(
 
 
 ## Climate data for Australia, in GDA Albers projection
-aus.grids.current <- stack(
+aus.grids.current <- raster::stack(
   file.path('./data/worldclim2/aus/current', 
             sprintf('bio_%d_AUSGDA.tif', 1:19)))
 
 
 ## Climate data for the study area in NE_NSW, in GDA Albers projection
-study.grids.current <- stack(
+study.grids.current <- raster::stack(
   file.path('./data/worldclim2/aus/current/Study_area',
             sprintf('bio_%d_AUSGDA.tif', 1:19)))
 
 
 ## And a stack of grids for vegetation, in GDA Albers projection
-aus.veg.grids <- stack(
+aus.veg.grids <- raster::stack(
   list.files('./data/Remote_sensing/Veg_data/height_and_cover', 
              '_1km.tif', full.names = TRUE))
 
 
 ## And a stack of grids for vegetation, in GDA Albers projection
-study.veg.grids <- stack(
+study.veg.grids <- raster::stack(
   list.files('./data/Remote_sensing/Veg_data/height_and_cover/Study', 
              '_1km_study.tif', full.names = TRUE))
 
 ## Topography
-aus.vbf   <- raster('./data/Topography/MRVBF/mrvbf_int_1km.tif')
-study.vbf <- raster('./data/Topography/MRVBF/mrvbf_int_study_1km.tif')
+aus.vbf   <- raster::raster('./data/Topography/MRVBF/mrvbf_int_1km.tif')
+study.vbf <- raster::raster('./data/Topography/MRVBF/mrvbf_int_study_1km.tif')
 
 
 ## Rename the raster grids
@@ -297,8 +297,8 @@ names(aus.veg.grids) <- names(study.veg.grids) <- c("Plant_cover_fraction_0_5m",
                                                     "Tree_canopy_peak_foliage_total")
 
 ## Combine the grids into raster stacks
-aus.climate.veg.grids   <- stack(aus.grids.current,   aus.veg.grids,   aus.vbf)
-study.climate.veg.grids <- stack(study.grids.current, study.veg.grids, study.vbf)
+aus.climate.veg.grids   <- raster::stack(aus.grids.current,   aus.veg.grids,   aus.vbf)
+study.climate.veg.grids <- raster::stack(study.grids.current, study.veg.grids, study.vbf)
 aus_annual_temp         <- aus.climate.veg.grids[[1]]
 world_annual_temp       <- worldclim_climate[[1]]
 
@@ -308,9 +308,9 @@ world_annual_temp       <- worldclim_climate[[1]]
 # resolution (1km) and projection (WGS84) of the data used to analyse the taxa 
 # distributions. It should have a value of 1 for land, and NA for the ocean. 
 # This takes ages in R.....
-template_raster_1km_WGS84 <- raster("./data/world_koppen/template_1km_WGS84.tif")
-Koppen_1975_1km           <- raster('data/world_koppen/Koppen_1000m_Mollweide54009.tif')
-template_raster_1km_mol   <- raster("./data/world_koppen/template_has_data_1km.tif")
+template_raster_1km_WGS84 <- raster::raster("./data/world_koppen/template_1km_WGS84.tif")
+Koppen_1975_1km           <- raster::raster('data/world_koppen/Koppen_1000m_Mollweide54009.tif')
+template_raster_1km_mol   <- raster::raster("./data/world_koppen/template_has_data_1km.tif")
 
 
 ## Add shapefiles
