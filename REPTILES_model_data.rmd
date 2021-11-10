@@ -164,7 +164,7 @@ REPTILES.MAXENT.RESULTS    = compile_sdm_results(taxa_list    = target_reptiles,
                                                  results_dir  = 'output/reptile_maxent/back_sel_models',
                                                  data_path    = "./output/reptile_maxent/Habitat_suitability/",
                                                  sdm_path     = "./output/reptile_maxent/back_sel_models/",
-                                                 save_data    = FALSE,
+                                                 save_data    = TRUE,
                                                  save_run     = "REPTILES_target_reptiles")
 
 

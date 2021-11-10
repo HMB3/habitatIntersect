@@ -122,13 +122,15 @@ Let's use all the insect families that we think might be threatened by the 2019/
 ## To Do :
 ## 1). Get the Reptile dataaset
 ## 2). Check for lists of geckoes and snakes
-target_reptiles  <- c('Phyllurus platurus',  'Eulamprus tympanum',      'Hoplocephalus bungaroides', 'Dysdalia rhodogaster', 
+target_reptiles  <- c('Phyllurus platurus',  'Eulamprus tympanum',      'Hoplocephalus bungaroides', 'Drysdalia rhodogaster', 
                       'Amalosia lesuerii',   'Cryptophis nigrescens',   'Eulamprus heatwolei',       'Varanus varius',
                       'Morelia spilota',     'Pseudechis porphyriacus', 'Varanus rosenbergi')
 
-habitat_reptiles <- c('Phyllurus platurus',  'Eulamprus tympanum',      'Hoplocephalus bungaroides', 'Dysdalia rhodogaster', 
+habitat_reptiles <- c('Phyllurus platurus',  'Eulamprus tympanum',      'Hoplocephalus bungaroides', 'Drysdalia rhodogaster', 
                       'Morelia spilota',     'Pseudechis porphyriacus', 'Varanus rosenbergi')
 
+
+test_reptiles    <- c('Eulamprus tympanum',   'Drysdalia rhodogaster')
 
 ```
 
@@ -248,8 +250,8 @@ study.veg.grids <- stack(
              '_1km_study.tif', full.names = TRUE))
 
 ## Topography
-aus.vbf   <- raster('./data/Topography/mrvbf_int_1km.tif')
-study.vbf <- raster('./data/Topography/mrvbf_int_study_1km.tif')
+aus.vbf   <- raster('./data/Topography/MRVBF/mrvbf_int_1km.tif')
+study.vbf <- raster('./data/Topography/MRVBF/mrvbf_int_study_1km.tif')
 
 
 ## Rename the raster grids
