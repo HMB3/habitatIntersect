@@ -134,6 +134,7 @@ test_reptiles    <- c('Eulamprus tympanum',   'Drysdalia rhodogaster')
 
 ```
 
+
 The taxa list is supplied to a series of functions to calculate environmental ranges and habitat 
 suitability. The initial functions download all taxa records from the Atlas and living Australia
 (https://www.ala.org.au/) and the Global Biodiversity Information Facility (GBIF, https://www.gbif.org/). 
@@ -391,13 +392,13 @@ COMBO.RASTER.SPP = combine_records_extract(ala_df           = ALA.LAND.SPP,
 
 
 ## Extract enviro data for background taxa
-COMBO.RASTER.BG = combine_records_extract(ala_df           = BACKG.SPP,
+COMBO.RASTER.BG = combine_records_extract(ala_df           = ALA.LAND.BACKG.SPP,
                                           site_df          = 'NONE',
                                           thin_records     = FALSE,
                                           template_raster  = template_raster_1km_WGS84,
                                           world_raster     = aus.climate.veg.grids,
                                           prj              = CRS("+init=epsg:4326"),
-                                          taxa_list        = BACKG.SPP$searchTaxon,
+                                          taxa_list        = ALA.LAND.BACKG.SPP$searchTaxon,
                                           taxa_level       = 'species', 
                                           
                                           ## These two will need to change.
@@ -611,22 +612,15 @@ SDM.SPAT.OCC.TARG.REPTILE.BG <- prepare_sdm_table(coord_df          = COORD.CLEA
 
 
 ## Check the taxonomic levels
-sum(is.na(SDM.SPAT.OCC.BG@data$searchTaxon));sum(is.na(SDM.SPAT.OCC.BG@data$species));
-sum(is.na(SDM.SPAT.OCC.BG@data$genus));sum(is.na(SDM.SPAT.OCC.BG@data$family))
+sum(is.na(SDM.SPAT.OCC.TARG.REPTILE.BG@data$searchTaxon));sum(is.na(SDM.SPAT.OCC.TARG.REPTILE.BG@data$species));
+sum(is.na(SDM.SPAT.OCC.TARG.REPTILE.BG@data$genus));sum(is.na(SDM.SPAT.OCC.TARG.REPTILE.BG@data$family))
 
 
 ## Save the big table of all taxa, including background taxa, as a SPDF
 writeOGR(obj    = SDM.SPAT.OCC.TARG.REPTILE.BG,
-         dsn    = 'G:/GITHUB/North_east_NSW_fire_recovery/reptile_maxent/results',
+         dsn    = 'G:/North_east_NSW_fire_recovery/output/reptile_maxent/results',
          layer  = 'SDM_SPAT_OCC_BG_GDA_ALL_TARGET_REPTILE_TAXA', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
-
-
-writeOGR(obj    = SDM.SPAT.OCC.TARG.REPTILE.BG,
-         dsn    = 'G:/GITHUB/North_east_NSW_fire_recovery/reptile_maxent/results',
-         layer  = 'SDM_SPAT_OCC_BG_GDA_ALL_CONTROL_REPTILE_TAXA', 
-         driver = 'ESRI Shapefile', overwrite_layer = TRUE)
-
 
 ``` 
 

@@ -65,7 +65,7 @@ run_sdm_analysis = function(taxa_list,
   sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
   
   ## Loop over all the taxa
-  ## taxa <- taxa_list[1]
+  ## taxa <- taxa_list[4]
   lapply(taxa_list, function(taxa){
     
     ## Skip the taxa if the directory already exists, before the loop
@@ -293,7 +293,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
       ## 2). occurrences and
       ## 3). background points
       zones               <- raster::extract(Koppen_crop, occ)
-      cells_in_zones_crop <- Which(Koppen_crop %in% zones, cells = TRUE)
+      cells_in_zones_crop <- raster::Which(Koppen_crop %in% zones, cells = TRUE)
       Koppen_crop_rast    <- terra::rast(Koppen_crop)
       Koppen_rast         <- terra::rast(Koppen_raster)
       cells_in_zones      <- terra::cellFromXY(Koppen_rast, terra::xyFromCell(Koppen_crop_rast, cells_in_zones_crop))
