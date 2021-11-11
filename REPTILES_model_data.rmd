@@ -137,7 +137,7 @@ run_sdm_analysis(taxa_list               = rev(target_reptiles),
                  replicates              = 5,
                  responsecurves          = TRUE,
                  country_shp             = AUS,
-                 crop_Koppen             = FALSE,
+                 crop_Koppen             = TRUE,
                  Koppen_zones            = Koppen_zones,
                  Koppen_raster           = Koppen_1975_1km)
 
