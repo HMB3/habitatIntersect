@@ -451,10 +451,9 @@ fit_maxent_targ_bg_back_sel <- function(occ,
                                'outputformat=logistic'))
     
     ## Save the full model. Replicate this line in the backwards selection algortithm
-    ## Also worth checking that the koppen zones can be used at any resolution
-    ## This is hard coded...hard to make it an argument
-    saveRDS(list(me_xval = me_xval, me_full = me_full, swd = swd, pa = pa,
-                 koppen_gridcode = as.character(Koppen_zones$Koppen[match(unique(zones), Koppen_zones$GRIDCODE)])),
+    ## Do we need the Koppen here?
+    saveRDS(list(me_xval = me_xval, me_full = me_full, swd = swd, pa = pa),
+                 # koppen_gridcode = as.character(Koppen_zones$Koppen[match(unique(zones), Koppen_zones$GRIDCODE)])),
             file.path(outdir_sp, 'full', 'maxent_fitted.rds'))
     
     if (backwards_sel) {
