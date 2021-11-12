@@ -48,7 +48,7 @@ project_maxent_current_grids_mess = function(country_shp,
     maxent_predict_fun <- function(species) {
       
       ## Create species name
-      ## species = rev(map_spp)[1]
+      ## species = taxa_list[1]
       save_name = gsub(' ', '_', species)
       
       ## First check if the species exists
@@ -70,7 +70,7 @@ project_maxent_current_grids_mess = function(country_shp,
             ## if it was run with backwards selection, just use the full model
             if (grepl("back", maxent_path)) {
               
-              message('Read in the BS model')
+              message('Read in the backwards selected model')
               m   <- readRDS(sprintf('%s/%s/full/maxent_fitted.rds', maxent_path, save_name))
               
             } else {

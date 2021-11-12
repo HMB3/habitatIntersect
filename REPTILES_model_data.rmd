@@ -207,7 +207,7 @@ tryCatch(
     
     ## This will write the error message inside the text file, but it won't include the species
     file.create(file.path("output/reptile_maxent/back_sel_models/mapping_failed_current.txt"))
-    cat(cond$message, file = file.path("output/reptile_maxent/back_sel_models/inv_mapping_failed_current.txt"))
+    cat(cond$message, file = file.path("output/reptile_maxent/back_sel_models/reptiles_mapping_failed_current.txt"))
     warning(cond$message)
     
   })
