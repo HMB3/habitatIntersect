@@ -179,7 +179,7 @@ expect these folders (a typical R project structure), create them if they don't 
 ## Get the data for individual reptile species
 download_ALA_all_species(species_list   = target_reptiles,
                          your_email     = 'hugh.burley@gmail.com',
-                         download_path  = "./data/ALA/Insects/Species/",
+                         download_path  = "./data/ALA/Reptiles/",
                          ala_temp_dir   = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
                          download_limit = 20000,
                          quality_cols   = 'all')
