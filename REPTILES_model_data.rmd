@@ -107,8 +107,12 @@ minimum number of predictors remains.
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## 
-SDM.SPAT.OCC.REPTILE.BG = readRDS('./output/reptile_maxent/results/SDM_SPAT_OCC_BG_TEST_REPTILE_TAXA.rds')
+## Read in the reptile taxa
+SDM.SPAT.OCC.TARGET.REPTILE.BG = readRDS('./output/reptile_maxent/results/SDM_SPAT_OCC_BG_TARGET_CONTROL_REPTILE_TAXA.rds')
+
+
+## Are the control taxa present?
+'Pseudechis porphyriacus' %in% SDM.SPAT.OCC.TARGET.REPTILE.BG$searchTaxon
 
 
 ## To Do :
@@ -121,7 +125,7 @@ run_sdm_analysis(taxa_list               = rev(target_reptiles),
                  taxa_level              = 'species',
                  maxent_dir              = 'output/reptile_maxent/full_models',     
                  bs_dir                  = 'output/reptile_maxent/back_sel_models',
-                 sdm_df                  = SDM.SPAT.OCC.REPTILE.BG,
+                 sdm_df                  = SDM.SPAT.OCC.TARGET.REPTILE.BG,
                  sdm_predictors          = names(aus.climate.veg.grids),
                  
                  backwards_sel           = TRUE,      
