@@ -451,7 +451,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
                                'outputformat=logistic'))
     
     ## Save the full model. Replicate this line in the backwards selection algortithm
-    ## Do we need the Koppen here?
+    ## Remove Koppen from the end
     saveRDS(list(me_xval = me_xval, me_full = me_full, swd = swd, pa = pa),
                  # koppen_gridcode = as.character(Koppen_zones$Koppen[match(unique(zones), Koppen_zones$GRIDCODE)])),
             file.path(outdir_sp, 'full', 'maxent_fitted.rds'))
