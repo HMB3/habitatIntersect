@@ -617,6 +617,8 @@ sum(is.na(SDM.SPAT.OCC.TARG.REPTILE.BG@data$genus));sum(is.na(SDM.SPAT.OCC.TARG.
 
 
 ## Save the big table of all taxa, including background taxa, as a SPDF
+
+
 writeOGR(obj    = SDM.SPAT.OCC.TARG.REPTILE.BG,
          dsn    = 'G:/North_east_NSW_fire_recovery/output/reptile_maxent/results',
          layer  = 'SDM_SPAT_OCC_BG_GDA_ALL_TARGET_REPTILE_TAXA', 
