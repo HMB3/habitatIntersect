@@ -48,7 +48,7 @@ project_maxent_current_grids_mess = function(country_shp,
     maxent_predict_fun <- function(species) {
       
       ## Create species name
-      ## species = taxa_list[1]
+      ## species = taxa_list[5]
       save_name = gsub(' ', '_', species)
       
       ## First check if the species exists
@@ -71,17 +71,18 @@ project_maxent_current_grids_mess = function(country_shp,
             if (grepl("back", maxent_path)) {
               
               message('Read in the backwards selected model')
-              m   <- readRDS(sprintf('%s/%s/full/maxent_fitted.rds', maxent_path, save_name))
+              m <- readRDS(sprintf('%s/%s/full/maxent_fitted.rds', maxent_path, save_name))
               
             } else {
+              
               ## Otherwise, index the full model
               message('Read in the full model')
-              m   <- readRDS(sprintf('%s/%s/full/maxent_fitted.rds', maxent_path, save_name))$me_full
+              m <- readRDS(sprintf('%s/%s/full/maxent_fitted.rds', maxent_path, save_name))$me_full
             }
             
             ## Read in species with data and occurrence files
             message('Read in the swd and occ data')
-            swd <- as.data.frame(readRDS(sprintf('%s%s/swd.rds',    maxent_path, species, species)))
+            swd <- as.data.frame(readRDS(sprintf('%s%s/swd.rds', maxent_path, species)))
             occ <- readRDS(sprintf('%s%s/%s_occ.rds', maxent_path, species, species)) %>%
               spTransform(country_prj)
             
@@ -90,6 +91,11 @@ project_maxent_current_grids_mess = function(country_shp,
               
               ## Report which prediction is in progress :: m$me_full, m$me_full@presence
               message('Running current maxent prediction for ', species)
+              
+              ## Set the names of the rasters to match the occ data, and subset both
+              sdm_vars             = names(m@presence)
+              current_grids        = subset(current_grids, sdm_vars)
+              swd                  = swd [,sdm_vars]
               
               pred.current <- rmaxent::project(
                 m, current_grids[[colnames(m@presence)]])$prediction_logistic
@@ -108,12 +114,7 @@ project_maxent_current_grids_mess = function(country_shp,
             MESS_dir = sprintf('%s%s/full/%s', maxent_path, species, 'MESS_output')
             
             ## If the current novel layer doesn't exist, create it
-            if(!file.exists(sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel")))  {
-              
-              ## Set the names of the rasters to match the occ data, and subset both
-              sdm_vars             = names(m@presence)
-              current_grids        = subset(current_grids, sdm_vars)
-              swd                  = swd [,sdm_vars]
+            if(!file.exists(sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel"))) {
               
               ##
               message('Are the environmental variables identical? ',
@@ -155,7 +156,8 @@ project_maxent_current_grids_mess = function(country_shp,
                                colorkey = list(height = 0.6),
                                main = gsub('_', ' ', sprintf(' Current_mess_for_%s (%s)', raster_name, species))) +
                   
-                  latticeExtra::layer(sp.polygons(country_poly), data = list(country_poly = country_poly))  ## need list() for polygon
+                  latticeExtra::layer(sp.polygons(country_poly), 
+                                      data = list(country_poly = country_poly)) ## need list() for polygon
                 
                 p <- diverge0(p, 'RdBu')
                 f <- sprintf('%s/%s%s%s.png', MESS_dir, species, "_current_mess_", raster_name)
@@ -171,7 +173,7 @@ project_maxent_current_grids_mess = function(country_shp,
             }
             
             ## Write the raster of novel environments to the MESS sub-directory
-            if(!file.exists(sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel")))  {
+            if(!file.exists(sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel"))) {
               
               message('Writing currently novel environments to file for ', species)
               raster::writeRaster(novel_current, sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel"),
