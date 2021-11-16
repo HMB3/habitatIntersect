@@ -6,7 +6,7 @@
 ## Below are the functions used to project SDM models across geographic areas.
 
 
-#' @title Project current maxent models
+#' @title Project current maxent models across geographic space
 #' @description This function takes the maxent models created by the 'fit_maxent_targ_bg_back_sel' function,
 #' and projects the model across geographic space - currently just for Australia.
 #' @param country_shp        SpatialPolygonsDataFrame - Spdf of the country for mapping maxent results (e.g. Australia)
