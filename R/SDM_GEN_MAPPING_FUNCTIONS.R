@@ -12,7 +12,7 @@
 #' @param country_shp        SpatialPolygonsDataFrame - Spdf of the country for mapping maxent results (e.g. Australia)
 #' @param country_prj        CRS object  - Local projection for mapping maxent results
 #' @param local_prj          CRS object  - Local projection for mapping maxent results
-#' @param taxa_list       Character string - The species to run maxent predictions for
+#' @param taxa_list          Character string - The species to run maxent predictions for
 #' @param maxent_path        Character string - The file path containin the existing maxent models
 #' @param climate_path       Character string - The file path where the climate data is saved
 #' @param grid_names         Character string - Vector of enviro conditions that you want to include
