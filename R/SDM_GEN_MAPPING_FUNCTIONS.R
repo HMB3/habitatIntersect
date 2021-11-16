@@ -48,7 +48,7 @@ project_maxent_current_grids_mess = function(country_shp,
     maxent_predict_fun <- function(species) {
       
       ## Create species name
-      ## species = taxa_list[5]
+      ## species = taxa_list[1]
       save_name = gsub(' ', '_', species)
       
       ## First check if the species exists
@@ -207,27 +207,36 @@ project_maxent_current_grids_mess = function(country_shp,
             if(save_novel_poly == TRUE) {
               
               ## Create shape files 
-              current_novel_raster <- raster(sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel"))
-              current_novel_poly   <- sf::as_Spatial(sf::st_as_sf(stars::st_as_stars(current_novel_raster), 
-                                                                  as_points = FALSE, 
-                                                                  merge     = TRUE,
-                                                                  fill      = FALSE, 
-                                                                  group     = FALSE,
-                                                                  agr       = FALSE))
-              gc()
+              current_novel_raster <- rast(sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel"))
+              values <- values(current_novel_raster)
+              unique(values[1])
               
-              ## Now save the novel areas as shapefiles
-              ## There is a problem with accessing the files at the same time
-              message('Saving current MESS maps to polygons for ', species)
-              writeOGR(obj    = current_novel_poly,
-                       dsn    = sprintf('%s',  MESS_shp_path),
-                       layer  = paste0(species, "_current_novel_polygon"),
-                       driver = "ESRI Shapefile", overwrite_layer = TRUE)
+              if(!is.na(unique(values[1]))) {
+                
+                current_novel_poly   <- sf::as_Spatial(sf::st_as_sf(stars::st_as_stars(current_novel_raster), 
+                                                                    as_points = FALSE, 
+                                                                    merge     = TRUE,
+                                                                    fill      = FALSE, 
+                                                                    group     = FALSE,
+                                                                    agr       = FALSE))
+                gc()
+                
+                ## Now save the novel areas as shapefiles
+                ## There is a problem with accessing the files at the same time
+                message('Saving current MESS maps to polygons for ', species)
+                writeOGR(obj    = current_novel_poly,
+                         dsn    = sprintf('%s',  MESS_shp_path),
+                         layer  = paste0(species, "_current_novel_polygon"),
+                         driver = "ESRI Shapefile", overwrite_layer = TRUE)
+                
+              } else {
+                message('Do not save current MESS maps to shapefile for ', species, ' raSter values are NA')
+              }
+              
             } else {
               message('Do not save current MESS maps to shapefile for ', species)
             }
             
-            ## Create a SpatialLines object that indicates novel areas (this will be overlaid)
             ## Below, we create a dummy polygon as the first list element (which is the extent
             ## of the raster, expanded by 10%), to plot on panel 1). 50 = approx 50 lines across the polygon
             
@@ -257,7 +266,7 @@ project_maxent_current_grids_mess = function(country_shp,
                               col.regions = colorRampPalette(rev(brewer.pal(11, 'Spectral'))),
                               
                               ## Give each plot a name: the third panel is the GCM
-                              names.attr = c('Australian records', ' Current'),
+                              names.attr = c('Maxent records', ' Current'),
                               colorkey   = list(height = 0.5, width = 3), xlab = '', ylab = '',
                               main       = list(gsub('_', ' ', species), font = 4, cex = 2)) +
                       

@@ -85,6 +85,7 @@ rasterOptions(tmpdir = 'G:/GITHUB/North_east_NSW_fire_recovery/TEMP')
 terraOptions(memfrac = 0.5, 
              tempdir = 'G:/GITHUB/North_east_NSW_fire_recovery/TEMP')
 
+
 ```
 
 \
