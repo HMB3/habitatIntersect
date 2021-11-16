@@ -254,6 +254,7 @@ study.veg.grids <- raster::stack(
 ## Topography
 aus.vbf   <- raster::raster('./data/Topography/MRVBF/mrvbf_int_1km.tif')
 study.vbf <- raster::raster('./data/Topography/MRVBF/mrvbf_int_study_1km.tif')
+aus.dem   <- raster::raster('./data/Topography/InputsDEM_resample.tif')
 
 
 ## Rename the raster grids

@@ -86,7 +86,7 @@ project_maxent_current_grids_mess = function(country_shp,
             occ <- readRDS(sprintf('%s%s/%s_occ.rds', maxent_path, species, species)) %>%
               spTransform(country_prj)
             
-            ## If the current raster prediction has not been run, run it
+            ## If the current raster prediction has not been run, run it.
             if(!file.exists(f_current) == TRUE) {
               
               ## Report which prediction is in progress :: m$me_full, m$me_full@presence
