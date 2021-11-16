@@ -111,8 +111,13 @@ minimum number of predictors remains.
 SDM.SPAT.OCC.TARGET.REPTILE.BG = readRDS('./output/reptile_maxent/results/SDM_SPAT_OCC_BG_TARGET_CONTROL_REPTILE_TAXA.rds')
 
 
-## Are the control taxa present?
-'Pseudechis porphyriacus' %in% SDM.SPAT.OCC.TARGET.REPTILE.BG$searchTaxon
+## Are the control taxa present? And the extra records?
+'Pseudechis porphyriacus'   %in% SDM.SPAT.OCC.TARGET.REPTILE.BG$searchTaxon
+'Hoplocephalus bungaroides' %in% SDM.SPAT.OCC.TARGET.REPTILE.BG$searchTaxon
+
+
+## Check the dimensions
+Hoplocephalus_bungaroides <- SDM.SPAT.OCC.TARGET.REPTILE.BG %>% subset(., searchTaxon == 'Hoplocephalus bungaroides') 
 
 
 ## To Do :

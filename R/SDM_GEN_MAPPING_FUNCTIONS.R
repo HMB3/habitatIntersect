@@ -230,7 +230,7 @@ project_maxent_current_grids_mess = function(country_shp,
                          driver = "ESRI Shapefile", overwrite_layer = TRUE)
                 
               } else {
-                message('Do not save current MESS maps to shapefile for ', species, ' raSter values are NA')
+                message('Do not save current MESS maps to shapefile for ', species, ' no cells are novel')
               }
               
             } else {
