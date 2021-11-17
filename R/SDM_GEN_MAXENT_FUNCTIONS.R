@@ -283,7 +283,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
     
     ## Find which of these cells fall within the Koppen-Geiger zones that the taxa occupies
     ## Crop the Kopppen raster to the extent of the occurrences, and snap it.
-    if(crop_Koppen == TRUE) {
+    if(crop_Koppen) {
       
       message(name, ' intersecting background cells with Koppen zones')
       Koppen_crop <- raster::crop(Koppen_raster, occ, snap = 'out')
@@ -452,9 +452,15 @@ fit_maxent_targ_bg_back_sel <- function(occ,
     
     ## Save the full model. Replicate this line in the backwards selection algortithm
     ## Remove Koppen from the end
-    saveRDS(list(me_xval = me_xval, me_full = me_full, swd = swd, pa = pa),
-                 # koppen_gridcode = as.character(Koppen_zones$Koppen[match(unique(zones), Koppen_zones$GRIDCODE)])),
-            file.path(outdir_sp, 'full', 'maxent_fitted.rds'))
+    if(crop_Koppen) {
+        saveRDS(list(me_xval = me_xval, me_full = me_full, swd = swd, pa = pa),
+           koppen_gridcode = as.character(Koppen_zones$Koppen[match(unique(zones), Koppen_zones$GRIDCODE)]),
+           file.path(outdir_sp, 'full', 'maxent_fitted.rds'))
+      
+    } else {
+      saveRDS(list(me_xval = me_xval, me_full = me_full, swd = swd, pa = pa),
+        file.path(outdir_sp, 'full', 'maxent_fitted.rds'))
+    }
     
     if (backwards_sel) {
       

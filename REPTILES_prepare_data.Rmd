@@ -341,12 +341,17 @@ data('ALA_keep')
 
 
 ## Combine ALA data for individual reptile species and format for niche analysis
+## Some taxa may be missing data for year, etc.
 ALA.LAND.SPP       <- combine_ala_records(taxa_list         = target_reptiles,
                                           records_path      = "./data/ALA/Reptiles/",
                                           records_extension = "_ALA_records.RData",
                                           record_type       = "ALA",
                                           keep_cols         = ALA_keep,
-                                          world_raster      = world_annual_temp)
+                                          world_raster      = world_annual_temp) %>% 
+  
+  ## bind on the bionet data
+  bind_rows(., Hoplocephalus_bungaroides_bionet)
+
 
 
 ## Take a data dump from the ALA of all the reptiles, and format it to the columns names we want for the niche analyses 
@@ -354,7 +359,6 @@ ALA.LAND.BACKG.SPP  <- format_ala_dump(ALA_table         = Reptiles_ALA,
                                        record_type       = "ALA",
                                        keep_cols         = ALA_keep,
                                        world_raster      = world_annual_temp)
-
 
 ``` 
 
@@ -564,7 +568,7 @@ sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0
 
 ## Final data set is a spatial points data frame in the Mollweide projection
 ## SDM_SPAT_OCC_BG_HOST_PLANT_SPP
-SDM.SPAT.OCC.BG.INV.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
+COORD.CLEAN.BG = COORD.CLEAN.BG[!COORD.CLEAN.BG$searchTaxon %in% taxa_list, ]
 
 
 ## Create SDM table for all the backhround reptile species
@@ -584,7 +588,7 @@ SDM.SPAT.OCC.ALL.REPTILE.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN
                                                  save_run          = "CONTROL_REPTILE_TAXA",
                                                  site_records      = FALSE,
                                                  read_background   = FALSE,
-                                                 save_data         = TRUE,
+                                                 save_data         = FALSE,
                                                  data_path         = paste0(getwd(), '/output/results/'),
                                                  project_path      = 'G:/GITHUB/North_east_NSW_fire_recovery')
 
