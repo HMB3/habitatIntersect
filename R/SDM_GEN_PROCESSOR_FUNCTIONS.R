@@ -1162,6 +1162,7 @@ combine_records_extract = function(ala_df,
 #' @param data_path          Character string - The file path used for saving the data frame
 #' @export
 coord_clean_records = function(records,
+                               site_flag,
                                capitals,
                                centroids,
                                save_run,
@@ -1177,9 +1178,8 @@ coord_clean_records = function(records,
   records$taxa = records$searchTaxon
   
   ## Split the site data up from the ALA data
-  # records      <- records %>% mutate(coord_summary = ifelse(SOURCE == 'ALA', coord_summary = '', coord_summary = TRUE))
   ala_records  <- records %>% filter(SOURCE == 'ALA')
-  site_records <- records %>% filter(SOURCE == 'SITE') %>% mutate(coord_summary = TRUE)
+  site_records <- records %>% filter(SOURCE == site_flag) %>% mutate(coord_summary = TRUE)
   
   ## Rename the columns to fit the CleanCoordinates format and create a tibble.
   TIB.GBIF <- ala_records %>% dplyr::rename(coord_spp        = searchTaxon,
@@ -1217,15 +1217,9 @@ coord_clean_records = function(records,
   ## Flagging ~ x%, excluding the spatial outliers. Seems reasonable?
   message(round(with(TIB.GBIF, table(coord_summary)/sum(table(coord_summary))*100), 2), " % records removed")
   
-  ## Check the order still matches
-  message(identical(records$CC.OBS, TIB.GBIF$CC.OBS), ' records order matches')
-  message(identical(records$searchTaxon, TIB.GBIF$coord_spp))
-  
   ## Is the taxa column the same as the searchTaxon column?
   COORD.CLEAN = left_join(ala_records, TIB.GBIF, by = "CC.OBS")
-  message(identical(records$searchTaxon, COORD.CLEAN$coord_spp), ' records order matches')
-  identical(records$CC.OBS, COORD.CLEAN$CC.OBS)
-  
+
   ## Now subset to records that are flagged as outliers
   message(table(COORD.CLEAN$coord_summary))
   

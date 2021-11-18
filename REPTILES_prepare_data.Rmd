@@ -353,15 +353,11 @@ ALA.LAND.SPP       <- combine_ala_records(taxa_list         = target_reptiles,
                                           records_extension = "_ALA_records.RData",
                                           record_type       = "ALA",
                                           keep_cols         = ALA_keep,
-                                          world_raster      = world_annual_temp) #%>% 
-
-## Then bind on the bio-net data for that species.
-## Assuming bio-net records are good, don't need any extra columns
-# bind_rows(., Hoplocephalus_bungaroides_bionet)
+                                          world_raster      = world_annual_temp) 
 
 
-
-## Take a data dump from the ALA of all the reptiles, and format it to the columns names we want for the niche analyses
+## Take a data dump from the ALA of all the reptiles, 
+## and format it to the columns names we want for the niche analyses
 Reptiles_ALA        <- readRDS('./data/ALA/Reptiles/REPTILES_2021_1106.rds')
 
 
@@ -409,7 +405,7 @@ COMBO.RASTER.SPP <- combine_records_extract(ala_df           = ALA.LAND.BACKG.SP
                                             template_raster  = template_raster_1km_WGS84,
                                             world_raster     = aus.climate.veg.grids,
                                             prj              = CRS("+init=epsg:4326"),
-                                            taxa_list        = ALA.LAND.BACKG.SPP$searchTaxon,
+                                            taxa_list        = unique(ALA.LAND.BACKG.SPP$searchTaxon),
                                             taxa_level       = 'species', 
                                             
                                             ## These two will need to change.
@@ -453,6 +449,7 @@ records data.frame is that returned by the combine_records_extract function abov
 
 ## Flag records as institutional or spatial outliers
 COORD.CLEAN <- coord_clean_records(records    = COMBO.RASTER.SPP,
+                                   site_flag  = 'BIONET',
                                    capitals   = 10000,  
                                    centroids  = 5000,   
                                    save_data  = FALSE,
@@ -460,20 +457,20 @@ COORD.CLEAN <- coord_clean_records(records    = COMBO.RASTER.SPP,
                                    data_path  = "./output/results/")
 
 
-## Are the control taxa present? And the extra records?
+## Are the control taxa present? And the data sources?
 'Pseudechis porphyriacus'   %in% COORD.CLEAN$searchTaxon
 'Hoplocephalus bungaroides' %in% COORD.CLEAN$searchTaxon
+table(COORD.CLEAN$SOURCE)
 
 
 ``` 
 
 \
 
-The next cleaning function takes a data frame of all taxa records, flags records as 
-spatial outliers (T/F for each record in the df), and saves images of the checks for each. 
-Manual cleaning of spatial outliers is very tedious, but automated cleaning makes mistakes, 
-so checking is handy. This function uses the CoordinateCleaner package 
-https://cran.r-project.org/web/packages/CoordinateCleaner/index.html. It assumes that the 
+Next we take all the records, and flags them as spatial outliers (T/F for each record in the df), 
+and saves images of the checks for each. Manual cleaning of spatial outliers is very tedious, 
+but automated cleaning makes mistakes, so checking is handy. This function uses the CoordinateCleaner 
+package https://cran.r-project.org/web/packages/CoordinateCleaner/index.html. It assumes that the 
 input dfs are those returned by the coord_clean_records function.
 
 \
@@ -496,7 +493,7 @@ SPATIAL.CLEAN = check_spatial_outliers(occ_df       = COORD.CLEAN,
 
 \
 
-The next cleaning function takes a data frame of all taxa records, estimates the geographic 
+Next we takes a data frame of all taxa records, and estimate the geographic 
 and environmental ranges for each taxa, and creates a table of all taxa ranges. 
 It uses the AOO.computing function in the ConR package: https://cran.r-project.org/web/packages/ConR/index.html
 It assumes that the input df is that returned by the check_spatial_outliers function.
@@ -604,8 +601,8 @@ sum(is.na(SDM.SPAT.OCC.TARG.REPTILE.BG@data$genus));sum(is.na(SDM.SPAT.OCC.TARG.
 
 
 ## Check the dimensions of a few species
-Hoplocephalus_bungaroides <- SDM.SPAT.OCC.TARGET.REPTILE.BG %>% subset(., searchTaxon == 'Hoplocephalus bungaroides') 
-Pseudechis_porphyriacus   <- SDM.SPAT.OCC.TARGET.REPTILE.BG %>% subset(., searchTaxon == 'Pseudechis porphyriacus') 
+SDM.SPAT.OCC.TARGET.REPTILE.BG %>% subset(., searchTaxon == 'Hoplocephalus bungaroides') %>% nrow()
+SDM.SPAT.OCC.TARGET.REPTILE.BG %>% subset(., searchTaxon == 'Pseudechis porphyriacus')   %>% nrow()
 
 
 ## Save the data to a shapefile
