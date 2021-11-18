@@ -1019,6 +1019,7 @@ combine_gbif_records = function(taxa_list,
 #' @param save_run           A run name to append to the data frame (e.g. bat taxa, etc.). Useful for multiple runs.
 #' @export
 combine_records_extract = function(ala_df,
+                                   add_sites,
                                    site_df,
                                    add_site,
                                    taxa_list,
@@ -1045,8 +1046,8 @@ combine_records_extract = function(ala_df,
   ALA.COMBO <- ALA.COMBO %>% mutate(Match_SN_ST = str_detect(!!sym(taxa_level), searchTaxon)) %>% 
     filter(Match_SN_ST == 'TRUE') %>% as.data.frame()
   
-  ## If site = TRUE
-  if(site_df) {
+  ## Don't taxo match the site data :: this needs to be kept without exclusion
+  if(add_sites) {
     
     site_df   <- site_df[site_df$searchTaxon %in% taxa_list, ]
     ALA.COMBO <- bind_rows(ALA.COMBO, site_df)
