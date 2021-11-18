@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_MAXENT_FUNCTIONS.R
 \name{run_sdm_analysis}
 \alias{run_sdm_analysis}
-\title{Run SDM analyses}
+\title{Run SDM analyses for 'species with data' format}
 \usage{
 run_sdm_analysis(
   taxa_list,
@@ -23,7 +23,7 @@ run_sdm_analysis(
   features,
   replicates,
   responsecurves,
-  koppen_crop,
+  crop_Koppen,
   Koppen_raster,
   Koppen_zones,
   country_shp
@@ -66,13 +66,13 @@ run_sdm_analysis(
 
 \item{responsecurves}{Logical - Save response curves of the maxent models (T/F)?}
 
-\item{koppen_crop}{Logical - Should we use a koppen zone raster to select background points?}
-
 \item{Koppen_raster}{RasterLayer of global koppen zones, in Mollweide54009 projection}
 
 \item{Koppen_zones}{Dataframe of global koppen zones, with columns : GRIDCODE, Koppen}
 
 \item{country_shp}{.Rds object - SpatialPolygonsDataFrame of Australia for mapping maxent points}
+
+\item{koppen_crop}{Logical - Should we use a koppen zone raster to select background points?}
 }
 \description{
 This function takes a data frame of all taxa records,
