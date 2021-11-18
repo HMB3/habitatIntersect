@@ -127,11 +127,15 @@ target_reptiles  <- c('Phyllurus platurus',  'Eulamprus tympanum',      'Hoploce
                       'Amalosia lesuerii',   'Cryptophis nigrescens',   'Eulamprus heatwolei',       'Varanus varius',
                       'Morelia spilota',     'Pseudechis porphyriacus', 'Varanus rosenbergi')
 
+
 habitat_reptiles <- c('Phyllurus platurus',  'Eulamprus tympanum',      'Hoplocephalus bungaroides', 'Drysdalia rhodogaster', 
                       'Morelia spilota',     'Pseudechis porphyriacus', 'Varanus rosenbergi')
 
 
 test_reptiles    <- c('Eulamprus tympanum',   'Drysdalia rhodogaster')
+
+
+exclude_spp      <- c('Hoplocephalus bungaroides')
 
 ```
 
@@ -349,16 +353,28 @@ ALA.LAND.SPP       <- combine_ala_records(taxa_list         = target_reptiles,
                                           keep_cols         = ALA_keep,
                                           world_raster      = world_annual_temp) %>% 
   
-  ## bind on the bionet data
+  ## Then bind on the bio-net data for that species.
+  ## Assuming bio-net records are good, don't need any extra columns
   bind_rows(., Hoplocephalus_bungaroides_bionet)
 
 
 
-## Take a data dump from the ALA of all the reptiles, and format it to the columns names we want for the niche analyses 
+## Take a data dump from the ALA of all the reptiles, and format it to the columns names we want for the niche analyses
+## Try using this for everything - all the reptiles should be there...
 ALA.LAND.BACKG.SPP  <- format_ala_dump(ALA_table         = Reptiles_ALA,
                                        record_type       = "ALA",
                                        keep_cols         = ALA_keep,
-                                       world_raster      = world_annual_temp)
+                                       world_raster      = world_annual_temp) %>%
+  
+  ## Remove the species which have unreliable ALA records,
+  .[!.$searchTaxon %in% ALA.LAND.SPP$searchTaxon, ] %>% 
+  bind_rows(., ALA.LAND.SPP)
+
+
+
+## Are the control taxa present? And the extra records?
+'Pseudechis porphyriacus'   %in% ALA.LAND.BACKG.SPP$searchTaxon
+'Hoplocephalus bungaroides' %in% ALA.LAND.BACKG.SPP$searchTaxon
 
 ``` 
 
@@ -380,13 +396,13 @@ vector 'env_variables'. In this case, it's simply the biolclim variables (i.e. b
 ## Some of the site records will be removed here, if they are outside the raster bounds.
 ## Also, some of the records don't have a 'year' attribute, for some taxa, tha causes a lot of records to be lost.
 ## This criteria could be relaxed...?
-COMBO.RASTER.SPP = combine_records_extract(ala_df           = ALA.LAND.SPP,
+COMBO.RASTER.SPP = combine_records_extract(ala_df           = ALA.LAND.BACKG.SPP,
                                            site_df          = 'NONE',
                                            thin_records     = FALSE,
                                            template_raster  = template_raster_1km_WGS84,
                                            world_raster     = aus.climate.veg.grids,
                                            prj              = CRS("+init=epsg:4326"),
-                                           taxa_list        = target_reptiles,
+                                           taxa_list        = ALA.LAND.BACKG.SPP$searchTaxon,
                                            taxa_level       = 'species', 
                                            
                                            ## These two will need to change.
@@ -395,24 +411,6 @@ COMBO.RASTER.SPP = combine_records_extract(ala_df           = ALA.LAND.SPP,
                                            save_data        = FALSE,
                                            save_run         = "TARGET_REPTILE_SPECIES",
                                            data_path        = "./output/results/")
-
-
-## Extract enviro data for background taxa
-COMBO.RASTER.BG = combine_records_extract(ala_df           = ALA.LAND.BACKG.SPP,
-                                          site_df          = 'NONE',
-                                          thin_records     = FALSE,
-                                          template_raster  = template_raster_1km_WGS84,
-                                          world_raster     = aus.climate.veg.grids,
-                                          prj              = CRS("+init=epsg:4326"),
-                                          taxa_list        = ALA.LAND.BACKG.SPP$searchTaxon,
-                                          taxa_level       = 'species', 
-                                          
-                                          ## These two will need to change.
-                                          ## Specify them in the code
-                                          raster_divide    = FALSE,
-                                          save_data        = FALSE,
-                                          save_run         = "BACKGROUND_REPTILE_SPECIES",
-                                          data_path        = "./output/results/")
 
 
 ``` 
@@ -441,24 +439,19 @@ records data.frame is that returned by the combine_records_extract function abov
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Just create a background points version for each step 
-
 ## Flag records as institutional or spatial outliers
-COORD.CLEAN   = coord_clean_records(records    = COMBO.RASTER.SPP,
-                                    capitals   = 10000,  
-                                    centroids  = 5000,   
-                                    save_data  = FALSE,
-                                    save_run   = "TARGET_REPTILE_SPECIES",
-                                    data_path  = "./output/results/")
+COORD.CLEAN <- coord_clean_records(records    = COMBO.RASTER.SPP,
+                                   capitals   = 10000,  
+                                   centroids  = 5000,   
+                                   save_data  = FALSE,
+                                   save_run   = "TARGET_REPTILE_SPECIES",
+                                   data_path  = "./output/results/")
 
 
-## Do the same for the BG points
-COORD.CLEAN.BG = coord_clean_records(records    = COMBO.RASTER.BG,
-                                     capitals   = 10000,  
-                                     centroids  = 5000,   
-                                     save_data  = FALSE,
-                                     save_run   = "BACKGROUND_REPTILE_SPECIES",
-                                     data_path  = "./output/results/")
+## Are the control taxa present? And the extra records?
+'Pseudechis porphyriacus'   %in% COORD.CLEAN$searchTaxon
+'Hoplocephalus bungaroides' %in% COORD.CLEAN$searchTaxon
+
 
 ``` 
 
@@ -486,17 +479,6 @@ SPATIAL.CLEAN = check_spatial_outliers(occ_df       = COORD.CLEAN,
                                        multi_source = TRUE,
                                        spatial_mult = 10,
                                        prj          = CRS("+init=epsg:4326"))
-
-
-SPATIAL.CLEAN.BG = check_spatial_outliers(occ_df       = COORD.CLEAN.BG,
-                                          land_shp     = LAND,
-                                          site_records = TRUE, 
-                                          clean_path   = './data/ALA/Check_Plots/',
-                                          plot_points  = FALSE,
-                                          record_limit = 400000,
-                                          multi_source = TRUE,
-                                          spatial_mult = 10,
-                                          prj          = CRS("+init=epsg:4326"))
 
 ``` 
 
@@ -567,13 +549,12 @@ sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0
 
 
 ## Final data set is a spatial points data frame in the Mollweide projection
-## SDM_SPAT_OCC_BG_HOST_PLANT_SPP
-COORD.CLEAN.BG = COORD.CLEAN.BG[!COORD.CLEAN.BG$searchTaxon %in% taxa_list, ]
+SDM.SPAT.OCC.BG.INVERT.GDA  <- readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
 
 
 ## Create SDM table for all the backhround reptile species
-SDM.SPAT.OCC.ALL.REPTILE.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN.BG,
-                                                 taxa_list         = COORD.CLEAN.BG$searchTaxon,
+SDM.SPAT.OCC.ALL.REPTILE.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN,
+                                                 taxa_list         = COORD.CLEAN$searchTaxon,
                                                  
                                                  sdm_table_vars    = c('searchTaxon', 
                                                                        'species',  
@@ -585,36 +566,18 @@ SDM.SPAT.OCC.ALL.REPTILE.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN
                                                                        'SPAT_OUT',
                                                                        names(aus.climate.veg.grids)),
                                                  
-                                                 save_run          = "CONTROL_REPTILE_TAXA",
+                                                 save_run          = "ALL_REPTILE_TAXA",
                                                  site_records      = FALSE,
-                                                 read_background   = FALSE,
-                                                 save_data         = FALSE,
+                                                 read_background   = TRUE,
+                                                 background_points = SDM.SPAT.OCC.BG.INVERT.GDA, 
+                                                 save_data         = TRUE,
                                                  data_path         = paste0(getwd(), '/output/results/'),
                                                  project_path      = 'G:/GITHUB/North_east_NSW_fire_recovery')
 
 
-
-## Combine occ data with the bg data for the target reptiles
-SDM.SPAT.OCC.TARG.REPTILE.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN,
-                                                  taxa_list         = target_reptiles,
-                                                  
-                                                  sdm_table_vars    = c('searchTaxon', 
-                                                                        'species',  
-                                                                        'genus', 
-                                                                        'family',      
-                                                                        'lon',      
-                                                                        'lat', 
-                                                                        'SOURCE', 
-                                                                        'SPAT_OUT',
-                                                                        names(aus.climate.veg.grids)),
-                                                  
-                                                  save_run          = "TEST_REPTILE_TAXA",
-                                                  site_records      = FALSE,
-                                                  read_background   = TRUE,
-                                                  background_points = SDM.SPAT.OCC.ALL.REPTILE.BG, 
-                                                  save_data         = TRUE,
-                                                  data_path         = paste0(getwd(), '/output/reptile_maxent/results/'),
-                                                  project_path      = 'G:/GITHUB/North_east_NSW_fire_recovery')
+## Are the control taxa present? And the extra records?
+'Pseudechis porphyriacus'   %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
+'Hoplocephalus bungaroides' %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
 
 
 ## Check the taxonomic levels
@@ -622,8 +585,13 @@ sum(is.na(SDM.SPAT.OCC.TARG.REPTILE.BG@data$searchTaxon));sum(is.na(SDM.SPAT.OCC
 sum(is.na(SDM.SPAT.OCC.TARG.REPTILE.BG@data$genus));sum(is.na(SDM.SPAT.OCC.TARG.REPTILE.BG@data$family))
 
 
+## Check the dimensions of a few species
+Hoplocephalus_bungaroides <- SDM.SPAT.OCC.TARGET.REPTILE.BG %>% subset(., searchTaxon == 'Hoplocephalus bungaroides') 
+Hoplocephalus_bungaroides <- SDM.SPAT.OCC.TARGET.REPTILE.BG %>% subset(., searchTaxon == 'Pseudechis porphyriacus') 
 
-writeOGR(obj    = SDM.SPAT.OCC.TARG.REPTILE.BG,
+
+## Save the data to a shapefile
+writeOGR(obj    = SDM.SPAT.OCC.ALL.REPTILE.BG,
          dsn    = 'G:/North_east_NSW_fire_recovery/output/reptile_maxent/results',
          layer  = 'SDM_SPAT_OCC_BG_GDA_ALL_TARGET_REPTILE_TAXA', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
