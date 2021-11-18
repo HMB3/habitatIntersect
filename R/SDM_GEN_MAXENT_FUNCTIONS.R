@@ -166,7 +166,7 @@ run_sdm_analysis = function(taxa_list,
 
 
 
-#' @title Maxent Backwards selection for 'species with data' format
+#' @title Maxent Backwards selection for 'species with data' format 
 #' @description 
 #' This function takes a data frame of all taxa records,
 #' and runs a specialised maxent analysis for each taxa.

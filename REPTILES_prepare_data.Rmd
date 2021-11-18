@@ -63,12 +63,14 @@ ipak <- function(pkg){
   
 }
 
+
 ## These packages are not on cran, but are needed
 # library(devtools)
 # install_github('johnbaums/things')
 # install_github('johnbaums/rmaxent')
 # install_github('traitecoevo/taxonlookup')
 # install.packages("arcgisbinding", repos="https://r.esri.com", type="win.binary")
+
 
 ## Create documentation and install package
 # roxygen2::roxygenise()
