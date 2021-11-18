@@ -11,7 +11,7 @@
 
 
 
-#' @title Download GBIF occurrences
+#' @title Download GBIF occurrences.
 #' @description This function downloads taxa occurrence files from GBIF (https://www.gbif.org/).
 #' It assumes that the taxa list supplied is taxonomically correct (haha!).
 #' It downloads the taxa to the specified folders without returning anything
@@ -1000,7 +1000,7 @@ combine_gbif_records = function(taxa_list,
 
 
 
-#' @title Extract environmental records for occurrence data
+#' @title Extract environmental records for occurrence data.
 #' @description This function combines occurrence files from ALA and GBIF into one table, and extracts enviro values.
 #' It assumes that both files come from the previous GBIF/ALA combine function.
 #' @param ala_df             Data frame of ALA records
@@ -1046,7 +1046,7 @@ combine_records_extract = function(ala_df,
     filter(Match_SN_ST == 'TRUE') %>% as.data.frame()
   
   ## If site = TRUE
-  if(site_df != 'NONE') {
+  if(site_df) {
     
     site_df   <- site_df[site_df$searchTaxon %in% taxa_list, ]
     ALA.COMBO <- bind_rows(ALA.COMBO, site_df)
