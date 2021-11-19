@@ -376,6 +376,14 @@ ALA.LAND.BACKG.SPP  <- format_ala_dump(ALA_table         = Reptiles_ALA,
 'Hoplocephalus bungaroides' %in% ALA.LAND.BACKG.SPP$searchTaxon
 
 
+## Add in special records
+Hoplocephalus_bungaroides_bionet = read_csv('./data/ALA/Reptiles/Hoplocephalus bungaroides_Bionet.csv') %>% 
+  
+  dplyr::rename(searchTaxon = ScientificName,
+         lat         = Latitude_GDA94,
+         lon         = Longitude_GDA94) %>% dplyr::select(searchTaxon, lat, lon) %>% 
+  mutate(SOURCE = 'BIONET')
+
 ``` 
 
 \
@@ -489,6 +497,13 @@ SPATIAL.CLEAN = check_spatial_outliers(occ_df       = COORD.CLEAN,
                                        multi_source = TRUE,
                                        spatial_mult = 10,
                                        prj          = CRS("+init=epsg:4326"))
+
+
+## Are the control taxa present? And the data sources?
+'Pseudechis porphyriacus'   %in% SPATIAL.CLEAN$searchTaxon
+'Hoplocephalus bungaroides' %in% SPATIAL.CLEAN$searchTaxon
+table(SPATIAL.CLEAN$SOURCE)
+
 
 ``` 
 

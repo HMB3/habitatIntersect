@@ -880,7 +880,7 @@ combine_gbif_records = function(taxa_list,
           
           ## Filter the data for each taxa
           message('filter records for ', searchtax)
-          d <- d %>% mutate(searchTaxon = searchtax) %>%
+          d <- d %>% dplyr::mutate(searchTaxon = searchtax) %>%
             dplyr::select(one_of(keep_cols)) %>% 
             
             filter(!is.na(lon) & !is.na(lat)) %>%
@@ -1043,7 +1043,7 @@ combine_records_extract = function(ala_df,
   ## Now filter the records to those where the searched and returned taxa match
   ## More matching is in : 4_ALA_GBIF_TAXO_COMBINE.R from Green Cities
   ## The matching has to be done at the same taxonomic level
-  ALA.COMBO <- ALA.COMBO %>% mutate(Match_SN_ST = str_detect(!!sym(taxa_level), searchTaxon)) %>% 
+  ALA.COMBO <- ALA.COMBO %>% dplyr::mutate(Match_SN_ST = str_detect(!!sym(taxa_level), searchTaxon)) %>% 
     filter(Match_SN_ST == 'TRUE') %>% as.data.frame()
   
   ## Don't taxo match the site data :: this needs to be kept without exclusion
@@ -1179,7 +1179,7 @@ coord_clean_records = function(records,
   
   ## Split the site data up from the ALA data
   ala_records  <- records %>% filter(SOURCE == 'ALA')
-  site_records <- records %>% filter(SOURCE == site_flag) %>% mutate(coord_summary = TRUE)
+  site_records <- records %>% filter(SOURCE == site_flag) %>% dplyr::mutate(coord_summary = TRUE)
   
   ## Rename the columns to fit the CleanCoordinates format and create a tibble.
   TIB.GBIF <- ala_records %>% dplyr::rename(coord_spp        = searchTaxon,
@@ -1334,7 +1334,7 @@ check_spatial_outliers = function(occ_df,
   if(multi_source){
     
     occ_df  <- occ_df %>% filter(SOURCE == 'ALA')
-    site_df <- occ_df %>% filter(SOURCE == site_flag) %>% mutate(SPAT_OUT = TRUE)
+    site_df <- occ_df %>% filter(SOURCE == site_flag) %>% dplyr::mutate(SPAT_OUT = TRUE)
     
   } else {
     message('Do not subset data by source')
@@ -1677,7 +1677,7 @@ calc_1km_niches = function(coord_df,
         AOO$searchTaxon  <- rownames(AOO)
         rownames(AOO)    <- NULL
         Extent           <- AOO %>%
-          mutate(EOO = 0) %>% 
+          dplyr::mutate(EOO = 0) %>% 
           dplyr::select(searchTaxon, AOO, EOO)
         
         ## Return the area
@@ -1833,7 +1833,7 @@ plot_range_histograms = function(coord_df,
     ## Create a new field RANGE, which is either site or NATURAL
     coord_spp <- coord_df %>%
       filter(searchTaxon == spp) %>%
-      mutate(RANGE = ifelse(SOURCE != "INVENTORY", "NATURAL", "site"))
+      dplyr::mutate(RANGE = ifelse(SOURCE != "INVENTORY", "NATURAL", "site"))
     
     ## Start PNG device
     message('Writing global convex hulls for ', spp)
@@ -2062,7 +2062,7 @@ prepare_sdm_table = function(coord_df,
   
   ## Split the table into ALA and site data 
   COMBO.RASTER.ALA  <- COMBO.RASTER.ALL %>% subset(SOURCE == 'ALA')
-  COMBO.RASTER.SITE <- COMBO.RASTER.ALL %>% subset(SOURCE == 'SITE') %>% mutate(SPAT_OUT = TRUE)
+  COMBO.RASTER.SITE <- COMBO.RASTER.ALL %>% subset(SOURCE == 'SITE') %>% dplyr::mutate(SPAT_OUT = TRUE)
   
   ## Create a spatial points object, and change to a projected system to calculate distance more accurately
   ## This is the mollweide projection used for the SDMs
@@ -2181,7 +2181,7 @@ prepare_sdm_table = function(coord_df,
   message(table(SPAT.FLAG$SPAT_OUT, exclude = NULL))
   
   ## Just get the records that were not spatial outliers.
-  SDM.SPAT.ALL <- subset(SPAT.FLAG, SPAT_OUT == TRUE) %>% select(-SPOUT.OBS)
+  SDM.SPAT.ALL <- subset(SPAT.FLAG, SPAT_OUT == TRUE) %>% dplyr::select(-SPOUT.OBS)
   unique(SDM.SPAT.ALL$SPAT_OUT)
   unique(SDM.SPAT.ALL$SOURCE)
   length(unique(SDM.SPAT.ALL$searchTaxon))
