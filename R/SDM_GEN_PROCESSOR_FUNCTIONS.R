@@ -1267,6 +1267,7 @@ coord_clean_records = function(records,
 #' @export
 check_spatial_outliers = function(occ_df,
                                   multi_source,
+                                  site_flag,
                                   site_records,
                                   land_shp,
                                   clean_path,
@@ -1333,7 +1334,7 @@ check_spatial_outliers = function(occ_df,
   if(multi_source){
     
     occ_df  <- occ_df %>% filter(SOURCE == 'ALA')
-    site_df <- occ_df %>% filter(SOURCE == 'SITE') %>% mutate(SPAT_OUT = TRUE)
+    site_df <- occ_df %>% filter(SOURCE == site_flag) %>% mutate(SPAT_OUT = TRUE)
     
   } else {
     message('Do not subset data by source')
@@ -1407,7 +1408,7 @@ check_spatial_outliers = function(occ_df,
   gc()
   
   ## Join the data back on
-  SPAT.FLAG = join(as.data.frame(test.geo), SPAT.OUT) %>% select(-lon.1, -lat.1) ## Join means the skipped spp are left out
+  SPAT.FLAG = join(as.data.frame(test.geo), SPAT.OUT) %>% dplyr::select(-lon.1, -lat.1) ## Join means the skipped spp are left out
   nrow(SPAT.FLAG)
   
   ## Try plotting the points which are outliers for a subset of spp and label them

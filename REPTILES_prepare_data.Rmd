@@ -482,6 +482,7 @@ input dfs are those returned by the coord_clean_records function.
 SPATIAL.CLEAN = check_spatial_outliers(occ_df       = COORD.CLEAN,
                                        land_shp     = LAND,
                                        site_records = TRUE, 
+                                       site_flag    = 'BIONET',  
                                        clean_path   = './data/ALA/Check_Plots/',
                                        plot_points  = FALSE,
                                        record_limit = 400000,
