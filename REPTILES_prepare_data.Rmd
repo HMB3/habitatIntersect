@@ -612,13 +612,13 @@ SDM.SPAT.OCC.ALL.REPTILE.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN
 
 
 ## Check the taxonomic levels
-sum(is.na(SDM.SPAT.OCC.TARG.REPTILE.BG@data$searchTaxon));sum(is.na(SDM.SPAT.OCC.TARG.REPTILE.BG@data$species));
-sum(is.na(SDM.SPAT.OCC.TARG.REPTILE.BG@data$genus));sum(is.na(SDM.SPAT.OCC.TARG.REPTILE.BG@data$family))
+sum(is.na(SDM.SPAT.OCC.ALL.REPTILE.BG@data$searchTaxon));sum(is.na(SDM.SPAT.OCC.ALL.REPTILE.BG@data$species));
+sum(is.na(SDM.SPAT.OCC.ALL.REPTILE.BG@data$genus));sum(is.na(SDM.SPAT.OCC.ALL.REPTILE.BG@data$family))
 
 
 ## Check the dimensions of a few species
-SDM.SPAT.OCC.TARGET.REPTILE.BG %>% subset(., searchTaxon == 'Hoplocephalus bungaroides') %>% nrow()
-SDM.SPAT.OCC.TARGET.REPTILE.BG %>% subset(., searchTaxon == 'Pseudechis porphyriacus')   %>% nrow()
+SDM.SPAT.OCC.ALL.REPTILE.BG %>% subset(., searchTaxon == 'Hoplocephalus bungaroides') %>% nrow()
+SDM.SPAT.OCC.ALL.REPTILE.BG %>% subset(., searchTaxon == 'Pseudechis porphyriacus')   %>% nrow()
 
 
 ## Save the data to a shapefile
@@ -626,6 +626,7 @@ writeOGR(obj    = SDM.SPAT.OCC.ALL.REPTILE.BG,
          dsn    = 'G:/North_east_NSW_fire_recovery/output/reptile_maxent/results',
          layer  = 'SDM_SPAT_OCC_BG_GDA_ALL_TARGET_REPTILE_TAXA', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
+
 
 ``` 
 
