@@ -447,7 +447,7 @@ taxa_records_habitat_intersect = function(analysis_df,
     if(taxa %in%  unique(analysis_df$searchTaxon)) {
       
       taxa_name  <- gsub(' ', '_', taxa)
-      raster_int <- paste0(output_path, taxa_name, "_SVTM_intersection.tif")
+      raster_int <- paste0(output_path, taxa_name, '_SVTM_intersection_', buffer, 'm.tif')
       
       if(!file.exists(raster_int)) {
         
