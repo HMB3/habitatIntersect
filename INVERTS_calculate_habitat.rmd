@@ -96,6 +96,9 @@ First, get all the rasters to compare with SDM modelling :
 ## 1). Check the output with Shawn
 ## 2). Check all the rasters align in QGIS
 ## 2). Get examples working for the 18 bugs with host species
+source('./R/SDM_GEN_MAXENT_FUNCTIONS.R')
+source('./R/SDM_GEN_MAPPING_FUNCTIONS.R')
+
 
 
 ## Set the projections
@@ -123,9 +126,9 @@ FESM_100m_align <- readRDS('./output/veg_climate_topo_maxent/Habitat_suitability
 
 
 ## Read in the SDM data, to intersect with the Veg layers
-SVTM_Veg_Class_GDA        = readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/SVTM_Veg_Class_GDA.rds')
-SDM.SPAT.OCC.BG.GDA       = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
-SDM.PLANT.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_HOST_PLANTS.rds')
+SVTM_Veg_Class_GDA        <- readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/SVTM_Veg_Class_GDA.rds')
+SDM.SPAT.OCC.BG.GDA       <- readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
+SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_HOST_PLANTS.rds')
 
 
 ## Check projections and resolutions
@@ -169,7 +172,7 @@ taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
 ## Select the Vegetation pixels that intersect with the records of each invertebrate family
 taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                taxa_list      = target.insect.families,
-                               taxa_level     = 'species',
+                               taxa_level     = 'family',
                                habitat_poly   = SVTM_Veg_Class_GDA,
                                output_path    = './output/veg_climate_topo_maxent/Habitat_suitability/SVTM_intersect/',
                                buffer         = 5000)

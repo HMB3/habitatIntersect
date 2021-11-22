@@ -66,6 +66,7 @@ library(nenswniche)
 data('sdmgen_packages')
 ipak(sdmgen_packages)
 
+
 ## Try and set the raster temp directory to a location not on the partition, to save space
 rasterOptions(tmpdir = 'G:/North_east_NSW_fire_recovery/TEMP')
 terraOptions(memfrac = 0.5, 
@@ -120,6 +121,8 @@ SDM.SPAT.OCC.TARGET.REPTILE.BG = readRDS('./output/reptile_maxent/results/SDM_SP
 ## To Do :
 ## 1). Ryan has checked the taxonomy
 ## 2). Check the errors that Finlay may have found
+source('./R/SDM_GEN_MAXENT_FUNCTIONS.R')
+source('./R/SDM_GEN_MAPPING_FUNCTIONS.R')
 
 
 ## Run species-level models for REPTILES
