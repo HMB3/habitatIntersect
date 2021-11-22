@@ -114,22 +114,11 @@ study_sdm_binary <- stack(
   list.files('./output/veg_climate_topo_maxent/Habitat_suitability/SDM_thresholds',
              'current_suit_not_novel_above', full.names = TRUE))
 
-## Read in the shapefiles
-# SVTM_Veg_Class <- readOGR(dsn              = './output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/SVTM_Veg_Classes_pixels.shp', 
-#                           layer            = "SVTM_Veg_Classes_pixels", 
-#                           stringsAsFactors = FALSE)
-# saveRDS(SVTM_Veg_Class, './output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/SVTM_Veg_Class.rds')
-# SVTM_Veg_Class     <- readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/SVTM_Veg_Class.rds')
-# SVTM_Veg_Class_GDA <- spTransform(SVTM_Veg_Class,  CRS(sp_epsg3577))
-# saveRDS(SVTM_Veg_Class_GDA, './output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/SVTM_Veg_Class_GDA.rds')
-
 
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
 ## VALUES : 1-4, burn intensity from 2019-2020 fires, originally @ 10m resolution, re-sampled to 100m
 FESM_2_100m     <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/FESM_2_100m_align.tif')
 FESM_100m       <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/FESM_100m_align.tif')
-# FESM_100m_align <- raster::resample(FESM_100m, study_sdm_binary[[1]], "bilinear", exent = extent(study_sdm_binary[[1]]))
-# saveRDS(FESM_100m_align, './output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/FESM_100m_align.rds')
 FESM_100m_align <- readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/FESM_100m_align.rds')
 
 

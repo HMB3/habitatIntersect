@@ -138,7 +138,7 @@ run_sdm_analysis(taxa_list               = sort(target.insect.families),
                  replicates              = 5,
                  responsecurves          = TRUE,
                  country_shp             = AUS,
-                 koppen_crop             = TRUE,
+                 crop_Koppen             = FALSE,
                  Koppen_zones            = Koppen_zones,
                  Koppen_raster           = Koppen_1975_1km)
 
@@ -164,7 +164,7 @@ run_sdm_analysis(taxa_list               = rev(sort(target.insect.genera)),
                  replicates              = 5,
                  responsecurves          = TRUE,
                  country_shp             = AUS,
-                 koppen_crop             = TRUE,
+                 crop_Koppen             = FALSE,
                  Koppen_zones            = Koppen_zones,
                  Koppen_raster           = Koppen_1975_1km)
 
@@ -190,7 +190,7 @@ run_sdm_analysis(taxa_list               = target.insect.spp,
                  replicates              = 5,
                  responsecurves          = TRUE,
                  country_shp             = AUS,
-                 koppen_crop             = TRUE,
+                 crop_Koppen             = FALSE,
                  Koppen_zones            = Koppen_zones,
                  Koppen_raster           = Koppen_1975_1km)
 
@@ -216,7 +216,7 @@ run_sdm_analysis(taxa_list               = sort(target.host.plants)[1],
                  replicates              = 5,
                  responsecurves          = TRUE,
                  country_shp             = AUS,
-                 koppen_crop             = TRUE,
+                 crop_Koppen             = FALSE,
                  Koppen_zones            = Koppen_zones,
                  Koppen_raster           = Koppen_1975_1km)
 

@@ -144,7 +144,7 @@ data('all.insect.plant.spp')
 analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
 analysis_test <- c('Lygaeidae',           'Malandiola',       'Miridae',      'Nysius vinitor', 'Onthophagus turrbal', 'Oxycarenidae', 
                    'Pachygronthidae',     'Pentatomidae',     'Rhopalidae',   'Scutelleridae',  'Ausejanus femoralis', 
-                   'Mutusca brevicornis', '`Rayieria basifer', 'Wallabicoris', 'Molycria',       'Figulus') %>% .[1:2]
+                   'Mutusca brevicornis', '`Rayieria basifer', 'Wallabicoris', 'Molycria',      'Figulus') %>% .[1:2]
 plant_test    <- 'Salsola australis'
 
 ```
@@ -288,8 +288,8 @@ study.veg.grids <- stack(
              '_1km_study.tif', full.names = TRUE))
 
 ## Topography
-aus.vbf   <- raster('./data/Topography/mrvbf_int_1km.tif')
-study.vbf <- raster('./data/Topography/mrvbf_int_study_1km.tif')
+aus.vbf   <- raster('./data/Topography/MRVBF/mrvbf_int_1km.tif')
+study.vbf <- raster('./data/Topography/MRVBF/mrvbf_int_study_1km.tif')
 
 
 ## Rename the raster grids
