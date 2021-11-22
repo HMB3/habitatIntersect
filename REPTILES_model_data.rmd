@@ -123,7 +123,7 @@ SDM.SPAT.OCC.TARGET.REPTILE.BG = readRDS('./output/reptile_maxent/results/SDM_SP
 
 
 ## Run species-level models for REPTILES
-run_sdm_analysis(taxa_list               = rev(target_reptiles),
+run_sdm_analysis(taxa_list               = target_reptiles,
                  taxa_level              = 'species',
                  maxent_dir              = 'output/reptile_maxent/full_models',     
                  bs_dir                  = 'output/reptile_maxent/back_sel_models',
@@ -201,7 +201,7 @@ tryCatch(
                                     country_prj     = CRS("+init=EPSG:3577"),
                                     local_prj       = aus_albers,
                                     
-                                    taxa_list       = reptiles_map_taxa,    
+                                    taxa_list       = rev(reptiles_map_taxa),    
                                     maxent_path     ='./output/reptile_maxent/back_sel_models/',
                                     
                                     current_grids   = study.climate.veg.grids,         
