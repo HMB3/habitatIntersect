@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_MAPPING_FUNCTIONS.R
 \name{project_maxent_grids_mess}
 \alias{project_maxent_grids_mess}
-\title{Project Current Habitat Suitability models into Grids}
+\title{Project Current Habitat Suitability models into Grids.}
 \usage{
 project_maxent_grids_mess(
   country_shp,

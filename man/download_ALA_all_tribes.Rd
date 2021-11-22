@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_PROCESSOR_FUNCTIONS.R
 \name{download_ALA_all_tribes}
 \alias{download_ALA_all_tribes}
-\title{Download ALA species occurrences}
+\title{Download ALA tribe occurrences.}
 \usage{
 download_ALA_all_tribes(
   species_list,

@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_MAXENT_FUNCTIONS.R
 \name{run_sdm_analysis}
 \alias{run_sdm_analysis}
-\title{Run SDM analyses for 'species with data' format}
+\title{Run SDM analyses for 'species with data' format.}
 \usage{
 run_sdm_analysis(
   taxa_list,

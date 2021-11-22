@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_MAPPING_FUNCTIONS.R
 \name{shapefile_vector_from_raster}
 \alias{shapefile_vector_from_raster}
-\title{Create vector from a raster}
+\title{Create vector from a raster.}
 \usage{
 shapefile_vector_from_raster(shp_file, prj, agg_var, temp_ras, targ_ras)
 }

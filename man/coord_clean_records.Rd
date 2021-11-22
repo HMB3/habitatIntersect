@@ -6,6 +6,7 @@
 \usage{
 coord_clean_records(
   records,
+  site_flag,
   capitals,
   centroids,
   save_run,

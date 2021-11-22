@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_MAXENT_FUNCTIONS.R
 \name{fit_maxent_targ_bg_back_sel}
 \alias{fit_maxent_targ_bg_back_sel}
-\title{Maxent Backwards selection for 'species with data' format}
+\title{Maxent Backwards selection for 'species with data' format.}
 \usage{
 fit_maxent_targ_bg_back_sel(
   occ,

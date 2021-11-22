@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_MAXENT_FUNCTIONS.R
 \name{compile_sdm_results}
 \alias{compile_sdm_results}
-\title{Compile SDM results}
+\title{Compile SDM results from 'species with data' format.}
 \usage{
 compile_sdm_results(
   taxa_list,

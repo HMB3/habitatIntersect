@@ -6,6 +6,7 @@
 \usage{
 combine_records_extract(
   ala_df,
+  add_sites,
   site_df,
   add_site,
   taxa_list,

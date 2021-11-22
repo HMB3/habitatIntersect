@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_PROCESSOR_FUNCTIONS.R
 \name{download_ALA_all_genera}
 \alias{download_ALA_all_genera}
-\title{Download ALA genus occurrences}
+\title{Download ALA genus occurrences.}
 \usage{
 download_ALA_all_genera(
   genera_list,

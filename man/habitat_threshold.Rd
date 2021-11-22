@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_MAPPING_FUNCTIONS.R
 \name{habitat_threshold}
 \alias{habitat_threshold}
-\title{Threshold current habitat suitability rasters}
+\title{Threshold current habitat suitability rasters.}
 \usage{
 habitat_threshold(
   taxa_list,
