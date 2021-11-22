@@ -100,7 +100,7 @@ download_GBIF_all_species = function(species_list,
 
 
 
-#' @title Download ALA occurrences
+#' @title Download ALA occurrences.
 #' @description This function downloads species occurrence files from ALA (https://www.ala.org.au/).
 #' It assumes that the species list supplied is taxonomically correct.
 #' It downloads the species without returning anything. Add Galah!
@@ -188,7 +188,7 @@ download_ALA_all_species = function (species_list,
 
 
 
-#' @title Download ALA genus occurrences
+#' @title Download ALA genus occurrences.
 #' @description  This function downloads genus occurrence files from ALA (https://www.ala.org.au/).
 #' It assumes that the genus list supplied is taxonomically correct.
 #' It downloads the genus to fiel without returning anything to the global environment
@@ -371,7 +371,7 @@ download_ALA_all_families = function (species_list,
 
 
 
-#' @title Download ALA species occurrences
+#' @title Download ALA tribe occurrences.
 #' @description This function downloads family occurrence files from ALA (https://www.ala.org.au/).
 #' It assumes that the species list supplied is taxonomically correct.
 #' It downloads the species to field without returning anything to the global environment
@@ -2013,7 +2013,7 @@ plot_range_histograms = function(coord_df,
 
 
 
-#' @title Prepare SDM table
+#' @title Prepare SDM table.
 #' @description  'This function takes a data frame of all taxa records,
 #' And prepares a table in the 'taxa with data' (swd) format for modelling uses the Maxent algorithm.
 #' It assumes that the input df is that returned by the coord_clean_records function'
