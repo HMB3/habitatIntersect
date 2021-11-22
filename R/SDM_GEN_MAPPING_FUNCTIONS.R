@@ -306,7 +306,7 @@ project_maxent_current_grids_mess = function(country_shp,
 
 
 
-#' @title Threshold current habitat suitability rasters
+#' @title Threshold current habitat suitability rasters.
 #' @description Takes a habitat suitability layer, and creates a binary suitability layer (0, 1) using a threshold value.
 #' @param taxa_list          Character string - The species to run maxent predictions for
 #' @param maxent_path        Character string - The file path containing the existing maxent models
@@ -534,7 +534,7 @@ taxa_records_habitat_intersect = function(analysis_df,
 
 
 
-#' @title Project Current Habitat Suitability models into Grids
+#' @title Project Current Habitat Suitability models into Grids.
 #' @description takes the maxent models created by the 'fit_maxent_targ_bg_back_sel' function,
 #' and projects the model across geographic space  
 
@@ -1088,7 +1088,7 @@ diverge0 <- function(p, ramp) {
 
 
 
-#' @title Create vector from a raster 
+#' @title Create vector from a raster. 
 
 
 #' @description This function takes a raster of a shapefile (for example the urban areas of Australia),

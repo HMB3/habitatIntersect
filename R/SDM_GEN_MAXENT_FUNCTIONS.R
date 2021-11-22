@@ -166,7 +166,7 @@ run_sdm_analysis = function(taxa_list,
 
 
 
-#' @title Maxent Backwards selection for 'species with data' format 
+#' @title Maxent Backwards selection for 'species with data' format. 
 #' @description 
 #' This function takes a data frame of all taxa records,
 #' and runs a specialised maxent analysis for each taxa.
@@ -723,7 +723,7 @@ var_importance <- function(mod) {
 
 
 
-#' @title Compile SDM results
+#' @title Compile SDM results from 'species with data' format.
 #' @description This function extracts the SDM results from the folders.
 #' @param taxa_list      Character string - the taxa to run maxent models for
 #' @param results_dir       Character string - The file path used for saving the maxent output
