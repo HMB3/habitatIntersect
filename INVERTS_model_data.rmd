@@ -386,8 +386,7 @@ habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)
                   maxent_path   = './output/veg_climate_topo_maxent/back_sel_models/',
                   cell_factor   = 9,
                   country_shp   = 'AUS',
-                  country_prj   = CRS("+init=EPSG:3577"),
-                  write_rasters = TRUE)
+                  country_prj   = CRS("+init=EPSG:3577"))
 
 
 ## Threshold the Plant SDM models to be either 0 or 1
