@@ -223,12 +223,7 @@ For each Invertebrate species, let's calculate the % of suitable habitat that wa
 
 \
 
-We can use the “combine” tool to run queries on the raster.
-
-
-For example, we can combine the Keith Class from the SVTM map, with the expected range of each species (a and b). 
-You will be able to search the geo-tiff attribute table using Keith Class = x,d,f etc. where species range = b. 
-We can then extract by attributes to create a new raster with the Keith Class you want, only inside the species range.
+This will give us the % of suitable habitat in each burn intensity category(0-4).
 
 
 \

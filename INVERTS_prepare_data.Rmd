@@ -126,6 +126,9 @@ Let's use all the insect families that we think might be threatened by the 2019/
 
 ## Get the invertebrate site data
 source('./R/CREATE_SPECIES_LIST.R')
+source('./R/SDM_GEN_PROCESSOR_FUNCTIONS.R')
+source('./R/SDM_GEN_MAXENT_FUNCTIONS.R')
+source('./R/SDM_GEN_MAPPING_FUNCTIONS.R')
 
 
 ## Create lists of all taxa that we will model at all levels

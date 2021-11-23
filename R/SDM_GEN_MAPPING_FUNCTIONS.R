@@ -375,7 +375,7 @@ habitat_threshold = function(taxa_list,
           
           ## Resample rasters
           message('Resample ', taxa, ' to ', cell_factor)
-          current_suit_thresh_resample <- terra::disaggregate(current_suit_thresh, fact = cell_factor)
+          current_suit_thresh_resample <- terra::disagg(rast(current_suit_thresh), fact = cell_factor)
           
           ## Now write the rasters
           ## If the rasters don't exist, write them for each taxa/threshold
