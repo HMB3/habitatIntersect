@@ -108,24 +108,24 @@ sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0
 
 ## SVTM Rasters : https://www.environment.nsw.gov.au/vegetation/state-vegetation-type-map.htm
 ## The State Vegetation Type Map (SVTM)  of Plant Community Types across NSW, originally @ 5m resolution, re-sampled to 100m
-GBAM        <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/GBAM_100m.tif')
+GBAM        <- raster('./output/invert_maxent/Habitat_suitability/aligned_rasters/GBAM_100m.tif')
 
 
 ## SDM output, re-sampled to 100m
 study_sdm_binary <- stack(
-  list.files('./output/veg_climate_topo_maxent/Habitat_suitability/SDM_thresholds',
+  list.files('./output/invert_maxent/Habitat_suitability/SDM_thresholds',
              'current_suit_not_novel_above', full.names = TRUE))
 
 
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
 ## VALUES : 1-4, burn intensity from 2019-2020 fires, originally @ 10m resolution, re-sampled to 100m
-FESM_2_100m     <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/FESM_2_100m_align.tif')
-FESM_100m       <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/FESM_100m_align.tif')
-FESM_100m_align <- readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/FESM_100m_align.rds')
+FESM_2_100m     <- raster('./output/invert_maxent/Habitat_suitability/aligned_rasters/FESM_2_100m_align.tif')
+FESM_100m       <- raster('./output/invert_maxent/Habitat_suitability/aligned_rasters/FESM_100m_align.tif')
+FESM_100m_align <- readRDS('./output/invert_maxent/Habitat_suitability/aligned_rasters/FESM_100m_align.rds')
 
 
 ## Read in the SDM data, to intersect with the Veg layers
-SVTM_Veg_Class_GDA        <- readRDS('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/SVTM_Veg_Class_GDA.rds')
+SVTM_Veg_Class_GDA        <- readRDS('./output/invert_maxent/Habitat_suitability/aligned_rasters/SVTM_Veg_Class_GDA.rds')
 SDM.SPAT.OCC.BG.GDA       <- readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
 SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_HOST_PLANTS.rds')
 
@@ -155,7 +155,7 @@ taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                taxa_list      = target.insect.spp,
                                taxa_level     = 'species',
                                habitat_poly   = SVTM_Veg_Class_GDA,
-                               output_path    = './output/veg_climate_topo_maxent/Habitat_suitability/SVTM_intersect/',
+                               output_path    = './output/invert_maxent/Habitat_suitability/SVTM_intersect/',
                                buffer         = 5000)
 
 
@@ -164,7 +164,7 @@ taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                taxa_list      = target.insect.genera,
                                taxa_level     = 'genus',
                                habitat_poly   = SVTM_Veg_Class_GDA,
-                               output_path    = './output/veg_climate_topo_maxent/Habitat_suitability/SVTM_intersect/',
+                               output_path    = './output/invert_maxent/Habitat_suitability/SVTM_intersect/',
                                buffer         = 5000)
 
 
@@ -173,7 +173,7 @@ taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                taxa_list      = target.insect.families,
                                taxa_level     = 'family',
                                habitat_poly   = SVTM_Veg_Class_GDA,
-                               output_path    = './output/veg_climate_topo_maxent/Habitat_suitability/SVTM_intersect/',
+                               output_path    = './output/invert_maxent/Habitat_suitability/SVTM_intersect/',
                                buffer         = 5000)
 
 ``` 
@@ -200,7 +200,7 @@ taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
 <!-- taxa_records_habitat_intersect(taxa_df       = SDM.SPAT.OCC.BG.GDA, -->
 <!--                                taxa_list     = analysis_taxa, -->
 <!--                                maxent_table  = MAXENT.RESULTS, -->
-<!--                                output_path   = './output/veg_climate_topo_maxent/Habitat_suitability/SVTM_selection/', -->
+<!--                                output_path   = './output/invert_maxent/Habitat_suitability/SVTM_selection/', -->
 <!--                                country_shp   = 'AUS', -->
 <!--                                country_prj   = CRS("+init=EPSG:3577"), -->
 <!--                                write_rasters = TRUE) -->
@@ -234,7 +234,7 @@ This will give us the % of suitable habitat in each burn intensity category(0-4)
 calculate_taxa_habitat(taxa_list          = sort(unique(MAXENT.RESULTS.HOSTS$searchTaxon)),
                        targ_maxent_table  = MAXENT.RESULTS.HOSTS,
                        host_maxent_table  = PLANT.MAXENT.RESULTS,
-                       maxent_path        = './output/veg_climate_topo_maxent/back_sel_models/',
+                       maxent_path        = './output/invert_maxent/back_sel_models/',
                        country_shp        = 'AUS',
                        country_prj        = CRS("+init=EPSG:3577"),
                        write_rasters      = TRUE)
