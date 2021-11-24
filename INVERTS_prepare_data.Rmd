@@ -566,8 +566,8 @@ GLOB.NICHE.ALL = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxo
                                  data_path    = "./output/results/")
 
 
-# saveRDS(GLOB.NICHE.ALL,   './output/veg_climate_topo_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_ALL_TAXA.rds')
-# write_csv(GLOB.NICHE.ALL, './output/veg_climate_topo_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_ALL_TAXA.csv')
+# saveRDS(GLOB.NICHE.ALL,   './output/invert_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_ALL_TAXA.rds')
+# write_csv(GLOB.NICHE.ALL, './output/invert_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_ALL_TAXA.csv')
 
 # saveRDS(GLOB.NICHE.ALL,   './output/plant_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_PLANT_TAXA.rds')
 # write_csv(GLOB.NICHE.ALL, './output/plant_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_PLANT_TAXA.csv')
@@ -715,7 +715,7 @@ for(taxa in target.insect.families) {
   
   if(taxa %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)) {
     
-    taxa_shp <- paste0('G:/GITHUB/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data/',
+    taxa_shp <- paste0('G:/GITHUB/North_east_NSW_fire_recovery/output/invert_maxent/Habitat_suitability/SDM_point_data/',
                        taxa, '_SDM_points.shp')
     
     if(!file.exists(taxa_shp)) {
@@ -725,7 +725,7 @@ for(taxa in target.insect.families) {
         spTransform(., crs(sp_epsg3577))
       
       writeOGR(obj    = taxa_occ,
-               dsn    = 'G:/GITHUB/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data',
+               dsn    = 'G:/GITHUB/North_east_NSW_fire_recovery/output/invert_maxent/Habitat_suitability/SDM_point_data',
                layer  = paste0(taxa, '_SDM_points'), 
                driver = 'ESRI Shapefile', overwrite_layer = FALSE)
       
@@ -745,7 +745,7 @@ for(taxa in target.insect.genera) {
   
   if(taxa %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)) {
     
-    taxa_shp <- paste0('G:/GITHUB/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data/',
+    taxa_shp <- paste0('G:/GITHUB/North_east_NSW_fire_recovery/output/invert_maxent/Habitat_suitability/SDM_point_data/',
                        taxa, '_SDM_points.shp')
     
     if(!file.exists(taxa_shp)) {
@@ -755,7 +755,7 @@ for(taxa in target.insect.genera) {
         spTransform(., crs(sp_epsg3577))
       
       writeOGR(obj    = taxa_occ,
-               dsn    = 'G:/GITHUB/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data',
+               dsn    = 'G:/GITHUB/North_east_NSW_fire_recovery/output/invert_maxent/Habitat_suitability/SDM_point_data',
                layer  = paste0(taxa, '_SDM_points'), 
                driver = 'ESRI Shapefile', overwrite_layer = FALSE)
       
@@ -775,7 +775,7 @@ for(taxa in target.insect.spp) {
   
   if(taxa %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)) {
     
-    taxa_shp <- paste0('G:/GITHUB/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data/',
+    taxa_shp <- paste0('G:/GITHUB/North_east_NSW_fire_recovery/output/invert_maxent/Habitat_suitability/SDM_point_data/',
                        taxa, '_SDM_points.shp')
     
     if(!file.exists(taxa_shp)) {
@@ -785,7 +785,7 @@ for(taxa in target.insect.spp) {
         spTransform(., crs(sp_epsg3577))
       
       writeOGR(obj    = taxa_occ,
-               dsn    = 'G:/GITHUB/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SDM_point_data',
+               dsn    = 'G:/GITHUB/North_east_NSW_fire_recovery/output/invert_maxent/Habitat_suitability/SDM_point_data',
                layer  = paste0(taxa, '_SDM_points'), 
                driver = 'ESRI Shapefile', overwrite_layer = FALSE)
       

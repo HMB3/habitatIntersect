@@ -225,6 +225,7 @@ For each Invertebrate species, let's calculate the % of suitable habitat that wa
 This will give us the % of suitable habitat in each burn intensity category(0-4).
 
 
+
 \
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
