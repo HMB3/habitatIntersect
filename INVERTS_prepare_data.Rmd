@@ -163,7 +163,7 @@ without returning anything.
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## The functions expect these folders,
+## Update these
 ALA_dir       <- './data/ALA'
 GBIF_dir      <- './data/GBIF'
 
