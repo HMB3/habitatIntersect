@@ -466,6 +466,8 @@ taxa_records_habitat_intersect = function(analysis_df,
           taxa_SVTM_intersects      <- habitat_subset[as.vector(taxa_intersects), ]
           taxa_SVTM_intersects_clip <- raster::crop(taxa_SVTM_intersects, taxa_buffer)
           
+          gc()
+          
           ## Save intersection as a raster
           ## Set the ncol/nrow to match 100m resolutions
           message('convert shapefile to raster for ', taxa)
@@ -481,6 +483,8 @@ taxa_records_habitat_intersect = function(analysis_df,
           taxa_SVTM_intersects_raster <- terra::rasterize(taxa_SVTM_intersects_clip, r)
           taxa_SVTM_intersects_raster[taxa_SVTM_intersects_raster > 0] <- 1
           taxa_SVTM_intersects_raster[taxa_SVTM_intersects_raster < 0] <- 1
+          
+          gc()
           
           ## Raster intersect :: doesn't work because the LUT is not working
           ## Get the cells from the raster at those points
@@ -507,6 +511,8 @@ taxa_records_habitat_intersect = function(analysis_df,
           writeRaster(taxa_SVTM_intersects_raster, 
                       paste0(output_path, taxa_name, '_SVTM_intersection_', buffer, 'm.tif'),
                       overwrite = TRUE)
+          
+          gc()
           
         } else {
           message('Habitat does not intersect with ', taxa, ' skip')

@@ -108,7 +108,6 @@ sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0
 
 ## SVTM Rasters : https://www.environment.nsw.gov.au/vegetation/state-vegetation-type-map.htm
 ## The State Vegetation Type Map (SVTM)  of Plant Community Types across NSW, originally @ 5m resolution, re-sampled to 100m
-## Values categorical :
 GBAM        <- raster('./output/veg_climate_topo_maxent/Habitat_suitability/aligned_rasters/GBAM_100m.tif')
 
 
