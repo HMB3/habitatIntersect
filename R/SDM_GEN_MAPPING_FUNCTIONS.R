@@ -641,7 +641,7 @@ calculate_taxa_habitat = function(taxa_list,
             colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'Cell_count')
             
             ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
-            ## If FIRE is NA, that mneans that
+            ## If FIRE is NA, that means that....
             sdm_fire_crosstab <- dplyr::filter(habitat_fire_crosstab, Habitat_taxa == 1)
             sdm_fire_crosstab <- sdm_fire_crosstab %>%  
               
@@ -683,7 +683,7 @@ calculate_taxa_habitat = function(taxa_list,
             colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'Cell_count')
             
             ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
-            ## If FIRE is NA, that mneans that
+            ## If FIRE is NA, that means that....
             sdm_fire_crosstab <- dplyr::filter(habitat_fire_crosstab, Habitat_taxa == 1)
             sdm_fire_crosstab <- sdm_fire_crosstab %>% 
               
@@ -796,7 +796,7 @@ calculate_taxa_habitat = function(taxa_list,
             colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'Cell_count')
             
             ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
-            ## If FIRE is NA, that mneans that
+            ## If FIRE is NA, that means that....
             sdm_fire_crosstab <- dplyr::filter(habitat_fire_crosstab, Habitat_taxa == 1)
             sdm_fire_crosstab <- sdm_fire_crosstab %>%  
               
@@ -837,7 +837,7 @@ calculate_taxa_habitat = function(taxa_list,
             colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'Cell_count')
             
             ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
-            ## If FIRE is NA, that mneans that
+            ## If FIRE is NA, that means that....
             sdm_fire_crosstab <- dplyr::filter(habitat_fire_crosstab, Habitat_taxa == 1)
             sdm_fire_crosstab <- sdm_fire_crosstab %>%  
               
