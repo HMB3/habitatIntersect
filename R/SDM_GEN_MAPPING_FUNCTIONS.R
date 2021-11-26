@@ -534,6 +534,386 @@ taxa_records_habitat_intersect = function(analysis_df,
 
 
 
+#' @title Intersect habitat suitability rasters with Fire layers
+#' @description Takes a habitat suitability layer, and intersects it with a fire suitability layer.
+#' @param taxa_list          Character string - The species to run maxent predictions for
+#' @param target_path        Character string - The file path containing the existing maxent models
+#' @param intersect_path     Character string - The file path containing the intersecting rasters
+#' @param raster_pattern     Character string - The pattern to look for of Invertebrate rasters
+#' @param targ_maxent_table  Data frame       - A table of maxent results to be used for mapping 
+#' @param cell_size          Numeric          - Cell size to resample output
+#' @param country_shp        Character string - Shapefile name that has already been read into R (e.g. in the Package)
+#' @param country_prj        Character string - Name of projection
+#' @param write_rasters      Logical          - Save rasters (T/F)?
+#' @export
+calculate_taxa_habitat = function(taxa_list,
+                                  targ_maxent_table,
+                                  host_maxent_table,
+                                  target_path,
+                                  output_path,
+                                  intersect_path,
+                                  raster_pattern,
+                                  fire_raster,
+                                  cell_size,
+                                  fire_thresh,
+                                  write_rasters,
+                                  country_shp,
+                                  country_prj) {
+  
+  ## Get the AUS shapefile
+  country_poly <- get(country_shp) %>%
+    spTransform(country_prj)
+  
+  ## Pipe the list into Lapply
+  taxa_list %>%
+    
+    ## Loop over just the species
+    ## taxa = taxa_list[1]
+    lapply(function(taxa) {
+      
+      ## Get the directory of the host plants
+      host_dir <- targ_maxent_table %>%
+        filter(searchTaxon == taxa) %>%
+        dplyr::select(host_dir)     %>%
+        distinct() %>% .[1, ] %>% .[[1]]
+      
+      ## Get the directory of the host plants
+      host_taxa <- targ_maxent_table    %>%
+        filter(searchTaxon == taxa)     %>%
+        dplyr::select(Host_Plant_taxon) %>%
+        distinct() %>% .[1, ] %>% .[[1]]
+      
+      ## Get the sdm threshold for each inv taxa
+      target_thresh <- targ_maxent_table  %>%
+        filter(searchTaxon == taxa)       %>%
+        dplyr::select(Logistic_threshold) %>%
+        distinct() %>% .[1, ] %>% .[[1]]
+      
+      ## Get the sdm threshold for each host taxa
+      host_thresh <- host_maxent_table    %>%
+        filter(searchTaxon == host_taxa)  %>%
+        dplyr::select(Logistic_threshold) %>%
+        distinct() %>% .[1, ] %>% .[[1]]
+      
+      ## Get the taxa directory name
+      taxa_name <- gsub(' ', '_', taxa)
+      host_name <- gsub(' ', '_', host_taxa)
+      
+      current_thresh = sprintf('%s/%s/full/%s_%s%s.tif', target_path,
+                               taxa_name, taxa_name, "current_suit_not_novel_above_", target_thresh)
+      
+      ## If the invert taxa has a host plant, use the SDM from the host plant
+      if(is.na(host_dir)) {
+        
+        ## If the threshold raster data doesn't exist :
+        if(file.exists(current_thresh)) {
+          
+          ## Print the taxa being analysed
+          message('Intersecting SDM with Fire for', taxa, ' | Logistic > ', target_thresh)
+          
+          ## Read in the current suitability raster :: get the current_not_novel raster
+          sdm_threshold    <- raster(current_thresh)
+          
+          ## Read the SVTM intersect file in
+          intersect_file <- list.files(intersect_path, pattern = raster_pattern, full.names = TRUE) %>% 
+            .[grep(paste0(taxa_name, collapse = '|'), ., ignore.case = TRUE)]
+          
+          if(length(intersect_file) == 1) {
+            
+            message('SDM and Veg rasters intersect for ', taxa)
+            intersect_raster <- raster(intersect_file)
+            
+            ## Re-sample
+            message('resampling Veg intersect raster for ', taxa)
+            intersect_sdm <- raster::resample(intersect_raster, sdm_threshold, "bilinear", exent = extent(sdm_threshold))
+            
+            ##
+            message('mosaic Veg and SDM rasters for ', taxa)
+            sdm_plus_veg <- raster::mosaic(sdm_threshold, intersect_sdm, fun = max)
+            
+            ## Multiply the SDM raster by the Fire Raster
+            message('multiply habitat raster by the fire raster')
+            sdm_plus_intersect_fire <- sdm_plus_veg * fire_raster
+            
+            ## Then do the Cell stats ::
+            ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
+            habitat_fire_crosstab <- raster::crosstab(sdm_plus_veg, fire_raster, useNA = TRUE, long = TRUE)
+            colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'Cell_count')
+            
+            ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
+            ## If FIRE is NA, that mneans that
+            sdm_fire_crosstab <- dplyr::filter(habitat_fire_crosstab, Habitat_taxa == 1)
+            sdm_fire_crosstab <- sdm_fire_crosstab %>%  
+              
+              ## Calculate the % burnt in each category, and also the km2
+              mutate(Percent      = Cell_count/sum(Cell_count) * 100) %>% 
+              mutate(Percent      = round(Percent, 2)) %>% 
+              mutate(Habitat_taxa = taxa) %>%
+              
+              ## FESM scores - there
+              mutate(
+                FESM_intensity = case_when(
+                  
+                  FESM_intensity == 0 ~ "Unburnt",
+                  FESM_intensity == 1 ~ "Non-FESM Burnt Area",
+                  FESM_intensity == 2 ~ "Low severity",
+                  FESM_intensity == 3 ~ "Moderate severity",
+                  FESM_intensity == 4 ~ "High severity",
+                  FESM_intensity == 5 ~ "Extreme severity",
+                  TRUE                ~ "Outside FESM extent")
+              )
+            
+            ## Save the % burnt layers
+            write.csv(sdm_fire_crosstab, paste0(output_path, taxa_name, '_SDM_SVTM_intersect.csv'), row.names = FALSE)
+            
+          } else {
+            message('SDM and Veg rasters do not intersect for ', taxa)
+            
+            ##
+            message('mosaic Veg and SDM rasters for ', taxa)
+            sdm_plus_veg <- sdm_threshold
+            
+            ## Multiply the SDM raster by the Fire Raster
+            message('multiply habitat raster by the fire raster')
+            sdm_plus_intersect_fire <- sdm_plus_veg * fire_raster
+            
+            ## Then do the Cell stats ::
+            ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
+            habitat_fire_crosstab <- raster::crosstab(sdm_plus_veg, fire_raster, useNA = TRUE, long = TRUE)
+            colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'Cell_count')
+            
+            ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
+            ## If FIRE is NA, that mneans that
+            sdm_fire_crosstab <- dplyr::filter(habitat_fire_crosstab, Habitat_taxa == 1)
+            sdm_fire_crosstab <- sdm_fire_crosstab %>% 
+              
+              ## Calculate the % burnt in each category, and also the km2
+              mutate(Percent      = Cell_count/sum(Cell_count) * 100) %>% 
+              mutate(Percent      = round(Percent, 2)) %>% 
+              mutate(Habitat_taxa = taxa) %>%
+              
+              ## FESM scores - there
+              mutate(
+                FESM_intensity = case_when(
+                  
+                  FESM_intensity == 0 ~ "Unburnt",
+                  FESM_intensity == 1 ~ "Non-FESM Burnt Area",
+                  FESM_intensity == 2 ~ "Low severity",
+                  FESM_intensity == 3 ~ "Moderate severity",
+                  FESM_intensity == 4 ~ "High severity",
+                  FESM_intensity == 5 ~ "Extreme severity",
+                  TRUE                ~ "Outside FESM extent")
+              )
+            
+            ## Save the % burnt layers
+            write.csv(sdm_fire_crosstab, paste0(output_path, taxa_name, '_SDM_SVTM_intersect.csv'), row.names = FALSE)
+            
+          }
+          
+          ## Now write the rasters
+          ## If the rasters don't exist, write them for each taxa/threshold
+          writeRaster(sdm_plus_veg, 
+                      paste0(output_path, taxa_name, '_SDM_SVTM_intersect.tif'),
+                      overwrite = TRUE)
+          
+          writeRaster(sdm_plus_intersect_fire, 
+                      paste0(output_path, taxa_name, '_SDM_SVTM_intersect_Fire.tif'),
+                      overwrite = TRUE)
+          
+          message('writing threshold png for ', taxa)
+          png(paste0(output_path, taxa_name, '_SDM_SVTM_intersect_Fire.png'),
+              11, 4, units = 'in', res = 300)
+          
+          print(levelplot(stack(sdm_plus_veg,
+                                sdm_plus_intersect_fire, 
+                                fire_raster,
+                                quick = TRUE), margin = FALSE,
+                          
+                          ## Create a colour scheme using colbrewer: 100 is to make it continuos
+                          ## Also, make it a one-directional colour scheme
+                          scales      = list(draw = FALSE),
+                          at = seq(0, 4, length = 8),
+                          col.regions = colorRampPalette(rev(brewer.pal(5, 'Spectral'))),
+                          
+                          ## Give each plot a name: the third panel is the GCM
+                          names.attr = c('SDMs + Veg', 'Fire', ' [SDMs + Veg] * Fire'),
+                          colorkey   = list(height = 0.5, width = 3), xlab = '', ylab = '',
+                          main       = list(gsub('_', ' ', taxa), font = 4, cex = 2)) +
+                  
+                  ## Plot the Aus shapefile with the occurrence points for reference
+                  ## Can the current layer be plotted on it's own?
+                  ## Add the novel maps as vectors.
+                  latticeExtra::layer(sp.polygons(country_poly), data = list(country_poly = country_poly))) 
+          dev.off()
+          
+          gc()
+          
+        } else {
+          message('Habitat Suitability threshold raster does not exist for', taxa, ' skip')
+          cat(taxa)
+        }
+        
+        
+      } else {
+        message(taxa, ' has a host plant, use both SDMs')
+        
+        ## If the threshold raster data doesn't exist 
+        
+        ## Print the taxa being analysed
+        message('calculating habitat * fire for ', taxa, ' | Logistic > ', target_thresh)
+        host_threshold <- paste0(host_dir, host_name, "_current_suit_not_novel_above_", host_thresh, '.tif')
+        
+        if(file.exists(host_threshold)) {
+          
+          ## Read in host and target rasters
+          host_threshold <- raster(host_threshold)
+          sdm_threshold  <- raster(current_thresh)
+          
+          ## Read the SVTM intersect file in
+          intersect_file <- list.files(intersect_path, pattern = raster_pattern, full.names = TRUE) %>% 
+            .[grep(paste0(taxa_name, collapse = '|'), ., ignore.case = TRUE)]
+          
+          if(length(intersect_file) == 1) {
+            
+            message('SDM and Veg rasters intersect for ', taxa)
+            intersect_raster <- raster(intersect_file)
+            
+            ## Re-sample
+            message('resampling Veg intersect raster for ', taxa)
+            intersect_sdm <- raster::resample(intersect_raster, sdm_threshold, "bilinear", exent = extent(sdm_threshold))
+            
+            ##
+            message('mosaicing Veg, host and target SDM rasters for ', taxa)
+            sdm_plus_veg <- raster::mosaic(sdm_threshold, host_threshold, intersect_sdm, fun = max)
+            
+            ## Multiply the SDM raster by the Fire Raster
+            message('Multiply Combo habitat raster by the fire raster')
+            sdm_plus_veg_intersect_fire <- sdm_plus_veg * fire_raster
+            
+            ## Then do the Cell stats ::
+            ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
+            habitat_fire_crosstab <- raster::crosstab(sdm_plus_veg, fire_raster, useNA = TRUE, long = TRUE)
+            colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'Cell_count')
+            
+            ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
+            ## If FIRE is NA, that mneans that
+            sdm_fire_crosstab <- dplyr::filter(habitat_fire_crosstab, Habitat_taxa == 1)
+            sdm_fire_crosstab <- sdm_fire_crosstab %>%  
+              
+              ## Calculate the % burnt in each category, and also the km2
+              mutate(Percent      = Cell_count/sum(Cell_count) * 100) %>% 
+              mutate(Percent      = round(Percent, 2)) %>% 
+              mutate(Habitat_taxa = taxa) %>%
+              
+              ## FESM scores - there
+              mutate(
+                FESM_intensity = case_when(
+                  
+                  FESM_intensity == 0 ~ "Unburnt",
+                  FESM_intensity == 1 ~ "Non-FESM Burnt Area",
+                  FESM_intensity == 2 ~ "Low severity",
+                  FESM_intensity == 3 ~ "Moderate severity",
+                  FESM_intensity == 4 ~ "High severity",
+                  FESM_intensity == 5 ~ "Extreme severity",
+                  TRUE                ~ "Outside FESM extent")
+              )
+            ## Save the % burnt layers
+            write.csv(sdm_fire_crosstab, paste0(output_path, taxa_name, '_SDM_SVTM_intersect.csv'), row.names = FALSE)
+            
+          } else {
+            message('SDM and Veg rasters do not intersect for ', taxa)
+            
+            ##
+            message('mosaic Veg and SDM rasters for ', taxa)
+            sdm_plus_veg <- sdm_threshold
+            
+            ## Multiply the SDM raster by the Fire Raster
+            message('multiply habitat raster by the fire raster')
+            sdm_plus_intersect_fire <- sdm_plus_veg * fire_raster
+            
+            ## Then do the Cell stats ::
+            ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
+            habitat_fire_crosstab <- raster::crosstab(sdm_plus_veg, fire_raster, useNA = TRUE, long = TRUE)
+            colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'Cell_count')
+            
+            ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
+            ## If FIRE is NA, that mneans that
+            sdm_fire_crosstab <- dplyr::filter(habitat_fire_crosstab, Habitat_taxa == 1)
+            sdm_fire_crosstab <- sdm_fire_crosstab %>%  
+              
+              ## Calculate the % burnt in each category, and also the km2
+              mutate(Percent      = Cell_count/sum(Cell_count) * 100) %>% 
+              mutate(Percent      = round(Percent, 2)) %>% 
+              mutate(Habitat_taxa = taxa) %>%
+              
+              ## FESM scores - there
+              mutate(
+                FESM_intensity = case_when(
+                  
+                  FESM_intensity == 0 ~ "Unburnt",
+                  FESM_intensity == 1 ~ "Non-FESM Burnt Area",
+                  FESM_intensity == 2 ~ "Low severity",
+                  FESM_intensity == 3 ~ "Moderate severity",
+                  FESM_intensity == 4 ~ "High severity",
+                  FESM_intensity == 5 ~ "Extreme severity",
+                  TRUE                ~ "Outside FESM extent")
+              )
+            
+            ## Save the % burnt layers
+            write.csv(sdm_fire_crosstab, paste0(output_path, taxa_name, '_SDM_SVTM_intersect.csv'), row.names = FALSE)
+            
+          }
+          
+          ## Write the current suitability raster, thresholded using the Maximum training
+          ## sensitivity plus specificity Logistic threshold
+          message('Writing ', taxa, ' current', ' max train > ', target_thresh)
+          
+          ## Save in two places, in the taxa folder, 
+          ## and in the habitat suitability folder
+          writeRaster(sdm_plus_intersect_fire, 
+                      paste0(output_path, taxa_name, '_SDM_SVTM_intersect_Fire.tif'),
+                      overwrite = TRUE)
+          
+          message('writing threshold png for ', taxa)
+          png(paste0(output_path, taxa_name, '_SDM_SVTM_intersect_Fire.png'),
+              11, 4, units = 'in', res = 300)
+          
+          print(levelplot(stack(sdm_plus_veg,
+                                sdm_plus_veg_intersect_fire, quick = TRUE), margin = FALSE,
+                          
+                          ## Create a colour scheme using colbrewer: 100 is to make it continuos
+                          ## Also, make it a one-directional colour scheme
+                          scales      = list(draw = FALSE),
+                          at = seq(0, 4, length = 8),
+                          col.regions = colorRampPalette(rev(brewer.pal(5, 'Spectral'))),
+                          
+                          ## Give each plot a name: the third panel is the GCM
+                          names.attr = c('SDMs + Veg', ' [SDMs + Veg] * Fire'),
+                          colorkey   = list(height = 0.5, width = 3), xlab = '', ylab = '',
+                          main       = list(gsub('_', ' ', taxa), font = 4, cex = 2)) +
+                  
+                  ## Plot the Aus shapefile with the occurrence points for reference
+                  ## Can the current layer be plotted on it's own?
+                  ## Add the novel maps as vectors.
+                  latticeExtra::layer(sp.polygons(country_poly), data = list(country_poly = country_poly)))
+          
+          dev.off()
+          
+          gc()
+          
+        } else {
+          message('Habitat Suitability threshold raster does not exist for', taxa, ' skip')
+          cat(taxa)
+        }
+        
+      }
+    }) 
+}
+
+
+
+
+
 #' @title Project Current Habitat Suitability models into Grids.
 #' @description takes the maxent models created by the 'fit_maxent_targ_bg_back_sel' function,
 #' and projects the model across geographic space  
@@ -1139,339 +1519,6 @@ shapefile_vector_from_raster = function (shp_file,
   
 }
 
-
-
-#' @title Function to aggregate sdm predictions
-
-
-#' @description This  function uses the 10th% Logistic threshold for each species from the maxent
-#' models to threhsold the rasters of habitat suitability (0-1) For each GCM. For each
-#' species, summ the 6 GCMS to create a binary raster with cell values between 0-6.
-#' These cell values represent the number of GCMs where that cell had a suitability
-#' value above the threshold determined by maxent. We classify a cell has suitable
-#' if it met the threshold in > 4 GCMs, and use this combined raster to compare
-#' current and future suitability, measuring if the suitability of each cell is
-#' changing over time, remaining stable or was never suitable
-#' It assumes that the maxent predictions were generated by the 'project_maxent_grids_mess' function
-#' @param unit_shp           SpatialPolygonsDataFrame - Spdf of the spatial units used to aggregate the maxent results (e.g. Australia)
-#' @param country_shp        SpatialPolygonsDataFrame - Spdf of the country for aggregating maxent results (e.g. Australia)
-#' @param world_shp          SpatialPolygonsDataFrame - Spdf of the world for aggregating maxent results
-#' @param sort_var           Character string - The field name in the shapefile to use for sorting (e.g. Urban area names)
-#' @param agg_var            Character string - The field name in the shapefile to use for aggregating SDM results (e.g. Urban area codes)
-#' @param unit_vec           Character string - The field name in the shapefile to use for aggregating SDM results (e.g. Urban area codes)
-#' @param scen_list          Character string - The list of global circulation models to create predictions for
-#' @param taxa_list       Character string - The species to run maxent predictions for
-#' @param maxent_path        Character string - The file path containin the existing maxent models
-#' @param time_slice         Character string - The time period to create predictions for (e.g. '2050', or '2070')
-#' @export
-sdm_area_cell_count = function(unit_shp, country_shp,
-                               world_shp, sort_var,
-                               agg_var, unit_vec,
-                               DIR_list, taxa_list, number_gcms,
-                               maxent_path, thresholds,
-                               time_slice, write_rasters) {
-  
-  ## Read in shapefiles as .RDS  files
-  ## This solves the problem
-  areal_unit   <- readRDS(unit_shp)
-  country_poly <- readRDS(country_shp)
-  world_poly   <- readRDS(world_shp)
-  
-  ## Loop over each directory
-  ## DIR = DIR_list[1]
-  lapply(DIR_list, function(DIR) {
-    
-    ## And each species - although we don't want all possible
-    ## combinations. use mapply in the function call
-    ## species = taxa_list[1]
-    lapply(taxa_list, function(species) {
-      
-      ## Then, create rasters that meet habitat suitability criteria
-      ## thresholds, determined by the rmaxent function
-      ## thresh = thresholds[1]
-      for (thresh in thresholds) {
-        
-        ## Create a list of the rasters in each species directory for
-        ## each time period, then take the mean
-        message('Running summary of SDM predictions within SUAs for ',
-                species, ' using ', names(areal_unit)[1], " shapefile")
-        
-        ## Read in all the habitat suitability rasters for each time period which are _not_ novel
-        raster.list       = list.files(as.character(DIR), pattern = 'future_not_novel', full.names = TRUE)
-        raster.list       = raster.list[grep(paste0('bi', time_slice, collapse = '|'), raster.list, ignore.case = TRUE)]
-        number.un.nov     = length(raster.list)
-        
-        ## First, if the number of gcms is less than expected, skip that species
-        if(number.un.nov == number_gcms) {
-          
-          ## Then create a stack of rasters from the file list
-          ## This is a bit hack, but it works :: better to use a regular expression
-          message('Combining SDM prediction for ', length(raster.list), ' GCMS for 20', time_slice)
-          suit              = stack(raster.list)
-          suit.list         = unstack(suit)
-          
-          ## Then, If the gain/loss raster already exists, skip that species
-          aggregation_file =   sprintf('%s/%s/full/%s_20%s_%s%s.tif', maxent_path,
-                                       species, species, time_slice, "gain_loss_", thresh)
-          
-          ## Next is easier than if/else
-          if(!file.exists(aggregation_file)) {
-            
-            ## Check if the mean GCM raster exists
-            f_mean = sprintf('%s/%s/full/%s_20%s_suitability_mean.tif', maxent_path, species, species, time_slice)
-            
-            if(!file.exists(f_mean)) {
-              message('Calculating mean of ', length(raster.list), ' GCMS for 20', time_slice)
-              
-              combo_suit_mean   = mean(suit)
-              writeRaster(combo_suit_mean , sprintf('%s/%s/full/%s_20%s_suitability_mean.tif',
-                                                    maxent_path, species, species, time_slice), overwrite = TRUE)
-            } else {
-              message('Mean of ', length(raster.list), ' GCMS for 20', time_slice, ' already exists')
-            }
-            
-            ## Print the species being analysed
-            message('doing ', species, ' | Logistic > ', thresh, ' for 20', time_slice)
-            
-            ## Read in the current suitability raster :: get the current_not_novel raster
-            f_current <- raster(sprintf('%s/%s/full/%s_current_not_novel.tif',
-                                        maxent_path, species, species))
-            
-            ## First, create a simple function to threshold each of the rasters in raster.list,
-            ## Then apply this to just the current suitability raster.
-            thresh_greater       = function (x) {x > thresh}
-            current_suit_thresh  = thresh_greater(f_current)
-            
-            ## Count the number of patches in the thresholded suitability raster
-            ## And the largest contiguous areas
-            ## Are the environmental conditions at the sites novel?
-            ## see exdet gist for interactions between variables
-            message('Calcualting the max contiguous suitability patch for ', species)
-            patches   <- SDMTools::ConnCompLabel(current_suit_thresh)
-            n_patches <- maxValue(patches)
-            max_patch_area <- max(table(patches[]))
-            
-            ## First, calculate the cells which are greater that the:
-            ## Maximum training sensitivity plus specificity Logistic threshold
-            message('Running thresholds for ', species, ' | 20', time_slice, ' combined suitability > ', thresh)
-            
-            ## Create a loop, etc to compress this............
-            suit_ras1_thresh   = thresh_greater(suit.list[[1]])
-            suit_ras2_thresh   = thresh_greater(suit.list[[2]])
-            suit_ras3_thresh   = thresh_greater(suit.list[[3]])
-            suit_ras4_thresh   = thresh_greater(suit.list[[4]])
-            suit_ras5_thresh   = thresh_greater(suit.list[[5]])
-            suit_ras6_thresh   = thresh_greater(suit.list[[6]])
-            
-            ## Then sum them up: All the threshholds
-            combo_suit_thresh   =  Reduce("+", list(suit_ras1_thresh, suit_ras2_thresh, suit_ras3_thresh,
-                                                    suit_ras4_thresh, suit_ras5_thresh, suit_ras6_thresh))
-            
-            ## For each species, create a binary raster with cells > 4 GCMs above the maxent threshold = 1,
-            ## and cells with < 4 GCMs = 0.
-            message('Calculating change for ', species, ' | 20', time_slice, ' combined suitability > ', thresh)
-            
-            ## Functions for thresholding rasters
-            band_4           <- function(x) {ifelse(x >=  4, 1, 0) }
-            combo_suit_4GCM  <- calc(combo_suit_thresh, fun = band_4)
-            
-            ## Now create a raster of the gain, loss and stable
-            ## Create a raster stack of the current and future rasters
-            message ("Counting cells lost/gained/stable/never suitable, both across AUS and per unit")
-            
-            ## Add n_patches and max_patch_area to the output tables - same for every scenario though
-            ## Create a table of cell counts using a raster stack of current and future data
-            
-            ## Replace REG_CODE_7 = areal_unit_vec
-            d <- as.data.frame(stack(current_suit_thresh, combo_suit_4GCM)[]) %>%
-              setNames(c(' Current', 'future')) %>%
-              mutate(!!agg_var := areal_unit_vec,
-                     cell_number = seq_len(ncell(current_suit_thresh))) %>%
-              as.tbl
-            dim(d);summary(d)
-            
-            ## Then classify the cells of the raster stack into lost, gained, stable and never suitable
-            ##
-            d2 <- d %>%
-              na.omit %>%
-              
-              mutate(lost   = current == 1 & future == 0,
-                     gained = current == 0 & future == 1,
-                     stable = current == 1 & future == 1,
-                     never  = current == 0 & future == 0,
-                     nodata = is.na(current) | is.na(future))
-            d2$class <- apply(select(d2, lost:never), 1, which)
-            dim(d2)
-            
-            ## Then group the cell counts by SUA
-            ## Try subbing (!!sort_var) for REG_CODE_7
-            message ("group by, ", agg_var)
-            d3 <- d2 %>%
-              group_by(.dots = agg_var) %>%
-              
-              summarize(CURRENT_SUITABLE = sum(current, na.rm = TRUE),
-                        FUTURE_SUITABLE  = sum(future,  na.rm = TRUE),
-                        LOST             = sum(lost,    na.rm = TRUE),
-                        GAINED           = sum(gained,  na.rm = TRUE),
-                        STABLE           = sum(stable,  na.rm = TRUE),
-                        NEVER            = sum(never,   na.rm = TRUE),
-                        NODAT            = sum(nodata,  na.rm = TRUE),
-                        n_cells = n()) %>%
-              
-              ## Then calculate change between current and future
-              mutate(CHANGE    = FUTURE_SUITABLE - CURRENT_SUITABLE,
-                     GAIN_LOSS = ifelse(CHANGE < 0, 'LOSS', ifelse(CHANGE > 0, 'GAIN', 'STABLE')),
-                     GAIN_LOSS = ifelse(CURRENT_SUITABLE == 0 &
-                                          FUTURE_SUITABLE == 0, 'NEVER', GAIN_LOSS))
-            dim(d3)
-            
-            ## Add the species column
-            d4 = d3 %>%
-              join(areal_unit@data, .) %>%
-              add_column(., SPECIES = species,    .after = "AREASQKM16") %>%
-              add_column(., PERIOD  = time_slice, .after = "SPECIES")    %>%
-              add_column(., THRESH  = thresh,     .after = "PERIOD")
-            
-            ## Now calculate the number of cells lost/gained/stable across Australia
-            message ("Counting cells lost/gained/stable/never suitable across Australia")
-            d5 <- stack(current_suit_thresh, combo_suit_4GCM)[]
-            r  <- raster(current_suit_thresh)
-            z  <- as.data.frame(d4)
-            
-            ## Then classify the raster stack to make each value (i.e. outcome) unique
-            r[d5[, 1]==1 & d5[, 2]==0] <- 1  ## 1 in current raster and 0 in future = LOSS
-            r[d5[, 1]==0 & d5[, 2]==1] <- 2  ## 0 in current raster and 1 in future = GAIN
-            r[d5[, 1]==1 & d5[, 2]==1] <- 3  ## 1 in current raster and 1 in future = STABLE
-            r[d5[, 1]==0 & d5[, 2]==0] <- 4  ## 0 in current raster and 0 in future = NEVER_SUIT
-            
-            ## Create a table of these values, to merge with the levels later. This avoids the problem
-            ## that not all the categories will
-            ## be present for all species
-            change_values = data.frame("ID" = 1:4, "CHANGE" = c("LOST", "GAINED", "STABLE", "NEVER"))
-            
-            ## Now convert the raster to a factor and assign lables to the levels
-            gain_loss <- as.factor(r)
-            levels(gain_loss)[[1]] <- data.frame(ID = 1:4, label = c('Lost', 'Gained', 'Stable', 'Never_Suitable'))
-            z <- as.data.frame(d5)
-            
-            ## Create a table of the gain/loss/stable :: write this to file as well
-            gain_loss_table      = table(z[, 1], z[, 2])
-            gain_loss_df         = as.data.frame(terra::freq(gain_loss))
-            gain_loss_df$SPECIES = species
-            gain_loss_df$PERIOD  = time_slice
-            
-            names(gain_loss_df)  = c("CHANGE", "COUNT", "SPECIES", "PERIOD")
-            gain_loss_df         = gain_loss_df[, c("SPECIES", "PERIOD", "CHANGE", "COUNT")]
-            
-            ## Change values and remove the NA row
-            gain_loss_df$CHANGE[gain_loss_df$CHANGE == 1] <- "LOST"
-            gain_loss_df$CHANGE[gain_loss_df$CHANGE == 2] <- "GAINED"
-            gain_loss_df$CHANGE[gain_loss_df$CHANGE == 3] <- "STABLE"
-            gain_loss_df$CHANGE[gain_loss_df$CHANGE == 4] <- "NEVER_SUIT"
-            gain_loss_df = head(gain_loss_df, 4)
-            
-            ## Now add the counts of the biggest contiguous area
-            gain_loss_df$NUM_PATCH = n_patches
-            gain_loss_df$MAX_PATCH = max_patch_area
-            head(gain_loss_df)
-            
-            ## Save the gain/loss table for the whole of Australia
-            message('Writing ', species, ' gain_loss tables for 20', time_slice)
-            write.csv(gain_loss_df, sprintf('%s/%s/full/%s_20%s_%s%s.csv', maxent_path,
-                                            species, species, time_slice, "gain_loss_table_", thresh), row.names = FALSE)
-            
-            ## Save the gain/loss table
-            write.csv(d4, sprintf('%s/%s/full/%s_20%s_%s%s.csv', maxent_path,
-                                  species, species, time_slice, "SUA_cell_count_", thresh), row.names = FALSE)
-            
-            ## Now write the rasters
-            ## If the rasters don't exist, write them for each species/threshold
-            if(write_rasters) {
-              
-              ## Write the current suitability raster, thresholded using the Maximum training
-              ## sensitivity plus specificity Logistic threshold
-              message('Writing ', species, ' current', ' max train > ', thresh)
-              writeRaster(current_suit_thresh, sprintf('%s/%s/full/%s_%s%s.tif', maxent_path,
-                                                       species, species, "current_suit_not_novel_above_", thresh),
-                          overwrite = TRUE)
-              
-              ## Write the combined suitability raster, thresholded using the maximum training value
-              message('Writing ', species, ' | 20', time_slice, ' max train > ', thresh)
-              writeRaster(combo_suit_thresh, sprintf('%s/%s/full/%s_20%s%s%s.tif', maxent_path,
-                                                     species, species, time_slice, "_log_thresh_above_", thresh),
-                          overwrite = TRUE)
-              
-              ## Write the combined future raster with > 4 GCMs above the maximum training value
-              message('Writing ', species, ' | 20', time_slice, ' 4 GCMs > ', thresh)
-              writeRaster(combo_suit_4GCM, sprintf('%s/%s/full/%s_20%s%s%s.tif', maxent_path,
-                                                   species, species, time_slice, "_4GCMs_above_", thresh),
-                          overwrite = TRUE)
-              
-              ## Write out the gain/loss raster
-              writeRaster(gain_loss, sprintf('%s/%s/full/%s_20%s%s%s.tif', maxent_path,
-                                             species, species, time_slice, "_gain_loss_", thresh), datatype = 'INT2U',
-                          overwrite = TRUE)
-              
-              ## Create a color scheme for the gain_loss plot
-              unit.plot.cols = brewer.pal(12, "Paired")
-              ## Create dataframe of colors that match the categories :;
-              # 1 <- "LOST"        unit.plot.cols[8]
-              # 2 <- "GAINED"      unit.plot.cols[4]
-              # 3 <- "STABLE"      unit.plot.cols[1]
-              # 4 <- "NEVER_SUIT"  unit.plot.cols[9]
-              ## 1 = STABLE, 4 = GAIN, 8 = LOSS, 9 = NEVER
-              lc_id = c(1, 2, 3, 4)
-              cover_palette <- c(unit.plot.cols[8], unit.plot.cols[4], unit.plot.cols[1], unit.plot.cols[11])
-              
-              colors        <- data.frame(id = lc_id, color = cover_palette, stringsAsFactors = FALSE)
-              csort         <- colors[order(colors$id),]
-              
-              ## Create Labels for the gain_loss plots
-              gain_plot <- ratify(gain_loss)
-              rat <- levels(gain_plot)[[1]]
-              
-              ## Use an inner join, to accomodate the different categories. EG sometimes, there are
-              ## no cells which are gained for each species, etc.
-              rat[["CHANGE"]]   <- join(rat, change_values, type = "inner")$CHANGE
-              levels(gain_plot) <- rat
-              
-              ## Save the gain/loss raster to PNG
-              save_name = gsub(' ', '_', species)
-              identical(projection(country_poly), projection(gain_plot))
-              
-              message('writing gain/loss png for ', 'species')
-              png(sprintf('%s/%s/full/%s_%s_%s_20%s.png', maxent_path, save_name,
-                          save_name, "gain_loss", thresh, time_slice),
-                  16, 10, units = 'in', res = 500)
-              
-              ## Could add the SUA polygons as well
-              print(levelplot(gain_plot,
-                              col.regions = csort$color,
-                              xlab = NULL, ylab = NULL,
-                              main       = list(paste0(gsub('_', ' ', species), ' :: ',  20,
-                                                       time_slice, ' 4GCMs > ',  thresh),
-                                                font = 4, cex = 2)) +
-                      latticeExtra::layer(sp.polygons(country_poly),
-                                          data = list(country_poly = country_poly)))
-              
-              dev.off()
-              
-            } else {
-              message(' skip raster writing')
-            }
-            
-          } else {
-            message(species, ' ', 20, time_slice, ' spatial aggregation already exists, skip')
-          }
-          
-        } else {
-          message(species, ' ', 20, time_slice, ' insufficient gcms exists, skip')
-        }
-      }
-    })
-  })
-  
-}
 
 
 

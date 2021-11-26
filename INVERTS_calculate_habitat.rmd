@@ -84,7 +84,7 @@ terraOptions(memfrac = 0.5,
 
 First, get all the rasters to compare with SDM modelling :
 
-- Fire layers    (FESM, 0-4, 100m)
+- Fire layers    (FESM, 0-5, 100m)
 - NSW Vegetation (Veg maps, categorical, 100m) 
 - SDM output     (Binary habitat suitability, 0-1, 100m)
 
@@ -180,7 +180,7 @@ taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
 
 \
 
-<!-- # 3). Select pixels from the Veg Raster by expert opinion    -->
+<!-- # 3). Select pixels from the Veg Raster by expert opinion?    -->
 
 <!-- \ -->
 
@@ -214,7 +214,7 @@ taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
 
 
 For each Invertebrate species, let's calculate the % of suitable habitat that was burnt by the
-2019-2020 fires. We can do this by : 
+2019-2020 fires. We can do this by combining pixles in the rasters like this: 
 
 \
 
@@ -222,9 +222,7 @@ For each Invertebrate species, let's calculate the % of suitable habitat that wa
 
 \
 
-This will give us the % of suitable habitat in each burn intensity category(0-4).
-
-
+This will give us the % of suitable habitat in each burn intensity category(0-5).
 
 \
 
@@ -234,10 +232,53 @@ This will give us the % of suitable habitat in each burn intensity category(0-4)
 calculate_taxa_habitat(taxa_list          = sort(unique(MAXENT.RESULTS.HOSTS$searchTaxon)),
                        targ_maxent_table  = MAXENT.RESULTS.HOSTS,
                        host_maxent_table  = PLANT.MAXENT.RESULTS,
-                       maxent_path        = './output/invert_maxent/back_sel_models/',
+                       target_path        = './output/invert_maxent/back_sel_models/',
+                       raster_pattern     = '_SVTM_intersection_5000m.tif',
+                       intersect_path     = 'G:/North_east_NSW_fire_recovery/output/invert_maxent/Habitat_suitability/SVTM_intersect',
+                       fire_raster        = FESM_100m_align,
+                       cell_size          = 100,
+                       output_path        = './output/invert_maxent/Habitat_suitability/FESM_SDM_intersect/',
                        country_shp        = 'AUS',
                        country_prj        = CRS("+init=EPSG:3577"),
                        write_rasters      = TRUE)
+
+``` 
+
+
+\
+
+For each species, we have a table of the area in square kilometers that are in each burn intensity category.
+We can then combine those tables together.
+
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+## Calculate Insect habitat
+INVERT.FESM.list = list.files(maxent_dir, pattern = 'gain_loss_table_', full.names = TRUE, recursive = TRUE) 
+
+
+## Now combine the SUA tables for each species into one table 
+INVERT.FESM.TABLE <- GAIN.LOSS.list %>%
+  
+  ## pipe the list into lapply
+  lapply(function(x) {
+    
+    ## create the character string
+    f <- paste0(x)
+    
+    ## load each .RData file
+    d <- read.csv(f)
+    d
+    
+  }) %>%
+  
+  ## finally, bind all the rows together
+  bind_rows
+
+
+## Subset to just the analysis species - some species did not process properly?
+INVERT.FESM.TABLE        =  GAIN.LOSS.TABLE[GAIN.LOSS.TABLE$SPECIES %in% sort(unique(MAXENT.RESULTS.HOSTS$searchTaxon)) , ] 
+GAIN.LOSS.TABLE.COMPLETE =  GAIN.LOSS.TABLE[complete.cases(GAIN.LOSS.TABLE), ]
 
 ``` 
 

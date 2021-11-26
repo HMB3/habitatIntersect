@@ -120,8 +120,8 @@ Let's use all the insect families that we think might be threatened by the 2019/
 
 
 ## To Do :
-## 1). Ryan has checked the taxonomy
-## 2). CHeck the errors that Finlay may have found
+## 1). Check the errors that Finlay may have found
+## 2). Clean up the folders
 
 
 ## Get the invertebrate site data
@@ -167,18 +167,7 @@ without returning anything.
 ALA_dir       <- './data/ALA'
 GBIF_dir      <- './data/GBIF'
 
-back_dir      <- './output/climate_maxent/back_sel_models'
-full_dir      <- './output/climate_maxent/full_models'
-
-comb_back_dir <- './output/full_maxent/back_sel_models'
-comb_full_dir <- './output/full_maxent/full_models'
-
-
-veg_back_dir  <- './output/veg_maxent/back_sel_models'
-veg_full_dir  <- './output/veg_maxent/full_models'
 host_back_dir <- 'output/plant_maxent/back_sel_models/'
-
-results_dir   <- './output/results'
 climate_dir   <- './data/worldclim/world/2070'
 check_dir     <- './data/GBIF/Check_plots/'
 temp_dir      <- 'G:/GITHUB/Raster_temp'
