@@ -229,12 +229,12 @@ This will give us the % of suitable habitat in each burn intensity category(0-5)
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Calculate Insect habitat
-calculate_taxa_habitat(taxa_list          = sort(unique(MAXENT.RESULTS.HOSTS$searchTaxon)),
+calculate_taxa_habitat(taxa_list          = rev(unique(MAXENT.RESULTS.HOSTS$searchTaxon)),
                        targ_maxent_table  = MAXENT.RESULTS.HOSTS,
                        host_maxent_table  = PLANT.MAXENT.RESULTS,
                        target_path        = './output/invert_maxent/back_sel_models/',
-                       raster_pattern     = '_SVTM_intersection_5000m.tif',
                        intersect_path     = 'G:/North_east_NSW_fire_recovery/output/invert_maxent/Habitat_suitability/SVTM_intersect',
+                       raster_pattern     = '_SVTM_intersection_5000m.tif',
                        fire_raster        = FESM_100m_align,
                        cell_size          = 100,
                        output_path        = './output/invert_maxent/Habitat_suitability/FESM_SDM_intersect/',
