@@ -100,7 +100,6 @@ source('./R/SDM_GEN_MAXENT_FUNCTIONS.R')
 source('./R/SDM_GEN_MAPPING_FUNCTIONS.R')
 
 
-
 ## Set the projections
 sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
 sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
@@ -228,7 +227,7 @@ This will give us the % of suitable habitat in each burn intensity category(0-5)
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Calculate Insect habitat
+## Calculate Insect habitat - fails after this species?
 calculate_taxa_habitat(taxa_list          = rev(unique(MAXENT.RESULTS.HOSTS$searchTaxon)),
                        targ_maxent_table  = MAXENT.RESULTS.HOSTS,
                        host_maxent_table  = PLANT.MAXENT.RESULTS,
@@ -254,11 +253,14 @@ We can then combine those tables together.
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Calculate Insect habitat
-INVERT.FESM.list = list.files(maxent_dir, pattern = 'gain_loss_table_', full.names = TRUE, recursive = TRUE) 
+INVERT.FESM.list <- list.files('./output/invert_maxent/Habitat_suitability/FESM_SDM_intersect/', 
+                               pattern     = '_intersect.csv', 
+                               full.names  = TRUE, 
+                               recursive   = TRUE) 
 
 
 ## Now combine the SUA tables for each species into one table 
-INVERT.FESM.TABLE <- GAIN.LOSS.list %>%
+INVERT.FESM.TABLE <- INVERT.FESM.list %>%
   
   ## pipe the list into lapply
   lapply(function(x) {

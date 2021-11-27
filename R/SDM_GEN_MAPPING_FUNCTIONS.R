@@ -534,7 +534,7 @@ taxa_records_habitat_intersect = function(analysis_df,
 
 
 
-#' @title Intersect habitat suitability rasters with Fire layers
+#' @title Intersect habitat suitability rasters with Fire layers.
 #' @description Takes a habitat suitability layer, and intersects it with a fire suitability layer.
 #' @param taxa_list          Character string - The species to run maxent predictions for
 #' @param target_path        Character string - The file path containing the existing maxent models
@@ -620,7 +620,7 @@ calculate_taxa_habitat = function(taxa_list,
           
           if(length(intersect_file) == 1) {
             
-            message('SDM and Veg rasters intersect for ', taxa)
+            message('SDM and Veg rasters intersect for ', taxa, ' but it does not have a host taxa')
             intersect_raster <- raster(intersect_file)
             
             ## Re-sample
@@ -638,7 +638,7 @@ calculate_taxa_habitat = function(taxa_list,
             ## Then do the Cell stats ::
             ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
             habitat_fire_crosstab <- raster::crosstab(sdm_plus_veg, fire_raster, useNA = TRUE, long = TRUE)
-            colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'Cell_count')
+            colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'km2')
             
             ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
             ## If FIRE is NA, that means that....
@@ -646,8 +646,8 @@ calculate_taxa_habitat = function(taxa_list,
             sdm_fire_crosstab <- sdm_fire_crosstab %>%  
               
               ## Calculate the % burnt in each category, and also the km2
-              mutate(Cell_count   = Cell_count/cell_size)             %>% 
-              mutate(Percent      = Cell_count/sum(Cell_count) * 100) %>% 
+              mutate(km2   = km2/cell_size)             %>% 
+              mutate(Percent      = km2/sum(km2) * 100) %>% 
               mutate(Percent      = round(Percent, 2))                %>% 
               mutate(Habitat_taxa = taxa) %>%
               
@@ -706,7 +706,7 @@ calculate_taxa_habitat = function(taxa_list,
             gc()
             
           } else {
-            message('SDM and Veg rasters do not intersect for ', taxa)
+            message('SDM and Veg rasters do not intersect for ', taxa, ' and it doesnt have a host taxa')
             
             ## Multiply the SDM raster by the Fire Raster
             message('multiply habitat raster by the fire raster')
@@ -715,7 +715,7 @@ calculate_taxa_habitat = function(taxa_list,
             ## Then do the Cell stats ::
             ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
             habitat_fire_crosstab <- raster::crosstab(sdm_threshold, fire_raster, useNA = TRUE, long = TRUE)
-            colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'Cell_count')
+            colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'km2')
             
             ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
             ## If FIRE is NA, that means that....
@@ -723,8 +723,8 @@ calculate_taxa_habitat = function(taxa_list,
             sdm_fire_crosstab <- sdm_fire_crosstab %>% 
               
               ## Calculate the % burnt in each category, and also the km2
-              mutate(Cell_count   = Cell_count/cell_size)             %>% 
-              mutate(Percent      = Cell_count/sum(Cell_count) * 100) %>% 
+              mutate(km2   = km2/cell_size)             %>% 
+              mutate(Percent      = km2/sum(km2) * 100) %>% 
               mutate(Percent      = round(Percent, 2))                %>% 
               mutate(Habitat_taxa = taxa) %>%
               
@@ -821,7 +821,7 @@ calculate_taxa_habitat = function(taxa_list,
             ## Then do the Cell stats ::
             ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
             habitat_fire_crosstab <- raster::crosstab(sdm_plus_veg, fire_raster, useNA = TRUE, long = TRUE)
-            colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'Cell_count')
+            colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'km2')
             
             ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
             ## If FIRE is NA, that means that....
@@ -829,8 +829,8 @@ calculate_taxa_habitat = function(taxa_list,
             sdm_fire_crosstab <- sdm_fire_crosstab %>%  
               
               ## Calculate the % burnt in each category, and also the km2
-              mutate(Cell_count   = Cell_count/cell_size)             %>% 
-              mutate(Percent      = Cell_count/sum(Cell_count) * 100) %>% 
+              mutate(km2   = km2/cell_size)             %>% 
+              mutate(Percent      = km2/sum(km2) * 100) %>% 
               mutate(Percent      = round(Percent, 2))                %>% 
               mutate(Habitat_taxa = taxa) %>%
               
@@ -893,7 +893,6 @@ calculate_taxa_habitat = function(taxa_list,
             message('mosaicing host and target SDM rasters for ', taxa)
             sdm_plus_veg <- raster::mosaic(sdm_threshold, host_threshold, fun = max)
             
-            
             ## Multiply the SDM raster by the Fire Raster
             message('multiply habitat raster by the fire raster')
             sdm_plus_intersect_fire <- sdm_plus_veg * fire_raster
@@ -901,7 +900,7 @@ calculate_taxa_habitat = function(taxa_list,
             ## Then do the Cell stats ::
             ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
             habitat_fire_crosstab <- raster::crosstab(sdm_plus_veg, fire_raster, useNA = TRUE, long = TRUE)
-            colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'Cell_count')
+            colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'km2')
             
             ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
             ## If FIRE is NA, that means that....
@@ -909,8 +908,8 @@ calculate_taxa_habitat = function(taxa_list,
             sdm_fire_crosstab <- sdm_fire_crosstab %>%  
               
               ## Calculate the % burnt in each category, and also the km2
-              mutate(Cell_count   = Cell_count/cell_size)             %>% 
-              mutate(Percent      = Cell_count/sum(Cell_count) * 100) %>% 
+              mutate(km2          = km2/cell_size)             %>% 
+              mutate(Percent      = km2/sum(km2) * 100) %>% 
               mutate(Percent      = round(Percent, 2))                %>% 
               mutate(Habitat_taxa = taxa) %>%
               
@@ -946,7 +945,7 @@ calculate_taxa_habitat = function(taxa_list,
                         paste0(output_path, taxa_name, '_SDM_SVTM_intersect_Fire.tif'),
                         overwrite = TRUE)
             
-            message('writing threshold png for ', taxa)
+            message('writing SDM * FIRE png for ', taxa)
             png(paste0(output_path, taxa_name, '_SDM_SVTM_intersect_Fire.png'),
                 11, 4, units = 'in', res = 300)
             
