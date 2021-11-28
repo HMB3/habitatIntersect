@@ -441,7 +441,7 @@ taxa_records_habitat_intersect = function(analysis_df,
     if(taxa %in%  unique(analysis_df$searchTaxon)) {
       
       taxa_name  <- gsub(' ', '_', taxa)
-      raster_int <- paste0(output_path, taxa_name, '_SVTM_intersection_', buffer, 'm.tif')
+      raster_int <- paste0(output_path, taxa_name, '_VEG_intersection_', buffer, 'm.tif')
       
       if(!file.exists(raster_int)) {
         
@@ -463,15 +463,15 @@ taxa_records_habitat_intersect = function(analysis_df,
           ## do we need another exception here?
           message('Intersect taxa df with SVTM for ', taxa)
           taxa_intersects           <- gIntersects(habitat_subset, taxa_buffer, byid = TRUE) 
-          taxa_SVTM_intersects      <- habitat_subset[as.vector(taxa_intersects), ]
-          taxa_SVTM_intersects_clip <- raster::crop(taxa_SVTM_intersects, taxa_buffer)
+          taxa_VEG_intersects      <- habitat_subset[as.vector(taxa_intersects), ]
+          taxa_VEG_intersects_clip <- raster::crop(taxa_VEG_intersects, taxa_buffer)
           
           gc()
           
           ## Save intersection as a raster
           ## Set the ncol/nrow to match 100m resolutions
           message('convert shapefile to raster for ', taxa)
-          extent   <- extent(taxa_SVTM_intersects_clip)
+          extent   <- extent(taxa_VEG_intersects_clip)
           x_length <- (extent[2] - extent[1])/100
           x_length <- round(x_length)
           y_length <- (extent[4] - extent[3])/100
@@ -480,9 +480,9 @@ taxa_records_habitat_intersect = function(analysis_df,
           ## Set the values to 1 : any veg within xkm is considered decent habitat
           r          <- raster(ncol = x_length, nrow = y_length)
           extent(r)  <- extent
-          taxa_SVTM_intersects_raster <- terra::rasterize(taxa_SVTM_intersects_clip, r)
-          taxa_SVTM_intersects_raster[taxa_SVTM_intersects_raster > 0] <- 1
-          taxa_SVTM_intersects_raster[taxa_SVTM_intersects_raster < 0] <- 1
+          taxa_VEG_intersects_raster <- terra::rasterize(taxa_VEG_intersects_clip, r)
+          taxa_VEG_intersects_raster[taxa_VEG_intersects_raster > 0] <- 1
+          taxa_VEG_intersects_raster[taxa_VEG_intersects_raster < 0] <- 1
           
           gc()
           
@@ -490,26 +490,26 @@ taxa_records_habitat_intersect = function(analysis_df,
           ## Get the cells from the raster at those points
           # habitat_id      = cellFromXY(habitat_raster, taxa_df[c("lon", "lat")])  ## Index
           # taxa_rs_habitat = habitat_raster[habitat_id, drop = FALSE]              ## Values
-          writeOGR(obj    = taxa_SVTM_intersects_clip,
+          writeOGR(obj    = taxa_VEG_intersects_clip,
                    dsn    = 'G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SVTM_intersect',
-                   layer  = paste0(taxa_name, '_SVTM_intersect'), 
+                   layer  = paste0(taxa_name, '_VEG_intersect'), 
                    driver = 'ESRI Shapefile', 
                    overwrite_layer = TRUE)
           
           ## Save the taxa * habitat intersection as a raster
           message('writing threshold png for ', taxa)
-          png(paste0(output_path, taxa_name, "_SVTM_intersection.png"),
+          png(paste0(output_path, taxa_name, "_VEG_intersection.png"),
               16, 10, units = 'in', res = 500)
           
           ##
-          plot(taxa_SVTM_intersects_raster, main = paste0(taxa, ' SVTM Intersection'))
+          plot(taxa_VEG_intersects_raster, main = paste0(taxa, ' SVTM Intersection'))
           plot(taxa_df, add = TRUE, col = "red", lwd = 3)
           dev.off()
           
           ## Save in two places, in the taxa folder, 
           ## and in the habitat suitability folder
-          writeRaster(taxa_SVTM_intersects_raster, 
-                      paste0(output_path, taxa_name, '_SVTM_intersection_', buffer, 'm.tif'),
+          writeRaster(taxa_VEG_intersects_raster, 
+                      paste0(output_path, taxa_name, '_VEG_intersection_', buffer, 'm.tif'),
                       overwrite = TRUE)
           
           gc()
@@ -568,7 +568,7 @@ calculate_taxa_habitat = function(taxa_list,
   taxa_list %>%
     
     ## Loop over just the species
-    ## taxa = taxa_list[1]
+    ## taxa = taxa_list[74]
     lapply(function(taxa) {
       
       ## Get the directory of the host plants
@@ -633,7 +633,7 @@ calculate_taxa_habitat = function(taxa_list,
             
             ## Multiply the SDM raster by the Fire Raster
             message('multiply habitat raster by the fire raster')
-            sdm_plus_intersect_fire <- sdm_plus_veg * fire_raster
+            sdm_plus_veg_intersect_fire <- sdm_plus_veg * fire_raster
             
             ## Then do the Cell stats ::
             ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
@@ -665,20 +665,20 @@ calculate_taxa_habitat = function(taxa_list,
               )
             
             ## Save the % burnt layers
-            write.csv(sdm_fire_crosstab, paste0(output_path, taxa_name, '_SDM_SVTM_intersect.csv'), row.names = FALSE)
+            write.csv(sdm_fire_crosstab, paste0(output_path, taxa_name, '_SDM_VEG_intersect.csv'), row.names = FALSE)
             
             ## Now write the rasters
             ## If the rasters don't exist, write them for each taxa/threshold
             writeRaster(sdm_plus_veg, 
-                        paste0(output_path, taxa_name, '_SDM_SVTM_intersect.tif'),
+                        paste0(output_path, taxa_name, '_SDM_VEG_intersect.tif'),
                         overwrite = TRUE)
             
-            writeRaster(sdm_plus_intersect_fire, 
-                        paste0(output_path, taxa_name, '_SDM_SVTM_intersect_Fire.tif'),
+            writeRaster(sdm_plus_veg_intersect_fire, 
+                        paste0(output_path, taxa_name, '_SDM_VEG_intersect_Fire.tif'),
                         overwrite = TRUE)
             
             message('writing threshold png for ', taxa)
-            png(paste0(output_path, taxa_name, '_SDM_SVTM_intersect_Fire.png'),
+            png(paste0(output_path, taxa_name, '_SDM_VEG_intersect_Fire.png'),
                 11, 4, units = 'in', res = 300)
             
             print(levelplot(stack(sdm_plus_veg,
@@ -706,7 +706,7 @@ calculate_taxa_habitat = function(taxa_list,
             gc()
             
           } else {
-            message('SDM and Veg rasters do not intersect for ', taxa, ' and it doesnt have a host taxa')
+            message('SDM and Veg rasters do not intersect for ', taxa, ' and it does not have a host taxa')
             
             ## Multiply the SDM raster by the Fire Raster
             message('multiply habitat raster by the fire raster')
@@ -742,14 +742,14 @@ calculate_taxa_habitat = function(taxa_list,
               )
             
             ## Save the % burnt layers
-            write.csv(sdm_fire_crosstab, paste0(output_path, taxa_name, '_SDM_SVTM_intersect.csv'), row.names = FALSE)
+            write.csv(sdm_fire_crosstab, paste0(output_path, taxa_name, '_SDM_VEG_intersect.csv'), row.names = FALSE)
             
             writeRaster(sdm_intersect_fire, 
-                        paste0(output_path, taxa_name, '_SDM_SVTM_intersect_Fire.tif'),
+                        paste0(output_path, taxa_name, '_SDM_VEG_intersect_Fire.tif'),
                         overwrite = TRUE)
             
             message('writing threshold png for ', taxa)
-            png(paste0(output_path, taxa_name, '_SDM_SVTM_intersect_Fire.png'),
+            png(paste0(output_path, taxa_name, '_SDM_VEG_intersect_Fire.png'),
                 11, 4, units = 'in', res = 300)
             
             print(levelplot(stack(sdm_threshold,
@@ -812,15 +812,15 @@ calculate_taxa_habitat = function(taxa_list,
             
             ##
             message('mosaicing Veg, host and target SDM rasters for ', taxa)
-            sdm_plus_veg <- raster::mosaic(sdm_threshold, host_threshold, intersect_sdm, fun = max)
+            sdm_plus_host_veg <- raster::mosaic(sdm_threshold, host_threshold, intersect_sdm, fun = max)
             
             ## Multiply the SDM raster by the Fire Raster
             message('Multiply Combo habitat raster by the fire raster')
-            sdm_plus_veg_intersect_fire <- sdm_plus_veg * fire_raster
+            sdm_plus_veg_intersect_fire <- sdm_plus_host_veg * fire_raster
             
             ## Then do the Cell stats ::
             ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
-            habitat_fire_crosstab <- raster::crosstab(sdm_plus_veg, fire_raster, useNA = TRUE, long = TRUE)
+            habitat_fire_crosstab <- raster::crosstab(sdm_plus_host_veg, fire_raster, useNA = TRUE, long = TRUE)
             colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'km2')
             
             ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
@@ -847,20 +847,20 @@ calculate_taxa_habitat = function(taxa_list,
                   TRUE                ~ "Outside FESM extent")
               )
             ## Save the % burnt layers
-            write.csv(sdm_fire_crosstab, paste0(output_path, taxa_name, '_SDM_SVTM_intersect.csv'), row.names = FALSE)
+            write.csv(sdm_fire_crosstab, paste0(output_path, taxa_name, '_SDM_Host_VEG_intersect_Fire.csv'), row.names = FALSE)
             
             ## Now write the rasters
             ## If the rasters don't exist, write them for each taxa/threshold
-            writeRaster(sdm_plus_veg, 
-                        paste0(output_path, taxa_name, '_SDM_SVTM_intersect.tif'),
+            writeRaster(sdm_plus_host_veg, 
+                        paste0(output_path, taxa_name, '_SDM_Host_intersect.tif'),
                         overwrite = TRUE)
             
             writeRaster(sdm_plus_veg_intersect_fire, 
-                        paste0(output_path, taxa_name, '_SDM_SVTM_intersect_Fire.tif'),
+                        paste0(output_path, taxa_name, '_SDM_Host_VEG_intersect_Fire.tif'),
                         overwrite = TRUE)
             
             message('writing threshold png for ', taxa)
-            png(paste0(output_path, taxa_name, '_SDM_SVTM_intersect_Fire.png'),
+            png(paste0(output_path, taxa_name, '_SDM_Host_VEG_intersect_Fire.png'),
                 11, 4, units = 'in', res = 300)
             
             print(levelplot(stack(sdm_plus_veg,
@@ -891,15 +891,15 @@ calculate_taxa_habitat = function(taxa_list,
             message('SDM and Veg rasters do not intersect for ', taxa, 'but it has a host taxa')
             
             message('mosaicing host and target SDM rasters for ', taxa)
-            sdm_plus_veg <- raster::mosaic(sdm_threshold, host_threshold, fun = max)
+            sdm_plus_host <- raster::mosaic(sdm_threshold, host_threshold, fun = max)
             
             ## Multiply the SDM raster by the Fire Raster
             message('multiply habitat raster by the fire raster')
-            sdm_plus_intersect_fire <- sdm_plus_veg * fire_raster
+            sdm_plus_host_intersect_fire <- sdm_plus_host * fire_raster
             
             ## Then do the Cell stats ::
             ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
-            habitat_fire_crosstab <- raster::crosstab(sdm_plus_veg, fire_raster, useNA = TRUE, long = TRUE)
+            habitat_fire_crosstab <- raster::crosstab(sdm_plus_host, fire_raster, useNA = TRUE, long = TRUE)
             colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'km2')
             
             ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
@@ -927,7 +927,7 @@ calculate_taxa_habitat = function(taxa_list,
               )
             
             ## Save the % burnt layers
-            write.csv(sdm_fire_crosstab, paste0(output_path, taxa_name, '_SDM_SVTM_intersect.csv'), row.names = FALSE)
+            write.csv(sdm_fire_crosstab, paste0(output_path, taxa_name, '_SDM_Host_intersect_Fire.csv'), row.names = FALSE)
             
             ## Write the current suitability raster, thresholded using the Maximum training
             ## sensitivity plus specificity Logistic threshold
@@ -935,22 +935,22 @@ calculate_taxa_habitat = function(taxa_list,
             
             ## Now write the rasters
             ## If the rasters don't exist, write them for each taxa/threshold
-            writeRaster(sdm_plus_veg, 
-                        paste0(output_path, taxa_name, '_SDM_SVTM_intersect.tif'),
+            writeRaster(sdm_plus_host, 
+                        paste0(output_path, taxa_name, '_SDM_Host_intersect.tif'),
                         overwrite = TRUE)
             
             ## Save in two places, in the taxa folder, 
             ## and in the habitat suitability folder
-            writeRaster(sdm_plus_intersect_fire, 
-                        paste0(output_path, taxa_name, '_SDM_SVTM_intersect_Fire.tif'),
+            writeRaster(sdm_plus_host_intersect_fire, 
+                        paste0(output_path, taxa_name, '_SDM_Host_intersect_Fire.tif'),
                         overwrite = TRUE)
             
             message('writing SDM * FIRE png for ', taxa)
-            png(paste0(output_path, taxa_name, '_SDM_SVTM_intersect_Fire.png'),
+            png(paste0(output_path, taxa_name, '_SDM_Host_intersect_Fire.png'),
                 11, 4, units = 'in', res = 300)
             
             print(levelplot(stack(sdm_plus_veg,
-                                  sdm_plus_veg_intersect_fire, 
+                                  sdm_plus_intersect_fire, 
                                   quick = TRUE), margin = FALSE,
                             
                             ## Create a colour scheme using colbrewer: 100 is to make it continuos
@@ -964,7 +964,7 @@ calculate_taxa_habitat = function(taxa_list,
                             colorkey   = list(height = 0.5, width = 3), xlab = '', ylab = '',
                             main       = list(gsub('_', ' ', taxa), font = 4, cex = 2)) +
                     
-                    ## Plot the Aus shapefile with the occurrence points for reference
+                    ## Plot the Aus shapefile with the occurrence points for reference...
                     ## Can the current layer be plotted on it's own?
                     ## Add the novel maps as vectors.
                     latticeExtra::layer(sp.polygons(country_poly), data = list(country_poly = country_poly)))

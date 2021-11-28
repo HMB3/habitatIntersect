@@ -272,7 +272,6 @@ INVERT.MAXENT.SPP.RESULTS <- compile_sdm_results(taxa_list    = target.insect.sp
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
 
-
 PLANT.MAXENT.RESULTS      <- compile_sdm_results(taxa_list    = target.host.plants,
                                                  results_dir  = 'output/plant_maxent/back_sel_models',
                                                  data_path    = "./output/invert_maxent/Habitat_suitability/",
