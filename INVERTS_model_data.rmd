@@ -414,7 +414,7 @@ habitat_threshold(taxa_list     = sort(unique(PLANT.MAXENT.RESULTS$searchTaxon))
 ## Read in the host plant species
 host_plants <- read_excel('./output/invert_maxent/Habitat_suitability/NENSW_INVERTEBRATES_SPATIAL_DATA_LUT_SEP2021.xlsm',
                           sheet = 'NENSW_INV_TAXA_ASSOCIATIONS') %>% filter(Target_taxon == "Yes") %>% 
-  select(searchTaxon, Host_Plant_taxon) 
+  dplyr::select(searchTaxon, Host_Plant_taxon) 
 
 
 MAXENT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>% left_join(., host_plants, by = "searchTaxon") %>% 

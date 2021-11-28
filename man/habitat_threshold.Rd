@@ -9,7 +9,6 @@ habitat_threshold(
   maxent_table,
   maxent_path,
   cell_factor,
-  write_rasters,
   country_shp,
   country_prj
 )
@@ -23,11 +22,11 @@ habitat_threshold(
 
 \item{cell_factor}{Numeric          - Cell size to resample output}
 
-\item{write_rasters}{Logical          - Save rasters (T/F)?}
-
 \item{country_shp}{Character string - Shapefile name that has already been read into R (e.g. in the Package)}
 
 \item{country_prj}{Character string - Name of projection}
+
+\item{write_rasters}{Logical          - Save rasters (T/F)?}
 }
 \description{
 Takes a habitat suitability layer, and creates a binary suitability layer (0, 1) using a threshold value.

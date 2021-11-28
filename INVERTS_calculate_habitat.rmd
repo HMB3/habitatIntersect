@@ -138,7 +138,7 @@ raster::xres(FESM_100m);raster::xres(study_sdm_binary[[1]]);raster::xres(GBAM)
 
 \
 
-# 2). Select pixels from the Vegetation Habitat Raster that intersect the records for each taxa, as habitat surrogates
+# 2). Select pixels from the Vegetation Habitat Raster that intersect the records for each Invertebrate taxa, as habitat surrogates
 
 \
 
