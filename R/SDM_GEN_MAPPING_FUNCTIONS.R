@@ -665,7 +665,7 @@ calculate_taxa_habitat = function(taxa_list,
               )
             
             ## Save the % burnt layers
-            write.csv(sdm_fire_crosstab, paste0(output_path, taxa_name, '_SDM_VEG_intersect.csv'), row.names = FALSE)
+            write.csv(sdm_fire_crosstab, paste0(output_path, taxa_name, '_SDM_VEG_intersect_Fire.csv'), row.names = FALSE)
             
             ## Now write the rasters
             ## If the rasters don't exist, write them for each taxa/threshold
@@ -742,7 +742,7 @@ calculate_taxa_habitat = function(taxa_list,
               )
             
             ## Save the % burnt layers
-            write.csv(sdm_fire_crosstab, paste0(output_path, taxa_name, '_SDM_VEG_intersect.csv'), row.names = FALSE)
+            write.csv(sdm_fire_crosstab, paste0(output_path, taxa_name, '_SDM_VEG_intersect_Fire.csv'), row.names = FALSE)
             
             writeRaster(sdm_intersect_fire, 
                         paste0(output_path, taxa_name, '_SDM_VEG_intersect_Fire.tif'),

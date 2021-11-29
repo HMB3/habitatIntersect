@@ -30,17 +30,8 @@ word_document:
 
 \
 
-The text and code below summarises a workflow in R that can be used to relatively rapidly assess the 
-environmental range of a species within Australia, from downloading occurrence records, through to 
-creating maps of predicted climatic suitability across Australia at 1km*1km resolution. An example 
-of this work is published in the journal Science of the Total Environment ::
-
-\
-
-Burley, H., Beaumont, L.J., Ossola, A., et al. (2019) Substantial declines in urban tree habitat predicted 
-under climate change. Science of The Total Environment, 685, 451-462.
-
-https://www.sciencedirect.com/science/article/pii/S0048969719323289#f0030 
+Aim :: The Code below takes the species distribution models (SDMs) for each invertebrate taxa, and the SDMs for their host plant 
+taxa, and intersects the SDMs with a Vegetation layer (), then intersects the combined habitat layer with a fire severity layer.
 
 \
 
@@ -84,9 +75,11 @@ terraOptions(memfrac = 0.5,
 
 First, get all the rasters to compare with SDM modelling :
 
-- Fire layers    (FESM, 0-5, 100m)
-- NSW Vegetation (Veg maps, categorical, 100m) 
-- SDM output     (Binary habitat suitability, 0-1, 100m)
+- SDM output     (Binary habitat suitability, 0-1, 100m) (Source)
+- NSW Vegetation (Veg maps, categorical, 100m)           (Source )
+- Fire layers    (FESM, 0-5, 100m)                       (https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm)
+
+\
 
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
@@ -142,6 +135,10 @@ raster::xres(FESM_100m);raster::xres(study_sdm_binary[[1]]);raster::xres(GBAM)
 
 \
 
+Let's intersect the SDMs for each invertebrate taxa with the Vegetation Habitat Raster
+
+\
+
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 
@@ -179,45 +176,16 @@ taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
 
 \
 
-<!-- # 3). Select pixels from the Veg Raster by expert opinion?    -->
 
-<!-- \ -->
-
-<!-- Adam Roff : We can use the “combine” tool to run queries on the raster. -->
+# 3). Calculate Estimated fire habitat after the 2019-2020 Fires
 
 
-<!-- For example, we can combine the Keith Class from the SVTM map, with the expected range of each species (a and b).  -->
-<!-- You will be able to search the geotiff attribute table using Keith Class = x,d,f etc. where species range = b.  -->
-<!-- We can then extract by attributes to create a new raster with the Keith Class you want, only inside the species range. -->
-
-
-<!-- \ -->
-
-<!-- ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE} -->
-
-<!-- ## Threshold the Plant SDM models to be either 0 or 1 -->
-<!-- taxa_records_habitat_intersect(taxa_df       = SDM.SPAT.OCC.BG.GDA, -->
-<!--                                taxa_list     = analysis_taxa, -->
-<!--                                maxent_table  = MAXENT.RESULTS, -->
-<!--                                output_path   = './output/invert_maxent/Habitat_suitability/SVTM_selection/', -->
-<!--                                country_shp   = 'AUS', -->
-<!--                                country_prj   = CRS("+init=EPSG:3577"), -->
-<!--                                write_rasters = TRUE) -->
-
-<!-- ```  -->
-
-<!-- \ -->
-
-
-# 4). Calculate Estimated fire habitat after the 2019-2020 Fires
-
-
-For each Invertebrate species, let's calculate the % of suitable habitat that was burnt by the
-2019-2020 fires. We can do this by combining pixles in the rasters like this: 
+For each Invertebrate species, calculate the % of suitable habitat that was burnt by the
+2019-2020 fires. We can do this by combining pixels in the rasters like this: 
 
 \
 
-- [Invert_SDMs + Host_plant_SDMs + Inv Veg pixels] * Fire_layer 
+- [Invert_SDM + Host_plant_SDM + Inv Veg pixels] * Fire_layer 
 
 \
 
@@ -247,15 +215,16 @@ calculate_taxa_habitat(taxa_list          = rev(unique(MAXENT.RESULTS.HOSTS$sear
 
 \
 
-For each species, we have a table of the area in square kilometers that are in each burn intensity category.
-We can then combine those tables together.
+For each taxa, we create a table of the area in square kilometers of suitable habitat that intersects with each burn 
+intensity category from the FESM fire intensity layer. Let's combine all those tables together, to create a master 
+table of estimated area.
 
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Calculate Insect habitat
 INVERT.FESM.list <- list.files('./output/invert_maxent/Habitat_suitability/FESM_SDM_intersect/', 
-                               pattern     = '_intersect.csv', 
+                               pattern     = '_intersect_Fire.csv', 
                                full.names  = TRUE, 
                                recursive   = TRUE) 
 
@@ -280,8 +249,19 @@ INVERT.FESM.TABLE <- INVERT.FESM.list %>%
 
 
 ## Subset to just the analysis species - some species did not process properly?
-INVERT.FESM.TABLE        =  GAIN.LOSS.TABLE[GAIN.LOSS.TABLE$SPECIES %in% sort(unique(MAXENT.RESULTS.HOSTS$searchTaxon)) , ] 
-GAIN.LOSS.TABLE.COMPLETE =  GAIN.LOSS.TABLE[complete.cases(GAIN.LOSS.TABLE), ]
+INVERT.FESM.TABLE <-  INVERT.FESM.TABLE[INVERT.FESM.TABLE$Habitat_taxa %in% sort(unique(MAXENT.RESULTS.HOSTS$searchTaxon)) , ] %>%  
+  .[complete.cases(.), ]
+
+
+## How many taxa have been processed?
+length(unique(INVERT.FESM.TABLE$Habitat_taxa))
+View(INVERT.FESM.TABLE)
+
+
+## Save the FESM intersect results to file
+write_csv(INVERT.FESM.TABLE, 
+          './output/invert_maxent/Habitat_suitability/FESM_SDM_intersect/INVERT_TAXA_SDM_VEG_intersect_Fire.csv')
+
 
 ``` 
 
@@ -290,11 +270,12 @@ GAIN.LOSS.TABLE.COMPLETE =  GAIN.LOSS.TABLE[complete.cases(GAIN.LOSS.TABLE), ]
 
 ![fig1](https://github.com/HMB3/sdmgen/blob/master/output/Acacia_dealbata_gain_loss_0.3799_2030.png?raw=true)
 
-**Figure 3.** Example of a combined map of change in climatic suitability from current conditions to 2070. 
+**Figure 1.** Example of a combined map of change in climatic suitability from current conditions to 2070. 
 Species occurrence points are plotted in red on the left panel. The cells in the right and bottom panels 
 are coded as either lost (orange cells - present now but not in 2070 according to 4 or more GCMs), 
 gained (green cells - absent now, but present in 2070), stable (blue cells - present now and in 2070), 
 or never suitable (white cells - never present).
 
 \
+
 
