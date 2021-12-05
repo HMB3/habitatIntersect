@@ -135,8 +135,6 @@ habitat_reptiles <- c('Phyllurus platurus',  'Eulamprus tympanum',      'Hoploce
 
 
 test_reptiles    <- c('Eulamprus tympanum',   'Drysdalia rhodogaster')
-
-
 exclude_spp      <- c('Hoplocephalus bungaroides')
 
 ```
@@ -569,13 +567,13 @@ coord_clean_records function.
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 
-## Two projection systems 
+## Two projection systems, mollweide for SDMs, GDA Albers for SDM projections
 sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
 sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 
 
 ## Final data set is a spatial points data frame in the Mollweide projection
-SDM.SPAT.OCC.BG.INVERT.MOL <- readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds') %>% as.data.frame() %>%
+SDM.SPAT.OCC.BG.REPTILE.MOL <- readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_REPTILE_TAXA.rds') %>% as.data.frame() %>%
   
   dplyr::select(-lat.1, -lon.1) %>% 
   SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
@@ -600,7 +598,7 @@ SDM.SPAT.OCC.ALL.REPTILE.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN
                                                  save_run          = "ALL_REPTILE_TAXA",
                                                  site_records      = FALSE,
                                                  read_background   = TRUE,
-                                                 background_points = SDM.SPAT.OCC.BG.INVERT.MOL, 
+                                                 background_points = SDM.SPAT.OCC.BG.REPTILE.MOL, 
                                                  save_data         = TRUE,
                                                  data_path         = paste0(getwd(), '/output/results/'),
                                                  project_path      = 'G:/GITHUB/North_east_NSW_fire_recovery')
@@ -626,6 +624,13 @@ writeOGR(obj    = SDM.SPAT.OCC.ALL.REPTILE.BG,
          dsn    = 'G:/North_east_NSW_fire_recovery/output/reptile_maxent/results',
          layer  = 'SDM_SPAT_OCC_BG_GDA_ALL_TARGET_REPTILE_TAXA', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
+
+
+## And save the big table data to be a projected coordinate system, not mollweide for use in Australia
+SDM.SPAT.OCC.TARGET.REPTILE.BG   <- readRDS('./output/reptile_maxent/results/SDM_SPAT_OCC_BG_ALL_REPTILE_TAXA.rds')
+SDM.SPAT.OCC.BG.REPTILE.GDA      <- spTransform(SDM.SPAT.OCC.TARGET.REPTILE.BG,  CRS(sp_epsg3577))
+crs(SDM.SPAT.OCC.BG.REPTILE.GDA) <- sp_epsg3577
+saveRDS(SDM.SPAT.OCC.BG.REPTILE.GDA, './output/reptile_maxent/results/SDM_SPAT_OCC_BG_REPTILE_GDA.rds')
 
 
 ``` 

@@ -571,17 +571,32 @@ calculate_taxa_habitat = function(taxa_list,
     ## taxa = taxa_list[74]
     lapply(function(taxa) {
       
-      ## Get the directory of the host plants
-      host_dir <- targ_maxent_table %>%
-        filter(searchTaxon == taxa) %>%
-        dplyr::select(host_dir)     %>%
-        distinct() %>% .[1, ] %>% .[[1]]
       
-      ## Get the directory of the host plants
-      host_taxa <- targ_maxent_table    %>%
-        filter(searchTaxon == taxa)     %>%
-        dplyr::select(Host_Plant_taxon) %>%
-        distinct() %>% .[1, ] %>% .[[1]]
+      if(host_maxent_table != 'NONE') {
+        
+        ## Get the directory of the host plants
+        host_dir <- targ_maxent_table %>%
+          filter(searchTaxon == taxa) %>%
+          dplyr::select(host_dir)     %>%
+          distinct() %>% .[1, ] %>% .[[1]]
+        
+        ## Get the directory of the host plants
+        host_taxa <- targ_maxent_table    %>%
+          filter(searchTaxon == taxa)     %>%
+          dplyr::select(Host_Plant_taxon) %>%
+          distinct() %>% .[1, ] %>% .[[1]]
+        
+        ## Get the sdm threshold for each host taxa
+        host_thresh <- host_maxent_table    %>%
+          filter(searchTaxon == host_taxa)  %>%
+          dplyr::select(Logistic_threshold) %>%
+          distinct() %>% .[1, ] %>% .[[1]]
+        
+        ## Get the taxa directory name
+        taxa_name <- gsub(' ', '_', taxa)
+        host_name <- gsub(' ', '_', host_taxa)
+        
+      }
       
       ## Get the sdm threshold for each inv taxa
       target_thresh <- targ_maxent_table  %>%
@@ -589,15 +604,10 @@ calculate_taxa_habitat = function(taxa_list,
         dplyr::select(Logistic_threshold) %>%
         distinct() %>% .[1, ] %>% .[[1]]
       
-      ## Get the sdm threshold for each host taxa
-      host_thresh <- host_maxent_table    %>%
-        filter(searchTaxon == host_taxa)  %>%
-        dplyr::select(Logistic_threshold) %>%
-        distinct() %>% .[1, ] %>% .[[1]]
-      
+      host_dir <- NA
+        
       ## Get the taxa directory name
       taxa_name <- gsub(' ', '_', taxa)
-      host_name <- gsub(' ', '_', host_taxa)
       
       current_thresh = sprintf('%s/%s/full/%s_%s%s.tif', target_path,
                                taxa_name, taxa_name, "current_suit_not_novel_above_", target_thresh)

@@ -197,7 +197,7 @@ This will give us the % of suitable habitat in each burn intensity category(0-5)
 
 ## Calculate Insect habitat - fails after this species?
 ## Code is stalling before or after :: Naranjakotta - it should be the taxa either side of that...
-calculate_taxa_habitat(taxa_list          = rev(unique(MAXENT.RESULTS.HOSTS$searchTaxon)),
+calculate_taxa_habitat(taxa_list          = rev(MAXENT.RESULTS.HOSTS$searchTaxon),
                        targ_maxent_table  = MAXENT.RESULTS.HOSTS,
                        host_maxent_table  = PLANT.MAXENT.RESULTS,
                        target_path        = './output/invert_maxent/back_sel_models/',
