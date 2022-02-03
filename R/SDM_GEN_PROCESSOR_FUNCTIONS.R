@@ -507,7 +507,7 @@ combine_ala_records = function(taxa_list,
       
       ## Load each file - check if some are already dataframes
       d <- get(load(f)) %>% as.data.frame()
-
+      
       ## Check if the dataframes have data
       if (nrow(d) >= 2) {
         
@@ -1022,6 +1022,7 @@ combine_records_extract = function(ala_df,
                                    add_sites,
                                    site_df,
                                    add_site,
+                                   fitler_taxo,
                                    taxa_list,
                                    taxa_level,
                                    template_raster,
@@ -1030,6 +1031,7 @@ combine_records_extract = function(ala_df,
                                    prj,
                                    complete_var,
                                    raster_divide,
+                                   env_variables,
                                    save_data,
                                    data_path,
                                    save_run) {
@@ -1043,8 +1045,15 @@ combine_records_extract = function(ala_df,
   ## Now filter the records to those where the searched and returned taxa match
   ## More matching is in : 4_ALA_GBIF_TAXO_COMBINE.R from Green Cities
   ## The matching has to be done at the same taxonomic level
-  ALA.COMBO <- ALA.COMBO %>% dplyr::mutate(Match_SN_ST = str_detect(!!sym(taxa_level), searchTaxon)) %>% 
-    filter(Match_SN_ST == 'TRUE') %>% as.data.frame()
+  if(fitler_taxo) {
+    
+    message('fitler taxonomy')
+    ALA.COMBO <- ALA.COMBO %>% dplyr::mutate(Match_SN_ST = str_detect(!!sym(taxa_level), searchTaxon)) %>% 
+      filter(Match_SN_ST == 'TRUE') %>% as.data.frame()
+    
+  } else {
+    message('Do not filter taxonomy of searched taxa vs returned' )
+  }
   
   ## Don't taxo match the site data :: this needs to be kept without exclusion
   if(add_sites) {
@@ -1219,7 +1228,7 @@ coord_clean_records = function(records,
   
   ## Is the taxa column the same as the searchTaxon column?
   COORD.CLEAN = left_join(ala_records, TIB.GBIF, by = "CC.OBS")
-
+  
   ## Now subset to records that are flagged as outliers
   message(table(COORD.CLEAN$coord_summary))
   

@@ -243,13 +243,21 @@ https://drive.google.com/open?id=1T5ET5MUX3-lkqiN5nNL3SZZagoJlEOal.
 Let's create all the raster data we need. First let's get the rasters needed for SDM modelling :
 - Climate
 - Vegetation
-- Topoggraphy
+- Topography
+- Soil
 
 \
 
+# Climate variables
+
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Use worldclim 2 data
+## ANUCLIM 
+anuclim_climate <- raster::stack(
+  list.files('./data/anuclim/1km', pattern =".tif", full.names=TRUE))
+
+
+
 ## https://drive.google.com/open?id=1mQHVmYxSMw_cw1iGvfU9M7Pq6Kl6nz-C
 worldclim_climate = raster::stack(
   file.path('./data/worldclim2/res_30s/bioclim',
@@ -378,11 +386,11 @@ ALA.LAND.FAM <- combine_ala_records(taxa_list         =  target.insect.families[
 
 ## Combine Genus ALA data
 ALA.LAND.GEN <- combine_ala_records(taxa_list         = target.insect.genera{1:2],
-                                    records_path      = "./data/ALA/Insects/Genus/",
-                                    records_extension = "_ALA_records.RData",
-                                    record_type       = "ALA",
-                                    keep_cols         = ALA_keep,
-                                    world_raster      = world_annual_temp)
+records_path      = "./data/ALA/Insects/Genus/",
+records_extension = "_ALA_records.RData",
+record_type       = "ALA",
+keep_cols         = ALA_keep,
+world_raster      = world_annual_temp)
 
 
 ## Combine taxa ALA data
