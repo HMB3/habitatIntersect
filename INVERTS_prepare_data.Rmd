@@ -502,6 +502,7 @@ records data.frame is that returned by the combine_records_extract function abov
 
 ## Flag records as institutional or spatial outliers
 COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.FAM.GEN.SPP,
+                                  multi_source = FALSE,
                                   capitals   = 10000,  
                                   centroids  = 5000,   
                                   save_data  = FALSE,

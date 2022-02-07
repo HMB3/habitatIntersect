@@ -1171,6 +1171,7 @@ combine_records_extract = function(ala_df,
 #' @param data_path          Character string - The file path used for saving the data frame
 #' @export
 coord_clean_records = function(records,
+                               multi_source,
                                site_flag,
                                capitals,
                                centroids,
@@ -1186,9 +1187,17 @@ coord_clean_records = function(records,
   length(records$CC.OBS);length(unique(records$CC.OBS))
   records$taxa = records$searchTaxon
   
-  ## Split the site data up from the ALA data
-  ala_records  <- records %>% filter(SOURCE == 'ALA')
-  site_records <- records %>% filter(SOURCE == site_flag) %>% dplyr::mutate(coord_summary = TRUE)
+  
+  if(multi_source){
+    
+    ## Split the site data up from the ALA data
+    ala_records  <- records %>% filter(SOURCE == 'ALA')
+    site_records <- records %>% filter(SOURCE == site_flag) %>% dplyr::mutate(coord_summary = TRUE)
+    
+  } else {
+    message('Do not subset data by source')
+    ala_records  <- records %>% filter(SOURCE == 'ALA')
+  }
   
   ## Rename the columns to fit the CleanCoordinates format and create a tibble.
   TIB.GBIF <- ala_records %>% dplyr::rename(coord_spp        = searchTaxon,
@@ -1241,7 +1250,17 @@ coord_clean_records = function(records,
   unique(COORD.CLEAN$SOURCE)
   
   CLEAN.TRUE <- subset(COORD.CLEAN, coord_summary == TRUE)
-  CLEAN.TRUE <- bind_rows(CLEAN.TRUE, site_records)
+  
+  if(multi_source){
+    
+    ## Split the site data up from the ALA data
+    message('Combine sources')
+    CLEAN.TRUE <- bind_rows(CLEAN.TRUE, site_records)
+    
+  } else {
+    message('Do not Combine sources')
+  }
+  
   message(round(nrow(CLEAN.TRUE)/nrow(records)*100, 2), " % records retained")
   message(table(COORD.CLEAN$coord_summary))
   
