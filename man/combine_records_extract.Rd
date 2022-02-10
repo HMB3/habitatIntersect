@@ -9,6 +9,7 @@ combine_records_extract(
   add_sites,
   site_df,
   add_site,
+  fitler_taxo,
   taxa_list,
   taxa_level,
   template_raster,
@@ -17,6 +18,7 @@ combine_records_extract(
   prj,
   complete_var,
   raster_divide,
+  env_variables,
   save_data,
   data_path,
   save_run
