@@ -1068,7 +1068,7 @@ combine_records_extract = function(ala_df,
   ## CHECK TAXONOMY RETURNED BY ALA USING TAXONSTAND?
   
   ## Create points: the 'over' function seems to need geographic coordinates for this data...
-  GBIF.ALA.84   = SpatialPointsDataFrame(coords      = ALA.COMBO[c("lon", "lat")],
+  GBIF.ALA.84   = SpatialPointsDataFrame(coords      = ALA.COMBO %>% dplyr::select(lon, lat) %>% as.matrix(),
                                          data        = ALA.COMBO,
                                          proj4string = prj)
   
