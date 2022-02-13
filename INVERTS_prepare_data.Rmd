@@ -365,7 +365,7 @@ NENSW_study_area <- readOGR(dsn              = './data/Spatial_data/NE_NSW_study
 
 ## 250m Precip layers
 aus_precip_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Precip', pattern =".tif", full.names = TRUE))
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Precip',        pattern =".tif", full.names = TRUE))
 
 study_precip_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Precip', pattern =".tif", full.names = TRUE))
@@ -376,29 +376,49 @@ east_precip_250m <- raster::stack(
 
 ## 250m temperature layers
 aus_temp_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Temp',   pattern =".tif", full.names = TRUE))
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Temp',          pattern =".tif", full.names = TRUE))
 
 study_temp_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Temp', pattern =".tif", full.names = TRUE))
+  list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Temp',   pattern =".tif", full.names = TRUE))
 
 east_temp_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Temp', pattern =".tif", full.names = TRUE))
+  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Temp',   pattern =".tif", full.names = TRUE))
 
 
 ## 250m Soil layers
 aus_soil_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Soil',   pattern =".tif", full.names = TRUE))
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Soil',          pattern =".tif", full.names = TRUE))
+
+study_soil_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Soil',   pattern =".tif", full.names = TRUE))
+
+east_soil_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Soil',   pattern =".tif", full.names = TRUE))
 
 
 
 ## 250m Geology Australia
 aus_geology_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Geology', pattern =".tif", full.names = TRUE))
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Geology',        pattern =".tif", full.names = TRUE))
+
+study_geology_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Geology', pattern =".tif", full.names = TRUE))
+
+east_geology_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Geology', pattern =".tif", full.names = TRUE))
+
+
 
 
 ## 250m topo Australia
 aus_topo_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Topo',   pattern =".tif", full.names = TRUE))
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Topo',           pattern =".tif", full.names = TRUE))
+
+study_topo_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Topo',    pattern =".tif", full.names = TRUE))
+
+east_topo_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Topo',    pattern =".tif", full.names = TRUE))
 
 
 ## 250m terrain indices Australia
