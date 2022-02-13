@@ -248,15 +248,13 @@ Let's create all the raster data we need. First let's get the rasters needed for
 
 \
 
-# Climate variables
+# 1km Climate variables
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## ANUCLIM 
 anuclim_climate <- raster::stack(
-  list.files('./data/anuclim/1km', pattern =".tif", full.names=TRUE))
-
-
+  list.files('./data/anuclim/1km', pattern =".tif", full.names = TRUE))
 
 ## https://drive.google.com/open?id=1mQHVmYxSMw_cw1iGvfU9M7Pq6Kl6nz-C
 worldclim_climate = raster::stack(
@@ -361,6 +359,100 @@ NENSW_study_area <- readOGR(dsn              = './data/Spatial_data/NE_NSW_study
 
 \
 
+# 250m Climate, Soil and terrain variables
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+## 250m Precip layers
+aus_precip_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Precip', pattern =".tif", full.names = TRUE))
+
+study_precip_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Precip', pattern =".tif", full.names = TRUE))
+
+east_precip_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Precip', pattern =".tif", full.names = TRUE))
+
+
+## 250m temperature layers
+aus_temp_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Temp',   pattern =".tif", full.names = TRUE))
+
+study_temp_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Temp', pattern =".tif", full.names = TRUE))
+
+east_temp_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Temp', pattern =".tif", full.names = TRUE))
+
+
+## 250m Soil layers
+aus_soil_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Soil',   pattern =".tif", full.names = TRUE))
+
+
+
+## 250m Geology Australia
+aus_geology_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Geology', pattern =".tif", full.names = TRUE))
+
+
+## 250m topo Australia
+aus_topo_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Topo',   pattern =".tif", full.names = TRUE))
+
+
+## 250m terrain indices Australia
+aus_terrain_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Indices',   pattern =".tif", full.names = TRUE))
+
+
+## Climate data for Australia, in GDA Albers projection
+aus.grids.current.250m <- stack(aus_precip_250m,
+                                aus_temp_250m,
+                                aus_soil_250m,
+                                aus_geology_250m)
+
+
+
+## And a stack of grids for vegetation, in GDA Albers projection
+aus.veg.grids <- stack(
+  list.files('./data/Remote_sensing/Veg_data/height_and_cover', 
+             '_1km.tif', full.names = TRUE))
+
+
+## And a stack of grids for vegetation, in GDA Albers projection
+study.veg.grids <- stack(
+  list.files('./data/Remote_sensing/Veg_data/height_and_cover/Study', 
+             '_1km_study.tif', full.names = TRUE))
+
+
+## Combine the grids into raster stacks
+aus.climate.veg.grids   <- stack(aus.grids.current,   aus.veg.grids,   aus.vbf)
+study.climate.veg.grids <- stack(study.grids.current, study.veg.grids, study.vbf)
+aus_annual_temp         <- aus.climate.veg.grids[[1]]
+world_annual_temp       <- worldclim_climate[[1]]
+
+
+# We also need a template raster of 1km * 1km cells, which is used to filter 
+# records to 1 per one 1km cell. This raster needs to have the same extent (global) 
+# resolution (1km) and projection (WGS84) of the data used to analyse the taxa 
+# distributions. It should have a value of 1 for land, and NA for the ocean. 
+# This takes ages in R.....
+template_raster_1km_WGS84 <- raster("./data/world_koppen/template_1km_WGS84.tif")
+Koppen_1975_1km           <- raster('data/world_koppen/Koppen_1000m_Mollweide54009.tif')
+template_raster_1km_mol   <- raster("./data/world_koppen/template_has_data_1km.tif")
+
+
+## Add shapefiles
+NENSW_study_area <- readOGR(dsn              = './data/Spatial_data/NE_NSW_study_area_buffer_GDA.shp',
+                            layer            = "NE_NSW_study_area_buffer_GDA",
+                            stringsAsFactors = FALSE)
+
+
+```
+
+
+\
 
 Next we filter the records to those taken after 1950, and those inside the raster boundaries 
 (i.e. taxa records in the ocean according to the raster boundaries will be excluded).

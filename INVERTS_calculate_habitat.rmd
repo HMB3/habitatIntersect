@@ -249,7 +249,8 @@ INVERT.FESM.TABLE <- INVERT.FESM.list %>%
 
 
 ## Subset to just the analysis species - some species did not process properly?
-INVERT.FESM.TABLE <-  INVERT.FESM.TABLE[INVERT.FESM.TABLE$Habitat_taxa %in% sort(unique(MAXENT.RESULTS.HOSTS$searchTaxon)) , ] %>%  
+INVERT.FESM.TABLE <-  INVERT.FESM.TABLE[INVERT.FESM.TABLE$Habitat_taxa %in% 
+                                          sort(unique(MAXENT.RESULTS.HOSTS$searchTaxon)) , ] %>%  
   .[complete.cases(.), ]
 
 
