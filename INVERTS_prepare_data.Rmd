@@ -423,7 +423,13 @@ east_topo_250m <- raster::stack(
 
 ## 250m terrain indices Australia
 aus_terrain_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Indices',   pattern =".tif", full.names = TRUE))
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Indices',        pattern =".tif", full.names = TRUE))
+
+study_terrain_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Indices', pattern =".tif", full.names = TRUE))
+
+east_terrain_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Indices', pattern =".tif", full.names = TRUE))
 
 
 ## Climate data for Australia, in GDA Albers projection
