@@ -130,6 +130,7 @@ target_reptiles  <- c('Phyllurus platurus',  'Eulamprus tympanum',      'Hoploce
                       'Morelia spilota',     'Pseudechis porphyriacus', 'Varanus rosenbergi')
 
 
+## 'Hoplocephalus bungaroides', 'Drysdalia rhodogaster' these two
 habitat_reptiles <- c('Phyllurus platurus',  'Eulamprus tympanum',      'Hoplocephalus bungaroides', 'Drysdalia rhodogaster', 
                       'Morelia spilota',     'Pseudechis porphyriacus', 'Varanus rosenbergi')
 
@@ -517,6 +518,7 @@ ALA.LAND.BACKG.SPP  <- format_ala_dump(ALA_table         = Reptiles_ALA,
 
 ## Are the control taxa present? And the extra records?
 'Pseudechis porphyriacus'   %in% ALA.LAND.BACKG.SPP$searchTaxon
+'Drysdalia rhodogaster'     %in% ALA.LAND.BACKG.SPP$searchTaxon
 'Hoplocephalus bungaroides' %in% ALA.LAND.BACKG.SPP$searchTaxon
 
 
@@ -570,6 +572,7 @@ COMBO.RASTER.SPP <- combine_records_extract(ala_df           = ALA.LAND.BACKG.SP
 
 ## Are the control taxa present? And the extra records?
 'Pseudechis porphyriacus'   %in% COMBO.RASTER.SPP$searchTaxon
+'Drysdalia rhodogaster'     %in% COMBO.RASTER.SPP$searchTaxon
 'Hoplocephalus bungaroides' %in% COMBO.RASTER.SPP$searchTaxon
 
 
@@ -611,6 +614,7 @@ COORD.CLEAN <- coord_clean_records(records    = COMBO.RASTER.SPP,
 
 ## Are the control taxa present? And the data sources?
 'Pseudechis porphyriacus'   %in% COORD.CLEAN$searchTaxon
+'Drysdalia rhodogaster'     %in% COORD.CLEAN$searchTaxon
 'Hoplocephalus bungaroides' %in% COORD.CLEAN$searchTaxon
 table(COORD.CLEAN$SOURCE)
 
@@ -645,6 +649,7 @@ SPATIAL.CLEAN = check_spatial_outliers(occ_df       = head(COORD.CLEAN, 500),
 
 ## Are the control taxa present? And the data sources?
 'Pseudechis porphyriacus'   %in% SPATIAL.CLEAN$searchTaxon
+'Drysdalia rhodogaster'     %in% SPATIAL.CLEAN$searchTaxon
 'Hoplocephalus bungaroides' %in% SPATIAL.CLEAN$searchTaxon
 table(SPATIAL.CLEAN$SOURCE)
 
@@ -752,6 +757,7 @@ SDM.SPAT.OCC.ALL.REPTILE.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN
 
 ## Are the control taxa present? And the extra records?
 'Pseudechis porphyriacus'   %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
+'Drysdalia rhodogaster'     %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
 'Hoplocephalus bungaroides' %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
 
 
