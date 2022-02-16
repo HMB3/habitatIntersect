@@ -612,7 +612,7 @@ combine_ala_records = function(taxa_list,
     ## Now get the XY centroids of the unique 1km * 1km WORLDCLIM blocks where ALA records are found
     ## Get cell number(s) of WORLDCLIM raster from row and/or column numbers. Cell numbers start at 1 in the upper left corner,
     ## and increase from left to right, and then from top to bottom. The last cell number equals the number of raster cell
-    world_raster_spat <- rast(world_raster)
+    world_raster_spat <- terra::rast(world_raster)
     mat <- cbind(lon = CLEAN$lon, lat = CLEAN$lat) 
     xy  <- terra::cellFromXY(world_raster_spat, mat) %>% 
       
