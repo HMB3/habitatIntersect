@@ -605,6 +605,7 @@ records data.frame is that returned by the combine_records_extract function abov
 ## Flag records as institutional or spatial outliers
 COORD.CLEAN <- coord_clean_records(records    = COMBO.RASTER.SPP,
                                    site_flag  = 'BIONET',
+                                   occ_flag   = 'ALA',
                                    capitals   = 10000,  
                                    centroids  = 5000,   
                                    save_data  = FALSE,
@@ -635,10 +636,11 @@ input dfs are those returned by the coord_clean_records function.
 
 ## Flag spatial outliers
 ## This one doesn't quite work - it doesn't loop over the figures :
-SPATIAL.CLEAN = check_spatial_outliers(occ_df       = head(COORD.CLEAN, 500),
+SPATIAL.CLEAN = check_spatial_outliers(occ_df       = COORD.CLEAN %>% .[.$searchTaxon %in% target_reptiles, ],
                                        land_shp     = LAND,
                                        site_records = TRUE, 
-                                       site_flag    = 'BIONET',  
+                                       site_flag    = 'BIONET',
+                                       occ_flag     = 'ALA',
                                        clean_path   = './data/ALA/Check_Plots/',
                                        plot_points  = FALSE,
                                        record_limit = 400000,

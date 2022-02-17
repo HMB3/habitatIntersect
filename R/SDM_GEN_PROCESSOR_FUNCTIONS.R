@@ -1296,6 +1296,7 @@ coord_clean_records = function(records,
 check_spatial_outliers = function(occ_df,
                                   multi_source,
                                   site_flag,
+                                  occ_flag,
                                   site_records,
                                   land_shp,
                                   clean_path,
@@ -1361,17 +1362,19 @@ check_spatial_outliers = function(occ_df,
   ## Split the table into ALA and site data
   if(multi_source){
     
-    occ_df  <- occ_df %>% filter(SOURCE == 'ALA')
-    site_df <- occ_df %>% filter(SOURCE == site_flag) %>% dplyr::mutate(SPAT_OUT = TRUE)
+    message('Subset data by source')
+    occ_only <- occ_df %>% filter(SOURCE == occ_flag)
+    site_df  <- occ_df %>% filter(SOURCE == site_flag) %>% dplyr::mutate(SPAT_OUT = TRUE)
     
   } else {
     message('Do not subset data by source')
+    occ_only <- occ_df
   }
   
   
   ## Create a tibble to supply to coordinate cleaner
-  test.geo = SpatialPointsDataFrame(coords      = occ_df[c("lon", "lat")],
-                                    data        = occ_df,
+  test.geo = SpatialPointsDataFrame(coords      = occ_only[c("lon", "lat")],
+                                    data        = occ_only,
                                     proj4string = prj)
   
   SDM.COORDS  <- test.geo %>%
