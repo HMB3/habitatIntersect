@@ -1022,7 +1022,7 @@ combine_records_extract = function(ala_df,
                                    add_sites,
                                    site_df,
                                    add_site,
-                                   fitler_taxo,
+                                   filter_taxo,
                                    taxa_list,
                                    taxa_level,
                                    template_raster,
@@ -1045,7 +1045,7 @@ combine_records_extract = function(ala_df,
   ## Now filter the records to those where the searched and returned taxa match
   ## More matching is in : 4_ALA_GBIF_TAXO_COMBINE.R from Green Cities
   ## The matching has to be done at the same taxonomic level
-  if(fitler_taxo) {
+  if(filter_taxo) {
     
     message('fitler taxonomy')
     ALA.COMBO <- ALA.COMBO %>% dplyr::mutate(Match_SN_ST = str_detect(!!sym(taxa_level), searchTaxon)) %>% 
@@ -1172,6 +1172,7 @@ combine_records_extract = function(ala_df,
 #' @export
 coord_clean_records = function(records,
                                multi_source,
+                               occ_flag,
                                site_flag,
                                capitals,
                                centroids,
@@ -1191,7 +1192,7 @@ coord_clean_records = function(records,
   if(multi_source){
     
     ## Split the site data up from the ALA data
-    ala_records  <- records %>% filter(SOURCE == 'ALA')
+    ala_records  <- records %>% filter(SOURCE == occ_flag)
     site_records <- records %>% filter(SOURCE == site_flag) %>% dplyr::mutate(coord_summary = TRUE)
     
   } else {
