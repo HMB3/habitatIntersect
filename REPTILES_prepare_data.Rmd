@@ -224,116 +224,6 @@ Let's create all the raster data we need. First let's get the rasters needed for
 
 \
 
-# 1km Climate, Soil and terrain variables
-
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
-
-## Use worldclim 2 data
-## https://drive.google.com/open?id=1mQHVmYxSMw_cw1iGvfU9M7Pq6Kl6nz-C
-worldclim_climate = raster::stack(
-  file.path('./data/worldclim2/res_30s/bioclim',
-            sprintf('wc2.1_30s_bio_%d.tif', 1:19)))
-
-
-## Climate data for Australia, in GDA Albers projection
-aus.grids.current <- raster::stack(
-  file.path('./data/worldclim2/aus/current', 
-            sprintf('bio_%d_AUSGDA.tif', 1:19)))
-
-
-## Climate data for the study area in NE_NSW, in GDA Albers projection
-study.grids.current <- raster::stack(
-  file.path('./data/worldclim2/aus/current/Study_area',
-            sprintf('bio_%d_AUSGDA.tif', 1:19)))
-
-
-## And a stack of grids for vegetation, in GDA Albers projection
-aus.veg.grids <- raster::stack(
-  list.files('./data/Remote_sensing/Veg_data/height_and_cover', 
-             '_1km.tif', full.names = TRUE))
-
-
-## And a stack of grids for vegetation, in GDA Albers projection
-study.veg.grids <- raster::stack(
-  list.files('./data/Remote_sensing/Veg_data/height_and_cover/Study', 
-             '_1km_study.tif', full.names = TRUE))
-
-## Topography
-aus.vbf   <- raster::raster('./data/Topography/MRVBF/mrvbf_int_1km.tif')
-study.vbf <- raster::raster('./data/Topography/MRVBF/mrvbf_int_study_1km.tif')
-aus.dem   <- raster::raster('./data/Topography/InputsDEM_resample.tif')
-
-
-## Rename the raster grids
-names(worldclim_climate) <- c("Annual_mean_temp",
-                              "Mean_diurnal_range",
-                              "Isothermality",
-                              "Temp_seasonality",
-                              "Max_temp_warm_month",
-                              "Min_temp_cold_month",
-                              "Temp_annual_range",
-                              "Mean_temp_wet_qu",
-                              "Mean_temp_dry_qu",
-                              "Mean_temp_warm_qu",
-                              "Mean_temp_cold_qu",
-                              
-                              "Annual_precip",
-                              "Precip_wet_month",
-                              "Precip_dry_month",
-                              "Precip_seasonality",
-                              "Precip_wet_qu",
-                              "Precip_dry_qu",
-                              "Precip_warm_qu",
-                              "Precip_col_qu")
-
-
-names(aus.grids.current)   <- names(worldclim_climate)
-names(study.grids.current) <- names(worldclim_climate)
-names(aus.vbf)             <- 'valley_bottom_flatness_1km'
-names(study.vbf)           <- 'valley_bottom_flatness_1km'
-
-
-names(aus.veg.grids) <- names(study.veg.grids) <- c("Plant_cover_fraction_0_5m", 
-                                                    "Plant_cover_fraction_5_10m",  
-                                                    "Plant_cover_fraction_10_30m",      
-                                                    "Plant_cover_fraction_30m",
-                                                    "Total_Plant_cover_fraction",  
-                                                    "Tree_canopy_height_25th", 
-                                                    "Tree_canopy_height_50th", 
-                                                    "Tree_canopy_height_75th",   
-                                                    "Tree_canopy_height_95th",   
-                                                    "Tree_canopy_peak_foliage",
-                                                    "Tree_canopy_peak_foliage_total")
-
-## Combine the grids into raster stacks
-aus.climate.veg.grids   <- raster::stack(aus.grids.current,   aus.veg.grids,   aus.vbf)
-study.climate.veg.grids <- raster::stack(study.grids.current, study.veg.grids, study.vbf)
-aus_annual_temp         <- aus.climate.veg.grids[[1]]
-world_annual_temp       <- worldclim_climate[[1]]
-
-
-# We also need a template raster of 1km * 1km cells, which is used to filter 
-# records to 1 per one 1km cell. This raster needs to have the same extent (global) 
-# resolution (1km) and projection (WGS84) of the data used to analyse the taxa 
-# distributions. It should have a value of 1 for land, and NA for the ocean. 
-# This takes ages in R.....send this to Adrian?
-template_raster_1km_WGS84 <- raster::raster("./data/world_koppen/template_1km_WGS84.tif")
-Koppen_1975_1km           <- raster::raster('data/world_koppen/Koppen_1000m_Mollweide54009.tif')
-template_raster_1km_mol   <- raster::raster("./data/world_koppen/template_has_data_1km.tif")
-
-
-## Add shapefiles
-NENSW_study_area <- readOGR(dsn              = './data/Spatial_data/NE_NSW_study_area_buffer_GDA.shp',
-                            layer            = "NE_NSW_study_area_buffer_GDA",
-                            stringsAsFactors = FALSE)
-
-
-```
-
-
-\
-
-
 # 250m Climate, Soil and terrain variables
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
@@ -457,6 +347,9 @@ aus_annual_precip            <- raster('./data/Bushfire_indices/R_outputs/250m/A
 # distributions. It should have a value of 1 for land, and NA for the ocean. 
 # This takes ages in R.....
 template_raster_250m_mol     <- aus_annual_precip
+Koppen_1975_1km              <- raster::raster('data/world_koppen/Koppen_1000m_Mollweide54009.tif')
+template_raster_1km_mol      <- raster::raster("./data/world_koppen/template_has_data_1km.tif")
+
 
 
 ## Should be 1km*1km, It should have a value of 1 for land, and NA for the ocean
@@ -661,6 +554,8 @@ SPATIAL.CLEAN = check_spatial_outliers(occ_df       = COORD.CLEAN, #%>% .[.$sear
 'Hoplocephalus bungaroides' %in% SPATIAL.CLEAN$searchTaxon
 table(SPATIAL.CLEAN$SOURCE)
 
+#save.image(file='Reptile_data.RData')
+
 
 ``` 
 
@@ -782,9 +677,16 @@ SDM.SPAT.OCC.ALL.REPTILE.BG %>% subset(., searchTaxon == 'Pseudechis porphyriacu
 
 ## Save the data to a shapefile
 writeOGR(obj    = SDM.SPAT.OCC.ALL.REPTILE.BG,
-         dsn    = 'G:/North_east_NSW_fire_recovery/output/reptile_maxent/results',
-         layer  = 'SDM_SPAT_OCC_BG_GDA_ALL_TARGET_REPTILE_TAXA', 
+         dsn    = 'G:/Github_repos/North_east_NSW_fire_recovery/output/reptile_maxent/results',
+         layer  = 'SDM_ALL_TARGET_REPTILE_TAXA', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
+
+
+st_write(SDM.SPAT.OCC.ALL.REPTILE.BG %>% st_as_sf(), 
+         "G:/Github_repos/North_east_NSW_fire_recovery/output/reptile_maxent/results/TARGET_REPTILE_TAXA.gpkg", 
+         "TARGET_REPTILE_TAXA")
+
+
 
 
 ## And save the big table data to be a projected coordinate system, not mollweide for use in Australia
