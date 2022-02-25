@@ -55,14 +55,15 @@ run_sdm_analysis = function(taxa_list,
                             crop_Koppen,
                             Koppen_raster,
                             Koppen_zones,
-                            country_shp ) {
+                            country_shp,
+                            sp_country_prj) {
   
   
   ## Convert to SF object for selection - inefficient
   message('Preparing spatial data for SDMs')
-  sdm_df       <- st_as_sf(sdm_df)
-  drops        <- c("geometry")
-  sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
+  sdm_df         <- st_as_sf(sdm_df)
+  drops          <- c("geometry")
+  # sp_country_prj <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
   
   ## Loop over all the taxa
   ## taxa <- taxa_list[4]
@@ -101,13 +102,13 @@ run_sdm_analysis = function(taxa_list,
         occurrence <- occurrence %>% as.data.frame() %>%
           SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
                                  data        = .,
-                                 proj4string = CRS(sp_epsg54009)) %>% .[,!(names(.) %in% drops)]
+                                 proj4string = CRS(sp_country_prj)) %>% .[,!(names(.) %in% drops)]
 
 
         background <- background %>% as.data.frame() %>%
           SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
                                  data        = .,
-                                 proj4string = CRS(sp_epsg54009)) %>% .[,!(names(.) %in% drops)]
+                                 proj4string = CRS(sp_country_prj)) %>% .[,!(names(.) %in% drops)]
         
         ## Finally fit the models using FIT_MAXENT_TARG_BG. Also use tryCatch to skip any exceptions
         tryCatch(

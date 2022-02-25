@@ -2063,19 +2063,23 @@ plot_range_histograms = function(coord_df,
 #' @export
 prepare_sdm_table = function(coord_df,
                              taxa_list,
+                             site_flag,
+                             occ_flag,
+                             site_records,
+                             
                              BG_points,
                              sdm_table_vars,
                              save_run,
                              read_background,
-                             site_records,
                              background_points,
                              save_data,
                              data_path,
+                             sp_country_prj,
                              project_path) {
   
   ## Define GDA ALBERS. This is hard-wired, not user supplied
   ## Change this to GDA ALBERS
-  sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
+  # sp_country_prj <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
   
   ## Just add clean_df to this step
   coord_df <- subset(coord_df, coord_summary == TRUE)
@@ -2093,14 +2097,14 @@ prepare_sdm_table = function(coord_df,
     dplyr::select(one_of(sdm_table_vars))
   
   ## Split the table into ALA and site data 
-  COMBO.RASTER.ALA  <- COMBO.RASTER.ALL %>% subset(SOURCE == 'ALA')
-  COMBO.RASTER.SITE <- COMBO.RASTER.ALL %>% subset(SOURCE == 'SITE') %>% dplyr::mutate(SPAT_OUT = TRUE)
+  COMBO.RASTER.ALA  <- COMBO.RASTER.ALL %>% subset(SOURCE == occ_flag)
+  COMBO.RASTER.SITE <- COMBO.RASTER.ALL %>% subset(SOURCE == site_flag) %>% dplyr::mutate(SPAT_OUT = TRUE)
   
   ## Create a spatial points object, and change to a projected system to calculate distance more accurately
   ## This is the mollweide projection used for the SDMs
   coordinates(COMBO.RASTER.ALA) <- ~lon+lat
   proj4string(COMBO.RASTER.ALA) <- '+init=epsg:4326'
-  COMBO.RASTER.ALA              <- spTransform(COMBO.RASTER.ALA, CRS(sp_epsg54009))
+  COMBO.RASTER.ALA              <- spTransform(COMBO.RASTER.ALA, CRS(sp_country_prj))
   
   ## Don't filter the data again to be 1 record per 1km, that has already happened
   SDM.DATA.ALL <- COMBO.RASTER.ALA
@@ -2228,11 +2232,11 @@ prepare_sdm_table = function(coord_df,
     message('Combine the Spatially cleaned data with the site data')
     SPAT.TRUE <- SpatialPointsDataFrame(coords      = SDM.SPAT.ALL[c("lon", "lat")],
                                         data        = SDM.SPAT.ALL,
-                                        proj4string = CRS(sp_epsg54009))
+                                        proj4string = CRS(sp_country_prj))
     
     SPAT.SITE <- SpatialPointsDataFrame(coords      = COMBO.RASTER.SITE[c("lon", "lat")],
                                         data        = COMBO.RASTER.SITE,
-                                        proj4string = CRS(sp_epsg54009))
+                                        proj4string = CRS(sp_country_prj))
     
     SPAT.TRUE <- SPAT.TRUE %>% rbind(., SPAT.SITE)
     message('Cleaned ', paste0(unique(SPAT.TRUE$SOURCE), sep = ' '), ' records')
@@ -2241,7 +2245,7 @@ prepare_sdm_table = function(coord_df,
     message('Dont add site data' )
     SPAT.TRUE <- SpatialPointsDataFrame(coords      = SDM.SPAT.ALL[c("lon", "lat")],
                                         data        = SDM.SPAT.ALL,
-                                        proj4string = CRS(sp_epsg54009))
+                                        proj4string = CRS(sp_country_prj))
   }
   
   ## CREATE BACKGROUND POINTS AND VARIBALE NAMES

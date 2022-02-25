@@ -7,6 +7,7 @@
 coord_clean_records(
   records,
   multi_source,
+  occ_flag,
   site_flag,
   capitals,
   centroids,

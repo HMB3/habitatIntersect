@@ -7,14 +7,17 @@
 prepare_sdm_table(
   coord_df,
   taxa_list,
+  site_flag,
+  occ_flag,
+  site_records,
   BG_points,
   sdm_table_vars,
   save_run,
   read_background,
-  site_records,
   background_points,
   save_data,
   data_path,
+  sp_country_prj,
   project_path
 )
 }

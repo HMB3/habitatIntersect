@@ -64,14 +64,6 @@ ipak <- function(pkg){
 }
 
 
-## These packages are not on cran, but are needed
-# library(devtools)
-# install_github('johnbaums/things')
-# install_github('johnbaums/rmaxent')
-# install_github('traitecoevo/taxonlookup')
-# install.packages("arcgisbinding", repos="https://r.esri.com", type="win.binary")
-
-
 ## Create documentation and install package
 # roxygen2::roxygenise()
 # devtools::install_github("HMB3/nenswniche")
@@ -232,9 +224,6 @@ Let's create all the raster data we need. First let's get the rasters needed for
 aus_precip_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Precip',        pattern =".tif", full.names = TRUE))
 
-study_precip_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Precip', pattern =".tif", full.names = TRUE))
-
 east_precip_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Precip', pattern =".tif", full.names = TRUE))
 
@@ -242,9 +231,6 @@ east_precip_250m <- raster::stack(
 ## 250m temperature layers
 aus_temp_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Temp',          pattern =".tif", full.names = TRUE))
-
-study_temp_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Temp',   pattern =".tif", full.names = TRUE))
 
 east_temp_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Temp',   pattern =".tif", full.names = TRUE))
@@ -254,9 +240,6 @@ east_temp_250m <- raster::stack(
 aus_soil_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Soil',          pattern =".tif", full.names = TRUE))
 
-study_soil_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Soil',   pattern =".tif", full.names = TRUE))
-
 east_soil_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Soil',   pattern =".tif", full.names = TRUE))
 
@@ -264,9 +247,6 @@ east_soil_250m <- raster::stack(
 ## 250m Geology Australia
 aus_geology_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Geology',        pattern =".tif", full.names = TRUE))
-
-study_geology_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Geology', pattern =".tif", full.names = TRUE))
 
 east_geology_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Geology', pattern =".tif", full.names = TRUE))
@@ -276,9 +256,6 @@ east_geology_250m <- raster::stack(
 aus_topo_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Topo',           pattern =".tif", full.names = TRUE))
 
-study_topo_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Topo',    pattern =".tif", full.names = TRUE))
-
 east_topo_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Topo',    pattern =".tif", full.names = TRUE))
 
@@ -286,9 +263,6 @@ east_topo_250m <- raster::stack(
 ## 250m terrain indices Australia
 aus_terrain_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Indices',        pattern =".tif", full.names = TRUE))
-
-study_terrain_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Indices', pattern =".tif", full.names = TRUE))
 
 east_terrain_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Indices', pattern =".tif", full.names = TRUE))
@@ -301,10 +275,10 @@ aus.grids.current.250m <- stack(aus_precip_250m,
                                 #aus_geology_250m
 )
 
-study.grids.current.250m <- stack(study_precip_250m,
-                                  study_temp_250m#,
-                                  #aus_soil_250m,
-                                  #aus_geology_250m
+east.grids.current.250m <- stack(east_precip_250m,
+                                 east_temp_250m#,
+                                 #aus_soil_250m,
+                                 #aus_geology_250m
 )
 
 
@@ -314,31 +288,32 @@ aus.veg.grids.250m <- stack(
   list.files('./data/Remote_sensing/Veg_data/height_and_cover/Aus/250m', 
              '_250m.tif', full.names = TRUE))
 
-
-study.veg.grids.250m <- stack(
+east.veg.grids.250m <- stack(
   
-  list.files('./data/Remote_sensing/Veg_data/height_and_cover/Study/250m', 
-             '_study.tif', full.names = TRUE))
+  list.files('./data/Remote_sensing/Veg_data/height_and_cover/Eastern_Aus/250m', 
+             '_east_coast.tif', full.names = TRUE))
 
 
-names(aus.veg.grids.250m) <- names(study.veg.grids.250m) <- c("Plant_cover_fraction_0_5m", 
-                                                              "Plant_cover_fraction_5_10m",  
-                                                              "Plant_cover_fraction_10_30m",      
-                                                              "Plant_cover_fraction_30m",
-                                                              "Total_Plant_cover_fraction",  
-                                                              "Tree_canopy_height_25th", 
-                                                              "Tree_canopy_height_50th", 
-                                                              "Tree_canopy_height_75th",   
-                                                              "Tree_canopy_height_95th",   
-                                                              "Tree_canopy_peak_foliage",
-                                                              "Tree_canopy_peak_foliage_total",
-                                                              "mrvbf")
+names(east.grids.current.250m) <- gsub('_EAST_COAST', '', names(east.grids.current.250m))
+names(aus.veg.grids.250m)      <- names(east.veg.grids.250m) <- c("Plant_cover_fraction_0_5m", 
+                                                                  "Plant_cover_fraction_5_10m",  
+                                                                  "Plant_cover_fraction_10_30m",      
+                                                                  "Plant_cover_fraction_30m",
+                                                                  "Total_Plant_cover_fraction",  
+                                                                  "Tree_canopy_height_25th", 
+                                                                  "Tree_canopy_height_50th", 
+                                                                  "Tree_canopy_height_75th",   
+                                                                  "Tree_canopy_height_95th",   
+                                                                  "Tree_canopy_peak_foliage",
+                                                                  "Tree_canopy_peak_foliage_total",
+                                                                  "mrvbf")
 
 
 ## Combine the grids into raster stacks
-aus.climate.veg.grids.250m   <- stack(aus.grids.current.250m,   aus.veg.grids.250m)
-study.climate.veg.grids.250m <- stack(study.grids.current.250m, study.veg.grids.250m)
+aus.climate.veg.grids.250m   <- stack(aus.grids.current.250m, aus.veg.grids.250m)
+east.climate.veg.grids.250m  <- stack(east.grids.current.250m, east.veg.grids.250m)
 aus_annual_precip            <- raster('./data/Bushfire_indices/R_outputs/250m/AUS/Extra/Annual_precip_WGS84.tif')
+aus_annual_precip_alb        <- raster('./data/Bushfire_indices/R_outputs/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
 
 
 # We also need a template raster of 250m * 250m cells, used to filter 
@@ -346,15 +321,15 @@ aus_annual_precip            <- raster('./data/Bushfire_indices/R_outputs/250m/A
 # resolution (1km) and projection (WGS84) of the data used to analyse the taxa 
 # distributions. It should have a value of 1 for land, and NA for the ocean. 
 # This takes ages in R.....
-template_raster_250m_mol     <- aus_annual_precip
-Koppen_1975_1km              <- raster::raster('data/world_koppen/Koppen_1000m_Mollweide54009.tif')
-template_raster_1km_mol      <- raster::raster("./data/world_koppen/template_has_data_1km.tif")
+# template_raster_250m_mol     <- aus_annual_precip
+# Koppen_1975_1km              <- raster::raster('data/world_koppen/Koppen_1000m_Mollweide54009.tif')
+# template_raster_1km_mol      <- raster::raster("./data/world_koppen/template_has_data_1km.tif")
 
 
 
 ## Should be 1km*1km, It should have a value of 1 for land, and NA for the ocean
-template_raster_250m_mol[template_raster_250m_mol > 0] <- 1
-template_raster_250m_mol[template_raster_250m_mol < 0] <- 1
+aus_annual_precip_alb[aus_annual_precip_alb > 0] <- 1
+template_raster_250m <- aus_annual_precip_alb
 xres(template_raster_250m_mol);projection(template_raster_250m_mol)
 
 
@@ -365,16 +340,14 @@ NENSW_study_area <- readOGR(dsn              = './data/Spatial_data/NE_NSW_study
 
 
 east_study_area <- readOGR(dsn              = './data/Spatial_data/east_coast_shapefile/polygon_east_coast.shp',
-                            layer            = "polygon_east_coast",
-                            stringsAsFactors = FALSE)
-
+                           layer            = "polygon_east_coast",
+                           stringsAsFactors = FALSE)
 
 
 ```
 
 
 \
-
 
 Next we filter the records to those taken after 1950, and those inside the raster boundaries 
 (i.e. taxa records in the ocean according to the raster boundaries will be excluded).
@@ -387,6 +360,10 @@ Next we filter the records to those taken after 1950, and those inside the raste
 ## The climate data is the worldclim version 2.0
 ## Also, add a switch for the 1km filter - we don't want to do this anymore, too few records
 data('ALA_keep')
+
+## Two projection systems, mollweide for SDMs, GDA Albers for SDM projections
+sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
+sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 
 
 ## Combine ALA data for individual reptile species and format for niche analysis
@@ -427,6 +404,14 @@ Hoplocephalus_bungaroides_bionet <- read_csv('./data/ALA/Reptiles/Hoplocephalus 
                 lat         = Latitude_GDA94,
                 lon         = Longitude_GDA94) %>% dplyr::select(searchTaxon, lat, lon) %>% 
   mutate(SOURCE = 'BIONET')
+
+
+## Check these points
+bionet <- Hoplocephalus_bungaroides_bionet %>% 
+  SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
+                         data        = .,
+                         proj4string = CRS(sp_epsg3577)) 
+
 
 ``` 
 
@@ -475,6 +460,15 @@ COMBO.RASTER.SPP <- combine_records_extract(ala_df           = ALA.LAND.BACKG.SP
 'Hoplocephalus bungaroides' %in% COMBO.RASTER.SPP$searchTaxon
 
 
+
+bionet_combo <- COMBO.RASTER.SPP %>% filter(searchTaxon == 'Hoplocephalus bungaroides') %>% 
+  SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
+                         data        = .,
+                         proj4string = CRS(sp_epsg3577)) 
+
+plot(bionet_combo)
+
+
 ``` 
 
 \
@@ -519,6 +513,18 @@ COORD.CLEAN <- coord_clean_records(records    = COMBO.RASTER.SPP,
 'Hoplocephalus bungaroides' %in% COORD.CLEAN$searchTaxon
 table(COORD.CLEAN$SOURCE)
 
+
+bionet_clean <- COORD.CLEAN %>% filter(searchTaxon == 'Hoplocephalus bungaroides') %>% 
+  SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
+                         data        = .,
+                         proj4string = CRS(sp_epsg3577))
+
+table(bionet_clean$SOURCE)
+plot(bionet_clean)
+
+# saveRDS(COORD.CLEAN, 'G:/Github_repos/North_east_NSW_fire_recovery/output/reptile_maxent/results/COORD_CLEAN.rds')
+
+
 ``` 
 
 \
@@ -540,10 +546,10 @@ SPATIAL.CLEAN = check_spatial_outliers(occ_df       = COORD.CLEAN, #%>% .[.$sear
                                        site_records = TRUE, 
                                        site_flag    = 'BIONET',
                                        occ_flag     = 'ALA',
+                                       multi_source = TRUE,
                                        clean_path   = './data/ALA/Check_Plots/',
                                        plot_points  = FALSE,
                                        record_limit = 400000,
-                                       multi_source = TRUE,
                                        spatial_mult = 10,
                                        prj          = CRS("+init=epsg:4326"))
 
@@ -553,8 +559,6 @@ SPATIAL.CLEAN = check_spatial_outliers(occ_df       = COORD.CLEAN, #%>% .[.$sear
 'Drysdalia rhodogaster'     %in% SPATIAL.CLEAN$searchTaxon
 'Hoplocephalus bungaroides' %in% SPATIAL.CLEAN$searchTaxon
 table(SPATIAL.CLEAN$SOURCE)
-
-#save.image(file='Reptile_data.RData')
 
 
 ``` 
@@ -626,18 +630,12 @@ sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +un
 sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 
 
-## Final data set is a spatial points data frame in the Mollweide projection
-# SDM.SPAT.OCC.BG.REPTILE.MOL <- readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_REPTILE_TAXA.rds') %>% as.data.frame() %>%
-#   
-#   dplyr::select(-lat.1, -lon.1) %>% 
-#   SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
-#                          data        = .,
-#                          proj4string = CRS(sp_epsg54009))
-
-
 ## Create SDM table for all the backhround reptile species
 SDM.SPAT.OCC.ALL.REPTILE.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN,
                                                  taxa_list         = unique(COORD.CLEAN$searchTaxon),
+                                                 site_flag         = 'BIONET',
+                                                 occ_flag          = 'ALA',
+                                                 site_records      = TRUE,
                                                  
                                                  sdm_table_vars    = c('searchTaxon', 
                                                                        'species',  
@@ -650,18 +648,22 @@ SDM.SPAT.OCC.ALL.REPTILE.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN
                                                                        names(aus.climate.veg.grids.250m)),
                                                  
                                                  save_run          = "ALL_REPTILE_TAXA",
-                                                 site_records      = FALSE,
                                                  read_background   = FALSE,
-                                                 background_points = SDM.SPAT.OCC.BG.REPTILE.MOL, 
+                                                 sp_country_prj    = sp_epsg3577,
                                                  save_data         = TRUE,
-                                                 data_path         = paste0(getwd(), '/output/results/'),
+                                                 data_path         = paste0(getwd(), '/output/reptile_maxent/results'),
                                                  project_path      = 'G:/GITHUB/North_east_NSW_fire_recovery')
+
+
+## Create subset of target reptiles
+SDM.SPAT.OCC.TARG.REPTILE.BG <- SDM.SPAT.OCC.ALL.REPTILE.BG %>% .[.$searchTaxon %in% target_reptiles, ]
 
 
 ## Are the control taxa present? And the extra records?
 'Pseudechis porphyriacus'   %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
 'Drysdalia rhodogaster'     %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
 'Hoplocephalus bungaroides' %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
+table(SDM.SPAT.OCC.ALL.REPTILE.BG$SOURCE)
 
 
 ## Check the taxonomic levels
@@ -675,26 +677,35 @@ SDM.SPAT.OCC.ALL.REPTILE.BG %>% subset(., searchTaxon == 'Drysdalia rhodogaster'
 SDM.SPAT.OCC.ALL.REPTILE.BG %>% subset(., searchTaxon == 'Pseudechis porphyriacus')   %>% nrow()
 
 
+## Check the
+bionet_sdm <- SDM.SPAT.OCC.ALL.REPTILE.BG %>% .[.$searchTaxon %in% 'Hoplocephalus bungaroides', ]
+table(bionet_sdm$SOURCE)
+plot(bionet_sdm)
+
+
 ## Save the data to a shapefile
 writeOGR(obj    = SDM.SPAT.OCC.ALL.REPTILE.BG,
          dsn    = 'G:/Github_repos/North_east_NSW_fire_recovery/output/reptile_maxent/results',
-         layer  = 'SDM_ALL_TARGET_REPTILE_TAXA', 
+         layer  = 'SDM_ALL_TARGET_REPTILE_TAXA',
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
 
 
+st_write(SDM.SPAT.OCC.TARG.REPTILE.BG %>% st_as_sf(), 
+         dsn = file.path(getwd(), 'output/reptile_maxent/results/SDM_REPTILE_TAXA.gpkg'), 
+         layer = 'SDM_TARGET_REPTILE_TAXA', 
+         quiet = TRUE)
+
 st_write(SDM.SPAT.OCC.ALL.REPTILE.BG %>% st_as_sf(), 
-         "G:/Github_repos/North_east_NSW_fire_recovery/output/reptile_maxent/results/TARGET_REPTILE_TAXA.gpkg", 
-         "TARGET_REPTILE_TAXA")
-
-
+         dsn = file.path(getwd(), 'output/reptile_maxent/results/SDM_REPTILE_TAXA.gpkg'), 
+         layer = 'SDM_ALL_REPTILE_TAXA', 
+         quiet = TRUE)
 
 
 ## And save the big table data to be a projected coordinate system, not mollweide for use in Australia
-SDM.SPAT.OCC.TARGET.REPTILE.BG   <- readRDS('./output/reptile_maxent/results/SDM_SPAT_OCC_BG_ALL_REPTILE_TAXA.rds')
-SDM.SPAT.OCC.BG.REPTILE.GDA      <- spTransform(SDM.SPAT.OCC.TARGET.REPTILE.BG,  CRS(sp_epsg3577))
-crs(SDM.SPAT.OCC.BG.REPTILE.GDA) <- sp_epsg3577
-saveRDS(SDM.SPAT.OCC.BG.REPTILE.GDA, './output/reptile_maxent/results/SDM_SPAT_OCC_BG_REPTILE_GDA.rds')
-
+# SDM.SPAT.OCC.TARGET.REPTILE.BG   <- readRDS('./output/reptile_maxent/results/SDM_SPAT_OCC_BG_ALL_REPTILE_TAXA.rds')
+# SDM.SPAT.OCC.BG.REPTILE.GDA      <- spTransform(SDM.SPAT.OCC.TARGET.REPTILE.BG,  CRS(sp_epsg3577))
+# crs(SDM.SPAT.OCC.BG.REPTILE.GDA) <- sp_epsg3577
+# saveRDS(SDM.SPAT.OCC.BG.REPTILE.GDA, './output/reptile_maxent/results/SDM_SPAT_OCC_BG_REPTILE_GDA.rds')
 
 ``` 
 

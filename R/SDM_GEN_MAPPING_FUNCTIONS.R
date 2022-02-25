@@ -95,7 +95,7 @@ project_maxent_current_grids_mess = function(country_shp,
               ## Set the names of the rasters to match the occ data, and subset both
               sdm_vars             = names(m@presence)
               current_grids        = subset(current_grids, sdm_vars)
-              swd                  = swd [,sdm_vars]
+              swd                  = swd[,sdm_vars]
               
               pred.current <- rmaxent::project(
                 m, current_grids[[colnames(m@presence)]])$prediction_logistic
@@ -278,10 +278,7 @@ project_maxent_current_grids_mess = function(country_shp,
                                                     col = c('red', 'transparent', 'transparent')[panel.number()]),
                                           data = list(occ = occ)))
               dev.off()
-              
               gc()
-              
-              ## Now delete the temporary directory?
               
             } else {
               message(' Current MESS panel maps already created for ', species)

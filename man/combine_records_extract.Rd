@@ -9,7 +9,7 @@ combine_records_extract(
   add_sites,
   site_df,
   add_site,
-  fitler_taxo,
+  filter_taxo,
   taxa_list,
   taxa_level,
   template_raster,

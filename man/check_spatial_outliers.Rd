@@ -8,6 +8,7 @@ check_spatial_outliers(
   occ_df,
   multi_source,
   site_flag,
+  occ_flag,
   site_records,
   land_shp,
   clean_path,
