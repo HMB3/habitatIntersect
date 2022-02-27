@@ -316,21 +316,9 @@ aus_annual_precip            <- raster('./data/Bushfire_indices/R_outputs/250m/A
 aus_annual_precip_alb        <- raster('./data/Bushfire_indices/R_outputs/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
 
 
-# We also need a template raster of 250m * 250m cells, used to filter 
-# records to 1 per each 250m cell. This raster needs to have the same extent (global) 
-# resolution (1km) and projection (WGS84) of the data used to analyse the taxa 
-# distributions. It should have a value of 1 for land, and NA for the ocean. 
-# This takes ages in R.....
-# template_raster_250m_mol     <- aus_annual_precip
-# Koppen_1975_1km              <- raster::raster('data/world_koppen/Koppen_1000m_Mollweide54009.tif')
-# template_raster_1km_mol      <- raster::raster("./data/world_koppen/template_has_data_1km.tif")
-
-
-
 ## Should be 1km*1km, It should have a value of 1 for land, and NA for the ocean
 aus_annual_precip_alb[aus_annual_precip_alb > 0] <- 1
 template_raster_250m <- aus_annual_precip_alb
-xres(template_raster_250m_mol);projection(template_raster_250m_mol)
 
 
 ## Add shapefiles
@@ -440,7 +428,7 @@ COMBO.RASTER.SPP <- combine_records_extract(ala_df           = ALA.LAND.BACKG.SP
                                             filter_taxo      = FALSE,
                                             site_df          = Hoplocephalus_bungaroides_bionet,
                                             thin_records     = FALSE,
-                                            template_raster  = template_raster_250m_mol,
+                                            template_raster  = template_raster_250m,
                                             world_raster     = aus.climate.veg.grids.250m,
                                             prj              = CRS("+init=epsg:4326"),
                                             taxa_list        = unique(ALA.LAND.BACKG.SPP$searchTaxon),
@@ -521,8 +509,6 @@ bionet_clean <- COORD.CLEAN %>% filter(searchTaxon == 'Hoplocephalus bungaroides
 
 table(bionet_clean$SOURCE)
 plot(bionet_clean)
-
-# saveRDS(COORD.CLEAN, 'G:/Github_repos/North_east_NSW_fire_recovery/output/reptile_maxent/results/COORD_CLEAN.rds')
 
 
 ``` 
