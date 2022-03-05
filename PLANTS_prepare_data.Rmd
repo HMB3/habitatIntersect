@@ -63,18 +63,6 @@ ipak <- function(pkg){
   
 }
 
-## These packages are not on cran, but are needed
-# library(devtools)
-# install_github('johnbaums/things')
-# install_github('johnbaums/rmaxent')
-# install_github('traitecoevo/taxonlookup')
-# install.packages("arcgisbinding", repos="https://r.esri.com", type="win.binary")
-
-## Create documentation and install package
-# roxygen2::roxygenise()
-# devtools::install_github("HMB3/nenswniche")
-
-## Load packages 
 library(nenswniche)
 data('sdmgen_packages')
 ipak(sdmgen_packages)
@@ -132,23 +120,9 @@ source('./R/SDM_GEN_MAPPING_FUNCTIONS.R')
 
 
 ## Create lists of all taxa that we will model at all levels
-data('insect_data_families')
-data('all.insect.families')
-data('all.insect.genera')
-data('all.insect.spp')
-
-data('target.insect.spp')
-data('target.insect.genera')
-data('target.insect.families')
 data('target.host.plants')
 data('all.insect.plant.spp')
 
-
-analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
-analysis_test <- c('Lygaeidae',           'Malandiola',       'Miridae',      'Nysius vinitor', 'Onthophagus turrbal', 'Oxycarenidae', 
-                   'Pachygronthidae',     'Pentatomidae',     'Rhopalidae',   'Scutelleridae',  'Ausejanus femoralis', 
-                   'Mutusca brevicornis', 'Rayieria basifer', 'Wallabicoris', 'Molycria',       'Figulus') %>% .[1:2]
-plant_test    <- 'Salsola australis'
 
 ```
 
@@ -168,7 +142,6 @@ ALA_dir       <- './data/ALA'
 GBIF_dir      <- './data/GBIF'
 
 host_back_dir <- 'output/plant_maxent/back_sel_models/'
-climate_dir   <- './data/worldclim/world/2070'
 check_dir     <- './data/GBIF/Check_plots/'
 temp_dir      <- 'G:/GITHUB/Raster_temp'
 
@@ -196,32 +169,14 @@ ala_env_cols = ala_fields("occurrence_stored", as_is = TRUE)$description[231:389
 
 
 ##
-download_ALA_all_species(species_list   = analysis_taxa,
+download_ALA_all_species(species_list   = all.insect.plant.spp,
                          your_email     = 'hugh.burley@gmail.com',
-                         download_path  = "./data/ALA/Insects/Species/",
+                         download_path  = "./data/ALA/Plants/",
                          ala_temp_dir   = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
                          download_limit = 20000,
-                         extra_cols     = ala_env_cols,
+                         # extra_cols     = ala_env_cols,
                          quality_cols   = 'all')
 
-
-download_ALA_all_genera(genera_list     = analysis_taxa,
-                        your_email      = 'hugh.burley@gmail.com',
-                        download_path   = "./data/ALA/Insects/Genus/",
-                        ala_temp_dir    = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
-                        download_limit  = 20000,
-                        extra_cols      = ala_env_cols,
-                        quality_cols    = 'all')
-
-
-## Now download the data for all the families
-download_ALA_all_families(family_list    = all.insect.families,
-                          your_email     = 'hugh.burley@gmail.com',
-                          download_path  = "./data/ALA/Insects/Family/",
-                          ala_temp_dir   = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
-                          download_limit = 20000,
-                          extra_cols     = ala_env_cols,
-                          quality_cols   = 'all')
 
 ``` 
 
@@ -496,32 +451,6 @@ Next we filter the records to those taken after 1950, and those inside the raste
 data('ALA_keep')
 
 
-## Combine Family ALA data up to 50% of records are knocked out by cleaning  
-ALA.LAND.FAM <- combine_ala_records(taxa_list         =  target.insect.families,
-                                    records_path      = "./data/ALA/Insects/Family/",
-                                    records_extension = "_ALA_records.RData",
-                                    record_type       = "ALA",
-                                    keep_cols         = ALA_keep,
-                                    world_raster      = aus_annual_precip)
-
-
-## Combine Genus ALA data
-ALA.LAND.GEN <- combine_ala_records(taxa_list         = target.insect.genera,
-                                    records_path      = "./data/ALA/Insects/Genus/",
-                                    records_extension = "_ALA_records.RData",
-                                    record_type       = "ALA",
-                                    keep_cols         = ALA_keep,
-                                    world_raster      = aus_annual_precip)
-
-
-## Combine taxa ALA data
-ALA.LAND.SPP <- combine_ala_records(taxa_list         = target.insect.spp,
-                                    records_path      = "./data/ALA/Insects/Species/",
-                                    records_extension = "_ALA_records.RData",
-                                    record_type       = "ALA",
-                                    keep_cols         = ALA_keep,
-                                    world_raster      = aus_annual_precip)
-
 ## Combine  
 ALA.LAND.PLA <- combine_ala_records(taxa_list         = all.insect.plant.spp,
                                     records_path      = "./data/ALA/Plants/",
@@ -529,21 +458,6 @@ ALA.LAND.PLA <- combine_ala_records(taxa_list         = all.insect.plant.spp,
                                     record_type       = "ALA",
                                     keep_cols         = ALA_keep,
                                     world_raster      = aus_annual_precip)
-
-
-## Take a data dump from the ALA of all the reptiles, 
-## and format it to the columns names we want for the niche analyses
-Insects_ALA         <- readRDS('./data/ALA/Insects/INVERTS_2022_0303.rds')
-
-
-ALA.LAND.BACKG.SPP  <- format_ala_dump(ALA_table         = Insects_ALA,
-                                       record_type       = "ALA",
-                                       keep_cols         = ALA_keep,
-                                       world_raster      = aus_annual_precip) %>%
-  
-  ## Remove the species which have unreliable ALA records,
-  .[!.$searchTaxon %in% analysis_taxa, ] %>%
-  bind_rows(., ALA.LAND.SPP)
 
 ``` 
 
@@ -562,67 +476,23 @@ Next we combine occurrence files from ALA and GBIF into one table, and extracts 
 ## Combine GBIF and ALA data, and extract environmental values
 ## Some of the site records will be removed here, if they are outside the raster bounds.
 ## This seems strange, but maybe they are right on the coast
-COMBO.RASTER.FAM = combine_records_extract(ala_df           = ALA.LAND.FAM,
-                                           add_sites        = TRUE,
+COMBO.RASTER.SPP <- combine_records_extract(ala_df           = ALA.LAND.PLA,
+                                           add_sites        = FALSE,
                                            filter_taxo      = FALSE,
                                            
-                                           site_df          = all_insect_site_df_families,
+                                           site_df          = FALSE,
                                            thin_records     = FALSE,
                                            template_raster  = template_raster_250m,
                                            world_raster     = aus.climate.veg.grids.250m,
-                                           prj              = CRS("+init=epsg:4326"),
-                                           taxa_list        = target.insect.families,
-                                           taxa_level       = 'family',   
+                                           prj              = CRS('+init=epsg:4326'),
+                                           taxa_list        = all.insect.plant.spp,
+                                           taxa_level       = 'species',   
                                            
                                            ## This might need to change too
                                            raster_divide    = FALSE,
                                            save_data        = FALSE,
-                                           save_run         = "TARGET_INSECT_FAMILIES",
-                                           data_path        = "./output/results/")
-
-
-COMBO.RASTER.GEN = combine_records_extract(ala_df           = ALA.LAND.GEN,
-                                           add_sites        = TRUE,
-                                           filter_taxo      = FALSE,
-                                           
-                                           site_df          = all_insect_site_df_genera,
-                                           thin_records     = FALSE,
-                                           template_raster  = template_raster_250m,
-                                           world_raster     = aus.climate.veg.grids.250m,
-                                           prj              = CRS("+init=epsg:4326"),
-                                           taxa_list        = target.insect.genera,
-                                           taxa_level       = 'genus', 
-                                           
-                                           ## These two will need to change.
-                                           ## Specify them in the code
-                                           raster_divide    = FALSE,
-                                           save_data        = FALSE,
-                                           save_run         = "TARGET_INSECT_GENERA",
-                                           data_path        = "./output/results/")
-
-
-COMBO.RASTER.SPP = combine_records_extract(ala_df           = ALA.LAND.BACKG.SPP,
-                                           add_sites        = TRUE,
-                                           filter_taxo      = FALSE,
-                                           
-                                           site_df          = all_insect_site_df_species,
-                                           thin_records     = FALSE,
-                                           template_raster  = template_raster_250m,
-                                           world_raster     = aus.climate.veg.grids.250m,
-                                           prj              = CRS("+init=epsg:4326"),
-                                           taxa_list        = target.insect.spp,
-                                           taxa_level       = 'species', 
-                                           
-                                           ## These two will need to change.
-                                           ## Specify them in the code
-                                           raster_divide    = FALSE,
-                                           save_data        = FALSE,
-                                           save_run         = "TARGET_INSECT_SPECIES",
-                                           data_path        = "./output/results/")
-
-
-## Try combing the records into a "super table"
-COMBO.RASTER.FAM.GEN.SPP <- bind_rows(COMBO.RASTER.FAM, COMBO.RASTER.GEN, COMBO.RASTER.SPP)
+                                           save_run         = 'ALL_PLANT_TAXA',
+                                           data_path        = './output/plant_maxent_raster_update/results/')
 
 
 ``` 
@@ -654,7 +524,7 @@ records data.frame is that returned by the combine_records_extract function abov
 ## Just create a background points version for each step 
 
 ## Flag records as institutional or spatial outliers
-COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.FAM.GEN.SPP,
+COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.SPP,
                                   site_flag  = 'SITE',
                                   occ_flag   = 'ALA',
                                   multi_source = TRUE,
@@ -678,68 +548,10 @@ input dfs are those returned by the coord_clean_records function.
 
 \
 
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
-
-## Flag spatial outliers
-## This one doesn't quite work - it doesn't loop over the figures :
-SPATIAL.CLEAN = check_spatial_outliers(occ_df       = COORD.CLEAN,
-                                       land_shp     = LAND,
-                                       site_records = TRUE, 
-                                       site_flag    = 'SITE',
-                                       occ_flag     = 'ALA',
-                                       multi_source = TRUE,
-                                       clean_path   = './data/ALA/Check_Plots/Inverts/',
-                                       plot_points  = FALSE,
-                                       record_limit = 400000,
-                                       spatial_mult = 10,
-                                       prj          = CRS("+init=epsg:4326"))
-
-``` 
-
-\
-
 The next cleaning function takes a data frame of all taxa records, estimates the geographic 
 and environmental ranges for each taxa, and creates a table of all taxa ranges. 
 It uses the AOO.computing function in the ConR package: https://cran.r-project.org/web/packages/ConR/index.html
 It assumes that the input df is that returned by the check_spatial_outliers function.
-
-\
-
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
-
-## Estimate climate niches using taxa records
-## Make this calculate niches for the target list
-GLOB.NICHE.ALL = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxon %in% analysis_taxa, ],
-                                 prj          = CRS("+init=epsg:4326"),
-                                 country_shp  = AUS,
-                                 world_shp    = LAND,
-                                 kop_shp      = Koppen_shp,
-                                 taxa_list    = analysis_taxa,
-                                 env_vars     = names(aus.climate.veg.grids.250m),
-                                 cell_size    = 2,
-                                 save_data    = TRUE,
-                                 save_run     = "ALL_TARGET_INSECT_TAXA",
-                                 data_path    = "./output/invert_maxent_raster_update/results/")
-
-``` 
-
-\
-
-We can also plot the environmental ranges of each taxa. This function 
-takes a data frame of all taxa records, and plots histograms and convex hulls for 
-each taxa in global environmental space. It assumes that the input df is that 
-prepared by the check_spatial_outliers function
-
-\
-
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
-
-## Plot taxa ranges using histograms and convex hulls for rainfall and temperature distributions
-plot_range_histograms(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxon %in% analysis_taxa, ],
-                      taxa_list    = analysis_taxa,
-                      range_path   = './data/ALA/Check_Plots/Inverts/')
-
-``` 
 
 \
 
@@ -757,7 +569,7 @@ coord_clean_records function.
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Only use GDA Albers forAus analyses
+## Only use GDA Albers
 sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 
 
@@ -784,7 +596,7 @@ SDM.SPAT.OCC.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN,
                                      read_background   = FALSE,
                                      sp_country_prj    = sp_epsg3577,
                                      save_data         = TRUE,
-                                     data_path         = paste0(getwd(), '/output/invert_maxent_raster_update/results/'),
+                                     data_path         = paste0(getwd(), '/output/plant_maxent_raster_update/results/'),
                                      project_path      = 'G:/GITHUB/North_east_NSW_fire_recovery')
 
 
@@ -794,28 +606,27 @@ sum(is.na(SDM.SPAT.OCC.BG@data$genus));sum(is.na(SDM.SPAT.OCC.BG@data$family))
 
 
 ## Create subset of target reptiles
-SDM.SPAT.OCC.BG.TARG.INV <- SDM.SPAT.OCC.BG %>% .[.$searchTaxon %in% analysis_taxa, ]
+SDM.SPAT.OCC.BG.TARG.INV <- SDM.SPAT.OCC.BG %>% .[.$searchTaxon %in% target.host.plants, ]
 
 
 ## Save shape file separately - doesn't seem to work in R
 ## Save the data to a shapefile
 writeOGR(obj    = SDM.SPAT.OCC.BG,
-         dsn    = 'G:/Github_repos/North_east_NSW_fire_recovery/output/invert_maxent_raster_update/results',
-         layer  = 'SDM_TARGET_INVERT_TAXA',
+         dsn    = 'G:/Github_repos/North_east_NSW_fire_recovery/output/plant_maxent_raster_update/results',
+         layer  = 'SDM_TARGET_PLANT_TAXA',
          driver = 'ESRI Shapefile', overwrite_layer = TRUE)
 
 
 st_write(SDM.SPAT.OCC.BG.TARG.INV %>% st_as_sf(), 
-         dsn = file.path(getwd(), 'output/invert_maxent_raster_update/results/SDM_INVERT_TAXA.gpkg'), 
-         layer = 'SDM_TARGET_INVERT_TAXA', 
+         dsn = file.path(getwd(), 'output/plant_maxent_raster_update/results/SDM_PLANT_TAXA.gpkg'), 
+         layer = 'SDM_ALL_PLANT_TAXA', 
          quiet = TRUE)
 
 
 st_write(SDM.SPAT.OCC.BG %>% st_as_sf(), 
-         dsn = file.path(getwd(), 'output/invert_maxent_raster_update/results/SDM_INVERT_TAXA.gpkg'), 
-         layer = 'SDM_ALL_INVERT_TAXA', 
+         dsn = file.path(getwd(), 'output/plant_maxent_raster_update/results/SDM_PLANT_TAXA.gpkg'), 
+         layer = 'SDM_TARGET_PLANT_TAXA', 
          quiet = TRUE)
-
 
 ``` 
 

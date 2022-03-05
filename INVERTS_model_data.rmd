@@ -197,7 +197,7 @@ run_sdm_analysis(taxa_list               = target.insect.spp,
                  Koppen_raster           = Koppen_1975_1km)
 
 
-## Run species-level models for plants
+## Run species-level models for host plants
 run_sdm_analysis(taxa_list               = sort(target.host.plants)[1],
                  taxa_level              = 'species',
                  maxent_dir              = 'output/plant_maxent/full_models',     

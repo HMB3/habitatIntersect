@@ -2077,10 +2077,6 @@ prepare_sdm_table = function(coord_df,
                              sp_country_prj,
                              project_path) {
   
-  ## Define GDA ALBERS. This is hard-wired, not user supplied
-  ## Change this to GDA ALBERS
-  # sp_country_prj <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
-  
   ## Just add clean_df to this step
   coord_df <- subset(coord_df, coord_summary == TRUE)
   
@@ -2090,7 +2086,6 @@ prepare_sdm_table = function(coord_df,
           'using ', unique(coord_df$SOURCE), ' data')
   
   ## Select only the columns needed. This also needs to use the variable names
-  coord_df <- coord_df[coord_df$searchTaxon %in% taxa_list, ]
   length(unique(coord_df$searchTaxon))
   
   COMBO.RASTER.ALL  <- coord_df %>%
