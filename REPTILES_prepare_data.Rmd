@@ -270,16 +270,18 @@ east_terrain_250m <- raster::stack(
 
 ## Climate data for Australia, in GDA Albers projection
 aus.grids.current.250m <- stack(aus_precip_250m,
-                                aus_temp_250m#,
-                                #aus_soil_250m,
-                                #aus_geology_250m
-)
+                                aus_temp_250m,
+                                aus_soil_250m,
+                                aus_topo_250m,
+                                aus_terrain_250m,
+                                aus_geology_250m)
 
 east.grids.current.250m <- stack(east_precip_250m,
-                                 east_temp_250m#,
-                                 #aus_soil_250m,
-                                 #aus_geology_250m
-)
+                                 east_temp_250m,
+                                 east_soil_250m,
+                                 east_topo_250m,
+                                 east_terrain_250m,
+                                 east_geology_250m)
 
 
 ## And a stack of grids for vegetation, in GDA Albers projection
@@ -319,6 +321,7 @@ aus_annual_precip_alb        <- raster('./data/Bushfire_indices/R_outputs/250m/A
 ## Should be 1km*1km, It should have a value of 1 for land, and NA for the ocean
 aus_annual_precip_alb[aus_annual_precip_alb > 0] <- 1
 template_raster_250m <- aus_annual_precip_alb
+Koppen_1975_1km      <- raster('data/world_koppen/Koppen_1000m_Mollweide54009.tif')
 
 
 ## Add shapefiles
@@ -386,12 +389,25 @@ ALA.LAND.BACKG.SPP  <- format_ala_dump(ALA_table         = Reptiles_ALA,
 
 
 ## Add in special records
-Hoplocephalus_bungaroides_bionet <- read_csv('./data/ALA/Reptiles/Hoplocephalus bungaroides_Bionet.csv') %>% 
+Hoplocephalus_bungaroides_bionet <- read_excel('./data/ALA/Reptiles/Hoplocephalus_bungaroides_Bionet_combined_records.xlsx',
+                                               sheet = 'Bionet_records') %>% 
   
   dplyr::rename(searchTaxon = ScientificName,
                 lat         = Latitude_GDA94,
-                lon         = Longitude_GDA94) %>% dplyr::select(searchTaxon, lat, lon) %>% 
+                lon         = Longitude_GDA94) %>% dplyr::select(searchTaxon, SightingKey, lat, lon) %>% 
   mutate(SOURCE = 'BIONET')
+
+
+Hoplocephalus_bungaroides_atlas <- read_excel('./data/ALA/Reptiles/Hoplocephalus_bungaroides_Bionet_combined_records.xlsx',
+                                              sheet = 'Atlas_records_1') %>% 
+  
+  dplyr::rename(searchTaxon = ScientificName,
+                lat         = Northing, 
+                lon         = Easting) %>% dplyr::select(searchTaxon, SightingKey, lat, lon) %>% 
+  mutate(SOURCE = 'ATLAS') %>% 
+  
+  .[!.$SightingKey %in% Hoplocephalus_bungaroides_bionet$SightingKey, ]
+
 
 
 ## Check these points
@@ -399,6 +415,8 @@ bionet <- Hoplocephalus_bungaroides_bionet %>%
   SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
                          data        = .,
                          proj4string = CRS(sp_epsg3577)) 
+
+plot(bionet)
 
 
 ``` 
@@ -435,7 +453,7 @@ COMBO.RASTER.SPP <- combine_records_extract(ala_df           = ALA.LAND.BACKG.SP
                                             taxa_level       = 'species', 
                                             
                                             ## These two will need to change.
-                                            ## Specify them in the code
+                                            ## Specify them in the code 
                                             raster_divide    = FALSE,
                                             save_data        = FALSE,
                                             save_run         = "TARGET_REPTILE_SPECIES",
@@ -628,17 +646,24 @@ SDM.SPAT.OCC.ALL.REPTILE.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN
                                                                        'genus', 
                                                                        'family',      
                                                                        'lon',      
-                                                                       'lat', 
+                                                                       'lat',
+                                                                       'year',
                                                                        'SOURCE', 
                                                                        'SPAT_OUT',
                                                                        names(aus.climate.veg.grids.250m)),
                                                  
-                                                 save_run          = "ALL_REPTILE_TAXA",
+                                                 save_run          = "ALL_REPTILE_TAXA_VARS",
                                                  read_background   = FALSE,
                                                  sp_country_prj    = sp_epsg3577,
                                                  save_data         = TRUE,
-                                                 data_path         = paste0(getwd(), '/output/reptile_maxent/results'),
+                                                 data_path         = paste0(getwd(), '/output/reptile_maxent/results/'),
                                                  project_path      = 'G:/GITHUB/North_east_NSW_fire_recovery')
+
+
+
+SDM.SPAT.OCC.ALL.REPTILE.BG$SPAT_OUT <- ifelse(SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon == 'Hoplocephalus bungaroides' &
+                                                 SDM.SPAT.OCC.ALL.REPTILE.BG$SOURCE == 'ALA', 'FALSE', 'TRUE')
+SDM.SPAT.OCC.ALL.REPTILE.BG <- SDM.SPAT.OCC.ALL.REPTILE.BG %>% .[.$SPAT_OUT %in% 'TRUE', ]
 
 
 ## Create subset of target reptiles
@@ -686,12 +711,6 @@ st_write(SDM.SPAT.OCC.ALL.REPTILE.BG %>% st_as_sf(),
          layer = 'SDM_ALL_REPTILE_TAXA', 
          quiet = TRUE)
 
-
-## And save the big table data to be a projected coordinate system, not mollweide for use in Australia
-# SDM.SPAT.OCC.TARGET.REPTILE.BG   <- readRDS('./output/reptile_maxent/results/SDM_SPAT_OCC_BG_ALL_REPTILE_TAXA.rds')
-# SDM.SPAT.OCC.BG.REPTILE.GDA      <- spTransform(SDM.SPAT.OCC.TARGET.REPTILE.BG,  CRS(sp_epsg3577))
-# crs(SDM.SPAT.OCC.BG.REPTILE.GDA) <- sp_epsg3577
-# saveRDS(SDM.SPAT.OCC.BG.REPTILE.GDA, './output/reptile_maxent/results/SDM_SPAT_OCC_BG_REPTILE_GDA.rds')
 
 ``` 
 

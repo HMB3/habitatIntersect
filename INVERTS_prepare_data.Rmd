@@ -367,9 +367,6 @@ NENSW_study_area <- readOGR(dsn              = './data/Spatial_data/NE_NSW_study
 aus_precip_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Precip',        pattern =".tif", full.names = TRUE))
 
-study_precip_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Precip', pattern =".tif", full.names = TRUE))
-
 east_precip_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Precip', pattern =".tif", full.names = TRUE))
 
@@ -377,9 +374,6 @@ east_precip_250m <- raster::stack(
 ## 250m temperature layers
 aus_temp_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Temp',          pattern =".tif", full.names = TRUE))
-
-study_temp_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Temp',   pattern =".tif", full.names = TRUE))
 
 east_temp_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Temp',   pattern =".tif", full.names = TRUE))
@@ -389,33 +383,21 @@ east_temp_250m <- raster::stack(
 aus_soil_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Soil',          pattern =".tif", full.names = TRUE))
 
-study_soil_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Soil',   pattern =".tif", full.names = TRUE))
-
 east_soil_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Soil',   pattern =".tif", full.names = TRUE))
-
 
 
 ## 250m Geology Australia
 aus_geology_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Geology',        pattern =".tif", full.names = TRUE))
 
-study_geology_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Geology', pattern =".tif", full.names = TRUE))
-
 east_geology_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Geology', pattern =".tif", full.names = TRUE))
-
-
 
 
 ## 250m topo Australia
 aus_topo_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Topo',           pattern =".tif", full.names = TRUE))
-
-study_topo_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Topo',    pattern =".tif", full.names = TRUE))
 
 east_topo_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Topo',    pattern =".tif", full.names = TRUE))
@@ -425,9 +407,6 @@ east_topo_250m <- raster::stack(
 aus_terrain_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Indices',        pattern =".tif", full.names = TRUE))
 
-study_terrain_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/STUDY_AREA/Indices', pattern =".tif", full.names = TRUE))
-
 east_terrain_250m <- raster::stack(
   list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Indices', pattern =".tif", full.names = TRUE))
 
@@ -436,43 +415,67 @@ east_terrain_250m <- raster::stack(
 aus.grids.current.250m <- stack(aus_precip_250m,
                                 aus_temp_250m,
                                 aus_soil_250m,
+                                aus_topo_250m,
+                                aus_terrain_250m,
                                 aus_geology_250m)
 
+east.grids.current.250m <- stack(east_precip_250m,
+                                 east_temp_250m,
+                                 east_soil_250m,
+                                 east_topo_250m,
+                                 east_terrain_250m,
+                                 east_geology_250m)
 
 
 ## And a stack of grids for vegetation, in GDA Albers projection
-aus.veg.grids <- stack(
-  list.files('./data/Remote_sensing/Veg_data/height_and_cover', 
-             '_1km.tif', full.names = TRUE))
+aus.veg.grids.250m <- stack(
+  
+  list.files('./data/Remote_sensing/Veg_data/height_and_cover/Aus/250m', 
+             '_250m.tif', full.names = TRUE))
+
+east.veg.grids.250m <- stack(
+  
+  list.files('./data/Remote_sensing/Veg_data/height_and_cover/Eastern_Aus/250m', 
+             '_east_coast.tif', full.names = TRUE))
 
 
-## And a stack of grids for vegetation, in GDA Albers projection
-study.veg.grids <- stack(
-  list.files('./data/Remote_sensing/Veg_data/height_and_cover/Study', 
-             '_1km_study.tif', full.names = TRUE))
+names(east.grids.current.250m) <- gsub('_EAST_COAST', '', names(east.grids.current.250m))
+names(aus.veg.grids.250m)      <- names(east.veg.grids.250m) <- c("Plant_cover_fraction_0_5m", 
+                                                                  "Plant_cover_fraction_5_10m",  
+                                                                  "Plant_cover_fraction_10_30m",      
+                                                                  "Plant_cover_fraction_30m",
+                                                                  "Total_Plant_cover_fraction",  
+                                                                  "Tree_canopy_height_25th", 
+                                                                  "Tree_canopy_height_50th", 
+                                                                  "Tree_canopy_height_75th",   
+                                                                  "Tree_canopy_height_95th",   
+                                                                  "Tree_canopy_peak_foliage",
+                                                                  "Tree_canopy_peak_foliage_total",
+                                                                  "mrvbf")
 
 
 ## Combine the grids into raster stacks
-aus.climate.veg.grids   <- stack(aus.grids.current,   aus.veg.grids,   aus.vbf)
-study.climate.veg.grids <- stack(study.grids.current, study.veg.grids, study.vbf)
-aus_annual_temp         <- aus.climate.veg.grids[[1]]
-world_annual_temp       <- worldclim_climate[[1]]
+aus.climate.veg.grids.250m   <- stack(aus.grids.current.250m, aus.veg.grids.250m)
+east.climate.veg.grids.250m  <- stack(east.grids.current.250m, east.veg.grids.250m)
+aus_annual_precip            <- raster('./data/Bushfire_indices/R_outputs/250m/AUS/Extra/Annual_precip_WGS84.tif')
+aus_annual_precip_alb        <- raster('./data/Bushfire_indices/R_outputs/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
 
 
-# We also need a template raster of 1km * 1km cells, which is used to filter 
-# records to 1 per one 1km cell. This raster needs to have the same extent (global) 
-# resolution (1km) and projection (WGS84) of the data used to analyse the taxa 
-# distributions. It should have a value of 1 for land, and NA for the ocean. 
-# This takes ages in R.....
-template_raster_1km_WGS84 <- raster("./data/world_koppen/template_1km_WGS84.tif")
-Koppen_1975_1km           <- raster('data/world_koppen/Koppen_1000m_Mollweide54009.tif')
-template_raster_1km_mol   <- raster("./data/world_koppen/template_has_data_1km.tif")
+## Should be 1km*1km, It should have a value of 1 for land, and NA for the ocean
+aus_annual_precip_alb[aus_annual_precip_alb > 0] <- 1
+template_raster_250m <- aus_annual_precip_alb
+Koppen_1975_1km      <- raster('data/world_koppen/Koppen_1000m_Mollweide54009.tif')
 
 
 ## Add shapefiles
 NENSW_study_area <- readOGR(dsn              = './data/Spatial_data/NE_NSW_study_area_buffer_GDA.shp',
                             layer            = "NE_NSW_study_area_buffer_GDA",
                             stringsAsFactors = FALSE)
+
+
+east_study_area <- readOGR(dsn              = './data/Spatial_data/east_coast_shapefile/polygon_east_coast.shp',
+                           layer            = "polygon_east_coast",
+                           stringsAsFactors = FALSE)
 
 
 ```
@@ -494,30 +497,53 @@ data('ALA_keep')
 
 
 ## Combine Family ALA data up to 50% of records are knocked out by cleaning  
-ALA.LAND.FAM <- combine_ala_records(taxa_list         =  target.insect.families[1:2],
+ALA.LAND.FAM <- combine_ala_records(taxa_list         =  target.insect.families,
                                     records_path      = "./data/ALA/Insects/Family/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
                                     keep_cols         = ALA_keep,
-                                    world_raster      = world_annual_temp)
+                                    world_raster      = aus_annual_precip)
 
 
 ## Combine Genus ALA data
-ALA.LAND.GEN <- combine_ala_records(taxa_list         = target.insect.genera{1:2],
-records_path      = "./data/ALA/Insects/Genus/",
-records_extension = "_ALA_records.RData",
-record_type       = "ALA",
-keep_cols         = ALA_keep,
-world_raster      = world_annual_temp)
+ALA.LAND.GEN <- combine_ala_records(taxa_list         = target.insect.genera,
+                                    records_path      = "./data/ALA/Insects/Genus/",
+                                    records_extension = "_ALA_records.RData",
+                                    record_type       = "ALA",
+                                    keep_cols         = ALA_keep,
+                                    world_raster      = aus_annual_precip)
 
 
 ## Combine taxa ALA data
-ALA.LAND.SPP <- combine_ala_records(taxa_list         = target.insect.spp[1:2],
+ALA.LAND.SPP <- combine_ala_records(taxa_list         = target.insect.spp,
                                     records_path      = "./data/ALA/Insects/Species/",
                                     records_extension = "_ALA_records.RData",
                                     record_type       = "ALA",
                                     keep_cols         = ALA_keep,
-                                    world_raster      = world_annual_temp)
+                                    world_raster      = aus_annual_precip)
+
+## Combine  
+ALA.LAND.PLA <- combine_ala_records(taxa_list         = all.insect.plant.spp,
+                                    records_path      = "./data/ALA/Plants/",
+                                    records_extension = "_ALA_records.RData",
+                                    record_type       = "ALA",
+                                    keep_cols         = ALA_keep,
+                                    world_raster      = aus_annual_precip)
+
+
+## Take a data dump from the ALA of all the reptiles, 
+## and format it to the columns names we want for the niche analyses
+Insects_ALA         <- readRDS('./data/ALA/Insects/INVERTS_2022_0303.rds')
+
+
+ALA.LAND.BACKG.SPP  <- format_ala_dump(ALA_table         = Insects_ALA,
+                                       record_type       = "ALA",
+                                       keep_cols         = ALA_keep,
+                                       world_raster      = aus_annual_precip) %>%
+  
+  ## Remove the species which have unreliable ALA records,
+  .[!.$searchTaxon %in% analysis_taxa, ] %>%
+  bind_rows(., ALA.LAND.SPP)
 
 ``` 
 
@@ -537,10 +563,13 @@ Next we combine occurrence files from ALA and GBIF into one table, and extracts 
 ## Some of the site records will be removed here, if they are outside the raster bounds.
 ## This seems strange, but maybe they are right on the coast
 COMBO.RASTER.FAM = combine_records_extract(ala_df           = ALA.LAND.FAM,
+                                           add_sites        = TRUE,
+                                           filter_taxo      = FALSE,
+                                           
                                            site_df          = all_insect_site_df_families,
                                            thin_records     = FALSE,
-                                           template_raster  = template_raster_1km_WGS84,
-                                           world_raster     = aus.climate.veg.grids,
+                                           template_raster  = template_raster_250m,
+                                           world_raster     = aus.climate.veg.grids.250m,
                                            prj              = CRS("+init=epsg:4326"),
                                            taxa_list        = target.insect.families,
                                            taxa_level       = 'family',   
@@ -553,10 +582,13 @@ COMBO.RASTER.FAM = combine_records_extract(ala_df           = ALA.LAND.FAM,
 
 
 COMBO.RASTER.GEN = combine_records_extract(ala_df           = ALA.LAND.GEN,
+                                           add_sites        = TRUE,
+                                           filter_taxo      = FALSE,
+                                           
                                            site_df          = all_insect_site_df_genera,
                                            thin_records     = FALSE,
-                                           template_raster  = template_raster_1km_WGS84,
-                                           world_raster     = aus.climate.veg.grids,
+                                           template_raster  = template_raster_250m,
+                                           world_raster     = aus.climate.veg.grids.250m,
                                            prj              = CRS("+init=epsg:4326"),
                                            taxa_list        = target.insect.genera,
                                            taxa_level       = 'genus', 
@@ -569,11 +601,14 @@ COMBO.RASTER.GEN = combine_records_extract(ala_df           = ALA.LAND.GEN,
                                            data_path        = "./output/results/")
 
 
-COMBO.RASTER.SPP = combine_records_extract(ala_df           = ALA.LAND.SPP,
+COMBO.RASTER.SPP = combine_records_extract(ala_df           = ALA.LAND.BACKG.SPP,
+                                           add_sites        = TRUE,
+                                           filter_taxo      = FALSE,
+                                           
                                            site_df          = all_insect_site_df_species,
                                            thin_records     = FALSE,
-                                           template_raster  = template_raster_1km_WGS84,
-                                           world_raster     = aus.climate.veg.grids,
+                                           template_raster  = template_raster_250m,
+                                           world_raster     = aus.climate.veg.grids.250m,
                                            prj              = CRS("+init=epsg:4326"),
                                            taxa_list        = target.insect.spp,
                                            taxa_level       = 'species', 
@@ -620,7 +655,10 @@ records data.frame is that returned by the combine_records_extract function abov
 
 ## Flag records as institutional or spatial outliers
 COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.FAM.GEN.SPP,
-                                  multi_source = FALSE,
+                                  site_flag  = 'SITE',
+                                  occ_flag   = 'ALA',
+                                  multi_source = TRUE,
+                                  
                                   capitals   = 10000,  
                                   centroids  = 5000,   
                                   save_data  = FALSE,
@@ -647,10 +685,12 @@ input dfs are those returned by the coord_clean_records function.
 SPATIAL.CLEAN = check_spatial_outliers(occ_df       = COORD.CLEAN,
                                        land_shp     = LAND,
                                        site_records = TRUE, 
-                                       clean_path   = './data/ALA/Check_Plots/',
+                                       site_flag    = 'SITE',
+                                       occ_flag     = 'ALA',
+                                       multi_source = TRUE,
+                                       clean_path   = './data/ALA/Check_Plots/Inverts/',
                                        plot_points  = FALSE,
                                        record_limit = 400000,
-                                       multi_source = TRUE,
                                        spatial_mult = 10,
                                        prj          = CRS("+init=epsg:4326"))
 
@@ -675,19 +715,11 @@ GLOB.NICHE.ALL = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxo
                                  world_shp    = LAND,
                                  kop_shp      = Koppen_shp,
                                  taxa_list    = analysis_taxa,
-                                 env_vars     = names(aus.climate.veg.grids),
+                                 env_vars     = names(aus.climate.veg.grids.250m),
                                  cell_size    = 2,
                                  save_data    = TRUE,
                                  save_run     = "ALL_TARGET_INSECT_TAXA",
-                                 data_path    = "./output/results/")
-
-
-# saveRDS(GLOB.NICHE.ALL,   './output/invert_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_ALL_TAXA.rds')
-# write_csv(GLOB.NICHE.ALL, './output/invert_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_ALL_TAXA.csv')
-
-# saveRDS(GLOB.NICHE.ALL,   './output/plant_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_PLANT_TAXA.rds')
-# write_csv(GLOB.NICHE.ALL, './output/plant_maxent/Habitat_suitability/GLOBAL_NICHES_TARG_PLANT_TAXA.csv')
-
+                                 data_path    = "./output/invert_maxent_raster_update/results/")
 
 ``` 
 
@@ -703,9 +735,9 @@ prepared by the check_spatial_outliers function
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Plot taxa ranges using histograms and convex hulls for rainfall and temperature distributions
-plot_range_histograms(coord_df     = SPATIAL.CLEAN,
+plot_range_histograms(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxon %in% analysis_taxa, ],
                       taxa_list    = analysis_taxa,
-                      range_path   = check_dir)
+                      range_path   = './data/ALA/Check_Plots/Inverts/')
 
 ``` 
 
@@ -725,51 +757,36 @@ coord_clean_records function.
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Two projection systems 
-sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
+## Only use GDA Albers forAus analyses
 sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
-
-
-## Final data set is a spatial points data frame in the Mollweide projection
-## SDM_SPAT_OCC_BG_HOST_PLANT_SPP
-SDM.ALL.PLA.SPP.BG = readRDS('./output/results/SDM_SPAT_OCC_BG_ALL_HOST_PLANTS.rds') %>% as.data.frame() %>%
-  
-  ## Add the columns we need
-  mutate(species = 'plant_spp',
-         genus   = 'plant_gen',
-         family  = 'plant_fam') %>% select(-lat.1, -lon.1) %>% 
-  
-  ## Save as spdf
-  SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
-                         data        = .,
-                         proj4string = CRS(sp_epsg54009))
-
-
-## Which plants aren't on the target list 
-bg_plant_list = setdiff(all.insect.plant.spp, target.host.plants)
-bg_plant_list %in% target.host.plants %>% table()
 
 
 ## Combine occ data with the bg data 
 SDM.SPAT.OCC.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN,
                                      taxa_list         = analysis_taxa,
                                      
+                                     site_flag         = 'SITE',
+                                     occ_flag          = 'ALA',
+                                     site_records      = TRUE,
+                                     
                                      sdm_table_vars    = c('searchTaxon', 
                                                            'species',  
                                                            'genus', 
                                                            'family',      
                                                            'lon',      
-                                                           'lat', 
+                                                           'lat',
+                                                           'year',
                                                            'SOURCE', 
                                                            'SPAT_OUT',
-                                                           names(aus.climate.veg.grids)),
+                                                           names(aus.climate.veg.grids.250m)),
                                      
-                                     save_run          = "ALL_TARGET_INVERT_TAXA",
+                                     save_run          = "ALL_TARGET_INSECT_TAXA",
                                      site_records      = TRUE,
                                      read_background   = TRUE,
                                      background_points = SDM.ALL.PLA.SPP.BG, 
-                                     save_data         = FALSE,
-                                     data_path         = paste0(getwd(), '/output/results/'),
+                                     sp_country_prj    = sp_epsg3577,
+                                     save_data         = TRUE,
+                                     data_path         = paste0(getwd(), '/output/invert_maxent_raster_update/results/'),
                                      project_path      = 'G:/GITHUB/North_east_NSW_fire_recovery')
 
 

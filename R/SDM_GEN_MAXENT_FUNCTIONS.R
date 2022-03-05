@@ -66,7 +66,7 @@ run_sdm_analysis = function(taxa_list,
   # sp_country_prj <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
   
   ## Loop over all the taxa
-  ## taxa <- taxa_list[4]
+  ## taxa <- taxa_list[3]
   lapply(taxa_list, function(taxa){
     
     ## Skip the taxa if the directory already exists, before the loop
@@ -103,8 +103,8 @@ run_sdm_analysis = function(taxa_list,
           SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
                                  data        = .,
                                  proj4string = CRS(sp_country_prj)) %>% .[,!(names(.) %in% drops)]
-
-
+        
+        
         background <- background %>% as.data.frame() %>%
           SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
                                  data        = .,
@@ -224,9 +224,11 @@ fit_maxent_targ_bg_back_sel <- function(occ,
   outdir_sp <- file.path(outdir, gsub(' ', '_', name))
   bsdir_sp  <- file.path(bsdir,  gsub(' ', '_', name))
   
-  if(!missing('Koppen_raster')) {
-    if(!is(Koppen_raster, 'RasterLayer'))
-      stop('Koppen must be a RasterLayer, and should be in the same coordinate system as template_raster')
+  if(crop_Koppen) {
+    if(!missing('Koppen_raster')) {
+      if(!is(Koppen_raster, 'RasterLayer'))
+        stop('Koppen must be a RasterLayer, and should be in the same coordinate system as template_raster')
+    }
   }
   
   ## If the file doesn't exist, split out the features
@@ -454,13 +456,13 @@ fit_maxent_targ_bg_back_sel <- function(occ,
     ## Save the full model. Replicate this line in the backwards selection algortithm
     ## Remove Koppen from the end
     if(crop_Koppen) {
-        saveRDS(list(me_xval = me_xval, me_full = me_full, swd = swd, pa = pa),
-           koppen_gridcode = as.character(Koppen_zones$Koppen[match(unique(zones), Koppen_zones$GRIDCODE)]),
-           file.path(outdir_sp, 'full', 'maxent_fitted.rds'))
+      saveRDS(list(me_xval = me_xval, me_full = me_full, swd = swd, pa = pa),
+              koppen_gridcode = as.character(Koppen_zones$Koppen[match(unique(zones), Koppen_zones$GRIDCODE)]),
+              file.path(outdir_sp, 'full', 'maxent_fitted.rds'))
       
     } else {
       saveRDS(list(me_xval = me_xval, me_full = me_full, swd = swd, pa = pa),
-        file.path(outdir_sp, 'full', 'maxent_fitted.rds'))
+              file.path(outdir_sp, 'full', 'maxent_fitted.rds'))
     }
     
     if (backwards_sel) {
