@@ -4,3 +4,5 @@
 .Ruserdata
 data/Taxonomy/
 /Download_ALA_data.Rmd
+/data
+/output
