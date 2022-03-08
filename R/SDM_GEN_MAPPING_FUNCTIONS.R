@@ -48,23 +48,23 @@ project_maxent_current_grids_mess = function(country_shp,
     maxent_predict_fun <- function(species) {
       
       ## Create species name
-      ## species = taxa_list[1]
+      ## species = taxa_list[3]
       save_name = gsub(' ', '_', species)
       
       ## First check if the species exists
-      current_mess_png = sprintf('%s/%s/full/%s_%s.png', maxent_path, species, species, "mess_panel")
+      current_mess_png = sprintf('%s/%s/full/%s_%s.png', maxent_path, save_name, save_name, "mess_panel")
       if(!file.exists(current_mess_png)) {
         
         ## Create a path for the current prediction of the species
-        f_current  <- sprintf('%s%s/full/%s_current.tif', maxent_path, species, species)
+        f_current  <- sprintf('%s%s/full/%s_current.tif', maxent_path, save_name, save_name)
         
         ## Check the file exists
-        if(file.exists(sprintf('%s/%s/full/maxent_fitted.rds', maxent_path, species))) {
+        if(file.exists(sprintf('%s/%s/full/maxent_fitted.rds', maxent_path, save_name))) {
           message('Then run current maxent projections for ', species)
           
           ## Then, check if the species projection has already been run...
           if(!file.exists(sprintf('%s/%s/full/%s_future_not_novel.tif',
-                                  maxent_path, species, species))) {
+                                  maxent_path, save_name, save_name))) {
             
             ## Now read in the SDM model, calibrated on current conditions
             ## if it was run with backwards selection, just use the full model
@@ -82,9 +82,9 @@ project_maxent_current_grids_mess = function(country_shp,
             
             ## Read in species with data and occurrence files
             message('Read in the swd and occ data')
-            swd <- as.data.frame(readRDS(sprintf('%s%s/swd.rds', maxent_path, species)))
-            occ <- readRDS(sprintf('%s%s/%s_occ.rds', maxent_path, species, species)) %>%
-              spTransform(country_prj)
+            swd <- as.data.frame(readRDS(sprintf('%s%s/swd.rds', maxent_path, save_name)))
+            occ <- readRDS(sprintf('%s%s/%s_occ.rds', maxent_path, save_name, save_name)) #%>%
+              # spTransform(country_prj)
             
             ## If the current raster prediction has not been run, run it.
             if(!file.exists(f_current) == TRUE) {
@@ -106,15 +106,15 @@ project_maxent_current_grids_mess = function(country_shp,
             } else {
               message('Use existing prediction for ', species)
               pred.current = raster::raster(sprintf('%s/%s/full/%s_current.tif',
-                                                    maxent_path, species, species))
+                                                    maxent_path, save_name, save_name))
             }
             
             ## Report current mess map in progress
             ## Could work out how to the static mess once, before looping through scenarios
-            MESS_dir = sprintf('%s%s/full/%s', maxent_path, species, 'MESS_output')
+            MESS_dir = sprintf('%s%s/full/%s', maxent_path, save_name, 'MESS_output')
             
             ## If the current novel layer doesn't exist, create it
-            if(!file.exists(sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel"))) {
+            if(!file.exists(sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel"))) {
               
               ##
               message('Are the environmental variables identical? ',
@@ -133,7 +133,7 @@ project_maxent_current_grids_mess = function(country_shp,
             } else {
               ## Otherwise, read in the current novel layer
               message(species, ' Current similarity analysis already run')
-              novel_current = raster::raster(sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel"))
+              novel_current = raster::raster(sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel"))
             }
             
             ## Write out the current mess maps -
@@ -154,13 +154,13 @@ project_maxent_current_grids_mess = function(country_shp,
                 p <- levelplot(raster, margin = FALSE, scales = list(draw = FALSE),
                                at = seq(minValue(raster), maxValue(raster), len = 100),
                                colorkey = list(height = 0.6),
-                               main = gsub('_', ' ', sprintf(' Current_mess_for_%s (%s)', raster_name, species))) +
+                               main = gsub('_', ' ', sprintf(' Current_mess_for_%s (%s)', raster_name, save_name))) +
                   
                   latticeExtra::layer(sp.polygons(country_poly), 
                                       data = list(country_poly = country_poly)) ## need list() for polygon
                 
                 p <- diverge0(p, 'RdBu')
-                f <- sprintf('%s/%s%s%s.png', MESS_dir, species, "_current_mess_", raster_name)
+                f <- sprintf('%s/%s%s%s.png', MESS_dir, save_name, "_current_mess_", raster_name)
                 
                 png(f, 8, 8, units = 'in', res = 300, type = 'cairo')
                 print(p)
@@ -173,10 +173,10 @@ project_maxent_current_grids_mess = function(country_shp,
             }
             
             ## Write the raster of novel environments to the MESS sub-directory
-            if(!file.exists(sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel"))) {
+            if(!file.exists(sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel"))) {
               
               message('Writing currently novel environments to file for ', species)
-              raster::writeRaster(novel_current, sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel"),
+              raster::writeRaster(novel_current, sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel"),
                                   overwrite = TRUE)
               
             } else {
@@ -191,11 +191,11 @@ project_maxent_current_grids_mess = function(country_shp,
             
             ## Write out not-novel raster :: this can go to the main directory
             ## Write the raster of novel environments to the MESS sub-directory
-            if(!file.exists(sprintf('%s%s/full/%s%s.tif', maxent_path, species, species, "_current_not_novel"))) {
+            if(!file.exists(sprintf('%s%s/full/%s%s.tif', maxent_path, save_name, save_name, "_current_not_novel"))) {
               
               message('Writing currently un-novel environments to file for ', species)
               raster::writeRaster(hs_current_not_novel, sprintf('%s%s/full/%s%s.tif', maxent_path,
-                                                                species, species, 
+                                                                save_name, save_name, 
                                                                 "_current_not_novel"), overwrite = TRUE)
               
             } else {
@@ -203,11 +203,11 @@ project_maxent_current_grids_mess = function(country_shp,
             }
             
             ## Create the MESS path and save shapefiles
-            MESS_shp_path <- sprintf('%s%s/full/%s', maxent_path, species, 'MESS_output')
+            MESS_shp_path <- sprintf('%s%s/full/%s', maxent_path, save_name, 'MESS_output')
             if(save_novel_poly == TRUE) {
               
               ## Create shape files 
-              current_novel_raster <- rast(sprintf('%s/%s%s.tif', MESS_dir, species, "_current_novel"))
+              current_novel_raster <- rast(sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel"))
               values <- values(current_novel_raster)
               unique(values[1])
               
@@ -226,7 +226,7 @@ project_maxent_current_grids_mess = function(country_shp,
                 message('Saving current MESS maps to polygons for ', species)
                 writeOGR(obj    = current_novel_poly,
                          dsn    = sprintf('%s',  MESS_shp_path),
-                         layer  = paste0(species, "_current_novel_polygon"),
+                         layer  = paste0(save_name, "_current_novel_polygon"),
                          driver = "ESRI Shapefile", overwrite_layer = TRUE)
                 
               } else {
@@ -246,13 +246,13 @@ project_maxent_current_grids_mess = function(country_shp,
             
             ## Use the 'levelplot' function to make a multipanel output:
             ## occurrence points, current raster and future raster
-            current_mess_png = sprintf('%s/%s/full/%s_%s.png', maxent_path, species, species, "mess_panel")
+            current_mess_png = sprintf('%s/%s/full/%s_%s.png', maxent_path, save_name, save_name, "mess_panel")
             if(!file.exists(current_mess_png)) {
               
               ## Create level plot of current conditions including MESS
               message('Create current MESS panel maps for ', species)
               
-              png(sprintf('%s/%s/full/%s_%s.png', maxent_path, species, species, "mess_panel"),
+              png(sprintf('%s/%s/full/%s_%s.png', maxent_path, save_name, save_name, "mess_panel"),
                   11, 4, units = 'in', res = 300)
               
               print(levelplot(raster::stack(empty_ras,

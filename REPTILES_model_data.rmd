@@ -205,11 +205,11 @@ aus_albers <- CRS('+proj=aea +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=132 +x_0=0 +y
 ## Project SDMs across the Study area for the REPTILES taxa
 tryCatch(
   project_maxent_current_grids_mess(country_shp     = AUS, 
-                                    country_prj     = CRS("+init=EPSG:3577"),
-                                    local_prj       = aus_albers,
+                                    country_prj     = sp_epsg3577,
+                                    local_prj       = sp_epsg3577,
                                     
                                     taxa_list       = rev(reptiles_map_taxa),    
-                                    maxent_path     ='./output/reptile_maxent/back_sel_models/',
+                                    maxent_path     = './output/reptile_maxent/back_sel_models/',
                                     
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
