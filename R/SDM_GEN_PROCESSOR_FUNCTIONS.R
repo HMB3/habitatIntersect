@@ -630,7 +630,7 @@ combine_ala_records = function(taxa_list,
     
     ## Now extract the temperature values for the unique 1km centroids which contain ALA data
     class(xy)
-    z   = raster::extract(world_raster, xy)
+    z   = terra::extract(world_raster, xy)
     
     ## Then track which values of Z are on land or not
     onland = z %>% is.na %>%  `!` # %>% xy[.,]  cells on land or not
@@ -780,7 +780,7 @@ format_ala_dump = function(ALA_table,
   
   ## Now extract the temperature values for the unique 1km centroids which contain ALA data
   class(xy)
-  z   = raster::extract(world_raster, xy)
+  z   = terra::extract(world_raster, xy)
   
   ## Then track which values of Z are on land or not
   onland = z %>% is.na %>%  `!` # %>% xy[.,]  cells on land or not
@@ -964,7 +964,7 @@ combine_gbif_records = function(taxa_list,
     ## Now extract the temperature values for the unique 1km centroids which contain GBIF data
     message('Removing GBIF points in the ocean for ', length(taxa_list), ' taxa')
     class(xy)
-    z   = raster::extract(world_raster, xy)
+    z   = terra::extract(world_raster, xy)
     
     ## Then track which values of Z are on land or not
     onland = z %>% is.na %>%  `!` # %>% xy[.,]  cells on land or not
@@ -1053,6 +1053,7 @@ combine_records_extract = function(ala_df,
     
   } else {
     message('Do not filter taxonomy of searched taxa vs returned' )
+    ALA.COMBO <- ALA.COMBO %>% dplyr::mutate(Match_SN_ST = str_detect(!!sym(taxa_level), searchTaxon))
   }
   
   ## Don't taxo match the site data :: this needs to be kept without exclusion
@@ -1105,7 +1106,7 @@ combine_records_extract = function(ala_df,
   message(projection(COMBO.POINTS));message(projection(world_raster))
   
   ## Extract the raster values
-  COMBO.RASTER <- raster::extract(world_raster, COMBO.POINTS) %>%
+  COMBO.RASTER <- terra::extract(world_raster, COMBO.POINTS) %>%
     cbind(as.data.frame(GBIF.ALA.84.THIN), .)
   
   ## Group rename the columns

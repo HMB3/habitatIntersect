@@ -109,7 +109,7 @@ minimum number of predictors remains.
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Read in the reptile taxa
-SDM.SPAT.OCC.ALL.REPTILE.BG = readRDS('./output/reptile_maxent/results/SDM_SPAT_OCC_ALL_REPTILE_VARS.rds')
+SDM.SPAT.OCC.ALL.REPTILE.BG = readRDS('./output/reptile_maxent/results/SDM_SPAT_OCC_BG_ALL_REPTILE_TAXA_VARS.rds')
 
 
 ## Are the control taxa present? And the extra records?
@@ -145,16 +145,14 @@ run_sdm_analysis(taxa_list               = target_reptiles,
                  pct_thr                 = 5, 
                  k_thr                   = 4, 
                  min_n                   = 10,  
-                 max_bg_size             = 10000,
-                 background_buffer_width = 200000,
+                 max_bg_size             = 100000,
+                 background_buffer_width = 100000,
                  shapefiles              = TRUE,
                  features                = 'lpq',
                  replicates              = 5,
                  responsecurves          = TRUE,
                  country_shp             = AUS,
-                 crop_Koppen             = FALSE,
-                 Koppen_zones            = Koppen_zones,
-                 Koppen_raster           = Koppen_1975_1km)
+                 crop_Koppen             = FALSE)
 
 ``` 
 

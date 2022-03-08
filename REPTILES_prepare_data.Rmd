@@ -141,24 +141,6 @@ without returning anything.
 
 \
 
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
-
-## The functions expect these folders,
-ALA_dir       <- './data/ALA'
-GBIF_dir      <- './data/GBIF'
-
-back_dir      <- './output/reptile_maxent/back_sel_models'
-full_dir      <- './output/reptile_maxent/full_models'
-
-results_dir   <- './output/reptiles/results'
-climate_dir   <- './data/worldclim/world/2070'
-check_dir     <- './data/ALA/Check_Plots/Reptiles/'
-temp_dir      <- 'G:/GITHUB/Raster_temp'
-
-```
-
-\
-
 Skip this step for data test
 Now download GBIF and ALA occurrence data for each taxa. The downloading functions 
 are separated, because the ALA and GBIF columns are slightly different, but both 

@@ -61,9 +61,6 @@ run_sdm_analysis = function(taxa_list,
   
   ## Convert to SF object for selection - inefficient
   message('Preparing spatial data for SDMs')
-  sdm_df         <- st_as_sf(sdm_df)
-  drops          <- c("geometry")
-  # sp_country_prj <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
   
   ## Loop over all the taxa
   ## taxa <- taxa_list[3]
@@ -85,30 +82,20 @@ run_sdm_analysis = function(taxa_list,
       file.create(file.path(dir_name, "in_progress.txt"))
       
       ## Print the taxa being processed to screen
-      if(taxa %in% sdm_df$searchTaxon) {
+      if(taxa %in% sdm_df[[taxa_level]]) {
         message('Doing ', taxa)
         
         ## Subset the records to only the taxa being processed - in the searched taxa or returned
-        occurrence <- subset(sdm_df, searchTaxon == taxa | !!sym(taxa_level) == taxa)
+        # occurrence <- subset(sdm_df, searchTaxon == taxa | !!sym(taxa_level) == taxa)
+        # occurrence <- subset(sdm_df, !!sym(taxa_level) == taxa)
+        occurrence <- sdm_df %>% .[.[[taxa_level]] %in% taxa, ]
         message('Using ', nrow(occurrence), ' occ records from ', unique(occurrence$SOURCE))
         
         ## Now get the background points. These can come from any taxa, other than the modelled taxa.
         ## However, they should be limited to the same SOURCE as the occ data
-        background <- subset(sdm_df, searchTaxon != taxa & !!sym(taxa_level) != taxa)
+        # background <- subset(sdm_df, searchTaxon != taxa & !!sym(taxa_level) != taxa)
+        background <- sdm_df %>% .[!.[[taxa_level]] %in% taxa, ]
         message('Using ', nrow(background), ' background records from ', unique(background$SOURCE))
-        
-        ## reconvert SF objects to SPDF objects
-        message('Converting occ and bg data to SPDF for ', taxa)
-        occurrence <- occurrence %>% as.data.frame() %>%
-          SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
-                                 data        = .,
-                                 proj4string = CRS(sp_country_prj)) %>% .[,!(names(.) %in% drops)]
-        
-        
-        background <- background %>% as.data.frame() %>%
-          SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
-                                 data        = .,
-                                 proj4string = CRS(sp_country_prj)) %>% .[,!(names(.) %in% drops)]
         
         ## Finally fit the models using FIT_MAXENT_TARG_BG. Also use tryCatch to skip any exceptions
         tryCatch(
