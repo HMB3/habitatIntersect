@@ -13,7 +13,6 @@ License: CC Share Alike (SA)
 Encoding: UTF-8
 LazyData: true
 Imports: 
-  ALA4R,  
   ConR,  
   CoordinateCleaner,
   data.table, 
@@ -62,7 +61,6 @@ Imports:
   sp,
   stars,
   stringr,   
-  taxonlookup,
   Taxonstand,
   terra,
   things,
@@ -72,7 +70,6 @@ Imports:
   utf8,  
   writexl   
 Suggests: 
-    ALA4R,
     ConR,
     CoordinateCleaner,
     data.table,
@@ -118,7 +115,6 @@ Suggests:
     shiny,
     sp,
     stringr,
-    taxonlookup,
     Taxonstand,
     terra,
     things,
