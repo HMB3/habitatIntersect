@@ -581,7 +581,7 @@ each taxa in global environmental space.
 ## Plot taxa ranges using histograms and convex hulls for rainfall and temperature distributions
 plot_range_histograms(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxon %in% target_reptiles, ],
                       taxa_list    = target_reptiles,
-                      range_path   = check_dir)
+                      range_path   = './data/ALA/Check_plot/')
 
 ``` 
 
