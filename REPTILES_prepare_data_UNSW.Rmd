@@ -1,0 +1,689 @@
+---
+title: "nenswniche : a package for rapidly estimating multiple taxa ranges and habitat suitability"
+authors: "Hugh Burley, Shawn Laffan, Will Cornwell, Adrian Fisher"
+date: "October 2021"
+output:
+  github_document:
+  toc: true   
+toc_depth: 4            
+toc_float: true
+number_sections: false  
+vignette: >
+%\VignetteIndexEntry{README}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+  keep_md: true
+  theme: united     
+highlight: tango        
+css: styles.css
+revealjs::revealjs_presentation:
+  dev: 'svg'
+chunk_output_type: console
+self_contained: false
+reveal_plugins: ["notes", "search"]
+reveal_options:
+  slideNumber: true
+previewLinks: true
+word_document:
+  always_allow_html: yes
+---
+
+\
+
+The text and code below summarises a workflow in R that can be used to relatively rapidly assess the environmental range of a taxa within Australia, from downloading occurrence records, through to creating maps of predicted climatic suitability across Australia at 1km*1km resolution. An example of this work is published in the journal Science of the Total Environment ::
+
+\
+
+Burley, H., Beaumont, L.J., Ossola, A., et al. (2019) Substantial declines in urban tree habitat predicted 
+under climate change. Science of The Total Environment, 685, 451-462.
+
+https://www.sciencedirect.com/science/article/pii/S0048969719323289#f0030 
+
+\
+
+To install, run :
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+## Set environments 
+## java memory limit and temporary raster dir
+rm(list = ls())
+options(java.parameters = "-Xmx64000m")
+
+
+## Function to load or install packages
+ipak <- function(pkg){
+  
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if (length(new.pkg))
+    install.packages(new.pkg, dependencies = TRUE, 
+                     repos = "https://cran.csiro.au/")
+  
+  sapply(pkg, require, character.only = TRUE)
+  
+}
+
+
+## Create documentation and install package
+# roxygen2::roxygenise()
+# devtools::install_github("HMB3/nenswniche")
+
+## Load packages 
+library(nenswniche)
+data('sdmgen_packages')
+ipak(sdmgen_packages)
+
+
+## Set temporary raster dir for the terra package
+rasterOptions(tmpdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
+terraOptions(memfrac = 0.5, 
+             tempdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
+
+
+```
+
+\
+\
+\
+
+# Background
+
+This code is being developed at UNSW, as part of a project investigating
+the impacts of the 2019/2020 bush fires on Insects in the North East Forests 
+of New South Wales. The aim is to create a pipeline that rapidly assesses 
+the habitat suitability of the threatened insect taxa under current 
+environmental conditions. 
+
+\
+
+# STEP 1 :: Download taxa occurrence data
+
+\
+
+The backbone of the R workflow is a list of (taxonomically Ridgey-Didge!) Taxa names 
+that we supply. The analysis is designed to process data for one taxa at a time, 
+allowing taxa results to be updated as required. Unfortunately, Australia's insects
+are not very well sampled...so we can analyse at the family level.
+
+\
+
+Let's use all the insect families that we think might be threatened by the 2019/2020 fires. 
+
+\
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=TRUE}
+
+
+## To Do :
+## 1). Get the Reptile dataaset
+## 2). Check for lists of geckoes and snakes
+target_reptiles  <- c('Phyllurus platurus',  'Eulamprus tympanum',      'Hoplocephalus bungaroides', 'Drysdalia rhodogaster', 
+                      'Amalosia lesuerii',   'Cryptophis nigrescens',   'Eulamprus heatwolei',       'Varanus varius',
+                      'Morelia spilota',     'Pseudechis porphyriacus', 'Varanus rosenbergi')
+
+
+```
+
+
+The taxa list is supplied to a series of functions to calculate environmental ranges and habitat 
+suitability. The initial functions download all taxa records from the Atlas and living Australia
+(https://www.ala.org.au/) and the Global Biodiversity Information Facility (GBIF, https://www.gbif.org/). 
+The taxa data are downloaded as individual .Rdata files to the specified folders, which must exist first, 
+without returning anything.
+
+\
+
+Skip this step for data test
+Now download GBIF and ALA occurrence data for each taxa. The downloading functions 
+are separated, because the ALA and GBIF columns are slightly different, but both 
+data sources are needed to properly quantify taxa ranges. The package functions 
+expect these folders (a typical R project structure), create them if they don't exist
+
+\
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+## Download ALA occurrence data for each taxa
+## For some reason, this temporary directory needed to be created...
+## dir.create('C:/Users/hughb/AppData/Local/Temp/RtmpyijnUR')
+
+
+## Get the data for individual reptile species
+download_ALA_all_species(species_list   = target_reptiles,
+                         your_email     = 'hugh.burley@gmail.com',
+                         download_path  = "./data/ALA/Reptiles/",
+                         ala_temp_dir   = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
+                         download_limit = 20000,
+                         quality_cols   = 'all')
+
+
+## Get the data for individual reptile genera
+download_ALA_all_genera(genera_list     = reptile_genera,
+                        your_email      = 'hugh.burley@gmail.com',
+                        download_path   = "./data/ALA/Reptiles/",
+                        ala_temp_dir    = 'C:/Users/hughb/AppData/Local/Temp/RtmpCmco7x',
+                        download_limit  = 20000,
+                        quality_cols    = 'all')
+
+
+``` 
+
+\
+
+# STEP 2 :: Combine taxa occurrence data
+
+\
+
+This pipeline combines taxa occurrence points with raster data. It was developed using worldclim 
+climate raster data, but it can take any set of rasters. All the raster data is available here :: 
+
+\
+
+https://drive.google.com/open?id=1T5ET5MUX3-lkqiN5nNL3SZZagoJlEOal. 
+
+\
+
+Let's create all the raster data we need. First let's get the rasters needed for SDM modelling :
+- Climate
+- Vegetation
+- Topoggraphy
+
+\
+
+# 250m Climate, Soil and terrain variables
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+## 250m Precip layers
+aus_precip_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Precip',        pattern =".tif", full.names = TRUE))
+
+east_precip_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Precip', pattern =".tif", full.names = TRUE))
+
+
+## 250m temperature layers
+aus_temp_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Temp',          pattern =".tif", full.names = TRUE))
+
+east_temp_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Temp',   pattern =".tif", full.names = TRUE))
+
+
+## 250m Soil layers
+aus_soil_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Soil',          pattern =".tif", full.names = TRUE))
+
+east_soil_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Soil',   pattern =".tif", full.names = TRUE))
+
+
+## 250m Geology Australia
+aus_geology_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Geology',        pattern =".tif", full.names = TRUE))
+
+east_geology_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Geology', pattern =".tif", full.names = TRUE))
+
+
+## 250m topo Australia
+aus_topo_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Topo',           pattern =".tif", full.names = TRUE))
+
+east_topo_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Topo',    pattern =".tif", full.names = TRUE))
+
+
+## 250m terrain indices Australia
+aus_terrain_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Indices',        pattern =".tif", full.names = TRUE))
+
+east_terrain_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Indices', pattern =".tif", full.names = TRUE))
+
+
+## Climate data for Australia, in GDA Albers projection
+aus.grids.current.250m <- stack(aus_precip_250m,
+                                aus_temp_250m,
+                                aus_soil_250m,
+                                aus_topo_250m,
+                                aus_terrain_250m,
+                                aus_geology_250m)
+
+east.grids.current.250m <- stack(east_precip_250m,
+                                 east_temp_250m,
+                                 east_soil_250m,
+                                 east_topo_250m,
+                                 east_terrain_250m,
+                                 east_geology_250m)
+
+
+## And a stack of grids for vegetation, in GDA Albers projection
+aus.veg.grids.250m <- stack(
+  
+  list.files('./data/Remote_sensing/Veg_data/height_and_cover/Aus/250m', 
+             '_250m.tif', full.names = TRUE))
+
+east.veg.grids.250m <- stack(
+  
+  list.files('./data/Remote_sensing/Veg_data/height_and_cover/Eastern_Aus/250m', 
+             '_east_coast.tif', full.names = TRUE))
+
+
+names(east.grids.current.250m) <- gsub('_EAST_COAST', '', names(east.grids.current.250m))
+names(aus.veg.grids.250m)      <- names(east.veg.grids.250m) <- c("Plant_cover_fraction_0_5m", 
+                                                                  "Plant_cover_fraction_5_10m",  
+                                                                  "Plant_cover_fraction_10_30m",      
+                                                                  "Plant_cover_fraction_30m",
+                                                                  "Total_Plant_cover_fraction",  
+                                                                  "Tree_canopy_height_25th", 
+                                                                  "Tree_canopy_height_50th", 
+                                                                  "Tree_canopy_height_75th",   
+                                                                  "Tree_canopy_height_95th",   
+                                                                  "Tree_canopy_peak_foliage",
+                                                                  "Tree_canopy_peak_foliage_total",
+                                                                  "mrvbf")
+
+
+## Combine the grids into raster stacks
+aus.climate.veg.grids.250m   <- stack(aus.grids.current.250m, aus.veg.grids.250m)
+east.climate.veg.grids.250m  <- stack(east.grids.current.250m, east.veg.grids.250m)
+aus_annual_precip            <- raster('./data/Bushfire_indices/R_outputs/250m/AUS/Extra/Annual_precip_WGS84.tif')
+aus_annual_precip_alb        <- raster('./data/Bushfire_indices/R_outputs/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
+
+
+## Should be 1km*1km, It should have a value of 1 for land, and NA for the ocean
+aus_annual_precip_alb[aus_annual_precip_alb > 0] <- 1
+template_raster_250m <- aus_annual_precip_alb
+
+
+## Add shapefiles
+NENSW_study_area <- readOGR(dsn              = './data/Spatial_data/NE_NSW_study_area_buffer_GDA.shp',
+                            layer            = "NE_NSW_study_area_buffer_GDA",
+                            stringsAsFactors = FALSE)
+
+
+east_study_area <- readOGR(dsn              = './data/Spatial_data/east_coast_shapefile/polygon_east_coast.shp',
+                           layer            = "polygon_east_coast",
+                           stringsAsFactors = FALSE)
+
+
+```
+
+
+\
+
+Next we filter the records to those taken after 1950, and those inside the raster boundaries 
+(i.e. taxa records in the ocean according to the raster boundaries will be excluded).
+
+\
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+## Combine ALA data, and filter to records on land taken > 1950
+## The climate data is the worldclim version 2.0
+## Also, add a switch for the 1km filter - we don't want to do this anymore, too few records
+data('ALA_keep')
+
+## Two projection systems, mollweide for SDMs, GDA Albers for SDM projections
+sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
+sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+
+
+## Combine ALA data for individual reptile species and format for niche analysis
+## Also, some of the records don't have a 'year' attribute, for some taxa, that causes a lot of records to be lost.
+ALA.LAND.SPP       <- combine_ala_records(taxa_list         = target_reptiles,
+                                          records_path      = "./data/ALA/Reptiles/",
+                                          records_extension = "_ALA_records.RData",
+                                          record_type       = "ALA",
+                                          keep_cols         = ALA_keep,
+                                          world_raster      = aus_annual_precip) 
+
+
+## Take a data dump from the ALA of all the reptiles, 
+## and format it to the columns names we want for the niche analyses
+Reptiles_ALA        <- readRDS('./data/ALA/Reptiles/REPTILES_2021_1106.rds')
+
+
+ALA.LAND.BACKG.SPP  <- format_ala_dump(ALA_table         = Reptiles_ALA,
+                                       record_type       = "ALA",
+                                       keep_cols         = ALA_keep,
+                                       world_raster      = aus_annual_precip) %>%
+  
+  ## Remove the species which have unreliable ALA records,
+  .[!.$searchTaxon %in% ALA.LAND.SPP$searchTaxon, ] %>% 
+  bind_rows(., ALA.LAND.SPP)
+
+
+## Are the control taxa present? And the extra records?
+'Pseudechis porphyriacus'   %in% ALA.LAND.BACKG.SPP$searchTaxon
+'Drysdalia rhodogaster'     %in% ALA.LAND.BACKG.SPP$searchTaxon
+'Hoplocephalus bungaroides' %in% ALA.LAND.BACKG.SPP$searchTaxon
+
+
+## Add in special records
+Hoplocephalus_bungaroides_bionet <- read_excel('./data/ALA/Reptiles/Hoplocephalus_bungaroides_Bionet_combined_records.xlsx',
+                                               sheet = 'Bionet_records') %>% 
+  
+  dplyr::rename(searchTaxon = ScientificName,
+                lat         = Latitude_GDA94,
+                lon         = Longitude_GDA94) %>% dplyr::select(searchTaxon, SightingKey, lat, lon) %>% 
+  mutate(SOURCE = 'BIONET')
+
+
+Hoplocephalus_bungaroides_atlas <- read_excel('./data/ALA/Reptiles/Hoplocephalus_bungaroides_Bionet_combined_records.xlsx',
+                                              sheet = 'Atlas_records_1') %>% 
+  
+  dplyr::rename(searchTaxon = ScientificName,
+                lat         = Northing, 
+                lon         = Easting) %>% dplyr::select(searchTaxon, SightingKey, lat, lon) %>% 
+  mutate(SOURCE = 'ATLAS') %>% 
+  
+  .[!.$SightingKey %in% Hoplocephalus_bungaroides_bionet$SightingKey, ]
+
+
+
+## Check these points
+bionet <- Hoplocephalus_bungaroides_bionet %>% 
+  SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
+                         data        = .,
+                         proj4string = CRS(sp_epsg3577)) 
+
+plot(bionet)
+
+
+``` 
+
+\
+
+# STEP 3 :: extract environmental values
+
+\
+
+Next, we combine occurrence files from ALA and GBIF into one table, and extracts environmental values. 
+Note that the order of the raster names in 'world_raster' must match the order of names in the character 
+vector 'env_variables'. In this case, it's simply the biolclim variables (i.e. bio1-bio19)
+
+\
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+## Combine GBIF and ALA data, and extract environmental values
+## Some of the site records will be removed here, if they are outside the raster bounds.
+## Also, some of the records don't have a 'year' attribute, for some taxa, that causes a lot of records to be lost.
+## This criteria could be relaxed...?
+COMBO.RASTER.SPP <- combine_records_extract(ala_df           = ALA.LAND.BACKG.SPP,
+                                            
+                                            ## Site df is the bionet records
+                                            add_sites        = TRUE,
+                                            filter_taxo      = FALSE,
+                                            site_df          = Hoplocephalus_bungaroides_bionet,
+                                            thin_records     = FALSE,
+                                            template_raster  = template_raster_250m,
+                                            world_raster     = aus.climate.veg.grids.250m,
+                                            prj              = CRS("+init=epsg:4326"),
+                                            taxa_list        = unique(ALA.LAND.BACKG.SPP$searchTaxon),
+                                            taxa_level       = 'species', 
+                                            
+                                            ## These two will need to change.
+                                            ## Specify them in the code 
+                                            raster_divide    = FALSE,
+                                            save_data        = FALSE,
+                                            save_run         = "TARGET_REPTILE_SPECIES",
+                                            data_path        = "./output/results/")
+
+
+## Are the control taxa present? And the extra records?
+'Pseudechis porphyriacus'   %in% COMBO.RASTER.SPP$searchTaxon
+'Drysdalia rhodogaster'     %in% COMBO.RASTER.SPP$searchTaxon
+'Hoplocephalus bungaroides' %in% COMBO.RASTER.SPP$searchTaxon
+
+
+
+bionet_combo <- COMBO.RASTER.SPP %>% filter(searchTaxon == 'Hoplocephalus bungaroides') %>% 
+  SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
+                         data        = .,
+                         proj4string = CRS(sp_epsg3577)) 
+
+plot(bionet_combo)
+
+
+``` 
+
+\
+
+# STEP 4 :: Automated cleanin' of outlier records
+
+\
+
+The workflow uses four shapefiles as part of analysis and mapping: Australia, the World, 
+the global Koppen Zones. The Koppen data are from CliMond, centred on 1975: 
+https://www.climond.org/Core/Authenticated/KoppenGeiger.aspx
+
+\
+
+The next stage of the workflow use a series of cleaning functions to automate the removal 
+of records for each taxa which are outliers. Doing this manually is extremely tedious, 
+and although errors will be made, automation is preferable across large suites of taxa. 
+The first cleaning function takes a data frame of all taxa records, and flag records 
+as institutional or spatial outliers. This function uses the CoordinateCleaner package: 
+https://cran.r-project.org/web/packages/CoordinateCleaner/index.html. It takes the 
+records data.frame is that returned by the combine_records_extract function above.
+
+\
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+## Flag records as institutional or spatial outliers
+COORD.CLEAN <- coord_clean_records(records    = COMBO.RASTER.SPP,
+                                   site_flag  = 'BIONET',
+                                   occ_flag   = 'ALA',
+                                   multi_source = TRUE,
+                                   capitals   = 10000,  
+                                   centroids  = 5000,   
+                                   save_data  = FALSE,
+                                   save_run   = "TARGET_REPTILE_SPECIES",
+                                   data_path  = "./output/results/")
+
+
+## Are the control taxa present? And the data sources?
+'Pseudechis porphyriacus'   %in% COORD.CLEAN$searchTaxon
+'Drysdalia rhodogaster'     %in% COORD.CLEAN$searchTaxon
+'Hoplocephalus bungaroides' %in% COORD.CLEAN$searchTaxon
+table(COORD.CLEAN$SOURCE)
+
+
+bionet_clean <- COORD.CLEAN %>% filter(searchTaxon == 'Hoplocephalus bungaroides') %>% 
+  SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
+                         data        = .,
+                         proj4string = CRS(sp_epsg3577))
+
+table(bionet_clean$SOURCE)
+plot(bionet_clean)
+
+
+``` 
+
+\
+
+Next we take all the records, and flags them as spatial outliers (T/F for each record in the df), 
+and saves images of the checks for each. Manual cleaning of spatial outliers is very tedious, 
+but automated cleaning makes mistakes, so checking is handy. This function uses the CoordinateCleaner 
+package https://cran.r-project.org/web/packages/CoordinateCleaner/index.html. It assumes that the 
+input dfs are those returned by the coord_clean_records function.
+
+\
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+## Flag spatial outliers
+## This one doesn't quite work - it doesn't loop over the figures :
+SPATIAL.CLEAN = check_spatial_outliers(occ_df       = COORD.CLEAN, #%>% .[.$searchTaxon %in% target_reptiles, ],
+                                       land_shp     = LAND,
+                                       site_records = TRUE, 
+                                       site_flag    = 'BIONET',
+                                       occ_flag     = 'ALA',
+                                       multi_source = TRUE,
+                                       clean_path   = './data/ALA/Check_Plots/',
+                                       plot_points  = FALSE,
+                                       record_limit = 400000,
+                                       spatial_mult = 10,
+                                       prj          = CRS("+init=epsg:4326"))
+
+
+## Are the control taxa present? And the data sources?
+'Pseudechis porphyriacus'   %in% SPATIAL.CLEAN$searchTaxon
+'Drysdalia rhodogaster'     %in% SPATIAL.CLEAN$searchTaxon
+'Hoplocephalus bungaroides' %in% SPATIAL.CLEAN$searchTaxon
+table(SPATIAL.CLEAN$SOURCE)
+
+
+``` 
+
+\
+
+Next we takes a data frame of all taxa records, and estimate the geographic 
+and environmental ranges for each taxa, and creates a table of all taxa ranges. 
+It uses the AOO.computing function in the ConR package: https://cran.r-project.org/web/packages/ConR/index.html
+It assumes that the input df is that returned by the check_spatial_outliers function.
+
+\
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+## Estimate climate niches using taxa records
+## Make this calculate niches for the target list
+GLOB.NICHE.ALL = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxon %in% target_reptiles, ],
+                                 prj          = CRS("+init=epsg:4326"),
+                                 country_shp  = AUS,
+                                 world_shp    = LAND,
+                                 kop_shp      = Koppen_shp,
+                                 taxa_list    = target_reptiles,
+                                 env_vars     = names(aus.climate.veg.grids.250m),
+                                 cell_size    = 2,
+                                 save_data    = TRUE,
+                                 save_run     = "ALL_TARGET_REPTILE_TAXA",
+                                 data_path    = "./output/reptile_maxent/results/")
+
+
+``` 
+
+\
+
+We can also plot the environmental ranges of each taxa. This function 
+takes a data frame of all taxa records, and plots histograms and convex hulls for 
+each taxa in global environmental space. 
+
+\
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+## Plot taxa ranges using histograms and convex hulls for rainfall and temperature distributions
+plot_range_histograms(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxon %in% target_reptiles, ],
+                      taxa_list    = target_reptiles,
+                      range_path   = check_dir)
+
+``` 
+
+\
+
+
+# STEP 5 :: Prepare SDM table
+
+\
+
+Then we need to create at table we can use for taxa distribution modelling. This function takes 
+a data frame of all taxa records, and prepares a table in the 'taxa with data' (swd) format for 
+modelling uses the Maxent algorithm. It assumes that the input df is that returned by the 
+coord_clean_records function.
+
+\
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+
+## Two projection systems, mollweide for SDMs, GDA Albers for SDM projections
+sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+
+
+## Create SDM table for all the backhround reptile species
+SDM.SPAT.OCC.ALL.REPTILE.BG <- prepare_sdm_table(coord_df          = COORD.CLEAN,
+                                                 taxa_list         = unique(COORD.CLEAN$searchTaxon),
+                                                 site_flag         = 'BIONET',
+                                                 occ_flag          = 'ALA',
+                                                 site_records      = TRUE,
+                                                 
+                                                 sdm_table_vars    = c('searchTaxon', 
+                                                                       'species',  
+                                                                       'genus', 
+                                                                       'family',      
+                                                                       'lon',      
+                                                                       'lat',
+                                                                       'year',
+                                                                       'SOURCE', 
+                                                                       'SPAT_OUT',
+                                                                       names(aus.climate.veg.grids.250m)),
+                                                 
+                                                 save_run          = "ALL_REPTILE_TAXA_VARS",
+                                                 read_background   = FALSE,
+                                                 sp_country_prj    = sp_epsg3577,
+                                                 save_data         = TRUE,
+                                                 data_path         = paste0(getwd(), '/output/reptile_maxent/results/'),
+                                                 project_path      = 'G:/GITHUB/North_east_NSW_fire_recovery')
+
+
+
+SDM.SPAT.OCC.ALL.REPTILE.BG$SPAT_OUT <- ifelse(SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon == 'Hoplocephalus bungaroides' &
+                                                 SDM.SPAT.OCC.ALL.REPTILE.BG$SOURCE == 'ALA', 'FALSE', 'TRUE')
+SDM.SPAT.OCC.ALL.REPTILE.BG <- SDM.SPAT.OCC.ALL.REPTILE.BG %>% .[.$SPAT_OUT %in% 'TRUE', ]
+
+
+## Create subset of target reptiles
+SDM.SPAT.OCC.TARG.REPTILE.BG <- SDM.SPAT.OCC.ALL.REPTILE.BG %>% .[.$searchTaxon %in% target_reptiles, ]
+
+
+## Are the control taxa present? And the extra records?
+'Pseudechis porphyriacus'   %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
+'Drysdalia rhodogaster'     %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
+'Hoplocephalus bungaroides' %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
+table(SDM.SPAT.OCC.ALL.REPTILE.BG$SOURCE)
+
+
+## Check the taxonomic levels
+sum(is.na(SDM.SPAT.OCC.ALL.REPTILE.BG@data$searchTaxon));sum(is.na(SDM.SPAT.OCC.ALL.REPTILE.BG@data$species));
+sum(is.na(SDM.SPAT.OCC.ALL.REPTILE.BG@data$genus));sum(is.na(SDM.SPAT.OCC.ALL.REPTILE.BG@data$family))
+
+
+## Check the dimensions of a few species
+SDM.SPAT.OCC.ALL.REPTILE.BG %>% subset(., searchTaxon == 'Hoplocephalus bungaroides') %>% nrow()
+SDM.SPAT.OCC.ALL.REPTILE.BG %>% subset(., searchTaxon == 'Drysdalia rhodogaster')     %>% nrow()
+SDM.SPAT.OCC.ALL.REPTILE.BG %>% subset(., searchTaxon == 'Pseudechis porphyriacus')   %>% nrow()
+
+
+## Check the
+bionet_sdm <- SDM.SPAT.OCC.ALL.REPTILE.BG %>% .[.$searchTaxon %in% 'Hoplocephalus bungaroides', ]
+table(bionet_sdm$SOURCE)
+plot(bionet_sdm)
+
+
+## Save the data to a shapefile
+writeOGR(obj    = SDM.SPAT.OCC.ALL.REPTILE.BG,
+         dsn    = 'G:/Github_repos/North_east_NSW_fire_recovery/output/reptile_maxent/results',
+         layer  = 'SDM_ALL_TARGET_REPTILE_TAXA',
+         driver = 'ESRI Shapefile', overwrite_layer = TRUE)
+
+
+st_write(SDM.SPAT.OCC.TARG.REPTILE.BG %>% st_as_sf(), 
+         dsn = file.path(getwd(), 'output/reptile_maxent/results/SDM_REPTILE_TAXA.gpkg'), 
+         layer = 'SDM_TARGET_REPTILE_TAXA', 
+         quiet = TRUE)
+
+st_write(SDM.SPAT.OCC.ALL.REPTILE.BG %>% st_as_sf(), 
+         dsn = file.path(getwd(), 'output/reptile_maxent/results/SDM_REPTILE_TAXA.gpkg'), 
+         layer = 'SDM_ALL_REPTILE_TAXA', 
+         quiet = TRUE)
+
+
+``` 
+
+\
