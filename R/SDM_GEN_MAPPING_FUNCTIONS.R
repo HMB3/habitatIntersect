@@ -263,7 +263,7 @@ project_maxent_current_grids_mess = function(country_shp,
                               ## Also, make it a one-directional colour scheme
                               scales      = list(draw = FALSE),
                               at = seq(0, 1, length = 100),
-                              col.regions = colorRampPalette(rev(brewer.pal(11, 'Spectral'))),
+                              col.regions = colorRampPalette(rev(brewer.pal(9, 'YlOrRd'))),
                               
                               ## Give each plot a name: the third panel is the GCM
                               names.attr = c('Maxent records', ' Current'),
@@ -768,7 +768,7 @@ calculate_taxa_habitat = function(taxa_list,
                             ## Also, make it a one-directional colour scheme
                             scales      = list(draw = FALSE),
                             at = seq(0, 4, length = 8),
-                            col.regions = colorRampPalette(rev(brewer.pal(5, 'Spectral'))),
+                            col.regions = colorRampPalette(rev(brewer.pal(5, 'YlOrRd'))),
                             
                             ## Give each plot a name: the third panel is the GCM
                             names.attr = c('SDM', 'Fire', 'SDM * Fire'),
@@ -879,7 +879,7 @@ calculate_taxa_habitat = function(taxa_list,
                             ## Also, make it a one-directional colour scheme
                             scales      = list(draw = FALSE),
                             at = seq(0, 4, length = 8),
-                            col.regions = colorRampPalette(rev(brewer.pal(5, 'Spectral'))),
+                            col.regions = colorRampPalette(rev(brewer.pal(5, 'YlOrRd'))),
                             
                             ## Give each plot a name: the third panel is the GCM
                             names.attr = c('SDMs + Veg', 'Fire', ' [SDMs + Veg] * Fire'),
@@ -964,7 +964,7 @@ calculate_taxa_habitat = function(taxa_list,
                             ## Also, make it a one-directional colour scheme
                             scales      = list(draw = FALSE),
                             at = seq(0, 4, length = 8),
-                            col.regions = colorRampPalette(rev(brewer.pal(5, 'Spectral'))),
+                            col.regions = colorRampPalette(rev(brewer.pal(5, 'YlOrRd'))),
                             
                             ## Give each plot a name: the third panel is the GCM
                             names.attr = c('SDMs', ' [SDMs * Fire]'),
@@ -1380,7 +1380,7 @@ project_maxent_grids_mess = function(country_shp,   world_shp,
                               ## Also, make it a one-directional colour scheme
                               scales      = list(draw = FALSE),
                               at = seq(0, 1, length = 100),
-                              col.regions = colorRampPalette(rev(brewer.pal(11, 'Spectral'))),
+                              col.regions = colorRampPalette(rev(brewer.pal(9, 'YlOrRd'))),
                               
                               ## Give each plot a name: the third panel is the GCM
                               names.attr = c('Australian records', ' Current'),
@@ -1463,7 +1463,7 @@ project_maxent_grids_mess = function(country_shp,   world_shp,
                             ## Also, make it a one-directional colour scheme
                             scales      = list(draw = FALSE),
                             at = seq(0, 1, length = 100),
-                            col.regions = colorRampPalette(rev(brewer.pal(11, 'Spectral'))),
+                            col.regions = colorRampPalette(rev(brewer.pal(9, 'YlOrRd'))),
                             
                             ## Give each plot a name: the third panel is the GCM
                             names.attr = c('Australian records', ' Current',
