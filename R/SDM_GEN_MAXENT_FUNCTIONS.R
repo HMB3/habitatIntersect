@@ -63,7 +63,7 @@ run_sdm_analysis = function(taxa_list,
   message('Preparing spatial data for SDMs')
   
   ## Loop over all the taxa
-  ## taxa <- taxa_list[3]
+  ## taxa <- taxa_list[1]
   lapply(taxa_list, function(taxa){
     
     ## Skip the taxa if the directory already exists, before the loop
@@ -97,6 +97,12 @@ run_sdm_analysis = function(taxa_list,
         background <- sdm_df %>% .[!.[[taxa_level]] %in% taxa, ]
         message('Using ', nrow(background), ' background records from ', unique(background$SOURCE))
         
+        if(crop_Koppen == FALSE) {
+          Koppen_raster = FALSE
+          Koppen_zones  = FALSE
+          
+        }
+        
         ## Finally fit the models using FIT_MAXENT_TARG_BG. Also use tryCatch to skip any exceptions
         tryCatch(
           fit_maxent_targ_bg_back_sel(occ                     = occurrence,
@@ -115,6 +121,7 @@ run_sdm_analysis = function(taxa_list,
                                       min_n                   = min_n,
                                       max_bg_size             = max_bg_size,
                                       Koppen_raster           = Koppen_raster,
+                                      Koppen_zones            = Koppen_zones,
                                       background_buffer_width = background_buffer_width,
                                       shapefiles              = shapefiles,
                                       features                = features,
@@ -197,13 +204,22 @@ fit_maxent_targ_bg_back_sel <- function(occ,
                                         min_n,
                                         max_bg_size,
                                         background_buffer_width,
-                                        Koppen_raster,
                                         crop_Koppen,
+                                        Koppen_raster,
+                                        Koppen_zones,
                                         shapefiles,
                                         features,
                                         replicates,
                                         responsecurves,
                                         country_shp ) {
+  
+  
+  ## If we aren't cropping the raster to the Koppen extent, don't use that argument
+  if(crop_Koppen == FALSE) {
+    Koppen_raster = FALSE
+    Koppen_zones  = FALSE
+
+  }
   
   
   ## First, stop if the outdir file exists,
