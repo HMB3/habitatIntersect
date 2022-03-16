@@ -1020,7 +1020,7 @@ calculate_taxa_habitat = function(taxa_list,
 
 
 
-#' @title Project Current Habitat Suitability models into Grids.
+#' @title Project Future Habitat Suitability models into Grids.
 #' @description takes the maxent models created by the 'fit_maxent_targ_bg_back_sel' function,
 #' and projects the model across geographic space  
 
