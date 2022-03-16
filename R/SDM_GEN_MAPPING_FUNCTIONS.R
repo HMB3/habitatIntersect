@@ -84,7 +84,7 @@ project_maxent_current_grids_mess = function(country_shp,
             message('Read in the swd and occ data')
             swd <- as.data.frame(readRDS(sprintf('%s%s/swd.rds', maxent_path, save_name)))
             occ <- readRDS(sprintf('%s%s/%s_occ.rds', maxent_path, save_name, save_name)) #%>%
-              # spTransform(country_prj)
+            # spTransform(country_prj)
             
             ## If the current raster prediction has not been run, run it.
             if(!file.exists(f_current) == TRUE) {
@@ -386,6 +386,31 @@ habitat_threshold = function(taxa_list,
                               taxa_name, taxa_name, "current_suit_not_novel_above_", thresh),
                       overwrite = TRUE)
           
+          values <- values(current_suit_rast)
+          unique(values[1])
+          
+          if(!is.na(unique(values[1]))) {
+            
+            current_thresh_poly   <- sf::as_Spatial(sf::st_as_sf(stars::st_as_stars(current_suit_rast), 
+                                                                 as_points = FALSE, 
+                                                                 merge     = TRUE,
+                                                                 fill      = FALSE, 
+                                                                 group     = FALSE,
+                                                                 agr       = FALSE))
+            gc()
+            
+            ## Now save the thresholded rasters as shapefiles
+            message('Saving current threshold SDM rasters to polygons for ', taxa)
+            writeOGR(obj    = current_thresh_poly,
+                     dsn    = sprintf('%s',  maxent_path),
+                     layer  = paste0(taxa_name, "_current_novel_polygon"),
+                     driver = "ESRI Shapefile", overwrite_layer = TRUE)
+            
+          } else {
+            message('Do not save current MESS maps to shapefile for ', species, ' no cells are novel')
+          }
+          
+          
           message('writing threshold png for ', taxa)
           png(sprintf('%s/%s/full/%s_%s%s.png', maxent_path,
                       taxa_name, taxa_name, "current_suit_not_novel_above_", thresh),
@@ -602,7 +627,7 @@ calculate_taxa_habitat = function(taxa_list,
         distinct() %>% .[1, ] %>% .[[1]]
       
       host_dir <- NA
-        
+      
       ## Get the taxa directory name
       taxa_name <- gsub(' ', '_', taxa)
       
@@ -655,7 +680,7 @@ calculate_taxa_habitat = function(taxa_list,
               ## Calculate the % burnt in each category, and also the km2
               mutate(km2   = km2/cell_size)             %>% 
               mutate(Percent      = km2/sum(km2) * 100) %>% 
-              mutate(Percent      = round(Percent, 2))                %>% 
+              mutate(Percent      = round(Percent, 2))  %>% 
               mutate(Habitat_taxa = taxa) %>%
               
               ## FESM scores - there
@@ -1018,13 +1043,13 @@ calculate_taxa_habitat = function(taxa_list,
 #' you need to download the OSGeo4W64 setup, see https://www.osgeo.org/)
 #' @details It uses the rmaxent package https://github.com/johnbaums/rmaxent
 #' @export
-project_maxent_grids_mess = function(country_shp,   world_shp,
-                                     country_prj,   world_prj, local_prj,
-                                     scen_list,     taxa_list,
-                                     maxent_path,   climate_path,
-                                     grid_names,    time_slice,
-                                     current_grids, create_mess,
-                                     nclust,        OSGeo_path) {
+project_maxent_future_grids_mess = function(country_shp,   world_shp,
+                                            country_prj,   world_prj, local_prj,
+                                            scen_list,     taxa_list,
+                                            maxent_path,   climate_path,
+                                            grid_names,    time_slice,
+                                            current_grids, create_mess,
+                                            nclust,        OSGeo_path) {
   
   ## Read in the Aus and world shapefile and re-rpoject
   country_poly   <- country_shp %>%

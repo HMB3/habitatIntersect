@@ -248,6 +248,7 @@ across Australia ().
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
+
 ## Create a table of maxent results
 ## This function aggregates the results for models that ran successfully
 INVERT.MAXENT.RESULTS     <- compile_sdm_results(taxa_list    = analysis_taxa,
@@ -258,7 +259,8 @@ INVERT.MAXENT.RESULTS     <- compile_sdm_results(taxa_list    = analysis_taxa,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
 
-INVERT.MAXENT.FAM.RESULTS <- compile_sdm_results(results_dir  = 'output/invert_maxent/back_sel_models',
+INVERT.MAXENT.FAM.RESULTS <- compile_sdm_results(taxa_list    = target.insect.families,
+                                                 results_dir  = 'output/invert_maxent/back_sel_models',
                                                  data_path    = "./output/invert_maxent/Habitat_suitability/",
                                                  sdm_path     = "./output/invert_maxent/back_sel_models/",
                                                  save_data    = FALSE,
@@ -298,7 +300,9 @@ nrow(INVERT.MAXENT.FAM.RESULTS)/length(target.insect.families) *100
 ## Get map_taxa from the maxent results table above, change the species column,
 ## then create a list of logistic thresholds
 invert_map_taxa <- INVERT.MAXENT.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
+invert_map_spp  <- INVERT.MAXENT.SPP.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
 plant_map_taxa  <- PLANT.MAXENT.RESULTS$searchTaxon  %>% gsub(" ", "_", .,)
+
 
 
 ``` 
@@ -321,22 +325,22 @@ aus_albers <- CRS('+proj=aea +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=132 +x_0=0 +y
 ## Project SDMs across the Study area for the invert taxa
 tryCatch(
   project_maxent_current_grids_mess(country_shp     = AUS, 
-                                    country_prj     = CRS("+init=EPSG:3577"),
-                                    local_prj       = aus_albers,
+                                    country_prj     = sp_epsg3577,
+                                    local_prj       = sp_epsg3577,
                                     
                                     taxa_list       = invert_map_taxa,    
-                                    maxent_path     ='./output/invert_maxent/back_sel_models/',
+                                    maxent_path     ='./output/invert_maxent_raster_update/back_sel_models/',
                                     
-                                    current_grids   = study.climate.veg.grids,         
+                                    current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
-                                    save_novel_poly = FALSE),
+                                    save_novel_poly = TRUE),
   
   ## If the species fails, write a fail message to file
   error = function(cond) {
     
     ## This will write the error message inside the text file, but it won't include the species
-    file.create(file.path("output/invert_maxent/back_sel_models/mapping_failed_current.txt"))
-    cat(cond$message, file = file.path("output/invert_maxent/back_sel_models/inv_mapping_failed_current.txt"))
+    file.create(file.path("output/invert_maxent_raster_update/back_sel_models/mapping_failed_current.txt"))
+    cat(cond$message, file = file.path("output/invert_maxent_raster_update/back_sel_models/inv_mapping_failed_current.txt"))
     warning(cond$message)
     
   })
@@ -387,6 +391,15 @@ is not considered present. Here we've chosen the 10th% Logistic threshold for ea
 \
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+## Threshold the invertebrate SDM models to be either 0 or 1
+habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTaxon)),
+                  maxent_table  = INVERT.MAXENT.RESULTS,
+                  maxent_path   = './output/invert_maxent/back_sel_models/',
+                  cell_factor   = 9,
+                  country_shp   = 'AUS',
+                  country_prj   = CRS("+init=EPSG:3577"))
+
 
 ## Threshold the invertebrate SDM models to be either 0 or 1
 habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)),
