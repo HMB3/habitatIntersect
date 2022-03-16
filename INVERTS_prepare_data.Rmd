@@ -79,6 +79,11 @@ library(nenswniche)
 data('sdmgen_packages')
 ipak(sdmgen_packages)
 
+## Put the maxent.jar file in the dismo folder
+# utils::download.file(url = "https://raw.githubusercontent.com/mrmaxent/Maxent/master/ArchivedReleases/3.3.3k/maxent.jar", 
+#     destfile = paste0(system.file("java", package = "dismo"), 
+#         "/maxent.jar"), mode = "wb") 
+
 
 ## Set temporary raster dir for the terra package
 rasterOptions(tmpdir = 'G:/GITHUB/North_east_NSW_fire_recovery/TEMP')

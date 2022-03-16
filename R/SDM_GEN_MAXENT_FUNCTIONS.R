@@ -97,7 +97,7 @@ run_sdm_analysis = function(taxa_list,
         background <- sdm_df %>% .[!.[[taxa_level]] %in% taxa, ]
         message('Using ', nrow(background), ' background records from ', unique(background$SOURCE))
         
-        if(crop_Koppen == FALSE) {
+        if(crop_Koppen) {
           Koppen_raster = FALSE
           Koppen_zones  = FALSE
           
