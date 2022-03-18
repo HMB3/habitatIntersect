@@ -121,7 +121,6 @@ SDM.SPAT.OCC.ALL.REPTILE.BG = readRDS('./output/reptile_maxent/results/SDM_SPAT_
 ## To Do :
 ## 1). Ryan has checked the taxonomy
 ## 2). Check the errors that Finlay may have found
-sp_epsg54009 <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0"
 sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 
 
