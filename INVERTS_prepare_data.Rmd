@@ -43,7 +43,7 @@ https://www.sciencedirect.com/science/article/pii/S0048969719323289#f0030
 
 To install, run :
 
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+```{r eval=FALSE, echo=TRUE, message=TRUE, warning=FALSE}
 
 ## Set environments 
 ## java memory limit and temporary raster dir
@@ -84,9 +84,9 @@ ipak(sdmgen_packages)
 
 
 ## Set temporary raster dir for the terra package
-rasterOptions(tmpdir = 'G:/GITHUB/North_east_NSW_fire_recovery/TEMP')
+rasterOptions(tmpdir = 'E:/Bush_fire_analysis/TEMP')
 terraOptions(memfrac = 0.5, 
-             tempdir = 'G:/GITHUB/North_east_NSW_fire_recovery/TEMP')
+             tempdir = 'E:/Bush_fire_analysis/North_east_NSW_fire_recovery/TEMP')
 
 ```
 
