@@ -296,7 +296,7 @@ WA.insect.sites.ALA <-  WA.insects %>%
   
   ## Now clean up the data so it can be combined with the ALA
   mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>%
-  dplyr::rename(genus           = Genus,
+  dplyr::rename(genus    = Genus,
          locality        = Locality,
          country         = Country,
          family          = Family,
@@ -523,7 +523,7 @@ target.host.plants.df <- all_insect_site_df_species  %>%
 
 
 
-## Target host plants
+## Target host plants=
 target.host.plants <- all_insect_site_df_species  %>% 
   .[.$searchTaxon %in% target.insect.spp, ] %>% .$plantTaxon %>% 
   unique() %>% str_trim() %>% 
