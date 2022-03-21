@@ -100,7 +100,7 @@ sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0
 
 ## SVTM Rasters : https://www.environment.nsw.gov.au/vegetation/state-vegetation-type-map.htm
 ## The State Vegetation Type Map (SVTM)  of Plant Community Types across NSW, originally @ 5m resolution, re-sampled to 100m
-GBAM        <- raster('./output/invert_maxent/Habitat_suitability/aligned_rasters/GBAM_100m.tif')
+GBAM        <- raster('./data/Remote_sensing/aligned_rasters/GBAM_100m.tif')
 
 
 ## SDM output, re-sampled to 100m
@@ -111,13 +111,13 @@ study_sdm_binary <- stack(
 
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
 ## VALUES : 1-4, burn intensity from 2019-2020 fires, originally @ 10m resolution, re-sampled to 100m
-FESM_2_100m     <- raster('./output/invert_maxent/Habitat_suitability/aligned_rasters/FESM_2_100m_align.tif')
-FESM_100m       <- raster('./output/invert_maxent/Habitat_suitability/aligned_rasters/FESM_100m_align.tif')
-FESM_100m_align <- readRDS('./output/invert_maxent/Habitat_suitability/aligned_rasters/FESM_100m_align.rds')
+FESM_2_100m     <- raster('./data/Remote_sensing/aligned_rasters/FESM_2_100m_align.tif')
+FESM_100m       <- raster('./data/Remote_sensing/aligned_rasters/FESM_100m_align.tif')
+FESM_100m_align <- readRDS('./data/Remote_sensing/aligned_rasters/FESM_100m_align.rds')
 
 
 ## Read in the SDM data, to intersect with the Veg layers
-SVTM_Veg_Class_GDA        <- readRDS('./output/invert_maxent/Habitat_suitability/aligned_rasters/SVTM_Veg_Class_GDA.rds')
+SVTM_Veg_Class_GDA        <- readRDS('./data/Remote_sensing/aligned_rasters/SVTM_Veg_Class_GDA.rds')
 SDM.SPAT.OCC.BG.GDA       <- readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
 SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_HOST_PLANTS.rds')
 
@@ -217,7 +217,7 @@ calculate_taxa_habitat(taxa_list          = rev(MAXENT.RESULTS.HOSTS$searchTaxon
 
 For each taxa, we create a table of the area in square kilometers of suitable habitat that intersects with each burn 
 intensity category from the FESM fire intensity layer. Let's combine all those tables together, to create a master 
-table of estimated area.
+table of estimated burnt area.
 
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}

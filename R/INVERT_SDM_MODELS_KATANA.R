@@ -200,40 +200,40 @@ gc()
 ## Create a table of maxent results
 ## This function aggregates the results for models that ran successfully
 INVERT.MAXENT.RESULTS     <- compile_sdm_results(taxa_list    = analysis_taxa,
-                                                 results_dir  = 'output/invert_maxent/back_sel_models',
-                                                 data_path    = "./output/invert_maxent/Habitat_suitability/",
-                                                 sdm_path     = "./output/invert_maxent/back_sel_models/",
+                                                 results_dir  = 'output/invert_maxent_raster_update/back_sel_models',
+                                                 data_path    = "./output/invert_maxent_raster_update/Habitat_suitability/",
+                                                 sdm_path     = "./output/invert_maxent_raster_update/back_sel_models/",
                                                  save_data    = FALSE,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
 
 INVERT.MAXENT.FAM.RESULTS <- compile_sdm_results(taxa_list    = target.insect.families,
-                                                 results_dir  = 'output/invert_maxent/back_sel_models',
-                                                 data_path    = "./output/invert_maxent/Habitat_suitability/",
-                                                 sdm_path     = "./output/invert_maxent/back_sel_models/",
+                                                 results_dir  = 'output/invert_maxent_raster_update/back_sel_models',
+                                                 data_path    = "./output/invert_maxent_raster_update/Habitat_suitability/",
+                                                 sdm_path     = "./output/invert_maxent_raster_update/back_sel_models/",
                                                  save_data    = FALSE,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
 
 INVERT.MAXENT.GEN.RESULTS <- compile_sdm_results(taxa_list    = target.insect.genera,
-                                                 results_dir  = 'output/invert_maxent/back_sel_models',
-                                                 data_path    = "./output/invert_maxent/Habitat_suitability/",
-                                                 sdm_path     = "./output/invert_maxent/back_sel_models/",
+                                                 results_dir  = 'output/invert_maxent_raster_update/back_sel_models',
+                                                 data_path    = "./output/invert_maxent_raster_update/Habitat_suitability/",
+                                                 sdm_path     = "./output/invert_maxent_raster_update/back_sel_models/",
                                                  save_data    = FALSE,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
 
 INVERT.MAXENT.SPP.RESULTS <- compile_sdm_results(taxa_list    = target.insect.spp,
-                                                 results_dir  = 'output/invert_maxent/back_sel_models',
-                                                 data_path    = "./output/invert_maxent/Habitat_suitability/",
-                                                 sdm_path     = "./output/invert_maxent/back_sel_models/",
+                                                 results_dir  = 'output/invert_maxent_raster_update/back_sel_models',
+                                                 data_path    = "./output/invert_maxent_raster_update/Habitat_suitability/",
+                                                 sdm_path     = "./output/invert_maxent_raster_update/back_sel_models/",
                                                  save_data    = FALSE,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
 
 PLANT.MAXENT.RESULTS      <- compile_sdm_results(taxa_list    = target.host.plants,
                                                  results_dir  = 'output/plant_maxent/back_sel_models',
-                                                 data_path    = "./output/invert_maxent/Habitat_suitability/",
+                                                 data_path    = "./output/invert_maxent_raster_update/Habitat_suitability/",
                                                  sdm_path     = "./output/plant_maxent/back_sel_models/",
                                                  save_data    = FALSE,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
@@ -326,7 +326,7 @@ tryCatch(
 ## Threshold the invertebrate SDM models to be either 0 or 1
 habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTaxon)),
                   maxent_table  = INVERT.MAXENT.RESULTS,
-                  maxent_path   = './output/invert_maxent/back_sel_models/',
+                  maxent_path   = './output/invert_maxent_raster_update/back_sel_models/',
                   cell_factor   = 9,
                   country_shp   = 'AUS',
                   country_prj   = CRS("+init=EPSG:3577"))
@@ -335,7 +335,7 @@ habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTa
 ## Threshold the invertebrate SDM models to be either 0 or 1
 habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)),
                   maxent_table  = INVERT.MAXENT.RESULTS,
-                  maxent_path   = './output/invert_maxent/back_sel_models/',
+                  maxent_path   = './output/invert_maxent_raster_update/back_sel_models/',
                   cell_factor   = 9,
                   country_shp   = 'AUS',
                   country_prj   = CRS("+init=EPSG:3577"))
@@ -351,24 +351,6 @@ habitat_threshold(taxa_list     = sort(unique(PLANT.MAXENT.RESULTS$searchTaxon))
                   write_rasters = TRUE)
 
 
-
-
-# Add Host Plants to the Maxent LUT 
-
-
-
-## Read in the host plant species
-# host_plants <- read_excel('./output/invert_maxent/Habitat_suitability/NENSW_INVERTEBRATES_SPATIAL_DATA_LUT_SEP2021.xlsm',
-#                           sheet = 'NENSW_INV_TAXA_ASSOCIATIONS') %>% filter(Target_taxon == "Yes") %>% 
-#   dplyr::select(searchTaxon, Host_Plant_taxon) 
-# 
-# 
-# MAXENT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>% left_join(., host_plants, by = "searchTaxon") %>% 
-#   mutate(host_dir = gsub(' ', '_', Host_Plant_taxon)) %>% 
-#   mutate(host_dir = ifelse(!is.na(Host_Plant_taxon),  paste0(host_back_dir, host_dir, '/full/'), NA))
-# 
-#  
-# message('sdm models and projections run succsessfully for ', length(analysis_taxa))
 
 
 

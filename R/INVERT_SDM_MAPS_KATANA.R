@@ -48,7 +48,7 @@ terraOptions(memfrac = 0.5,
 # - Intersecting geographic records of each invertebrate taxon with vegetation maps (e.g. remote sensed vegetation layers) 
 
 
-## 1). Run SDMs ----
+## 1). Load spatial data ----
 
 
 ## get target taxa
@@ -69,293 +69,84 @@ analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.inse
 
 ## Read in the SDM data
 sp_epsg3577  <- '+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
-SDM.SPAT.OCC.BG.GDA       = readRDS('./output/invert_maxent_raster_update/results/SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds')
-SDM.PLANT.SPAT.OCC.BG.GDA = readRDS('./output/plant_maxent_raster_update/results/SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds')
+SDM.SPAT.OCC.BG.GDA       <- readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
+SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_HOST_PLANTS.rds')
 
 
-## Run family-level models for invertebrates
-run_sdm_analysis(taxa_list               = sort(target.insect.families),
-                 taxa_level              = 'family',
-                 maxent_dir              = 'output/invert_maxent_raster_update/full_models',     
-                 bs_dir                  = 'output/invert_maxent_raster_update/back_sel_models',
-                 sdm_df                  = SDM.SPAT.OCC.BG.GDA,
-                 sdm_predictors          = names(aus.climate.veg.grids.250m),
-                 sp_country_prj          = sp_epsg3577,
-                 
-                 backwards_sel           = TRUE,      
-                 template_raster         = template_raster_250m,
-                 cor_thr                 = 0.8,  
-                 pct_thr                 = 5, 
-                 k_thr                   = 4, 
-                 min_n                   = 10,  
-                 max_bg_size             = 100000,
-                 background_buffer_width = 200000,
-                 shapefiles              = TRUE,
-                 features                = 'lpq',
-                 replicates              = 5,
-                 responsecurves          = TRUE,
-                 country_shp             = AUS,
-                 crop_Koppen             = FALSE)
-
-gc()
+## SVTM Rasters : https://www.environment.nsw.gov.au/vegetation/state-vegetation-type-map.htm
+## The State Vegetation Type Map (SVTM)  of Plant Community Types across NSW, originally @ 5m resolution, re-sampled to 100m
+GBAM        <- raster('./data/Remote_sensing/aligned_rasters/GBAM_100m.tif')
 
 
-## Run genus-level models for invertebrates
-run_sdm_analysis(taxa_list               = rev(sort(target.insect.genera)),
-                 taxa_level              = 'genus',
-                 maxent_dir              = 'output/invert_maxent_raster_update/full_models',     
-                 bs_dir                  = 'output/invert_maxent_raster_update/back_sel_models',
-                 sdm_df                  = SDM.SPAT.OCC.BG.GDA,
-                 sdm_predictors          = names(aus.climate.veg.grids.250m),
-                 sp_country_prj          = sp_epsg3577,
-                 
-                 backwards_sel           = TRUE,      
-                 template_raster         = template_raster_250m,
-                 cor_thr                 = 0.8,  
-                 pct_thr                 = 5, 
-                 k_thr                   = 4, 
-                 min_n                   = 10,  
-                 max_bg_size             = 100000,
-                 background_buffer_width = 100000,
-                 shapefiles              = TRUE,
-                 features                = 'lpq',
-                 replicates              = 5,
-                 responsecurves          = TRUE,
-                 country_shp             = AUS,
-                 crop_Koppen             = FALSE)
-
-gc()
+## SDM output, re-sampled to 100m
+study_sdm_binary <- stack(
+  list.files('./output/invert_maxent/Habitat_suitability/SDM_thresholds',
+             'current_suit_not_novel_above', full.names = TRUE))
 
 
-## Run species-level models for invertebrates
-run_sdm_analysis(taxa_list               = target.insect.spp,
-                 taxa_level              = 'species',
-                 maxent_dir              = 'output/invert_maxent_raster_update/full_models',     
-                 bs_dir                  = 'output/invert_maxent_raster_update/back_sel_models',
-                 sdm_df                  = SDM.SPAT.OCC.BG.GDA,
-                 sdm_predictors          = names(aus.climate.veg.grids.250m),
-                 sp_country_prj          = sp_epsg3577,
-                 
-                 backwards_sel           = TRUE,      
-                 template_raster         = template_raster_250m,
-                 cor_thr                 = 0.8,  
-                 pct_thr                 = 5, 
-                 k_thr                   = 4, 
-                 min_n                   = 10,  
-                 max_bg_size             = 100000,
-                 background_buffer_width = 100000,
-                 shapefiles              = TRUE,
-                 features                = 'lpq',
-                 replicates              = 5,
-                 responsecurves          = TRUE,
-                 country_shp             = AUS,
-                 crop_Koppen             = FALSE)
-
-gc()
+## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
+## VALUES : 1-4, burn intensity from 2019-2020 fires, originally @ 10m resolution, re-sampled to 100m
+FESM_2_100m     <- raster('./data/Remote_sensing/aligned_rasters/FESM_2_100m_align.tif')
+FESM_100m       <- raster('./data/Remote_sensing/aligned_rasters/FESM_100m_align.tif')
+FESM_100m_align <- readRDS('./data/Remote_sensing/aligned_rasters/FESM_100m_align.rds')
+SVTM_Veg_Class_GDA        <- readRDS('./data/Remote_sensing/aligned_rasters/SVTM_Veg_Class_GDA.rds')
 
 
-## Run species-level models for host plants - how many plants are in the dataset
-target.host.plants %in% SDM.PLANT.SPAT.OCC.BG.GDA$searchTaxon %>% table()
 
-
-run_sdm_analysis(taxa_list               = sort(target.host.plants),
-                 taxa_level              = 'species',
-                 maxent_dir              = 'output/plant_maxent_raster_update/full_models',     
-                 bs_dir                  = 'output/plant_maxent_raster_update/back_sel_models',
-                 sdm_df                  = SDM.PLANT.SPAT.OCC.BG.GDA,
-                 sdm_predictors          = names(aus.climate.veg.grids.250m),
-                 sp_country_prj          = sp_epsg3577,
-                 
-                 backwards_sel           = TRUE,      
-                 template_raster         = template_raster_250m,
-                 cor_thr                 = 0.8,  
-                 pct_thr                 = 5, 
-                 k_thr                   = 4, 
-                 min_n                   = 10,  
-                 max_bg_size             = 100000,
-                 background_buffer_width = 100000,
-                 shapefiles              = TRUE,
-                 features                = 'lpq',
-                 replicates              = 5,
-                 responsecurves          = TRUE,
-                 country_shp             = AUS,
-                 crop_Koppen             = FALSE)
-
-gc()
+## Check projections and resolutions
+projection(FESM_100m);projection(study_sdm_binary[[1]]);projection(GBAM);projection(SDM.SPAT.OCC.BG.GDA)
+raster::xres(FESM_100m);raster::xres(study_sdm_binary[[1]]);raster::xres(GBAM)
 
 
 
 
 
-## 2). Project SDMs across eastern Aus ----
+## 2). Intersect SDMs with Veg layer ----
 
 
-# The next step is to project the SDM predictions across geographic space.
-# First, we need to extract the SDM results from the models. Each model generates a 'threshold' 
-# of probability of occurrence (see ref), which we use to create map of habitat suitability 
-# across Australia (). 
+# Select pixels from the Vegetation Habitat Raster that intersect the records for each Invertebrate taxa, as habitat surrogates
 
 
 
-## Create a table of maxent results
-## This function aggregates the results for models that ran successfully
-INVERT.MAXENT.RESULTS     <- compile_sdm_results(taxa_list    = analysis_taxa,
-                                                 results_dir  = 'output/invert_maxent/back_sel_models',
-                                                 data_path    = "./output/invert_maxent/Habitat_suitability/",
-                                                 sdm_path     = "./output/invert_maxent/back_sel_models/",
-                                                 save_data    = FALSE,
-                                                 save_run     = "INVERT_ANALYSIS_TAXA")
+## These still need more exception handling, some taxa fail...why do they fail?
+## Are they failing outside the loop, but not inside?
 
 
-INVERT.MAXENT.FAM.RESULTS <- compile_sdm_results(taxa_list    = target.insect.families,
-                                                 results_dir  = 'output/invert_maxent/back_sel_models',
-                                                 data_path    = "./output/invert_maxent/Habitat_suitability/",
-                                                 sdm_path     = "./output/invert_maxent/back_sel_models/",
-                                                 save_data    = FALSE,
-                                                 save_run     = "INVERT_ANALYSIS_TAXA")
+## Select the Vegetation pixels that intersect with the records of each invertebrate species
+taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
+                               taxa_list      = target.insect.spp,
+                               taxa_level     = 'species',
+                               habitat_poly   = SVTM_Veg_Class_GDA,
+                               output_path    = './output/invert_maxent/Habitat_suitability/SVTM_intersect/',
+                               buffer         = 5000)
 
 
-INVERT.MAXENT.GEN.RESULTS <- compile_sdm_results(taxa_list    = target.insect.genera,
-                                                 results_dir  = 'output/invert_maxent/back_sel_models',
-                                                 data_path    = "./output/invert_maxent/Habitat_suitability/",
-                                                 sdm_path     = "./output/invert_maxent/back_sel_models/",
-                                                 save_data    = FALSE,
-                                                 save_run     = "INVERT_ANALYSIS_TAXA")
+## Select the Vegetation pixels that intersect with the records of each invertebrate genus 
+taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
+                               taxa_list      = target.insect.genera,
+                               taxa_level     = 'genus',
+                               habitat_poly   = SVTM_Veg_Class_GDA,
+                               output_path    = './output/invert_maxent/Habitat_suitability/SVTM_intersect/',
+                               buffer         = 5000)
 
 
-INVERT.MAXENT.SPP.RESULTS <- compile_sdm_results(taxa_list    = target.insect.spp,
-                                                 results_dir  = 'output/invert_maxent/back_sel_models',
-                                                 data_path    = "./output/invert_maxent/Habitat_suitability/",
-                                                 sdm_path     = "./output/invert_maxent/back_sel_models/",
-                                                 save_data    = FALSE,
-                                                 save_run     = "INVERT_ANALYSIS_TAXA")
-
-
-PLANT.MAXENT.RESULTS      <- compile_sdm_results(taxa_list    = target.host.plants,
-                                                 results_dir  = 'output/plant_maxent/back_sel_models',
-                                                 data_path    = "./output/invert_maxent/Habitat_suitability/",
-                                                 sdm_path     = "./output/plant_maxent/back_sel_models/",
-                                                 save_data    = FALSE,
-                                                 save_run     = "INVERT_ANALYSIS_TAXA")
-
-
-## How many target taxa were modelled?
-nrow(INVERT.MAXENT.SPP.RESULTS)/length(target.insect.spp)      *100 
-nrow(INVERT.MAXENT.GEN.RESULTS)/length(target.insect.genera)   *100
-nrow(INVERT.MAXENT.FAM.RESULTS)/length(target.insect.families) *100
-
-
-## Get map_taxa from the maxent results table above, change the species column,
-## then create a list of logistic thresholds
-invert_map_taxa <- INVERT.MAXENT.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
-invert_map_spp  <- INVERT.MAXENT.SPP.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
-plant_map_taxa  <- PLANT.MAXENT.RESULTS$searchTaxon  %>% gsub(" ", "_", .,)
-
-
-# The projection function takes the maxent models created by the 'fit_maxent_targ_bg_back_sel' function, 
-# and projects the models across geographic space - currently just for Australia. It uses the rmaxent 
-# package https://github.com/johnbaums/rmaxent. It assumes that the maxent models were generated by the 
-# 'fit_maxent_targ_bg_back_sel' function. Note that this step is quite memory heavy, best run with > 64GB of RAM.
-
-
-
-## Create a local projection for mapping : Australian Albers
-aus_albers <- CRS('+proj=aea +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=132 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs')
-
-
-## Project SDMs across the Study area for the invert taxa
-tryCatch(
-  project_maxent_current_grids_mess(country_shp     = AUS, 
-                                    country_prj     = sp_epsg3577,
-                                    local_prj       = sp_epsg3577,
-                                    
-                                    taxa_list       = invert_map_taxa,    
-                                    maxent_path     ='./output/invert_maxent_raster_update/back_sel_models/',
-                                    
-                                    current_grids   = east.climate.veg.grids.250m,         
-                                    create_mess     = TRUE,
-                                    save_novel_poly = TRUE),
-  
-  ## If the species fails, write a fail message to file
-  error = function(cond) {
-    
-    ## This will write the error message inside the text file, but it won't include the species
-    file.create(file.path("output/invert_maxent_raster_update/back_sel_models/mapping_failed_current.txt"))
-    cat(cond$message, file = file.path("output/invert_maxent_raster_update/back_sel_models/inv_mapping_failed_current.txt"))
-    warning(cond$message)
-    
-  })
-
-
-## Project SDMs across the Study area for the plant taxa
-tryCatch(
-  project_maxent_current_grids_mess(country_shp     = AUS, 
-                                    country_prj     = CRS("+init=EPSG:3577"),
-                                    local_prj       = aus_albers,
-                                    
-                                    taxa_list       = plant_map_taxa,    
-                                    maxent_path     = './output/plant_maxent/back_sel_models/',
-                                    
-                                    current_grids   = study.climate.veg.grids,         
-                                    create_mess     = TRUE,
-                                    save_novel_poly = FALSE),
-  
-  ## If the species fails, write a fail message to file
-  error = function(cond) {
-    
-    ## This will write the error message inside the text file, but it won't include the species
-    file.create(file.path("output/plant_maxent/back_sel_models/mapping_failed_current.txt"))
-    cat(cond$message, file = file.path("output/plant_maxent/back_sel_models/plant_sdm_mapping_failed_current.txt"))
-    warning(cond$message)
-    
-  })
+## Select the Vegetation pixels that intersect with the records of each invertebrate family
+taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
+                               taxa_list      = target.insect.families,
+                               taxa_level     = 'family',
+                               habitat_poly   = SVTM_Veg_Class_GDA,
+                               output_path    = './output/invert_maxent/Habitat_suitability/SVTM_intersect/',
+                               buffer         = 5000)
 
 
 
 
 
-## 3). Threshold SDMs across eastern Aus ----
-
-
-# To use the habitat suitability rasters in area calculations (e.g. comparing the area of suitable habitat
-# affected by fire), we need to convert the continuous suitability scores (ranging from 0-1) to binary values
-# (either 1, or 0). To do this, we need to pick a threshold of habitat suitability, below which the species 
-# is not considered present. Here we have chosen the 10th% Logistic threshold for each taxa (ref).
-
-
-## Threshold the invertebrate SDM models to be either 0 or 1
-habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTaxon)),
-                  maxent_table  = INVERT.MAXENT.RESULTS,
-                  maxent_path   = './output/invert_maxent/back_sel_models/',
-                  cell_factor   = 9,
-                  country_shp   = 'AUS',
-                  country_prj   = CRS("+init=EPSG:3577"))
-
-
-## Threshold the invertebrate SDM models to be either 0 or 1
-habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)),
-                  maxent_table  = INVERT.MAXENT.RESULTS,
-                  maxent_path   = './output/invert_maxent/back_sel_models/',
-                  cell_factor   = 9,
-                  country_shp   = 'AUS',
-                  country_prj   = CRS("+init=EPSG:3577"))
-
-
-## Threshold the Plant SDM models to be either 0 or 1
-habitat_threshold(taxa_list     = sort(unique(PLANT.MAXENT.RESULTS$searchTaxon)),
-                  maxent_table  = PLANT.MAXENT.RESULTS,
-                  maxent_path   = './output/plant_maxent/back_sel_models/',
-                  cell_factor   = 9,
-                  country_shp   = 'AUS',
-                  country_prj   = CRS("+init=EPSG:3577"),
-                  write_rasters = TRUE)
-
+# 3). Estimate % burnt ----
 
 
 
 # Add Host Plants to the Maxent LUT 
-
-
 
 ## Read in the host plant species
 # host_plants <- read_excel('./output/invert_maxent/Habitat_suitability/NENSW_INVERTEBRATES_SPATIAL_DATA_LUT_SEP2021.xlsm',
@@ -369,6 +160,85 @@ habitat_threshold(taxa_list     = sort(unique(PLANT.MAXENT.RESULTS$searchTaxon))
 # 
 #  
 # message('sdm models and projections run succsessfully for ', length(analysis_taxa))
+
+
+
+# For each Invertebrate species, calculate the % of suitable habitat that was burnt by the
+# 2019-2020 fires. We can do this by combining pixels in the rasters like this: 
+#   
+# 
+# - [Invert_SDM + Host_plant_SDM + Inv Veg pixels] * Fire_layer 
+# 
+# 
+# This will give us the % of suitable habitat in each burn intensity category(0-5).
+
+## Calculate Insect habitat - fails after this species?
+## Code is stalling before or after :: Naranjakotta - it should be the taxa either side of that...
+calculate_taxa_habitat(taxa_list          = rev(MAXENT.RESULTS.HOSTS$searchTaxon),
+                       targ_maxent_table  = MAXENT.RESULTS.HOSTS,
+                       host_maxent_table  = PLANT.MAXENT.RESULTS,
+                       target_path        = './output/invert_maxent/back_sel_models/',
+                       intersect_path     = 'G:/North_east_NSW_fire_recovery/output/invert_maxent/Habitat_suitability/SVTM_intersect',
+                       raster_pattern     = '_SVTM_intersection_5000m.tif',
+                       fire_raster        = FESM_100m_align,
+                       cell_size          = 100,
+                       output_path        = './output/invert_maxent/Habitat_suitability/FESM_SDM_intersect/',
+                       country_shp        = 'AUS',
+                       country_prj        = CRS("+init=EPSG:3577"),
+                       write_rasters      = TRUE)
+
+
+
+
+
+# For each taxa, we create a table of the area in square kilometers of suitable habitat that intersects with each burn 
+# intensity category from the FESM fire intensity layer. Let's combine all those tables together, to create a master 
+# table of estimated burnt area.
+
+
+
+## Calculate Insect habitat
+INVERT.FESM.list <- list.files('./output/invert_maxent/Habitat_suitability/FESM_SDM_intersect/', 
+                               pattern     = '_intersect_Fire.csv', 
+                               full.names  = TRUE, 
+                               recursive   = TRUE) 
+
+
+## Now combine the SUA tables for each species into one table 
+INVERT.FESM.TABLE <- INVERT.FESM.list %>%
+  
+  ## pipe the list into lapply
+  lapply(function(x) {
+    
+    ## create the character string
+    f <- paste0(x)
+    
+    ## load each .RData file
+    d <- read.csv(f)
+    d
+    
+  }) %>%
+  
+  ## finally, bind all the rows together
+  bind_rows
+
+
+## Subset to just the analysis species - some species did not process properly?
+INVERT.FESM.TABLE <-  INVERT.FESM.TABLE[INVERT.FESM.TABLE$Habitat_taxa %in% 
+                                          sort(unique(MAXENT.RESULTS.HOSTS$searchTaxon)) , ] %>%  
+  .[complete.cases(.), ]
+
+
+## How many taxa have been processed?
+length(unique(INVERT.FESM.TABLE$Habitat_taxa))
+View(INVERT.FESM.TABLE)
+
+
+## Save the FESM intersect results to file
+write_csv(INVERT.FESM.TABLE, 
+          './output/invert_maxent/Habitat_suitability/FESM_SDM_intersect/INVERT_TAXA_SDM_VEG_intersect_Fire.csv')
+
+
 
 
 
