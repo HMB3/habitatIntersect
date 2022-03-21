@@ -80,7 +80,7 @@ GBAM        <- raster('./data/Remote_sensing/aligned_rasters/GBAM_100m.tif')
 
 ## SDM output, re-sampled to 100m
 study_sdm_binary <- stack(
-  list.files('./output/invert_maxent/Habitat_suitability/SDM_thresholds',
+  list.files('./output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds',
              'current_suit_not_novel_above', full.names = TRUE))
 
 
@@ -117,7 +117,7 @@ taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                taxa_list      = target.insect.spp,
                                taxa_level     = 'species',
                                habitat_poly   = SVTM_Veg_Class_GDA,
-                               output_path    = './output/invert_maxent/Habitat_suitability/SVTM_intersect/',
+                               output_path    = './output/invert_maxent_raster_update/Habitat_suitability/SVTM_intersect/',
                                buffer         = 5000)
 
 
@@ -126,7 +126,7 @@ taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                taxa_list      = target.insect.genera,
                                taxa_level     = 'genus',
                                habitat_poly   = SVTM_Veg_Class_GDA,
-                               output_path    = './output/invert_maxent/Habitat_suitability/SVTM_intersect/',
+                               output_path    = './output/invert_maxent_raster_update/Habitat_suitability/SVTM_intersect/',
                                buffer         = 5000)
 
 
@@ -135,7 +135,7 @@ taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                taxa_list      = target.insect.families,
                                taxa_level     = 'family',
                                habitat_poly   = SVTM_Veg_Class_GDA,
-                               output_path    = './output/invert_maxent/Habitat_suitability/SVTM_intersect/',
+                               output_path    = './output/invert_maxent_raster_update/Habitat_suitability/SVTM_intersect/',
                                buffer         = 5000)
 
 
@@ -149,17 +149,14 @@ taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
 # Add Host Plants to the Maxent LUT 
 
 ## Read in the host plant species
-# host_plants <- read_excel('./output/invert_maxent/Habitat_suitability/NENSW_INVERTEBRATES_SPATIAL_DATA_LUT_SEP2021.xlsm',
-#                           sheet = 'NENSW_INV_TAXA_ASSOCIATIONS') %>% filter(Target_taxon == "Yes") %>% 
-#   dplyr::select(searchTaxon, Host_Plant_taxon) 
-# 
-# 
-# MAXENT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>% left_join(., host_plants, by = "searchTaxon") %>% 
-#   mutate(host_dir = gsub(' ', '_', Host_Plant_taxon)) %>% 
-#   mutate(host_dir = ifelse(!is.na(Host_Plant_taxon),  paste0(host_back_dir, host_dir, '/full/'), NA))
-# 
-#  
-# message('sdm models and projections run succsessfully for ', length(analysis_taxa))
+host_plants <- read_excel('./output/invert_maxent_raster_update/Habitat_suitability/NENSW_INVERTEBRATES_SPATIAL_DATA_LUT_SEP2021.xlsm',
+                          sheet = 'NENSW_INV_TAXA_ASSOCIATIONS') %>% filter(Target_taxon == "Yes") %>%
+  dplyr::select(searchTaxon, Host_Plant_taxon)
+
+
+MAXENT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>% left_join(., host_plants, by = "searchTaxon") %>%
+  mutate(host_dir = gsub(' ', '_', Host_Plant_taxon)) %>%
+  mutate(host_dir = ifelse(!is.na(Host_Plant_taxon),  paste0(host_back_dir, host_dir, '/full/'), NA))
 
 
 
@@ -177,12 +174,12 @@ taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
 calculate_taxa_habitat(taxa_list          = rev(MAXENT.RESULTS.HOSTS$searchTaxon),
                        targ_maxent_table  = MAXENT.RESULTS.HOSTS,
                        host_maxent_table  = PLANT.MAXENT.RESULTS,
-                       target_path        = './output/invert_maxent/back_sel_models/',
-                       intersect_path     = 'G:/North_east_NSW_fire_recovery/output/invert_maxent/Habitat_suitability/SVTM_intersect',
+                       target_path        = './output/invert_maxent_raster_update/back_sel_models/',
+                       intersect_path     = 'G:/North_east_NSW_fire_recovery/output/invert_maxent_raster_update/Habitat_suitability/SVTM_intersect',
                        raster_pattern     = '_SVTM_intersection_5000m.tif',
                        fire_raster        = FESM_100m_align,
                        cell_size          = 100,
-                       output_path        = './output/invert_maxent/Habitat_suitability/FESM_SDM_intersect/',
+                       output_path        = './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/',
                        country_shp        = 'AUS',
                        country_prj        = CRS("+init=EPSG:3577"),
                        write_rasters      = TRUE)
@@ -198,7 +195,7 @@ calculate_taxa_habitat(taxa_list          = rev(MAXENT.RESULTS.HOSTS$searchTaxon
 
 
 ## Calculate Insect habitat
-INVERT.FESM.list <- list.files('./output/invert_maxent/Habitat_suitability/FESM_SDM_intersect/', 
+INVERT.FESM.list <- list.files('./output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/', 
                                pattern     = '_intersect_Fire.csv', 
                                full.names  = TRUE, 
                                recursive   = TRUE) 
@@ -236,7 +233,11 @@ View(INVERT.FESM.TABLE)
 
 ## Save the FESM intersect results to file
 write_csv(INVERT.FESM.TABLE, 
-          './output/invert_maxent/Habitat_suitability/FESM_SDM_intersect/INVERT_TAXA_SDM_VEG_intersect_Fire.csv')
+          './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/INVERT_TAXA_SDM_VEG_intersect_Fire.csv')
+
+
+
+message('sdm fire intersect run succsessfully for ', length(INVERT.FESM.list), 'taxa')
 
 
 

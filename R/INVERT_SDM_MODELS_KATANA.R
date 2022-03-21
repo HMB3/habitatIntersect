@@ -351,6 +351,7 @@ habitat_threshold(taxa_list     = sort(unique(PLANT.MAXENT.RESULTS$searchTaxon))
                   write_rasters = TRUE)
 
 
+message('sdm models and projections run succsessfully for ', length(INVERT.MAXENT.RESULTS$searchTaxon), 'taxa')
 
 
 
