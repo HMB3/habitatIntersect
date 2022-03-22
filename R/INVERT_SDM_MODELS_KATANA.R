@@ -24,7 +24,7 @@ ipak <- function(pkg){
 # devtools::install_github("HMB3/nenswniche")
 
 ## Load packages
-library(nenswniche)
+# library(nenswniche)
 data('sdmgen_packages')
 ipak(sdmgen_packages)
 
