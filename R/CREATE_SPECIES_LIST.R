@@ -93,6 +93,7 @@ site_cols <- c("genus",
 
 ## QLD SITES ----
 data('PBI_site_data')
+data('target.insect.spp')
 QLD.insects = PBI_site_data[["QLD BUGS"]]
 
 
