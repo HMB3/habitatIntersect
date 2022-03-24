@@ -27,23 +27,42 @@ completeFun <- function(data, desiredCols) {
 }
 
 
+read_excel_allsheets <- function(filename, tibble = FALSE) {
+  
+  # I prefer straight data.frames
+  # but if you like tidyverse tibbles (the default with read_excel)
+  # then just pass tibble = TRUE
+  sheets <- readxl::excel_sheets(filename)
+  x <- lapply(sheets, function(X) readxl::read_excel(filename, sheet = X))
+  if(!tibble) x <- lapply(x, as.data.frame)
+  names(x) <- sheets
+  x
+}
+
+
+## Read in the data
+# PBI_site_data <- read_excel_allsheets('./data/Taxonomy/HETEROPTERA AUSTRALIA 26 March 2020.xlsx')
+
+
+
+
 ## 1). TARGET INSECT SPECIES LISTS =============================================================
 
 
 ## Insect species
-target.insect.spp.df = read_excel('./data/Taxonomy/Habitat_fire_recovery_invertebrate_species.xlsx',
-                               sheet = 'Insect species') 
+# target.insect.spp.df = read_excel('./data/Taxonomy/Habitat_fire_recovery_invertebrate_species.xlsx',
+                                 # sheet = 'Insect species') 
 
 
-target.insect.spp = read_excel('./data/Taxonomy/Habitat_fire_recovery_invertebrate_species.xlsx',
-                               sheet = 'Insect species') %>%
-  .$searchTaxon %>% as.character() %>% unique() %>% str_trim() %>% .[!is.na(.)]
+# target.insect.spp = read_excel('./data/Taxonomy/Habitat_fire_recovery_invertebrate_species.xlsx',
+                       #        sheet = 'Insect species') %>%
+  #.$searchTaxon %>% as.character() %>% unique() %>% str_trim() %>% .[!is.na(.)]
 
 
 ## Insect genera
-target.insect.genera = read_excel('./data/Taxonomy/Habitat_fire_recovery_invertebrate_species.xlsx',
-                                  sheet = 'Insect species') %>%
-  .$Genus %>% as.character() %>% unique() %>% str_trim() %>% .[!is.na(.)]
+# target.insect.genera = read_excel('./data/Taxonomy/Habitat_fire_recovery_invertebrate_species.xlsx',
+                                  #sheet = 'Insect species') %>%
+  #.$Genus %>% as.character() %>% unique() %>% str_trim() %>% .[!is.na(.)]
 
 
 
@@ -73,8 +92,8 @@ site_cols <- c("genus",
 
 
 ## QLD SITES ----
-QLD.insects = read_excel('./data/Taxonomy/HETEROPTERA AUSTRALIA 26 March 2020.xlsx',
-                         sheet = 'QLD BUGS')
+data('PBI_site_data')
+QLD.insects = PBI_site_data[["QLD BUGS"]]
 
 
 QLD.insect.sites.ALA <-  QLD.insects %>% 
@@ -82,15 +101,15 @@ QLD.insect.sites.ALA <-  QLD.insects %>%
   ## Now clean up the data so it can be combined with the ALA
   mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>%
   dplyr::rename(genus           = Genus,
-         locality        = Locality,
-         country         = Country,
-         family          = Family,
-         lat             = Lat,
-         lon             = Lon,
-         institutionCode = Inst_Code,
-         recordedBy      = Collector,
-         state           = State_Prov,
-         basisOfRecord   = Coll_Method) %>% 
+                locality        = Locality,
+                country         = Country,
+                family          = Family,
+                lat             = Lat,
+                lon             = Lon,
+                institutionCode = Inst_Code,
+                recordedBy      = Collector,
+                state           = State_Prov,
+                basisOfRecord   = Coll_Method) %>% 
   
   mutate(plantTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
   
@@ -116,8 +135,7 @@ QLD.insect.plants       <- QLD.insects %>% mutate(searchTaxon = paste(Host_Genus
 
 
 ## NSW SITES ----
-NSW.insects = read_excel('./data/Taxonomy/HETEROPTERA AUSTRALIA 26 March 2020.xlsx',
-                         sheet = 'NSW BUGS')
+NSW.insects = PBI_site_data[["NSW BUGS"]]
 
 
 ##
@@ -126,15 +144,15 @@ NSW.insect.sites.ALA <-  NSW.insects %>%
   ## Now clean up the data so it can be combined with the ALA
   mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>%
   dplyr::rename(genus           = Genus,
-         locality        = Locality,
-         country         = Country,
-         family          = Family,
-         lat             = Lat,
-         lon             = Lon,
-         institutionCode = Inst_Code,
-         recordedBy      = Collector,
-         state           = State_Prov,
-         basisOfRecord   = Coll_Method) %>% 
+                locality        = Locality,
+                country         = Country,
+                family          = Family,
+                lat             = Lat,
+                lon             = Lon,
+                institutionCode = Inst_Code,
+                recordedBy      = Collector,
+                state           = State_Prov,
+                basisOfRecord   = Coll_Method) %>% 
   
   mutate(plantTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
   
@@ -159,8 +177,7 @@ NSW.insect.plants       <- NSW.insects %>% mutate(searchTaxon = paste(Host_Genus
 
 
 ## VIC SITES ----
-VIC.insects = read_excel('./data/Taxonomy/HETEROPTERA AUSTRALIA 26 March 2020.xlsx',
-                         sheet = 'VIC BUGS')
+VIC.insects = PBI_site_data[["VIC BUGS"]]
 
 
 ##
@@ -169,15 +186,15 @@ VIC.insect.sites.ALA <-  VIC.insects %>%
   ## Now clean up the data so it can be combined with the ALA
   mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>%
   dplyr::rename(genus           = Genus,
-         locality        = Locality,
-         country         = Country,
-         family          = Family,
-         lat             = Lat,
-         lon             = Lon,
-         institutionCode = Inst_Code,
-         recordedBy      = Collector,
-         state           = State_Prov,
-         basisOfRecord   = Coll_Method) %>% 
+                locality        = Locality,
+                country         = Country,
+                family          = Family,
+                lat             = Lat,
+                lon             = Lon,
+                institutionCode = Inst_Code,
+                recordedBy      = Collector,
+                state           = State_Prov,
+                basisOfRecord   = Coll_Method) %>% 
   
   mutate(plantTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
   
@@ -201,8 +218,7 @@ VIC.insect.plants <- VIC.insects %>% mutate(searchTaxon = paste(Host_Genus, Host
 
 
 ## TAS SITES ----
-TAS.insects = read_excel('./data/Taxonomy/HETEROPTERA AUSTRALIA 26 March 2020.xlsx',
-                         sheet = 'TAS BUGS')
+TAS.insects = PBI_site_data[["TAS BUGS"]]
 
 
 ##
@@ -211,15 +227,15 @@ TAS.insect.sites.ALA <-  TAS.insects %>%
   ## Now clean up the data so it can be combined with the ALA
   mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>%
   dplyr::rename(genus           = Genus,
-         locality        = Locality,
-         country         = Country,
-         family          = Family,
-         lat             = Lat,
-         lon             = Lon,
-         institutionCode = Inst_Code,
-         recordedBy      = Collector,
-         state           = State_Prov,
-         basisOfRecord   = Coll_Method) %>% 
+                locality        = Locality,
+                country         = Country,
+                family          = Family,
+                lat             = Lat,
+                lon             = Lon,
+                institutionCode = Inst_Code,
+                recordedBy      = Collector,
+                state           = State_Prov,
+                basisOfRecord   = Coll_Method) %>% 
   
   mutate(plantTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
   
@@ -244,8 +260,7 @@ TAS.insect.plants <- TAS.insects %>% mutate(searchTaxon = paste(Host_Genus, Host
 
 
 ## SA SITES ----
-SA.insects = read_excel('./data/Taxonomy/HETEROPTERA AUSTRALIA 26 March 2020.xlsx',
-                        sheet = 'SA BUGS') 
+SA.insects = PBI_site_data[["SA BUGS"]]
 
 
 ##
@@ -254,15 +269,15 @@ SA.insect.sites.ALA <-  SA.insects %>%
   ## Now clean up the data so it can be combined with the ALA
   mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>%
   dplyr::rename(genus           = Genus,
-         locality        = Locality,
-         country         = Country,
-         family          = Family,
-         lat             = Lat,
-         lon             = Lon,
-         institutionCode = Inst_Code,
-         recordedBy      = Collector,
-         state           = State_Prov,
-         basisOfRecord   = Coll_Method) %>%
+                locality        = Locality,
+                country         = Country,
+                family          = Family,
+                lat             = Lat,
+                lon             = Lon,
+                institutionCode = Inst_Code,
+                recordedBy      = Collector,
+                state           = State_Prov,
+                basisOfRecord   = Coll_Method) %>%
   
   mutate(plantTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
   
@@ -287,8 +302,7 @@ SA.insect.plants <- SA.insects %>% mutate(searchTaxon = paste(Host_Genus, Host_s
 
 
 ## WA SITES ----
-WA.insects = read_excel('./data/Taxonomy/HETEROPTERA AUSTRALIA 26 March 2020.xlsx',
-                        sheet = 'WA BUGS')
+WA.insects = PBI_site_data[["WA BUGS"]]
 
 
 ##
@@ -297,15 +311,15 @@ WA.insect.sites.ALA <-  WA.insects %>%
   ## Now clean up the data so it can be combined with the ALA
   mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>%
   dplyr::rename(genus    = Genus,
-         locality        = Locality,
-         country         = Country,
-         family          = Family,
-         lat             = Lat,
-         lon             = Lon,
-         institutionCode = Inst_Code,
-         recordedBy      = Collector,
-         state           = State_Prov,
-         basisOfRecord   = Coll_Method) %>%
+                locality        = Locality,
+                country         = Country,
+                family          = Family,
+                lat             = Lat,
+                lon             = Lon,
+                institutionCode = Inst_Code,
+                recordedBy      = Collector,
+                state           = State_Prov,
+                basisOfRecord   = Coll_Method) %>%
   
   mutate(plantTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
   
@@ -330,8 +344,7 @@ WA.insect.plants <- WA.insects %>% mutate(searchTaxon = paste(Host_Genus, Host_s
 
 
 ## NT SITES ----
-NT.insects = read_excel('./data/Taxonomy/HETEROPTERA AUSTRALIA 26 March 2020.xlsx',
-                        sheet = 'NT BUGS') 
+NT.insects = PBI_site_data[["NT BUGS"]]
 
 ##
 NT.insect.sites.ALA <-  NT.insects %>% 
@@ -339,15 +352,15 @@ NT.insect.sites.ALA <-  NT.insects %>%
   ## Now clean up the data so it can be combined with the ALA
   mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>%
   dplyr::rename(genus           = Genus,
-         locality        = Locality,
-         country         = Country,
-         family          = Family,
-         lat             = Lat,
-         lon             = Lon,
-         institutionCode = Inst_Code,
-         recordedBy      = Collector,
-         state           = State_Prov,
-         basisOfRecord   = Coll_Method) %>% 
+                locality        = Locality,
+                country         = Country,
+                family          = Family,
+                lat             = Lat,
+                lon             = Lon,
+                institutionCode = Inst_Code,
+                recordedBy      = Collector,
+                state           = State_Prov,
+                basisOfRecord   = Coll_Method) %>% 
   
   mutate(plantTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
   
@@ -373,8 +386,7 @@ NT.insect.plants <- NT.insects %>% mutate(searchTaxon = paste(Host_Genus, Host_s
 
 
 ## ACT SITES ----
-ACT.insects = read_excel('./data/Taxonomy/HETEROPTERA AUSTRALIA 26 March 2020.xlsx',
-                         sheet = 'ACT BUGS') 
+ACT.insects = PBI_site_data[["ACT BUGS"]] 
 
 
 ##
@@ -383,15 +395,15 @@ ACT.insect.sites.ALA <-  ACT.insects %>%
   ## Now clean up the data so it can be combined with the ALA
   mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>%
   dplyr::rename(genus           = Genus,
-         locality        = Locality,
-         country         = Country,
-         family          = Family,
-         lat             = Lat,
-         lon             = Lon,
-         institutionCode = Inst_Code,
-         recordedBy      = Collector,
-         state           = State_Prov,
-         basisOfRecord   = Coll_Method) %>% 
+                locality        = Locality,
+                country         = Country,
+                family          = Family,
+                lat             = Lat,
+                lon             = Lon,
+                institutionCode = Inst_Code,
+                recordedBy      = Collector,
+                state           = State_Prov,
+                basisOfRecord   = Coll_Method) %>% 
   
   mutate(plantTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
   
