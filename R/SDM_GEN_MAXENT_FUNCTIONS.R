@@ -185,7 +185,7 @@ run_sdm_analysis_crop = function(taxa_list,
 #' @param replicates         Numeric - The number of replicates to use
 #' @param responsecurves     Logical - Save response curves of the maxent models (T/F)?
 #' @param country_shp             .Rds object - SpatialPolygonsDataFrame of Australia for mapping maxent points
-#' @export
+#' @export run_sdm_analysis
 run_sdm_analysis = function(taxa_list,
                             taxa_level,
                             sdm_df,
@@ -328,7 +328,7 @@ run_sdm_analysis = function(taxa_list,
 #' @param country_shp        .Rds object - SpatialPolygonsDataFrame of Australia for mapping maxent points
 #' @param rep_args           RasterLayer of global koppen zones, in Mollweide54009 projection
 #' @param full_args          Dataframe of global koppen zones, with columns : GRIDCODE, Koppen
-#' @export
+#' @export fit_maxent_targ_bg_back_sel_crop
 fit_maxent_targ_bg_back_sel_crop <- function(occ,
                                              bg,
                                              sdm_predictors,
@@ -354,12 +354,6 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
   
   
   ## If we aren't cropping the raster to the Koppen extent, don't use that argument
-  if(!crop_Koppen) {
-    Koppen_raster = FALSE
-    Koppen_zones  = FALSE
-    
-  }
-  
   
   ## First, stop if the outdir file exists,
   if(!file.exists(outdir)) stop('outdir does not exist :(', call. = FALSE)
@@ -715,7 +709,7 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
 #' @param country_shp        .Rds object - SpatialPolygonsDataFrame of Australia for mapping maxent points
 #' @param rep_args           RasterLayer of global koppen zones, in Mollweide54009 projection
 #' @param full_args          Dataframe of global koppen zones, with columns : GRIDCODE, Koppen
-#' @export
+#' @export fit_maxent_targ_bg_back_sel 
 fit_maxent_targ_bg_back_sel <- function(occ,
                                         bg,
                                         sdm_predictors,
@@ -1022,7 +1016,7 @@ fit_maxent_targ_bg_back_sel <- function(occ,
 #' @param type               The variable contribution metric to use when dropping variables
 #' @param logistic_format    Logical value indicating whether maxentResults.csv should report logistic value thresholds
 #' @param responsecurves     Logical - Save response curves of the maxent models (T/F)?
-#' @export
+#' @export local_simplify
 local_simplify = function (occ, bg, path, taxa_column = "taxa", response_curves = TRUE,
                            logistic_format = TRUE,  type = "PI", cor_thr, pct_thr, k_thr,
                            features = "lpq",  replicates = 1, quiet = TRUE)
@@ -1166,7 +1160,7 @@ local_simplify = function (occ, bg, path, taxa_column = "taxa", response_curves 
 #' @title Variable importance
 #' @description This function calculates variables importance.
 #' @param mod   object - maxent model object
-#' @export
+#' @export var_importance
 var_importance <- function(mod) {
   res <- mod@results
   pc <- res[grepl('contribution', rownames(res)),]
@@ -1188,7 +1182,7 @@ var_importance <- function(mod) {
 #' @param data_path         Character string - The file path used for saving the data frame
 #' @param sdm_path          Character string - The file path where the maxent models are stored.
 #' @param save_run          Character string - run name to append to the data frame, useful for multiple runs.
-#' @export
+#' @export compile_sdm_results
 compile_sdm_results = function(taxa_list,
                                results_dir,
                                save_data,

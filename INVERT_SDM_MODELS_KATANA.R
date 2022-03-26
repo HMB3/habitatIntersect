@@ -152,6 +152,7 @@ aus_annual_precip_alb        <- raster('./data/Bushfire_indices/R_outputs/250m/A
 ## Should be 1km*1km, It should havle a value of 1 for land, and NA for the ocean
 aus_annual_precip_alb[aus_annual_precip_alb > 0] <- 1
 template_raster_250m <- aus_annual_precip_alb
+data('AUS')
 
 
 

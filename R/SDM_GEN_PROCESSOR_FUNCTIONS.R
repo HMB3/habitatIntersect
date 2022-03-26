@@ -18,7 +18,7 @@
 #' @param species_list   Character vector - List of species binomials to download
 #' @param download_path  Character string - File path for species downloads
 #' @param download_limit Numeric - How many records can be downloaded at one time? Set by server
-#' @export
+#' @export download_GBIF_all_species
 download_GBIF_all_species = function(species_list, 
                                      download_path, 
                                      download_limit) {
