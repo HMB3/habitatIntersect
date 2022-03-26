@@ -1,55 +1,22 @@
----
-title: "nenswniche : a package for rapidly estimating multiple species ranges and habitat suitability"
-authors: "Hugh Burley, Shawn Laffan, Will Cornwell, Adrian Fisher"
-date: "March 2021"
-output:
-  github_document:
-  toc: true   
-toc_depth: 4            
-toc_float: true
-number_sections: false  
-vignette: >
-%\VignetteIndexEntry{README}
-  %\VignetteEngine{knitr::rmarkdown}
-  \usepackage[utf8]{inputenc}
-  keep_md: true
-  theme: united     
-highlight: tango        
-css: styles.css
-revealjs::revealjs_presentation:
-  dev: 'svg'
-chunk_output_type: console
-self_contained: false
-reveal_plugins: ["notes", "search"]
-reveal_options:
-  slideNumber: true
-previewLinks: true
-word_document:
-  always_allow_html: yes
----
 
-\
 
-The text and code below summarises a workflow in R that can be used to relatively rapidly assess the environmental range of a taxon within Australia, from downloading occurrence records, through to creating maps of predicted climatic suitability across Australia at 1km*1km resolution. An example of this work is published in the journal Science of the Total Environment ::
 
-\
+## ENVIRONMENT SETTINGS =============================================================
 
-Burley, H., Beaumont, L.J., Ossola, A., et al. (2019) Substantial declines in urban tree habitat predicted 
-under climate change. Science of The Total Environment, 685, 451-462.
 
-https://www.sciencedirect.com/science/article/pii/S0048969719323289#f0030 
+# \
+# 
+# This code prepares all the data and code needed for the analysis of inverts habitat after the 2019-2020 fires ::
+#   
+#   
+#   \
 
-\
 
-To install, run :
-
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
-
-## Set environments 
-## java memory limit and temporary raster dir
+## Set env
 rm(list = ls())
 options(java.parameters = "-Xmx64000m")
 Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jre1.8.0_321')
+
 
 ## Function to load or install packages
 ipak <- function(pkg){
@@ -59,8 +26,6 @@ ipak <- function(pkg){
   sapply(pkg, require, character.only = TRUE)
 }
 
-## Main package 
-# devtools::install_github("HMB3/nenswniche")
 
 ## Load packages
 library(nenswniche)
@@ -68,58 +33,167 @@ data('sdmgen_packages')
 ipak(sdmgen_packages)
 
 ## Try and set the raster temp directory to a location not on the partition, to save space
-rasterOptions(tmpdir = 'G:/North_east_NSW_fire_recovery/TEMP')
+rasterOptions(tmpdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
 terraOptions(memfrac = 0.5, 
-             tempdir = 'G:/North_east_NSW_fire_recovery/TEMP')
+             tempdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
 
-```
 
-\
-\
-\
 
-# Background
 
-This code is being developed at UNSW, to help investigate
-the impacts of the 2019/2020 bush fires on Insects in the North East Forests 
-of New South Wales. The aim is to create a pipeline that rapidly assesses 
-the habitat suitability of the threatened insect species under current 
-environmental conditions. There are three ways to estimate habitat suitability :
 
-- Habitat Suitability Models using geographic records for each invertebrate taxon
-- Habitat Suitability Models using geographic records of host plants for each invertebrate taxon
-- Intersecting geographic records of each invertebrate taxon with vegetation maps (e.g. remote sensed vegetation layers) 
+## 1). LOAD RASTER DATA =============================================================
 
-\
+# \
+# 
+# Load raster data at 280m resolution.
+# 
+# \
 
-# Run SDMs 
 
-\
 
-Once the geographic data for all taxa has been processed and cleaned, we can run species distribution models.
-The sdm function runs two maxent models: a full model using all variables, and backwards selection. 
-Given a candidate set of predictor variables, the backwards selection function identifies a subset 
-of variables that meets specified multi-collinearity criteria. Subsequently, backward step-wise variable 
-selection is used to iteratively drop the variable that contributes least to the model, 
-until the contribution of each variable meets a specified minimum, or until a predetermined 
-minimum number of predictors remains.
+## 250m Precip layers
+aus_precip_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Precip',        pattern =".tif", full.names = TRUE))
 
-\
+east_precip_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Precip', pattern =".tif", full.names = TRUE))
 
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+
+## 250m temperature layers
+aus_temp_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Temp',          pattern =".tif", full.names = TRUE))
+
+east_temp_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Temp',   pattern =".tif", full.names = TRUE))
+
+
+## 250m Soil layers
+aus_soil_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Soil',          pattern =".tif", full.names = TRUE))
+
+east_soil_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Soil',   pattern =".tif", full.names = TRUE))
+
+
+## 250m Geology Australia
+aus_geology_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Geology',        pattern =".tif", full.names = TRUE))
+
+east_geology_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Geology', pattern =".tif", full.names = TRUE))
+
+
+## 250m topo Australia
+aus_topo_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Topo',           pattern =".tif", full.names = TRUE))
+
+east_topo_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Topo',    pattern =".tif", full.names = TRUE))
+
+
+## 250m terrain indices Australia
+aus_terrain_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Indices',        pattern =".tif", full.names = TRUE))
+
+east_terrain_250m <- raster::stack(
+  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Indices', pattern =".tif", full.names = TRUE))
+
+
+## Climate data for Australia, in GDA Albers projection
+aus.grids.current.250m <- stack(aus_precip_250m,
+                                aus_temp_250m,
+                                aus_soil_250m,
+                                aus_topo_250m,
+                                aus_terrain_250m,
+                                aus_geology_250m)
+
+east.grids.current.250m <- stack(east_precip_250m,
+                                 east_temp_250m,
+                                 east_soil_250m,
+                                 east_topo_250m,
+                                 east_terrain_250m,
+                                 east_geology_250m)
+
+
+## And a stack of grids for vegetation, in GDA Albers projection
+aus.veg.grids.250m <- stack(
+  
+  list.files('./data/Remote_sensing/Veg_data/height_and_cover/Aus/250m', 
+             '_250m.tif', full.names = TRUE))
+
+east.veg.grids.250m <- stack(
+  
+  list.files('./data/Remote_sensing/Veg_data/height_and_cover/Eastern_Aus/250m', 
+             '_east_coast.tif', full.names = TRUE))
+
+
+names(east.grids.current.250m) <- gsub('_EAST_COAST', '', names(east.grids.current.250m))
+names(aus.veg.grids.250m)      <- names(east.veg.grids.250m) <- c("Plant_cover_fraction_0_5m", 
+                                                                  "Plant_cover_fraction_5_10m",  
+                                                                  "Plant_cover_fraction_10_30m",      
+                                                                  "Plant_cover_fraction_30m",
+                                                                  "Total_Plant_cover_fraction",  
+                                                                  "Tree_canopy_height_25th", 
+                                                                  "Tree_canopy_height_50th", 
+                                                                  "Tree_canopy_height_75th",   
+                                                                  "Tree_canopy_height_95th",   
+                                                                  "Tree_canopy_peak_foliage",
+                                                                  "Tree_canopy_peak_foliage_total",
+                                                                  "mrvbf")
+
+
+## Combine the grids into raster stacks
+aus.climate.veg.grids.250m   <- stack(aus.grids.current.250m, aus.veg.grids.250m)
+east.climate.veg.grids.250m  <- stack(east.grids.current.250m, east.veg.grids.250m)
+aus_annual_precip            <- raster('./data/Bushfire_indices/R_outputs/250m/AUS/Extra/Annual_precip_WGS84.tif')
+aus_annual_precip_alb        <- raster('./data/Bushfire_indices/R_outputs/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
+
+
+## Should be 1km*1km, It should havle a value of 1 for land, and NA for the ocean
+aus_annual_precip_alb[aus_annual_precip_alb > 0] <- 1
+template_raster_250m <- aus_annual_precip_alb
+
+
+
+
+
+## 2). RUN SDM ANALYSIS =============================================================
+
+
+
+# The backbone of the R workflow is a list of (taxonomically Ridgey-Didge!) Taxa names 
+# that we supply. The analysis is designed to process data for one taxa at a time, 
+# allowing taxa results to be updated as required. Unfortunately, Australia's insects
+# are not very well sampled...so we can analyse at the genus and family level.
+# 
+# \
+# 
+# The site data comes from the PBI database :
+# 
+# \
+
+
+## get target taxa
+data('insect_data_families')
+data('all.insect.families')
+data('all.insect.genera')
+data('all.insect.spp')
+
+data('target.insect.spp')
+data('target.insect.genera')
+data('target.insect.families')
+data('target.host.plants')
+data('all.insect.plant.spp')
+
+
+analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
+
 
 ## Read in the SDM data
-sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
-SDM.SPAT.OCC.BG.GDA       = readRDS('./output/invert_maxent_raster_update/results/SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds')
-SDM.PLANT.SPAT.OCC.BG.GDA = readRDS('./output/plant_maxent_raster_update/results/SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds')
-
-
-## To Do :
-## 1). Ryan has checked the taxonomy
-## 2). Check the errors that Finlay may have found
-source('./R/SDM_GEN_MAXENT_FUNCTIONS.R')
-source('./R/SDM_GEN_MAPPING_FUNCTIONS.R')
-gc()
+sp_epsg3577  <- '+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
+data('AUS')
+SDM.SPAT.OCC.BG.GDA       <- readRDS('./output/invert_maxent_raster_update/results/SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds')
+SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS('./output/plant_maxent_raster_update/results/SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds')
 
 
 ## Run family-level models for invertebrates
@@ -143,8 +217,7 @@ run_sdm_analysis(taxa_list               = sort(target.insect.families),
                  features                = 'lpq',
                  replicates              = 5,
                  responsecurves          = TRUE,
-                 country_shp             = AUS,
-                 crop_Koppen             = FALSE)
+                 country_shp             = AUS)
 
 gc()
 
@@ -170,8 +243,7 @@ run_sdm_analysis(taxa_list               = rev(sort(target.insect.genera)),
                  features                = 'lpq',
                  replicates              = 5,
                  responsecurves          = TRUE,
-                 country_shp             = AUS,
-                 crop_Koppen             = FALSE)
+                 country_shp             = AUS)
 
 gc()
 
@@ -197,8 +269,7 @@ run_sdm_analysis(taxa_list               = target.insect.spp,
                  features                = 'lpq',
                  replicates              = 5,
                  responsecurves          = TRUE,
-                 country_shp             = AUS,
-                 crop_Koppen             = FALSE)
+                 country_shp             = AUS)
 
 gc()
 
@@ -230,63 +301,58 @@ run_sdm_analysis(taxa_list               = sort(target.host.plants),
                  country_shp             = AUS,
                  crop_Koppen             = FALSE)
 
-gc()
 
-``` 
 
-\
+## 3). PROJECT SDMs =============================================================
 
-# Project Species Distribution Models across Australia
 
-\
-
-The next stage of the process is to project the SDM predictions across geographic space.
-First, we need to extract the SDM results from the models. Each model generates a 'threshold' 
-of probability of occurrence (see ref), which we use to create map of habitat suitability 
-across Australia (). 
-
-\
-
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
+# \
+# 
+# The next step is to project the SDM predictions across geographic space.
+# First, we need to extract the SDM results from the models. Each model generates a 'threshold' 
+# of probability of occurrence (see ref), which we use to create map of habitat suitability 
+# across Australia (). 
+# 
+# \
 
 
 ## Create a table of maxent results
 ## This function aggregates the results for models that ran successfully
 INVERT.MAXENT.RESULTS     <- compile_sdm_results(taxa_list    = analysis_taxa,
-                                                 results_dir  = 'output/invert_maxent/back_sel_models',
-                                                 data_path    = "./output/invert_maxent/Habitat_suitability/",
-                                                 sdm_path     = "./output/invert_maxent/back_sel_models/",
+                                                 results_dir  = 'output/invert_maxent_raster_update/back_sel_models',
+                                                 data_path    = "./output/invert_maxent_raster_update/Habitat_suitability/",
+                                                 sdm_path     = "./output/invert_maxent_raster_update/back_sel_models/",
                                                  save_data    = FALSE,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
 
 INVERT.MAXENT.FAM.RESULTS <- compile_sdm_results(taxa_list    = target.insect.families,
-                                                 results_dir  = 'output/invert_maxent/back_sel_models',
-                                                 data_path    = "./output/invert_maxent/Habitat_suitability/",
-                                                 sdm_path     = "./output/invert_maxent/back_sel_models/",
+                                                 results_dir  = 'output/invert_maxent_raster_update/back_sel_models',
+                                                 data_path    = "./output/invert_maxent_raster_update/Habitat_suitability/",
+                                                 sdm_path     = "./output/invert_maxent_raster_update/back_sel_models/",
                                                  save_data    = FALSE,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
 
 INVERT.MAXENT.GEN.RESULTS <- compile_sdm_results(taxa_list    = target.insect.genera,
-                                                 results_dir  = 'output/invert_maxent/back_sel_models',
-                                                 data_path    = "./output/invert_maxent/Habitat_suitability/",
-                                                 sdm_path     = "./output/invert_maxent/back_sel_models/",
+                                                 results_dir  = 'output/invert_maxent_raster_update/back_sel_models',
+                                                 data_path    = "./output/invert_maxent_raster_update/Habitat_suitability/",
+                                                 sdm_path     = "./output/invert_maxent_raster_update/back_sel_models/",
                                                  save_data    = FALSE,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
 
 INVERT.MAXENT.SPP.RESULTS <- compile_sdm_results(taxa_list    = target.insect.spp,
-                                                 results_dir  = 'output/invert_maxent/back_sel_models',
-                                                 data_path    = "./output/invert_maxent/Habitat_suitability/",
-                                                 sdm_path     = "./output/invert_maxent/back_sel_models/",
+                                                 results_dir  = 'output/invert_maxent_raster_update/back_sel_models',
+                                                 data_path    = "./output/invert_maxent_raster_update/Habitat_suitability/",
+                                                 sdm_path     = "./output/invert_maxent_raster_update/back_sel_models/",
                                                  save_data    = FALSE,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
 
 PLANT.MAXENT.RESULTS      <- compile_sdm_results(taxa_list    = target.host.plants,
                                                  results_dir  = 'output/plant_maxent/back_sel_models',
-                                                 data_path    = "./output/invert_maxent/Habitat_suitability/",
+                                                 data_path    = "./output/invert_maxent_raster_update/Habitat_suitability/",
                                                  sdm_path     = "./output/plant_maxent/back_sel_models/",
                                                  save_data    = FALSE,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
@@ -305,19 +371,12 @@ invert_map_spp  <- INVERT.MAXENT.SPP.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
 plant_map_taxa  <- PLANT.MAXENT.RESULTS$searchTaxon  %>% gsub(" ", "_", .,)
 
 
+# The projection function takes the maxent models created by the 'fit_maxent_targ_bg_back_sel' function, 
+# and projects the models across geographic space - currently just for Australia. It uses the rmaxent 
+# package https://github.com/johnbaums/rmaxent. It assumes that the maxent models were generated by the 
+# 'fit_maxent_targ_bg_back_sel' function. Note that this step is quite memory heavy, best run with > 64GB of RAM.
 
-``` 
 
-\
-
-The projection function takes the maxent models created by the 'fit_maxent_targ_bg_back_sel' function, 
-and projects the models across geographic space - currently just for Australia. It uses the rmaxent 
-package https://github.com/johnbaums/rmaxent. It assumes that the maxent models were generated by the 
-'fit_maxent_targ_bg_back_sel' function. Note that this step is quite memory heavy, best run with > 64GB of RAM.
-
-\
-
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Create a local projection for mapping : Australian Albers
 aus_albers <- CRS('+proj=aea +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=132 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs')
@@ -340,11 +399,11 @@ tryCatch(
   error = function(cond) {
     
     ## This will write the error message inside the text file, but it won't include the species
-    file.create(file.path("output/invert_maxent_raster_update/back_sel_models/mapping_failed_current.txt"))
-    cat(cond$message, file = file.path("output/invert_maxent_raster_update/back_sel_models/inv_mapping_failed_current.txt"))
-    warning(cond$message)
-    
-  })
+file.create(file.path("output/invert_maxent_raster_update/back_sel_models/mapping_failed_current.txt"))
+cat(cond$message, file = file.path("output/invert_maxent_raster_update/back_sel_models/inv_mapping_failed_current.txt"))
+warning(cond$message)
+
+})
 
 
 ## Project SDMs across the Study area for the plant taxa
@@ -370,33 +429,27 @@ tryCatch(
     
   })
 
-``` 
-
-\
-
-![fig1](https://github.com/HMB3/sdmgen/blob/master/output/Acacia_dealbata_mess_panel.png?raw=true)
 
 
-**Figure 2.** Example of a continuous climatic suitability map for one plant species under 
-current conditions. Species occurrence points are plotted in red on the left panel. The cells in the right 
-panel are coded from 0 : no to low suitability, to 1 : highly suitable. The shaded areas on the right panel
-indicate where the maxent model is extrapolating beyond the training data (i.e. the result of a MESS map).
 
-\
+## 4). THRESHOLD SDMs =============================================================
 
-To use the habitat suitability rasters in area calculations (e.g. comparing the area of suitable habitat
-affected by fire), we need to convert the continuous suitability scores (ranging from 0-1) to binary values
-(either 1, or 0). To do this, we need to pick a threshold of habitat suitability, below which the species 
-is not considered present. Here we've chosen the 10th% Logistic threshold for each taxa (ref).
 
-\
+# \
+# 
+# To use the habitat suitability rasters in area calculations (e.g. comparing the area of suitable habitat
+#                                                              affected by fire), we need to convert the continuous suitability scores (ranging from 0-1) to binary values
+# (either 1, or 0). To do this, we need to pick a threshold of habitat suitability, below which the species 
+# is not considered present. Here we have chosen the 10th% Logistic threshold for each taxa (ref).
+# 
+# 
+# \
 
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Threshold the invertebrate SDM models to be either 0 or 1
+## Combine all the site data into one table 
 habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTaxon)),
                   maxent_table  = INVERT.MAXENT.RESULTS,
-                  maxent_path   = './output/invert_maxent/back_sel_models/',
+                  maxent_path   = './output/invert_maxent_raster_update/back_sel_models/',
                   cell_factor   = 9,
                   country_shp   = 'AUS',
                   country_prj   = CRS("+init=EPSG:3577"))
@@ -405,7 +458,7 @@ habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTa
 ## Threshold the invertebrate SDM models to be either 0 or 1
 habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)),
                   maxent_table  = INVERT.MAXENT.RESULTS,
-                  maxent_path   = './output/invert_maxent/back_sel_models/',
+                  maxent_path   = './output/invert_maxent_raster_update/back_sel_models/',
                   cell_factor   = 9,
                   country_shp   = 'AUS',
                   country_prj   = CRS("+init=EPSG:3577"))
@@ -419,30 +472,5 @@ habitat_threshold(taxa_list     = sort(unique(PLANT.MAXENT.RESULTS$searchTaxon))
                   country_shp   = 'AUS',
                   country_prj   = CRS("+init=EPSG:3577"),
                   write_rasters = TRUE)
-
-
-``` 
-
-
-\
-
-
-# Add Host Plants to the Maxent LUT 
-
-\
-
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
-
-## Read in the host plant species
-host_plants <- read_excel('./output/invert_maxent/Habitat_suitability/NENSW_INVERTEBRATES_SPATIAL_DATA_LUT_SEP2021.xlsm',
-                          sheet = 'NENSW_INV_TAXA_ASSOCIATIONS') %>% filter(Target_taxon == "Yes") %>% 
-  dplyr::select(searchTaxon, Host_Plant_taxon) 
-
-
-MAXENT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>% left_join(., host_plants, by = "searchTaxon") %>% 
-  mutate(host_dir = gsub(' ', '_', Host_Plant_taxon)) %>% 
-  mutate(host_dir = ifelse(!is.na(Host_Plant_taxon),  paste0(host_back_dir, host_dir, '/full/'), NA))
-
-``` 
 
 
