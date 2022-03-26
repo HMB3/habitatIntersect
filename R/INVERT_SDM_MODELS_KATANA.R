@@ -181,6 +181,7 @@ analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.inse
 
 ## Read in the SDM data
 sp_epsg3577  <- '+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
+data('AUS')
 SDM.SPAT.OCC.BG.GDA       <- readRDS('./output/invert_maxent_raster_update/results/SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds')
 SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS('./output/plant_maxent_raster_update/results/SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds')
 
@@ -206,8 +207,7 @@ run_sdm_analysis(taxa_list               = sort(target.insect.families),
                  features                = 'lpq',
                  replicates              = 5,
                  responsecurves          = TRUE,
-                 country_shp             = AUS,
-                 crop_Koppen             = FALSE)
+                 country_shp             = AUS)
 
 gc()
 
@@ -233,8 +233,7 @@ run_sdm_analysis(taxa_list               = rev(sort(target.insect.genera)),
                  features                = 'lpq',
                  replicates              = 5,
                  responsecurves          = TRUE,
-                 country_shp             = AUS,
-                 crop_Koppen             = FALSE)
+                 country_shp             = AUS)
 
 gc()
 
@@ -260,8 +259,7 @@ run_sdm_analysis(taxa_list               = target.insect.spp,
                  features                = 'lpq',
                  replicates              = 5,
                  responsecurves          = TRUE,
-                 country_shp             = AUS,
-                 crop_Koppen             = FALSE)
+                 country_shp             = AUS)
 
 gc()
 
@@ -299,7 +297,7 @@ gc()
 
 
 
-## 2). Project SDMs across eastern Aus ----
+## 3). Project SDMs across eastern Aus ----
 
 
 # The next step is to project the SDM predictions across geographic space.
