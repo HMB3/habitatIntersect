@@ -71,7 +71,8 @@ ipak <- function(pkg){
 # install.packages("arcgisbinding", repos="https://r.esri.com", type="win.binary")
 
 ## Create documentation and install package
-# roxygen2::roxygenise()
+devtools::document()
+roxygen2::roxygenise()
 # devtools::install_github("HMB3/nenswniche")
 
 ## Load packages 

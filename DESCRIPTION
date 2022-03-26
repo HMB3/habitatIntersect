@@ -126,7 +126,8 @@ Suggests:
     knitr
 Remotes: 
     johnbaums/rmaxent,
-    johnbaums/things
+    johnbaums/things,
+    traitecoevo/taxonlookup
 URL: https://github.com/HMB3/North_east_NSW_fire_recovery
 RoxygenNote: 7.1.2
 VignetteBuilder: knitr

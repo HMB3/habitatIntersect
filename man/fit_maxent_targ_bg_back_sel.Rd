@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_MAXENT_FUNCTIONS.R
 \name{fit_maxent_targ_bg_back_sel}
 \alias{fit_maxent_targ_bg_back_sel}
-\title{Maxent Backwards selection for 'species with data' format.}
+\title{Maxent Backwards selection for 'species with data' format, without cropping.}
 \usage{
 fit_maxent_targ_bg_back_sel(
   occ,
@@ -19,9 +19,6 @@ fit_maxent_targ_bg_back_sel(
   min_n,
   max_bg_size,
   background_buffer_width,
-  crop_Koppen,
-  Koppen_raster,
-  Koppen_zones,
   shapefiles,
   features,
   replicates,
@@ -53,8 +50,6 @@ fit_maxent_targ_bg_back_sel(
 \item{min_n}{Numeric - The min number of records for running maxent}
 
 \item{max_bg_size}{Numeric - The max number of background points to keep}
-
-\item{crop_Koppen}{Logical - Should we use a koppen zone raster to select background points?}
 
 \item{shapefiles}{Logical - Save shapefiles of the occ and bg data (T/F)?}
 
