@@ -20,7 +20,7 @@
 #' @param save_novel_poly    Character string - Save the novel areas as shapefiles?
 #' @param create_mess        Logical - Create mess maps of the predictions (T/F)?
 #' @details It uses the rmaxent package https://github.com/johnbaums/rmaxent
-#' @export
+#' @export project_maxent_current_grids_mess
 project_maxent_current_grids_mess = function(country_shp, 
                                              country_prj,   save_novel_poly,
                                              local_prj,     taxa_list,
@@ -312,7 +312,7 @@ project_maxent_current_grids_mess = function(country_shp,
 #' @param country_shp        Character string - Shapefile name that has already been read into R (e.g. in the Package)
 #' @param country_prj        Character string - Name of projection
 #' @param write_rasters      Logical          - Save rasters (T/F)?
-#' @export
+#' @export habitat_threshold
 habitat_threshold = function(taxa_list,
                              maxent_table,
                              maxent_path,
@@ -447,7 +447,7 @@ habitat_threshold = function(taxa_list,
 #' @param country_shp     Character string - Shapefile name that has already been read into R (e.g. in the Package)
 #' @param buffer          Numeric          - Distance by which to buffer the points (metres using a projected system)
 #' @param write_rasters   Logical          - Save rasters (T/F)?
-#' @export
+#' @export taxa_records_habitat_intersect
 taxa_records_habitat_intersect = function(analysis_df,
                                           taxa_list,
                                           taxa_level,
@@ -567,7 +567,7 @@ taxa_records_habitat_intersect = function(analysis_df,
 #' @param country_shp        Character string - Shapefile name that has already been read into R (e.g. in the Package)
 #' @param country_prj        Character string - Name of projection
 #' @param write_rasters      Logical          - Save rasters (T/F)?
-#' @export
+#' @export calculate_taxa_habitat
 calculate_taxa_habitat = function(taxa_list,
                                   targ_maxent_table,
                                   host_maxent_table,
@@ -1042,7 +1042,7 @@ calculate_taxa_habitat = function(taxa_list,
 #' @param OSGeo_path         Character string - file path of .bat file for converting rasters to polygons (
 #' you need to download the OSGeo4W64 setup, see https://www.osgeo.org/)
 #' @details It uses the rmaxent package https://github.com/johnbaums/rmaxent
-#' @export
+#' @export project_maxent_future_grids_mess
 project_maxent_future_grids_mess = function(country_shp,   world_shp,
                                             country_prj,   world_prj, local_prj,
                                             scen_list,     taxa_list,
@@ -1541,7 +1541,7 @@ project_maxent_future_grids_mess = function(country_shp,   world_shp,
 
 #' @param p    A trellis object resulting from rasterVis::levelplot
 #' @param ramp Character string - The name of an RColorBrewer palette (as character), a character
-#' @export
+#' @export diverge0
 diverge0 <- function(p, ramp) {
   
   ## p: a trellis object resulting from rasterVis::levelplot
@@ -1588,7 +1588,7 @@ diverge0 <- function(p, ramp) {
 #' @param agg_var            Character string - The field name in the shapefile to use for aggregating SDM results (e.g. Urban area codes)
 #' @param temp_ras           Raster - An existing raster with the same extent, resolution and projection as the maxent models (e.g. Australia)
 #' @param targ_ras           Raster - An existing raster of the shapefile with the same extent, resolution and projection as the maxent models (e.g. Australia)
-#' @export
+#' @export shapefile_vector_from_raster
 shapefile_vector_from_raster = function (shp_file,
                                          prj,
                                          agg_var,
