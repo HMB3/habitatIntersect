@@ -49,6 +49,7 @@ To install, run :
 ## java memory limit and temporary raster dir
 rm(list = ls())
 options(java.parameters = "-Xmx64000m")
+Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jre1.8.0_321')
 
 ## Function to load or install packages
 ipak <- function(pkg){
@@ -58,11 +59,18 @@ ipak <- function(pkg){
   sapply(pkg, require, character.only = TRUE)
 }
 
+
+## Main package 
+# devtools::install_github("HMB3/nenswniche")
+source('./R/SDM_GEN_MAXENT_FUNCTIONS.R')
+source('./R/SDM_GEN_MAPPING_FUNCTIONS.R')
+gc()
+
 ## Main package 
 # devtools::install_github("HMB3/nenswniche")
 
 ## Load packages
-library(nenswniche)
+# library(nenswniche)
 data('sdmgen_packages')
 ipak(sdmgen_packages)
 

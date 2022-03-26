@@ -1,13 +1,49 @@
-#########################################################################################################################
-###################################### LISTS NEEDED TO RUN SDMS ---- ####################################################
-#########################################################################################################################
+---
+title: "nenswniche : a package for rapidly estimating multiple taxa ranges and habitat suitability"
+authors: "Hugh Burley, Shawn Laffan, Will Cornwell, Adrian Fisher"
+date: "October 2021"
+output:
+  github_document:
+  toc: true   
+toc_depth: 4            
+toc_float: true
+number_sections: false  
+vignette: >
+%\VignetteIndexEntry{README}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+  keep_md: true
+  theme: united     
+highlight: tango        
+css: styles.css
+revealjs::revealjs_presentation:
+  dev: 'svg'
+chunk_output_type: console
+self_contained: false
+reveal_plugins: ["notes", "search"]
+reveal_options:
+  slideNumber: true
+previewLinks: true
+word_document:
+  always_allow_html: yes
+---
 
-
-
+\
 
 
 ## 1). CREATE OCCURRENCE LISTS ===========================================================================================
 
+
+\
+
+Lists needed for occurrence data
+
+
+\
+
+To install, run :
+
+```{r eval=FALSE, echo=TRUE, message=TRUE, warning=FALSE}
 
 ## GBIF columns to keep ----
 gbif_keep <- c(## TAXONOMY
@@ -47,7 +83,10 @@ gbif_keep <- c(## TAXONOMY
   "eventID")
 
 
-
+## ALA Enviro cols ----
+## Createa a table of all the ALA columns
+# ALA_columns     <- ala_fields("occurrence_stored",as_is = TRUE)$description[231:395]
+# names(ALA)[58:215]
 
 
 ## ALA columns to keep ----
@@ -130,18 +169,22 @@ common_cols <- c('searchTaxon',
                  'month',           
                  'eventDate')
 
+```
+
+\
+\
+\
 
 
+## 2). CREATE RASTER LISTS =============================================================
 
+\
 
+Lists needed for raster analyses.
 
+\
 
-## 2). CREATE RASTER LISTS ===========================================================================================
-
-
-
-## These rasters could change, but the names in the projections, etc, would also need to change
-
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=TRUE}
 
 ## Create the variables needed to access current environmental conditions + their names in the functions
 ## Names of all the worldclim variables used to extract the raster data
@@ -221,7 +264,6 @@ scen_2070 = c("mc85bi70", "no85bi70", "ac85bi70", "cc85bi70", "gf85bi70", "hg85b
 
 ## Make a list of SDM columns needed ----
 results_columns = c("searchTaxon",        ## From the ALA/ GBIF download code
-                    "Origin",             ## native/extoic : from Anthony Manea's spreadsheet, affected by taxonomy....
                     "Family",             ## From Anthony Manea's spreadsheet, will be affected by taxonomy....
 
                     "Maxent_records",     ## No. records used in the SDM
@@ -312,4 +354,8 @@ sdmgen_packages <-  c("ff",
                       "ggpubr",              
                       "GGally",             
                       "maptools")
+
+
+
+```
 
