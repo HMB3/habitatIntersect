@@ -108,7 +108,7 @@ download_GBIF_all_species = function(species_list,
 #' @param species_list   Character vector - List of species binomials to download
 #' @param download_path  Character string - File path for species downloads
 #' @param download_limit Numeric - How many records can be downloaded at one time? Set by server
-#' @export
+#' @export download_ALA_all_species
 download_ALA_all_species = function (species_list, 
                                      your_email, 
                                      download_path, 
@@ -199,7 +199,7 @@ download_ALA_all_species = function (species_list,
 #' @param quality_cols   Character - quality ALA columns, eg spatial accuracy
 #' @param download_limit Numeric - How many records can be downloaded at one time? Set by server
 #' @return               Data frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)
-#' @export
+#' @export download_ALA_all_genera
 download_ALA_all_genera = function (genera_list, 
                                     your_email, 
                                     download_path, 
@@ -291,7 +291,7 @@ download_ALA_all_genera = function (genera_list,
 #' @param quality_cols   Character - quality ALA columns, eg spatial accuracy
 #' @param download_limit Numeric - How many records can be downloaded at one time? Set by server
 #' @return               Data frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)
-#' @export
+#' @export download_ALA_all_families
 download_ALA_all_families = function (species_list, 
                                       your_email, 
                                       download_path, 
@@ -382,7 +382,7 @@ download_ALA_all_families = function (species_list,
 #' @param quality_cols   Character - quality ALA columns, eg spatial accuracy
 #' @param download_limit Numeric - How many records can be downloaded at one time? Set by server
 #' @return               Data frame of all site records, with global enviro conditions for each record location (i.e. lat/lon)
-#' @export
+#' @export download_ALA_all_tribes
 download_ALA_all_tribes = function (species_list, 
                                     your_email, 
                                     download_path, 
@@ -475,7 +475,7 @@ download_ALA_all_tribes = function (species_list,
 #' @param record_type        Adds a column to the data frame for the data source, EG ALA
 #' @param keep_cols          The columns we want to keep - a character list created by you
 #' @param world_raster       An Raster file of the enviro conditions used (assumed to be global)
-#' @export
+#' @export combine_ala_records
 combine_ala_records = function(taxa_list, 
                                records_path, 
                                records_extension,
@@ -675,7 +675,7 @@ combine_ala_records = function(taxa_list,
 #' @param record_type        Adds a column to the data frame for the data source, EG ALA
 #' @param keep_cols          The columns we want to keep - a character list created by you
 #' @param world_raster       An Raster file of the enviro conditions used (assumed to be global)
-#' @export
+#' @export format_ala_dump
 format_ala_dump = function(ALA_table, 
                            record_type, 
                            keep_cols, 
@@ -825,7 +825,7 @@ format_ala_dump = function(ALA_table,
 #' @param record_type        Adds a column to the data frame for the data source, EG ALA
 #' @param keep_cols          The columns we want to keep - a character list created by you
 #' @param world_raster       An Raster file of the enviro conditions used (assumed to be global)
-#' @export
+#' @export combine_gbif_records
 combine_gbif_records = function(taxa_list, 
                                 records_path, 
                                 records_extension, 
@@ -1170,7 +1170,7 @@ combine_records_extract = function(ala_df,
 #' @param save_run           Character string - run name to append to the data frame, useful for multiple runs.
 #' @param save_data          Logical or character - do you want to save the data frame?
 #' @param data_path          Character string - The file path used for saving the data frame
-#' @export
+#' @export coord_clean_records
 coord_clean_records = function(records,
                                multi_source,
                                occ_flag,
@@ -1294,7 +1294,7 @@ coord_clean_records = function(records,
 #' @param record_limit       Numeric - limit for records
 #' @param multi_source       Numeric - use multiple sources?
 #' @param spatial_mult       Numeric. The multiplier of the interquartile range (method == 'quantile', see ?cc_outl)
-#' @export
+#' @export check_spatial_outliers
 check_spatial_outliers = function(occ_df,
                                   multi_source,
                                   site_flag,
@@ -1535,7 +1535,7 @@ check_spatial_outliers = function(occ_df,
 #' @param save_run           Character string - run name to append to the data frame, useful for multiple runs.
 #' @param save_data          Logical - do you want to save the data frame?
 #' @param data_path          Character string - The file path used for saving the data frame
-#' @export
+#' @export calc_1km_niches
 calc_1km_niches = function(coord_df,
                            prj,
                            country_shp,
@@ -1751,7 +1751,7 @@ calc_1km_niches = function(coord_df,
 #' @param data         Data.frame of taxa records
 #' @param desiredCols  Character string of columns to search for NA values EG c('rainfall', 'temp'), etc.
 #' @return             A df with NA records removed
-#' @export
+#' @export completeFun
 completeFun <- function(data, desiredCols) {
   
   completeVec <- complete.cases(data[, desiredCols])
@@ -1770,7 +1770,7 @@ completeFun <- function(data, desiredCols) {
 #' @param  DF        Data.frame of all taxa records prepared by the calc_1km_niches function
 #' @param  colname   Character string - the columns to estimate niches for E.G. 'rainfall', etc.
 #' @return           Data.frame of estimated environmental niches for each taxa
-#' @export
+#' @export niche_estimate
 niche_estimate = function (DF,
                            colname) {
   
@@ -1844,7 +1844,7 @@ niche_estimate = function (DF,
 #' @param  coord_df           Data.frame of all taxa records prepared by the check_spatial_outliers function
 #' @param  taxa_list       Character string - the taxa analysed
 #' @param  range_path         Character string - file path for saving histograms and convex hulls
-#' @export
+#' @export plot_range_histograms
 plot_range_histograms = function(coord_df,
                                  taxa_list,
                                  range_path) {
@@ -2061,7 +2061,7 @@ plot_range_histograms = function(coord_df,
 #' @param save_data          Logical - do you want to save the data frame?
 #' @param data_path          Character string - The file path used for saving the data frame
 #' @param project_path       Paht of taxa records, with spatial outlier T/F flag for each record
-#' @export
+#' @export prepare_sdm_table
 prepare_sdm_table = function(coord_df,
                              taxa_list,
                              site_flag,
@@ -2285,7 +2285,7 @@ prepare_sdm_table = function(coord_df,
 #' @param taxa_list     Character string - List of species    
 #' @param data_path     Character string - The file path used for saving the data frame
 #' @param sdm_  Path of taxa records, with spatial outlier T/F flag for each record
-#' @export
+#' @export split_shp
 split_shp <- function(taxa_list,
                       sdm_df,
                       data_path) {

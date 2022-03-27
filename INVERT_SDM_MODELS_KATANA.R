@@ -32,11 +32,17 @@ library(nenswniche)
 data('sdmgen_packages')
 ipak(sdmgen_packages)
 
+
 ## Try and set the raster temp directory to a location not on the partition, to save space
 rasterOptions(tmpdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
 terraOptions(memfrac = 0.5, 
              tempdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
 
+
+## 
+source('./R/SDM_GEN_PROCESSOR_FUNCTIONS.R')
+source('./R/SDM_GEN_MAXENT_FUNCTIONS.R')
+source('./R/SDM_GEN_MAPPING_FUNCTIONS.R')
 
 
 
@@ -155,6 +161,11 @@ template_raster_250m <- aus_annual_precip_alb
 data('AUS')
 
 
+AUS_shp <- readOGR(dsn              = './data/Spatial_data/AUS_2016_AUST.shp',
+                   layer            = 'AUS_2016_AUST',
+                   stringsAsFactors = FALSE)
+
+
 
 
 
@@ -213,12 +224,12 @@ run_sdm_analysis(taxa_list               = sort(target.insect.families),
                  k_thr                   = 4, 
                  min_n                   = 10,  
                  max_bg_size             = 100000,
-                 background_buffer_width = 200000,
+                 background_buffer_width = 100000,
                  shapefiles              = TRUE,
                  features                = 'lpq',
                  replicates              = 5,
                  responsecurves          = TRUE,
-                 country_shp             = AUS)
+                 country_shp             = AUS_shp)
 
 gc()
 
@@ -244,7 +255,7 @@ run_sdm_analysis(taxa_list               = rev(sort(target.insect.genera)),
                  features                = 'lpq',
                  replicates              = 5,
                  responsecurves          = TRUE,
-                 country_shp             = AUS)
+                 country_shp             = AUS_shp)
 
 gc()
 
@@ -270,7 +281,7 @@ run_sdm_analysis(taxa_list               = target.insect.spp,
                  features                = 'lpq',
                  replicates              = 5,
                  responsecurves          = TRUE,
-                 country_shp             = AUS)
+                 country_shp             = AUS_shp)
 
 gc()
 
@@ -400,11 +411,11 @@ tryCatch(
   error = function(cond) {
     
     ## This will write the error message inside the text file, but it won't include the species
-file.create(file.path("output/invert_maxent_raster_update/back_sel_models/mapping_failed_current.txt"))
-cat(cond$message, file = file.path("output/invert_maxent_raster_update/back_sel_models/inv_mapping_failed_current.txt"))
-warning(cond$message)
-
-})
+    file.create(file.path("output/invert_maxent_raster_update/back_sel_models/mapping_failed_current.txt"))
+    cat(cond$message, file = file.path("output/invert_maxent_raster_update/back_sel_models/inv_mapping_failed_current.txt"))
+    warning(cond$message)
+    
+  })
 
 
 ## Project SDMs across the Study area for the plant taxa

@@ -185,8 +185,8 @@ run_sdm_analysis_crop = function(taxa_list,
 #' @param replicates         Numeric - The number of replicates to use
 #' @param responsecurves     Logical - Save response curves of the maxent models (T/F)?
 #' @param country_shp             .Rds object - SpatialPolygonsDataFrame of Australia for mapping maxent points
-#' @export run_sdm_analysis
-run_sdm_analysis = function(taxa_list,
+#' @export run_sdm_analysis_no_crop
+run_sdm_analysis_no_crop = function(taxa_list,
                             taxa_level,
                             sdm_df,
                             sdm_predictors,
@@ -709,8 +709,8 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
 #' @param country_shp        .Rds object - SpatialPolygonsDataFrame of Australia for mapping maxent points
 #' @param rep_args           RasterLayer of global koppen zones, in Mollweide54009 projection
 #' @param full_args          Dataframe of global koppen zones, with columns : GRIDCODE, Koppen
-#' @export fit_maxent_targ_bg_back_sel 
-fit_maxent_targ_bg_back_sel <- function(occ,
+#' @export fit_maxent_targ_bg_back_sel_no_crop 
+fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
                                         bg,
                                         sdm_predictors,
                                         name,
