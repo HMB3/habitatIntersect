@@ -41,9 +41,9 @@ terraOptions(memfrac = 0.5,
 
 
 ## 
-source('./R/SDM_GEN_PROCESSOR_FUNCTIONS.R')
-source('./R/SDM_GEN_MAXENT_FUNCTIONS.R')
-source('./R/SDM_GEN_MAPPING_FUNCTIONS.R')
+# source('./R/SDM_GEN_PROCESSOR_FUNCTIONS.R')
+# source('./R/SDM_GEN_MAXENT_FUNCTIONS.R')
+# source('./R/SDM_GEN_MAPPING_FUNCTIONS.R')
 
 
 

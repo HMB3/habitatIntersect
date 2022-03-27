@@ -213,7 +213,7 @@ run_sdm_analysis_no_crop = function(taxa_list,
   
   shp <- readOGR(dsn              = shp_path,
                  layer            = shp_layer,
-                 stringsAsFactors = FALSE) %>% spTransform(projection(occ))
+                 stringsAsFactors = FALSE) %>% spTransform(projection(sdm_df))
   
   ## Loop over all the taxa
   ## taxa <- taxa_list[1]
