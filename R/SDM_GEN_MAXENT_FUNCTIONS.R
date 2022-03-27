@@ -246,10 +246,6 @@ run_sdm_analysis_no_crop = function(taxa_list,
         background <- sdm_df %>% .[!.[[taxa_level]] %in% taxa, ]
         message('Using ', nrow(background), ' background records from ', unique(background$SOURCE))
         
-        shp <- readOGR(dsn              = shp_path,
-                       layer            = shp_layer,
-                       stringsAsFactors = FALSE) %>% spTransform(projection(occurrence))
-        
         ## Finally fit the models using FIT_MAXENT_TARG_BG. Also use tryCatch to skip any exceptions
         tryCatch(
           fit_maxent_targ_bg_back_sel_no_crop(occ                     = occurrence,
@@ -795,7 +791,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     ## Find which of these cells fall within the Koppen-Geiger zones that the taxa occupies
     ## Crop the Kopppen raster to the extent of the occurrences, and snap it.
     message(name, ' Do not intersect background cells with Koppen zones')
-    message('country shp is a ', class(country_shp))
+    message('country shp is a ', class(shp))
     i                   <- terra::cellFromXY(template_raster_spat, bg_mat_unique)
     bg_crop             <- bg_unique[which(i %in% bg_cells_unique), ]
     
