@@ -36,7 +36,7 @@ ipak(sdmgen_packages)
 ## Try and set the raster temp directory to a location not on the partition, to save space
 rasterOptions(tmpdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
 terraOptions(memfrac = 0.5, 
-             tempdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
+             tempdir = 'E:/Bush_fire_analysis/nenswniche/TEMP') 
 
 
 ## 
@@ -209,33 +209,33 @@ SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS('./output/plant_maxent_raster_update/result
 
 
 ## Run family-level models for invertebrates
-run_sdm_analysis(taxa_list               = sort(target.insect.families),
-                 taxa_level              = 'family',
-                 maxent_dir              = 'output/invert_maxent_raster_update/full_models',     
-                 bs_dir                  = 'output/invert_maxent_raster_update/back_sel_models',
-                 sdm_df                  = SDM.SPAT.OCC.BG.GDA,
-                 sdm_predictors          = names(aus.climate.veg.grids.250m),
-                 sp_country_prj          = sp_epsg3577,
-                 
-                 backwards_sel           = TRUE,      
-                 template_raster         = template_raster_250m,
-                 cor_thr                 = 0.8,  
-                 pct_thr                 = 5, 
-                 k_thr                   = 4, 
-                 min_n                   = 10,  
-                 max_bg_size             = 100000,
-                 background_buffer_width = 100000,
-                 shapefiles              = TRUE,
-                 features                = 'lpq',
-                 replicates              = 5,
-                 responsecurves          = TRUE,
-                 country_shp             = AUS_shp)
+run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.families),
+                         taxa_level              = 'family',
+                         maxent_dir              = 'output/invert_maxent_raster_update/full_models',     
+                         bs_dir                  = 'output/invert_maxent_raster_update/back_sel_models',
+                         sdm_df                  = SDM.SPAT.OCC.BG.GDA,
+                         sdm_predictors          = names(aus.climate.veg.grids.250m),
+                         sp_country_prj          = sp_epsg3577,
+                         
+                         backwards_sel           = TRUE,      
+                         template_raster         = template_raster_250m,
+                         cor_thr                 = 0.8,  
+                         pct_thr                 = 5, 
+                         k_thr                   = 4, 
+                         min_n                   = 10,  
+                         max_bg_size             = 100000,
+                         background_buffer_width = 100000,
+                         shapefiles              = TRUE,
+                         features                = 'lpq',
+                         replicates              = 5,
+                         responsecurves          = TRUE,
+                         country_shp             = AUS_shp)
 
 gc()
 
 
 ## Run genus-level models for invertebrates
-run_sdm_analysis(taxa_list               = rev(sort(target.insect.genera)),
+run_sdm_analysis_no_crop(taxa_list               = rev(sort(target.insect.genera)),
                  taxa_level              = 'genus',
                  maxent_dir              = 'output/invert_maxent_raster_update/full_models',     
                  bs_dir                  = 'output/invert_maxent_raster_update/back_sel_models',
@@ -261,7 +261,7 @@ gc()
 
 
 ## Run species-level models for invertebrates
-run_sdm_analysis(taxa_list               = target.insect.spp,
+run_sdm_analysis_no_crop(taxa_list               = target.insect.spp,
                  taxa_level              = 'species',
                  maxent_dir              = 'output/invert_maxent_raster_update/full_models',     
                  bs_dir                  = 'output/invert_maxent_raster_update/back_sel_models',
@@ -290,7 +290,7 @@ gc()
 target.host.plants %in% SDM.PLANT.SPAT.OCC.BG.GDA$searchTaxon %>% table()
 
 
-run_sdm_analysis(taxa_list               = sort(target.host.plants),
+run_sdm_analysis_no_crop(taxa_list               = sort(target.host.plants),
                  taxa_level              = 'species',
                  maxent_dir              = 'output/plant_maxent_raster_update/full_models',     
                  bs_dir                  = 'output/plant_maxent_raster_update/back_sel_models',

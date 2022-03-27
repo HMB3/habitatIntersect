@@ -187,25 +187,25 @@ run_sdm_analysis_crop = function(taxa_list,
 #' @param country_shp             .Rds object - SpatialPolygonsDataFrame of Australia for mapping maxent points
 #' @export run_sdm_analysis_no_crop
 run_sdm_analysis_no_crop = function(taxa_list,
-                            taxa_level,
-                            sdm_df,
-                            sdm_predictors,
-                            maxent_dir,
-                            bs_dir,
-                            backwards_sel,
-                            template_raster,
-                            cor_thr,
-                            pct_thr,
-                            k_thr,
-                            min_n,
-                            max_bg_size,
-                            background_buffer_width,
-                            shapefiles,
-                            features,
-                            replicates,
-                            responsecurves,
-                            country_shp,
-                            sp_country_prj) {
+                                    taxa_level,
+                                    sdm_df,
+                                    sdm_predictors,
+                                    maxent_dir,
+                                    bs_dir,
+                                    backwards_sel,
+                                    template_raster,
+                                    cor_thr,
+                                    pct_thr,
+                                    k_thr,
+                                    min_n,
+                                    max_bg_size,
+                                    background_buffer_width,
+                                    shapefiles,
+                                    features,
+                                    replicates,
+                                    responsecurves,
+                                    country_shp,
+                                    sp_country_prj) {
   
   
   ## Convert to SF object for selection - inefficient
@@ -248,26 +248,26 @@ run_sdm_analysis_no_crop = function(taxa_list,
         
         ## Finally fit the models using FIT_MAXENT_TARG_BG. Also use tryCatch to skip any exceptions
         tryCatch(
-          fit_maxent_targ_bg_back_sel(occ                     = occurrence,
-                                      bg                      = background,
-                                      sdm_predictors          = sdm_predictors,
-                                      name                    = taxa,
-                                      outdir                  = maxent_dir,
-                                      bsdir                   = bs_dir,
-                                      backwards_sel           = backwards_sel,
-                                      cor_thr                 = cor_thr,
-                                      pct_thr                 = pct_thr,
-                                      k_thr                   = k_thr,
-                                      
-                                      template_raster         = template_raster,
-                                      min_n                   = min_n,
-                                      max_bg_size             = max_bg_size,
-                                      background_buffer_width = background_buffer_width,
-                                      shapefiles              = shapefiles,
-                                      features                = features,
-                                      replicates              = replicates,
-                                      responsecurves          = responsecurves,
-                                      country_shp             = country_shp),
+          fit_maxent_targ_bg_back_sel_no_crop(occ                     = occurrence,
+                                              bg                      = background,
+                                              sdm_predictors          = sdm_predictors,
+                                              name                    = taxa,
+                                              outdir                  = maxent_dir,
+                                              bsdir                   = bs_dir,
+                                              backwards_sel           = backwards_sel,
+                                              cor_thr                 = cor_thr,
+                                              pct_thr                 = pct_thr,
+                                              k_thr                   = k_thr,
+                                              
+                                              template_raster         = template_raster,
+                                              min_n                   = min_n,
+                                              max_bg_size             = max_bg_size,
+                                              background_buffer_width = background_buffer_width,
+                                              shapefiles              = shapefiles,
+                                              features                = features,
+                                              replicates              = replicates,
+                                              responsecurves          = responsecurves,
+                                              country_shp             = country_shp),
           
           
           ## Save error message
@@ -400,7 +400,7 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
   
   ## Skip taxa that have less than a minimum number of records: eg 20 taxa
   if(nrow(occ) > min_n) {
-
+    
     ## Subset the background records to the 200km buffered polygon
     message(name, ' creating background cells')
     system.time(o <- over(bg, buffer))
@@ -710,24 +710,24 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
 #' @param full_args          Dataframe of global koppen zones, with columns : GRIDCODE, Koppen
 #' @export fit_maxent_targ_bg_back_sel_no_crop 
 fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
-                                        bg,
-                                        sdm_predictors,
-                                        name,
-                                        outdir,
-                                        bsdir,
-                                        cor_thr,
-                                        pct_thr,
-                                        k_thr,
-                                        backwards_sel,
-                                        template_raster,
-                                        min_n,
-                                        max_bg_size,
-                                        background_buffer_width,
-                                        shapefiles,
-                                        features,
-                                        replicates,
-                                        responsecurves,
-                                        country_shp ) {
+                                                bg,
+                                                sdm_predictors,
+                                                name,
+                                                outdir,
+                                                bsdir,
+                                                cor_thr,
+                                                pct_thr,
+                                                k_thr,
+                                                backwards_sel,
+                                                template_raster,
+                                                min_n,
+                                                max_bg_size,
+                                                background_buffer_width,
+                                                shapefiles,
+                                                features,
+                                                replicates,
+                                                responsecurves,
+                                                country_shp ) {
   
   ## First, stop if the outdir file exists,
   if(!file.exists(outdir)) stop('outdir does not exist :(', call. = FALSE)
