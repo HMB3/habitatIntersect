@@ -183,7 +183,8 @@ run_sdm_analysis_crop = function(taxa_list,
 #' @param features           Character string - Which features should be used? (e.g. linear, product, quadratic 'lpq')
 #' @param replicates         Numeric - The number of replicates to use
 #' @param responsecurves     Logical - Save response curves of the maxent models (T/F)?
-#' @param country_shp             .Rds object - SpatialPolygonsDataFrame of Australia for mapping maxent points
+#' @param shp_path           Character string - path to shapefile
+#' @param shp_layer          Character string - name of .shp layer
 #' @export run_sdm_analysis_no_crop
 run_sdm_analysis_no_crop = function(taxa_list,
                                     taxa_level,
@@ -203,7 +204,8 @@ run_sdm_analysis_no_crop = function(taxa_list,
                                     features,
                                     replicates,
                                     responsecurves,
-                                    country_shp) {
+                                    shp_path,
+                                    shp_layer) {
   
   
   ## Convert to SF object for selection - inefficient
@@ -244,6 +246,10 @@ run_sdm_analysis_no_crop = function(taxa_list,
         background <- sdm_df %>% .[!.[[taxa_level]] %in% taxa, ]
         message('Using ', nrow(background), ' background records from ', unique(background$SOURCE))
         
+        shp <- readOGR(dsn              = shp_path,
+                       layer            = shp_layer,
+                       stringsAsFactors = FALSE) %>% spTransform(projection(occurrence))
+        
         ## Finally fit the models using FIT_MAXENT_TARG_BG. Also use tryCatch to skip any exceptions
         tryCatch(
           fit_maxent_targ_bg_back_sel_no_crop(occ                     = occurrence,
@@ -265,7 +271,7 @@ run_sdm_analysis_no_crop = function(taxa_list,
                                               features                = features,
                                               replicates              = replicates,
                                               responsecurves          = responsecurves,
-                                              country_shp             = country_shp),
+                                              country_shp             = shp),
           
           
           ## Save error message
@@ -348,7 +354,7 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
                                              features,
                                              replicates,
                                              responsecurves,
-                                             country_shp ) {
+                                             country_shp) {
   
   
   ## If we aren't cropping the raster to the Koppen extent, don't use that argument
