@@ -211,6 +211,10 @@ run_sdm_analysis_no_crop = function(taxa_list,
   ## Convert to SF object for selection - inefficient
   message('Preparing spatial data for SDMs')
   
+  shp <- readOGR(dsn              = shp_path,
+                 layer            = shp_layer,
+                 stringsAsFactors = FALSE) %>% spTransform(projection(occ))
+  
   ## Loop over all the taxa
   ## taxa <- taxa_list[1]
   lapply(taxa_list, function(taxa){
@@ -267,8 +271,7 @@ run_sdm_analysis_no_crop = function(taxa_list,
                                               features                = features,
                                               replicates              = replicates,
                                               responsecurves          = responsecurves,
-                                              shp_path                = shp_path,
-                                              shp_layer               = shp_layer),
+                                              shp                     = shp),
           
           
           ## Save error message
@@ -729,13 +732,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
                                                 features,
                                                 replicates,
                                                 responsecurves,
-                                                shp_path,
-                                                shp_layer) {
-  
-  ## Read in shapefile
-  shp <- readOGR(dsn              = shp_path,
-                 layer            = shp_layer,
-                 stringsAsFactors = FALSE) %>% spTransform(projection(occ))
+                                                shp) {
   
   ## First, stop if the outdir file exists,
   if(!file.exists(outdir)) stop('outdir does not exist :(', call. = FALSE)
@@ -805,10 +802,10 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     png(sprintf('%s/%s/%s_%s.png', outdir, save_name, save_name, "buffer_occ"),
         16, 10, units = 'in', res = 300)
 
-    plot(shp, legend = FALSE,
+    raster::plot(shp, legend = FALSE,
          main = paste0('Occurence SDM records for ', name))
-    plot(buffer,  add = TRUE, col = "red")
-    plot(occ, add = TRUE, col = "blue")
+    raster::plot(buffer,  add = TRUE, col = "red")
+    raster::plot(occ, add = TRUE, col = "blue")
 
     dev.off()
     message('function fails here ?!')
