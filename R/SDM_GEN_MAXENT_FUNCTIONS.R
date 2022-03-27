@@ -766,13 +766,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
   message(nrow(occ), ' occurrence records (unique cells).')
   
   ## Skip taxa that have less than a minimum number of records: eg 20 taxa
-  if(nrow(occ) < min_n) {
-    
-    print (paste ('Fewer occurrence records than the number of cross-validation ',
-                  'replicates for taxa ', name,
-                  ' Model not fit for this taxa'))
-    
-  } else {
+  if(nrow(occ) > min_n) {
     
     ## Subset the background records to the 200km buffered polygon
     message(name, ' creating background cells')
@@ -814,178 +808,182 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     
     dev.off()
     
-  }
-  
-  ## Reduce background sample, if it's larger than max_bg_size
-  if (nrow(bg_crop) > max_bg_size) {
+    ## Reduce background sample, if it's larger than max_bg_size
+    if (nrow(bg_crop) > max_bg_size) {
+      
+      message(nrow(bg_crop), ' target taxa background records for ', name,
+              ', reduced to random ', max_bg_size, ' using random points from :: ', unique(bg_crop$SOURCE))
+      bg.samp <- bg_crop[sample(nrow(bg_crop), max_bg_size), ]
+      
+    } else {
+      ## If the bg points are smaller that the max_bg_size, just get all the points
+      message(nrow(bg_crop), ' target taxa background records for ', name,
+              ' using all points from :: ', unique(bg$SOURCE))
+      bg.samp <- bg_crop
+    }
     
-    message(nrow(bg_crop), ' target taxa background records for ', name,
-            ', reduced to random ', max_bg_size, ' using random points from :: ', unique(bg_crop$SOURCE))
-    bg.samp <- bg_crop[sample(nrow(bg_crop), max_bg_size), ]
+    ## Now save the buffer, the occ and bg points as shapefiles
+    if(shapefiles) {
+      
+      suppressWarnings({
+        
+        message(name, ' writing occ and bg shapefiles')
+        writeOGR(SpatialPolygonsDataFrame(buffer, data.frame(ID = seq_len(length(buffer)))),
+                 outdir_sp, paste0(save_name, '_bg_buffer'),       'ESRI Shapefile', overwrite_layer = TRUE)
+        writeOGR(bg.samp,   outdir_sp, paste0(save_name, '_bg'),   'ESRI Shapefile', overwrite_layer = TRUE)
+        writeOGR(occ,       outdir_sp, paste0(save_name, '_occ'),  'ESRI Shapefile', overwrite_layer = TRUE)
+        
+      })
+      
+    }
+    
+    ## Also save the background and occurrence points as .rds files
+    saveRDS(bg.samp,  file.path(outdir_sp, paste0(save_name, '_bg.rds')))
+    saveRDS(occ,      file.path(outdir_sp, paste0(save_name, '_occ.rds')))
+    
+    ## SWD = taxa with data. Now sample the environmental
+    ## variables used in the model at all the occ and bg points
+    swd_occ <- occ[, sdm_predictors]
+    saveRDS(swd_occ, file.path(outdir_sp, paste0(save_name,'_occ_swd.rds')))
+    
+    swd_bg <- bg.samp[, sdm_predictors]
+    saveRDS(swd_bg, file.path(outdir_sp, paste0(save_name, '_bg_swd.rds')))
+    
+    ## Save the SWD tables as shapefiles
+    if(shapefiles) {
+      writeOGR(swd_occ, outdir_sp,  paste0(save_name, '_occ_swd'), 'ESRI Shapefile', overwrite_layer = TRUE)
+      writeOGR(swd_bg,  outdir_sp,  paste0(save_name, '_bg_swd'),  'ESRI Shapefile', overwrite_layer = TRUE)
+    }
+    
+    ## Now combine the occurrence and background data
+    swd <- as.data.frame(rbind(swd_occ@data, swd_bg@data))
+    saveRDS(swd, file.path(outdir_sp, 'swd.rds'))
+    pa  <- rep(1:0, c(nrow(swd_occ), nrow(swd_bg)))
+    
+    ## Now, set the features to be used by maxent ::
+    ## Linear, product and quadratic
+    off <- setdiff(c('l', 'p', 'q', 't', 'h'), features)
+    
+    ## This sets threshold and hinge features to "off"
+    if(length(off) > 0) {
+      
+      off <- c(l = 'linear=false',    p = 'product=false', q = 'quadratic=false',
+               t = 'threshold=false', h = 'hinge=false')[off]
+      
+    }
+    
+    off <- unname(off)
+    
+    ## Run the replicates
+    if(replicates > 1) {
+      
+      ## Only use rep_args & full_args if not using replicates
+      rep_args <- NULL
+      
+      ## Run MAXENT for cross validation data splits of swd : so 5 replicaes, 0-4
+      ## first argument is the predictors, the second is the occurrence data
+      message(name, ' running xval maxent')
+      me_xval <- dismo::maxent(swd, pa, path = file.path(outdir_sp, 'xval'),
+                               args = c(paste0('replicates=', replicates),
+                                        'responsecurves=true',
+                                        'outputformat=logistic',
+                                        off, paste(names(rep_args), rep_args, sep = '=')))
+    }
+    
+    ## Run the full maxent model - using all the data in swd
+    ## This uses DISMO to output standard files, but the names can't be altered
+    full_args <- NULL
+    message(name, ' running full maxent')
+    me_full <- maxent(swd, pa, path = file.path(outdir_sp, 'full'),
+                      args = c(off, paste(names(full_args), full_args, sep = '='),
+                               'responsecurves=true',
+                               'outputformat=logistic'))
+    
+    ## Save the full model. Replicate this line in the backwards selection algortithm
+    ## Remove Koppen from the end
+    saveRDS(list(me_xval = me_xval, me_full = me_full, swd = swd, pa = pa),
+            file.path(outdir_sp, 'full', 'maxent_fitted.rds'))
+    
+    if (backwards_sel) {
+      
+      ## Coerce the "taxa with data" (SWD) files to regular data.frames
+      ## This is needed to use the simplify function
+      swd_occ     <- as.data.frame(swd_occ)
+      swd_occ$lon <- NULL
+      swd_occ$lat <- NULL
+      swd_bg      <- as.data.frame(swd_bg)
+      swd_bg$lon  <- NULL
+      swd_bg$lat  <- NULL
+      
+      ## Need to create a taxa column here
+      swd_occ$searchTaxon <- name
+      swd_bg$searchTaxon  <- name
+      
+      ## Run simplify rmaxent::simplify
+      
+      # Given a candidate set of predictor variables, this function identifies
+      # a subset that meets specified multicollinearity criteria. Subsequently,
+      # backward stepwise variable selection (VIF) is used to iteratively drop
+      # the variable that contributes least to the model, until the contribution
+      # of each variable meets a specified minimum, or until a predetermined
+      # minimum number of predictors remains. It returns a model object for the
+      # full model, rather than a list of models as does the previous function
+      
+      ## Using a modified versionof rmaxent::simplify, so that the name of the
+      ## maxent model object "maxent_fitted.rds" is the same in both models.
+      ## This is needed to run the mapping step over either the full or BS folder
+      m <- local_simplify(
+        
+        swd_occ,
+        swd_bg,
+        path            = bsdir,
+        taxa_column     = "searchTaxon",
+        replicates      = replicates,  ## 5 as above
+        response_curves = TRUE,
+        logistic_format = TRUE,
+        cor_thr         = cor_thr,
+        pct_thr         = pct_thr,
+        k_thr           = k_thr,
+        features        = features,    ## LPQ as above
+        quiet           = FALSE)
+      
+      ## Save the bg, occ and swd files into the backwards selection folder too
+      saveRDS(bg.samp,  file.path(bsdir_sp, paste0(save_name, '_bg.rds')))
+      saveRDS(occ,      file.path(bsdir_sp, paste0(save_name, '_occ.rds')))
+      saveRDS(swd,      file.path(bsdir_sp, paste0('swd.rds')))
+      
+      ## Read the model in, because it's tricky to index
+      bs.model <- readRDS(sprintf('%s/%s/full/maxent_fitted.rds', bsdir,  save_name))
+      identical(length(bs.model@presence$Annual_mean_temp), nrow(occ))
+      
+      ## Save the chart corrleation file too for the training data set
+      par(mar   = c(3, 3, 5, 3),
+          oma   = c(1.5, 1.5, 1.5, 1.5))
+      
+      png(sprintf('%s/%s/full/%s_%s.png', bsdir,
+                  save_name, save_name, "bs_predictor_correlation"),
+          3236, 2000, units = 'px', res = 300)
+      
+      ## set margins
+      par(mar   = c(3, 3, 5, 3),
+          oma   = c(1.5, 1.5, 1.5, 1.5))
+      
+      ## Add detail to the response plot
+      chart.Correlation(bs.model@presence,
+                        histogram = TRUE, pch = 19,
+                        title = paste0('Reduced variable correlations for ', save_name))
+      
+      dev.off()
+      gc()
+      
+    } else {
+      message("Don't run backwards selection")
+    }
     
   } else {
-    ## If the bg points are smaller that the max_bg_size, just get all the points
-    message(nrow(bg_crop), ' target taxa background records for ', name,
-            ' using all points from :: ', unique(bg$SOURCE))
-    bg.samp <- bg_crop
-  }
-  
-  ## Now save the buffer, the occ and bg points as shapefiles
-  if(shapefiles) {
-    
-    suppressWarnings({
-      
-      message(name, ' writing occ and bg shapefiles')
-      writeOGR(SpatialPolygonsDataFrame(buffer, data.frame(ID = seq_len(length(buffer)))),
-               outdir_sp, paste0(save_name, '_bg_buffer'),       'ESRI Shapefile', overwrite_layer = TRUE)
-      writeOGR(bg.samp,   outdir_sp, paste0(save_name, '_bg'),   'ESRI Shapefile', overwrite_layer = TRUE)
-      writeOGR(occ,       outdir_sp, paste0(save_name, '_occ'),  'ESRI Shapefile', overwrite_layer = TRUE)
-      
-    })
-    
-  }
-  
-  ## Also save the background and occurrence points as .rds files
-  saveRDS(bg.samp,  file.path(outdir_sp, paste0(save_name, '_bg.rds')))
-  saveRDS(occ,      file.path(outdir_sp, paste0(save_name, '_occ.rds')))
-  
-  ## SWD = taxa with data. Now sample the environmental
-  ## variables used in the model at all the occ and bg points
-  swd_occ <- occ[, sdm_predictors]
-  saveRDS(swd_occ, file.path(outdir_sp, paste0(save_name,'_occ_swd.rds')))
-  
-  swd_bg <- bg.samp[, sdm_predictors]
-  saveRDS(swd_bg, file.path(outdir_sp, paste0(save_name, '_bg_swd.rds')))
-  
-  ## Save the SWD tables as shapefiles
-  if(shapefiles) {
-    writeOGR(swd_occ, outdir_sp,  paste0(save_name, '_occ_swd'), 'ESRI Shapefile', overwrite_layer = TRUE)
-    writeOGR(swd_bg,  outdir_sp,  paste0(save_name, '_bg_swd'),  'ESRI Shapefile', overwrite_layer = TRUE)
-  }
-  
-  ## Now combine the occurrence and background data
-  swd <- as.data.frame(rbind(swd_occ@data, swd_bg@data))
-  saveRDS(swd, file.path(outdir_sp, 'swd.rds'))
-  pa  <- rep(1:0, c(nrow(swd_occ), nrow(swd_bg)))
-  
-  ## Now, set the features to be used by maxent ::
-  ## Linear, product and quadratic
-  off <- setdiff(c('l', 'p', 'q', 't', 'h'), features)
-  
-  ## This sets threshold and hinge features to "off"
-  if(length(off) > 0) {
-    
-    off <- c(l = 'linear=false',    p = 'product=false', q = 'quadratic=false',
-             t = 'threshold=false', h = 'hinge=false')[off]
-    
-  }
-  
-  off <- unname(off)
-  
-  ## Run the replicates
-  if(replicates > 1) {
-    
-    ## Only use rep_args & full_args if not using replicates
-    rep_args <- NULL
-    
-    ## Run MAXENT for cross validation data splits of swd : so 5 replicaes, 0-4
-    ## first argument is the predictors, the second is the occurrence data
-    message(name, ' running xval maxent')
-    me_xval <- dismo::maxent(swd, pa, path = file.path(outdir_sp, 'xval'),
-                             args = c(paste0('replicates=', replicates),
-                                      'responsecurves=true',
-                                      'outputformat=logistic',
-                                      off, paste(names(rep_args), rep_args, sep = '=')))
-  }
-  
-  ## Run the full maxent model - using all the data in swd
-  ## This uses DISMO to output standard files, but the names can't be altered
-  full_args <- NULL
-  message(name, ' running full maxent')
-  me_full <- maxent(swd, pa, path = file.path(outdir_sp, 'full'),
-                    args = c(off, paste(names(full_args), full_args, sep = '='),
-                             'responsecurves=true',
-                             'outputformat=logistic'))
-  
-  ## Save the full model. Replicate this line in the backwards selection algortithm
-  ## Remove Koppen from the end
-  saveRDS(list(me_xval = me_xval, me_full = me_full, swd = swd, pa = pa),
-          file.path(outdir_sp, 'full', 'maxent_fitted.rds'))
-  
-  if (backwards_sel) {
-    
-    ## Coerce the "taxa with data" (SWD) files to regular data.frames
-    ## This is needed to use the simplify function
-    swd_occ     <- as.data.frame(swd_occ)
-    swd_occ$lon <- NULL
-    swd_occ$lat <- NULL
-    swd_bg      <- as.data.frame(swd_bg)
-    swd_bg$lon  <- NULL
-    swd_bg$lat  <- NULL
-    
-    ## Need to create a taxa column here
-    swd_occ$searchTaxon <- name
-    swd_bg$searchTaxon  <- name
-    
-    ## Run simplify rmaxent::simplify
-    
-    # Given a candidate set of predictor variables, this function identifies
-    # a subset that meets specified multicollinearity criteria. Subsequently,
-    # backward stepwise variable selection (VIF) is used to iteratively drop
-    # the variable that contributes least to the model, until the contribution
-    # of each variable meets a specified minimum, or until a predetermined
-    # minimum number of predictors remains. It returns a model object for the
-    # full model, rather than a list of models as does the previous function
-    
-    ## Using a modified versionof rmaxent::simplify, so that the name of the
-    ## maxent model object "maxent_fitted.rds" is the same in both models.
-    ## This is needed to run the mapping step over either the full or BS folder
-    m <- local_simplify(
-      
-      swd_occ,
-      swd_bg,
-      path            = bsdir,
-      taxa_column     = "searchTaxon",
-      replicates      = replicates,  ## 5 as above
-      response_curves = TRUE,
-      logistic_format = TRUE,
-      cor_thr         = cor_thr,
-      pct_thr         = pct_thr,
-      k_thr           = k_thr,
-      features        = features,    ## LPQ as above
-      quiet           = FALSE)
-    
-    ## Save the bg, occ and swd files into the backwards selection folder too
-    saveRDS(bg.samp,  file.path(bsdir_sp, paste0(save_name, '_bg.rds')))
-    saveRDS(occ,      file.path(bsdir_sp, paste0(save_name, '_occ.rds')))
-    saveRDS(swd,      file.path(bsdir_sp, paste0('swd.rds')))
-    
-    ## Read the model in, because it's tricky to index
-    bs.model <- readRDS(sprintf('%s/%s/full/maxent_fitted.rds', bsdir,  save_name))
-    identical(length(bs.model@presence$Annual_mean_temp), nrow(occ))
-    
-    ## Save the chart corrleation file too for the training data set
-    par(mar   = c(3, 3, 5, 3),
-        oma   = c(1.5, 1.5, 1.5, 1.5))
-    
-    png(sprintf('%s/%s/full/%s_%s.png', bsdir,
-                save_name, save_name, "bs_predictor_correlation"),
-        3236, 2000, units = 'px', res = 300)
-    
-    ## set margins
-    par(mar   = c(3, 3, 5, 3),
-        oma   = c(1.5, 1.5, 1.5, 1.5))
-    
-    ## Add detail to the response plot
-    chart.Correlation(bs.model@presence,
-                      histogram = TRUE, pch = 19,
-                      title = paste0('Reduced variable correlations for ', save_name))
-    
-    dev.off()
-    gc()
-    
-  } else {
-    message("Don't run backwards selection")
+    message('Fewer occurrence records than the number of cross-validation ',
+            'replicates for taxa ', name,
+            ' Model not fit for this taxa')
   }
 }
 
