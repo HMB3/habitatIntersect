@@ -709,8 +709,7 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
 #' @param features           Character string - Which features should be used? (e.g. linear, product, quadratic 'lpq')
 #' @param replicates         Numeric - The number of replicates to use
 #' @param responsecurves     Logical - Save response curves of the maxent models (T/F)?
-#' @param shp_path           Character string - path to shapefile
-#' @param shp_layer          Character string - name of .shp layer
+#' @param shp                Character string - path to shapefile
 #' @param rep_args           RasterLayer of global koppen zones, in Mollweide54009 projection
 #' @param full_args          Dataframe of global koppen zones, with columns : GRIDCODE, Koppen
 #' @export fit_maxent_targ_bg_back_sel_no_crop 

@@ -23,8 +23,7 @@ fit_maxent_targ_bg_back_sel_no_crop(
   features,
   replicates,
   responsecurves,
-  shp_path,
-  shp_layer
+  shp
 )
 }
 \arguments{
@@ -60,9 +59,7 @@ fit_maxent_targ_bg_back_sel_no_crop(
 
 \item{responsecurves}{Logical - Save response curves of the maxent models (T/F)?}
 
-\item{shp_path}{Character string - path to shapefile}
-
-\item{shp_layer}{Character string - name of .shp layer}
+\item{shp}{Character string - path to shapefile}
 
 \item{rep_args}{RasterLayer of global koppen zones, in Mollweide54009 projection}
 
