@@ -801,15 +801,15 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     save_name = gsub(' ', '_', name)
     
     ## Then save the occurrence points
-    png(sprintf('%s/%s/%s_%s.png', outdir, save_name, save_name, "buffer_occ"),
-        16, 10, units = 'in', res = 300)
-    
-    plot(shp, legend = FALSE,
-         main = paste0('Occurence SDM records for ', name))
-    plot(buffer,  add = TRUE, col = "red")
-    plot(occ, add = TRUE, col = "blue")
-    
-    dev.off()
+    # png(sprintf('%s/%s/%s_%s.png', outdir, save_name, save_name, "buffer_occ"),
+    #     16, 10, units = 'in', res = 300)
+    # 
+    # plot(shp, legend = FALSE,
+    #      main = paste0('Occurence SDM records for ', name))
+    # plot(buffer,  add = TRUE, col = "red")
+    # plot(occ, add = TRUE, col = "blue")
+    # 
+    # dev.off()
     message('function fails here ?!')
     
     ## Reduce background sample, if it's larger than max_bg_size
