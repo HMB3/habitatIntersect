@@ -271,7 +271,8 @@ run_sdm_analysis_no_crop = function(taxa_list,
                                               features                = features,
                                               replicates              = replicates,
                                               responsecurves          = responsecurves,
-                                              country_shp             = shp),
+                                              shp_path                = shp_path,
+                                              shp_layer               = shp_layer),
           
           
           ## Save error message
@@ -731,7 +732,13 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
                                                 features,
                                                 replicates,
                                                 responsecurves,
-                                                country_shp) {
+                                                shp_path,
+                                                shp_layer) {
+  
+  ## Read in shapefile
+  shp <- readOGR(dsn              = shp_path,
+                 layer            = shp_layer,
+                 stringsAsFactors = FALSE) %>% spTransform(projection(occ))
   
   ## First, stop if the outdir file exists,
   if(!file.exists(outdir)) stop('outdir does not exist :(', call. = FALSE)
@@ -801,7 +808,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     png(sprintf('%s/%s/%s_%s.png', outdir, save_name, save_name, "buffer_occ"),
         16, 10, units = 'in', res = 300)
     
-    plot(country_shp, legend = FALSE,
+    plot(shp, legend = FALSE,
          main = paste0('Occurence SDM records for ', name))
     plot(buffer,  add = TRUE, col = "red")
     plot(occ, add = TRUE, col = "blue")
