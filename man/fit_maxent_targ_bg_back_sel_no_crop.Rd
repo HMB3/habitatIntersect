@@ -23,7 +23,8 @@ fit_maxent_targ_bg_back_sel_no_crop(
   features,
   replicates,
   responsecurves,
-  country_shp
+  shp_path,
+  shp_layer
 )
 }
 \arguments{
@@ -59,7 +60,9 @@ fit_maxent_targ_bg_back_sel_no_crop(
 
 \item{responsecurves}{Logical - Save response curves of the maxent models (T/F)?}
 
-\item{country_shp}{.Rds object - SpatialPolygonsDataFrame of Australia for mapping maxent points}
+\item{shp_path}{Character string - path to shapefile}
+
+\item{shp_layer}{Character string - name of .shp layer}
 
 \item{rep_args}{RasterLayer of global koppen zones, in Mollweide54009 projection}
 

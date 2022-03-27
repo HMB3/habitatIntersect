@@ -23,8 +23,8 @@ run_sdm_analysis_no_crop(
   features,
   replicates,
   responsecurves,
-  country_shp,
-  sp_country_prj
+  shp_path,
+  shp_layer
 )
 }
 \arguments{
@@ -64,7 +64,9 @@ run_sdm_analysis_no_crop(
 
 \item{responsecurves}{Logical - Save response curves of the maxent models (T/F)?}
 
-\item{country_shp}{.Rds object - SpatialPolygonsDataFrame of Australia for mapping maxent points}
+\item{shp_path}{Character string - path to shapefile}
+
+\item{shp_layer}{Character string - name of .shp layer}
 }
 \description{
 This function takes a data frame of all taxa records,

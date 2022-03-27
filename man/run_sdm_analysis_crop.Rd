@@ -26,8 +26,7 @@ run_sdm_analysis_crop(
   crop_Koppen,
   Koppen_raster,
   Koppen_zones,
-  country_shp,
-  sp_country_prj
+  country_shp
 )
 }
 \arguments{
