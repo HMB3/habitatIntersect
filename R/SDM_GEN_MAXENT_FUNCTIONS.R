@@ -399,14 +399,8 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
   message(nrow(occ), ' occurrence records (unique cells).')
   
   ## Skip taxa that have less than a minimum number of records: eg 20 taxa
-  if(nrow(occ) < min_n) {
-    
-    print (paste ('Fewer occurrence records than the number of cross-validation ',
-                  'replicates for taxa ', name,
-                  ' Model not fit for this taxa'))
-    
-  } else {
-    
+  if(nrow(occ) > min_n) {
+
     ## Subset the background records to the 200km buffered polygon
     message(name, ' creating background cells')
     system.time(o <- over(bg, buffer))
@@ -676,6 +670,11 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
     } else {
       message("Don't run backwards selection")
     }
+    
+  } else {
+    message('Fewer occurrence records than the number of cross-validation ',
+            'replicates for taxa ', name,
+            ' Model not fit for this taxa')
   }
 }
 
