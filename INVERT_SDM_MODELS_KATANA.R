@@ -167,6 +167,8 @@ AUS_shp <- readOGR(dsn              = './data/Spatial_data/AUS_2016_AUST.shp',
   
   spTransform(projection(aus.climate.veg.grids.250m))
 
+data('AUS')
+AUS <- AUS %>% spTransform(projection(aus.climate.veg.grids.250m))
 
 
 
@@ -205,7 +207,6 @@ analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.inse
 
 ## Read in the SDM data
 sp_epsg3577  <- '+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
-data('AUS')
 SDM.SPAT.OCC.BG.GDA       <- readRDS('./output/invert_maxent_raster_update/results/SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds')
 SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS('./output/plant_maxent_raster_update/results/SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds')
 
@@ -283,7 +284,7 @@ run_sdm_analysis_no_crop(taxa_list               = target.insect.spp,
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         country_shp             = AUS_shp)
+                         country_shp             = AUS)
 
 gc()
 
@@ -312,7 +313,7 @@ run_sdm_analysis_no_crop(taxa_list               = sort(target.host.plants),
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         country_shp             = AUS,
+                         country_shp             = AUS_shp,
                          crop_Koppen             = FALSE)
 
 

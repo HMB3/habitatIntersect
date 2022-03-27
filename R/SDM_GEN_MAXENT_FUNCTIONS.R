@@ -55,8 +55,7 @@ run_sdm_analysis_crop = function(taxa_list,
                                  crop_Koppen,
                                  Koppen_raster,
                                  Koppen_zones,
-                                 country_shp,
-                                 sp_country_prj) {
+                                 country_shp) {
   
   
   ## Convert to SF object for selection - inefficient
@@ -204,8 +203,7 @@ run_sdm_analysis_no_crop = function(taxa_list,
                                     features,
                                     replicates,
                                     responsecurves,
-                                    country_shp,
-                                    sp_country_prj) {
+                                    country_shp) {
   
   
   ## Convert to SF object for selection - inefficient
@@ -790,6 +788,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     
     ## Now save an image of the background points
     ## This is useful to quality control the models
+    message('function fails here ?!')
     save_name = gsub(' ', '_', name)
     
     ## Then save the occurrence points
@@ -802,6 +801,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     plot(occ, add = TRUE, col = "blue")
     
     dev.off()
+    message('function fails here ?!')
     
     ## Reduce background sample, if it's larger than max_bg_size
     if (nrow(bg_crop) > max_bg_size) {
