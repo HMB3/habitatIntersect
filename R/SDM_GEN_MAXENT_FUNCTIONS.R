@@ -727,7 +727,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
                                                 features,
                                                 replicates,
                                                 responsecurves,
-                                                country_shp ) {
+                                                country_shp) {
   
   ## First, stop if the outdir file exists,
   if(!file.exists(outdir)) stop('outdir does not exist :(', call. = FALSE)
@@ -791,20 +791,14 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     ## This is useful to quality control the models
     save_name = gsub(' ', '_', name)
     
-    aus.mol = country_shp  %>%
-      spTransform(projection(buffer))
-    
-    occ.mol <- occ %>%
-      spTransform(projection(buffer))
-    
     ## Then save the occurrence points
     png(sprintf('%s/%s/%s_%s.png', outdir, save_name, save_name, "buffer_occ"),
         16, 10, units = 'in', res = 300)
     
-    plot(aus.mol, legend = FALSE,
+    plot(country_shp, legend = FALSE,
          main = paste0('Occurence SDM records for ', name))
     plot(buffer,  add = TRUE, col = "red")
-    plot(occ.mol, add = TRUE, col = "blue")
+    plot(occ, add = TRUE, col = "blue")
     
     dev.off()
     

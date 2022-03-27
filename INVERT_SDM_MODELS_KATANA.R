@@ -163,7 +163,9 @@ data('AUS')
 
 AUS_shp <- readOGR(dsn              = './data/Spatial_data/AUS_2016_AUST.shp',
                    layer            = 'AUS_2016_AUST',
-                   stringsAsFactors = FALSE)
+                   stringsAsFactors = FALSE) %>% 
+  
+  spTransform(projection(aus.climate.veg.grids.250m))
 
 
 
