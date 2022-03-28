@@ -219,7 +219,6 @@ run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.families),
                          bs_dir                  = 'output/invert_maxent_raster_update/back_sel_models',
                          sdm_df                  = SDM.SPAT.OCC.BG.GDA,
                          sdm_predictors          = names(aus.climate.veg.grids.250m),
-                         sp_country_prj          = sp_epsg3577,
                          
                          backwards_sel           = TRUE,      
                          template_raster         = template_raster_250m,
@@ -233,7 +232,9 @@ run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.families),
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         country_shp             = AUS_shp)
+                         shp_path                = './data/Spatial_data/AUS_2016_AUST.shp',
+                         shp_layer               = 'AUS_2016_AUST')
+
 
 gc()
 
@@ -245,7 +246,6 @@ run_sdm_analysis_no_crop(taxa_list               = rev(sort(target.insect.genera
                          bs_dir                  = 'output/invert_maxent_raster_update/back_sel_models',
                          sdm_df                  = SDM.SPAT.OCC.BG.GDA,
                          sdm_predictors          = names(aus.climate.veg.grids.250m),
-                         sp_country_prj          = sp_epsg3577,
                          
                          backwards_sel           = TRUE,      
                          template_raster         = template_raster_250m,
@@ -259,7 +259,9 @@ run_sdm_analysis_no_crop(taxa_list               = rev(sort(target.insect.genera
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         country_shp             = AUS_shp)
+                         shp_path                = './data/Spatial_data/AUS_2016_AUST.shp',
+                         shp_layer               = 'AUS_2016_AUST')
+
 
 gc()
 
@@ -300,7 +302,6 @@ run_sdm_analysis_no_crop(taxa_list               = sort(target.host.plants),
                          bs_dir                  = 'output/plant_maxent_raster_update/back_sel_models',
                          sdm_df                  = SDM.PLANT.SPAT.OCC.BG.GDA,
                          sdm_predictors          = names(aus.climate.veg.grids.250m),
-                         sp_country_prj          = sp_epsg3577,
                          
                          backwards_sel           = TRUE,      
                          template_raster         = template_raster_250m,
@@ -314,8 +315,8 @@ run_sdm_analysis_no_crop(taxa_list               = sort(target.host.plants),
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         country_shp             = AUS_shp,
-                         crop_Koppen             = FALSE)
+                         shp_path                = './data/Spatial_data/AUS_2016_AUST.shp',
+                         shp_layer               = 'AUS_2016_AUST')
 
 
 

@@ -160,7 +160,7 @@ run_sdm_analysis(taxa_list               = target_reptiles[-3],
 
 
 ## Run species-level models for all Hoplocephalus bungaroides
-run_sdm_analysis(taxa_list               = target_reptiles[3],
+run_sdm_analysis_no_crop(taxa_list               = target_reptiles[3],
                  taxa_level              = 'species',
                  maxent_dir              = 'output/reptile_maxent/full_models',     
                  bs_dir                  = 'output/reptile_maxent/back_sel_models',
@@ -180,7 +180,7 @@ run_sdm_analysis(taxa_list               = target_reptiles[3],
                  features                = 'lpq',
                  replicates              = 5,
                  responsecurves          = TRUE,
-                 country_shp             = AUS)
+                 shp_path =             = AUS)
 
 ``` 
 
