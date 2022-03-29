@@ -40,10 +40,6 @@ terraOptions(memfrac = 0.5,
              tempdir = 'E:/Bush_fire_analysis/nenswniche/TEMP') 
 
 
-## 
-# source('./R/SDM_GEN_PROCESSOR_FUNCTIONS.R')
-# source('./R/SDM_GEN_MAXENT_FUNCTIONS.R')
-# source('./R/SDM_GEN_MAPPING_FUNCTIONS.R')
 
 
 
@@ -412,30 +408,6 @@ tryCatch(
   })
 
 
-## Project SDMs across the Study area for the plant taxa
-tryCatch(
-  project_maxent_current_grids_mess(country_shp     = AUS, 
-                                    country_prj     = CRS("+init=EPSG:3577"),
-                                    local_prj       = aus_albers,
-                                    
-                                    taxa_list       = plant_map_taxa,    
-                                    maxent_path     = './output/plant_maxent/back_sel_models/',
-                                    
-                                    current_grids   = study.climate.veg.grids,         
-                                    create_mess     = TRUE,
-                                    save_novel_poly = FALSE),
-  
-  ## If the species fails, write a fail message to file
-  error = function(cond) {
-    
-    ## This will write the error message inside the text file, but it won't include the species
-    file.create(file.path("output/plant_maxent/back_sel_models/mapping_failed_current.txt"))
-    cat(cond$message, file = file.path("output/plant_maxent/back_sel_models/plant_sdm_mapping_failed_current.txt"))
-    warning(cond$message)
-    
-  })
-
-
 
 
 ## 4). THRESHOLD SDMs =============================================================
@@ -452,7 +424,7 @@ tryCatch(
 # \
 
 
-## Combine all the site data into one table 
+## Threshold the invertebrate SDM models to be either 0 or 1 
 habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTaxon)),
                   maxent_table  = INVERT.MAXENT.RESULTS,
                   maxent_path   = './output/invert_maxent_raster_update/back_sel_models/',

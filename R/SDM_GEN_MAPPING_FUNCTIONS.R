@@ -83,8 +83,7 @@ project_maxent_current_grids_mess = function(country_shp,
             ## Read in species with data and occurrence files
             message('Read in the swd and occ data')
             swd <- as.data.frame(readRDS(sprintf('%s%s/swd.rds', maxent_path, save_name)))
-            occ <- readRDS(sprintf('%s%s/%s_occ.rds', maxent_path, save_name, save_name)) #%>%
-            # spTransform(country_prj)
+            occ <- readRDS(sprintf('%s%s/%s_occ.rds', maxent_path, save_name, save_name)) 
             
             ## If the current raster prediction has not been run, run it.
             if(!file.exists(f_current) == TRUE) {
