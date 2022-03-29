@@ -136,51 +136,51 @@ plot(bionet_sdm)
 
 
 ## Run species-level models for all reptiles
-run_sdm_analysis(taxa_list               = target_reptiles[-3],
-                 taxa_level              = 'species',
-                 maxent_dir              = 'output/reptile_maxent/full_models',     
-                 bs_dir                  = 'output/reptile_maxent/back_sel_models',
-                 sdm_df                  = SDM.SPAT.OCC.ALL.REPTILE.BG,
-                 sdm_predictors          = names(aus.climate.veg.grids.250m),
-                 sp_country_prj          = sp_epsg3577,
-                 
-                 backwards_sel           = TRUE,      
-                 template_raster         = template_raster_250m,
-                 cor_thr                 = 0.8,  
-                 pct_thr                 = 5, 
-                 k_thr                   = 4, 
-                 min_n                   = 10,  
-                 max_bg_size             = 100000,
-                 background_buffer_width = 100000,
-                 shapefiles              = TRUE,
-                 features                = 'lpq',
-                 replicates              = 5,
-                 responsecurves          = TRUE,
-                 country_shp             = AUS)
+run_sdm_analysis_no_crop(taxa_list               = target_reptiles[-3],
+                         taxa_level              = 'species',
+                         maxent_dir              = 'output/reptile_maxent/full_models',     
+                         bs_dir                  = 'output/reptile_maxent/back_sel_models',
+                         sdm_df                  = SDM.SPAT.OCC.ALL.REPTILE.BG,
+                         sdm_predictors          = names(aus.climate.veg.grids.250m),
+                         
+                         backwards_sel           = TRUE,      
+                         template_raster         = template_raster_250m,
+                         cor_thr                 = 0.8,  
+                         pct_thr                 = 5, 
+                         k_thr                   = 4, 
+                         min_n                   = 10,  
+                         max_bg_size             = 100000,
+                         background_buffer_width = 100000,
+                         shapefiles              = TRUE,
+                         features                = 'lpq',
+                         replicates              = 5,
+                         responsecurves          = TRUE,
+                         shp_path                = './data/Spatial_data/AUS_2016_AUST.shp',
+                         shp_layer               = 'AUS_2016_AUST')
 
 
 ## Run species-level models for all Hoplocephalus bungaroides
 run_sdm_analysis_no_crop(taxa_list               = target_reptiles[3],
-                 taxa_level              = 'species',
-                 maxent_dir              = 'output/reptile_maxent/full_models',     
-                 bs_dir                  = 'output/reptile_maxent/back_sel_models',
-                 sdm_df                  = SDM.SPAT.OCC.ALL.REPTILE.BG,
-                 sdm_predictors          = names(aus.climate.veg.grids.250m)[12:43],
-                 sp_country_prj          = sp_epsg3577,
-                 
-                 backwards_sel           = TRUE,      
-                 template_raster         = template_raster_250m,
-                 cor_thr                 = 0.8,  
-                 pct_thr                 = 5, 
-                 k_thr                   = 4, 
-                 min_n                   = 10,  
-                 max_bg_size             = 100000,
-                 background_buffer_width = 100000,
-                 shapefiles              = TRUE,
-                 features                = 'lpq',
-                 replicates              = 5,
-                 responsecurves          = TRUE,
-                 shp_path =             = AUS)
+                         taxa_level              = 'species',
+                         maxent_dir              = 'output/reptile_maxent/full_models',     
+                         bs_dir                  = 'output/reptile_maxent/back_sel_models',
+                         sdm_df                  = SDM.SPAT.OCC.ALL.REPTILE.BG,
+                         sdm_predictors          = names(aus.climate.veg.grids.250m)[12:43],
+                         
+                         backwards_sel           = TRUE,      
+                         template_raster         = template_raster_250m,
+                         cor_thr                 = 0.8,  
+                         pct_thr                 = 5, 
+                         k_thr                   = 4, 
+                         min_n                   = 10,  
+                         max_bg_size             = 100000,
+                         background_buffer_width = 100000,
+                         shapefiles              = TRUE,
+                         features                = 'lpq',
+                         replicates              = 5,
+                         responsecurves          = TRUE,
+                         shp_path                = './data/Spatial_data/AUS_2016_AUST.shp',
+                         shp_layer               = 'AUS_2016_AUST')
 
 ``` 
 

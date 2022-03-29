@@ -794,7 +794,6 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     
     ## Now save an image of the background points
     ## This is useful to quality control the models
-    message('function fails here ?!')
     save_name = gsub(' ', '_', name)
     
     ## Then save the occurrence points
@@ -807,7 +806,6 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     raster::plot(occ, add = TRUE, col = "blue")
 
     dev.off()
-    message('function fails here ?!')
     
     ## Reduce background sample, if it's larger than max_bg_size
     if (nrow(bg_crop) > max_bg_size) {
