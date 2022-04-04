@@ -48,7 +48,7 @@ project_maxent_current_grids_mess = function(country_shp,
     maxent_predict_fun <- function(species) {
       
       ## Create species name
-      ## species = taxa_list[3]
+      ## species = taxa_list[1]
       save_name = gsub(' ', '_', species)
       
       ## First check if the species exists
@@ -93,7 +93,7 @@ project_maxent_current_grids_mess = function(country_shp,
               
               ## Set the names of the rasters to match the occ data, and subset both
               sdm_vars             = names(m@presence)
-              current_grids        = subset(current_grids, sdm_vars)
+              current_grids        = raster::subset(current_grids, sdm_vars)
               swd                  = swd[,sdm_vars]
               
               pred.current <- rmaxent::project(
@@ -1148,7 +1148,7 @@ project_maxent_future_grids_mess = function(country_shp,   world_shp,
             
             ## Set the names of the rasters to match the occ data, and subset both
             sdm_vars             = names(m@presence)
-            current_grids        = subset(current_grids, sdm_vars)
+            current_grids        = raster::subset(current_grids, sdm_vars)
             swd                  = swd [,sdm_vars]
             
             ##
