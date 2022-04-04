@@ -327,7 +327,7 @@ habitat_threshold = function(taxa_list,
   taxa_list %>%
     
     ## Loop over just the species
-    ## taxa = taxa_list[4]
+    ## taxa = taxa_list[1]
     lapply(function(taxa) {
       
       ## Get the directory
@@ -367,10 +367,13 @@ habitat_threshold = function(taxa_list,
           thresh_greater       = function (x) {x > thresh}
           current_suit_thresh  = thresh_greater(f_current)
           current_suit_rast    = terra::rast(current_suit_thresh)
+          FESM_rast            = terra::rast(FESM_100m)
           
           ## Resample rasters
-          message('Resample ', taxa, ' to ', cell_factor)
+          message('Resampling ', taxa, ' to ', xres(FESM), 'm')
           current_suit_thresh_resample <- terra::disagg(current_suit_rast, fact = cell_factor)
+          
+          intersect_sdm <- raster::resample(current_suit_thresh, FESM_100m, "bilinear", exent = extent(current_suit_thresh))
           
           ## Now write the rasters
           
@@ -483,7 +486,7 @@ taxa_records_habitat_intersect = function(analysis_df,
           ## Intersect clipped habitat with buffer
           ## do we need another exception here?
           message('Intersect taxa df with SVTM for ', taxa)
-          taxa_intersects           <- gIntersects(habitat_subset, taxa_buffer, byid = TRUE) 
+          taxa_intersects          <- gIntersects(habitat_subset, taxa_buffer, byid = TRUE) 
           taxa_VEG_intersects      <- habitat_subset[as.vector(taxa_intersects), ]
           taxa_VEG_intersects_clip <- raster::crop(taxa_VEG_intersects, taxa_buffer)
           
