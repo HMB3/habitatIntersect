@@ -71,12 +71,6 @@ terraOptions(memfrac = 0.5,
              tempdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
 
 
-## 
-source('./R/SDM_GEN_PROCESSOR_FUNCTIONS.R')
-source('./R/SDM_GEN_MAXENT_FUNCTIONS.R')
-source('./R/SDM_GEN_MAPPING_FUNCTIONS.R')
-
-
 ```
 
 \
@@ -281,7 +275,7 @@ is not considered present. Here we've chosen the 10th% Logistic threshold for ea
 habitat_threshold(taxa_list     = sort(unique(REPTILES.MAXENT.RESULTS$searchTaxon)),
                   maxent_table  = REPTILES.MAXENT.RESULTS,
                   maxent_path   = './output/reptile_maxent/back_sel_models/',
-                  cell_factor   = 9,
+                  cell_factor   = 2.859,
                   country_shp   = 'AUS',
                   country_prj   = CRS("+init=EPSG:3577"))
 
