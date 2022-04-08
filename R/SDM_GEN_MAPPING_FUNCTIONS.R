@@ -369,15 +369,18 @@ habitat_threshold = function(taxa_list,
           current_suit_rast    = terra::rast(current_suit_thresh)
           FESM_rast            = terra::rast(FESM_100m)
           
-          ## Resample rasters
+          ## Re-sample rasters
           message('Resampling ', taxa, ' to ', xres(FESM), 'm')
           current_suit_thresh_resample <- terra::disagg(current_suit_rast, fact = cell_factor)
           
-          intersect_sdm <- raster::resample(current_suit_thresh, FESM_100m, "bilinear", exent = extent(current_suit_thresh))
+          intersect_sdm <- raster::resample(current_suit_thresh, 
+                                            FESM_100m, 
+                                            "bilinear", 
+                                            exent = extent(current_suit_thresh))
           
-          ## Now write the rasters
+          ## Now write the rasters out
           
-          ## Write the current suitability raster, thresholded using the Maximum training
+          ## Write the current suitability raster, threshold-ed using the Maximum training
           ## sensitivity plus specificity Logistic threshold
           message('Writing ', taxa, ' current', ' max train > ', thresh)
           
