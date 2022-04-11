@@ -317,7 +317,7 @@ project_maxent_current_grids_mess = function(country_shp,
 
 
 
-#' Resampling a Raster* object via GDAL
+#' Resampling a Raster* object via rGDAL
 #' 
 #' @param rast Raster* object to be resampled
 #' @param rast_base Raster* object with parameters that r

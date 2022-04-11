@@ -8,7 +8,7 @@ fit_maxent_targ_bg_back_sel_crop(
   occ,
   bg,
   sdm_predictors,
-  name,
+  taxa,
   outdir,
   bsdir,
   cor_thr,

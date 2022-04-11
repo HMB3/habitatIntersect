@@ -8,7 +8,7 @@ habitat_threshold(
   taxa_list,
   maxent_table,
   maxent_path,
-  cell_factor,
+  output_path,
   country_shp,
   country_prj
 )
@@ -20,11 +20,11 @@ habitat_threshold(
 
 \item{maxent_path}{Character string - The file path containing the existing maxent models}
 
-\item{cell_factor}{Numeric          - Cell size to resample output}
-
 \item{country_shp}{Character string - Shapefile name that has already been read into R (e.g. in the Package)}
 
 \item{country_prj}{Character string - Name of projection}
+
+\item{cell_factor}{Numeric          - Cell size to resample output}
 
 \item{write_rasters}{Logical          - Save rasters (T/F)?}
 }
