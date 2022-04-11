@@ -107,7 +107,7 @@ run_sdm_analysis_crop = function(taxa_list,
           fit_maxent_targ_bg_back_sel_crop(occ                     = occurrence,
                                            bg                      = background,
                                            sdm_predictors          = sdm_predictors,
-                                           name                    = taxa,
+                                           taxa                    = taxa,
                                            outdir                  = maxent_dir,
                                            bsdir                   = bs_dir,
                                            backwards_sel           = backwards_sel,
@@ -255,7 +255,7 @@ run_sdm_analysis_no_crop = function(taxa_list,
           fit_maxent_targ_bg_back_sel_no_crop(occ                     = occurrence,
                                               bg                      = background,
                                               sdm_predictors          = sdm_predictors,
-                                              name                    = taxa,
+                                              taxa                    = taxa,
                                               outdir                  = maxent_dir,
                                               bsdir                   = bs_dir,
                                               backwards_sel           = backwards_sel,
@@ -336,7 +336,7 @@ run_sdm_analysis_no_crop = function(taxa_list,
 fit_maxent_targ_bg_back_sel_crop <- function(occ,
                                              bg,
                                              sdm_predictors,
-                                             name,
+                                             taxa,
                                              outdir,
                                              bsdir,
                                              cor_thr,
@@ -361,8 +361,8 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
   
   ## First, stop if the outdir file exists,
   if(!file.exists(outdir)) stop('outdir does not exist :(', call. = FALSE)
-  outdir_sp <- file.path(outdir, gsub(' ', '_', name))
-  bsdir_sp  <- file.path(bsdir,  gsub(' ', '_', name))
+  outdir_sp <- file.path(outdir, gsub(' ', '_', taxa))
+  bsdir_sp  <- file.path(bsdir,  gsub(' ', '_', taxa))
   
   if(crop_Koppen) {
     if(!missing('Koppen_raster')) {
@@ -406,7 +406,7 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
   if(nrow(occ) > min_n) {
     
     ## Subset the background records to the 200km buffered polygon
-    message(name, ' creating background cells')
+    message(taxa, ' creating background cells')
     system.time(o <- over(bg, buffer))
     bg        <- bg[which(!is.na(o)), ]
     bg_mat    <- cbind(lon = bg$lon, lat = bg$lat) 
@@ -422,7 +422,7 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
     ## Crop the Kopppen raster to the extent of the occurrences, and snap it.
     if(crop_Koppen) {
       
-      message(name, ' intersecting background cells with Koppen zones')
+      message(taxa, ' intersecting background cells with Koppen zones')
       Koppen_crop <- raster::crop(Koppen_raster, occ, snap = 'out')
       
       ## Only extract and match those cells that overlap between the ::
@@ -445,7 +445,7 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
       
       ## Now save an image of the background points
       ## This is useful to quality control the models
-      save_name = gsub(' ', '_', name)
+      save_name = gsub(' ', '_', taxa)
       
       aus.mol = country_shp  %>%
         spTransform(projection(buffer))
@@ -459,7 +459,7 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
           16, 10, units = 'in', res = 300)
       
       plot(Koppen_crop, legend = FALSE,
-           main = paste0('Occurence SDM records for ', name))
+           main = paste0('Occurence SDM records for ', taxa))
       
       plot(aus.mol, add = TRUE)
       plot(buffer,  add = TRUE, col = "red")
@@ -469,13 +469,13 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
       
       
     } else {
-      message(name, ' Do not intersect background cells with Koppen zones')
+      message(taxa, ' Do not intersect background cells with Koppen zones')
       i                   <- terra::cellFromXY(template_raster_spat, bg_mat_unique)
       bg_crop             <- bg_unique[which(i %in% bg_cells_unique), ]
       
       ## Now save an image of the background points
       ## This is useful to quality control the models
-      save_name = gsub(' ', '_', name)
+      save_name = gsub(' ', '_', taxa)
       
       aus.mol = country_shp  %>%
         spTransform(projection(buffer))
@@ -488,7 +488,7 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
           16, 10, units = 'in', res = 300)
       
       plot(aus.mol, legend = FALSE,
-           main = paste0('Occurence SDM records for ', name))
+           main = paste0('Occurence SDM records for ', taxa))
       plot(buffer,  add = TRUE, col = "red")
       plot(occ.mol, add = TRUE, col = "blue")
       
@@ -499,13 +499,13 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
     ## Reduce background sample, if it's larger than max_bg_size
     if (nrow(bg_crop) > max_bg_size) {
       
-      message(nrow(bg_crop), ' target taxa background records for ', name,
+      message(nrow(bg_crop), ' target taxa background records for ', taxa,
               ', reduced to random ', max_bg_size, ' using random points from :: ', unique(bg_crop$SOURCE))
       bg.samp <- bg_crop[sample(nrow(bg_crop), max_bg_size), ]
       
     } else {
       ## If the bg points are smaller that the max_bg_size, just get all the points
-      message(nrow(bg_crop), ' target taxa background records for ', name,
+      message(nrow(bg_crop), ' target taxa background records for ', taxa,
               ' using all points from :: ', unique(bg$SOURCE))
       bg.samp <- bg_crop
     }
@@ -515,7 +515,7 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
       
       suppressWarnings({
         
-        message(name, ' writing occ and bg shapefiles')
+        message(taxa, ' writing occ and bg shapefiles')
         writeOGR(SpatialPolygonsDataFrame(buffer, data.frame(ID = seq_len(length(buffer)))),
                  outdir_sp, paste0(save_name, '_bg_buffer'),       'ESRI Shapefile', overwrite_layer = TRUE)
         writeOGR(bg.samp,   outdir_sp, paste0(save_name, '_bg'),   'ESRI Shapefile', overwrite_layer = TRUE)
@@ -570,7 +570,7 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
       
       ## Run MAXENT for cross validation data splits of swd : so 5 replicaes, 0-4
       ## first argument is the predictors, the second is the occurrence data
-      message(name, ' running xval maxent')
+      message(taxa, ' running xval maxent')
       me_xval <- dismo::maxent(swd, pa, path = file.path(outdir_sp, 'xval'),
                                args = c(paste0('replicates=', replicates),
                                         'responsecurves=true',
@@ -581,7 +581,7 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
     ## Run the full maxent model - using all the data in swd
     ## This uses DISMO to output standard files, but the names can't be altered
     full_args <- NULL
-    message(name, ' running full maxent')
+    message(taxa, ' running full maxent')
     me_full <- maxent(swd, pa, path = file.path(outdir_sp, 'full'),
                       args = c(off, paste(names(full_args), full_args, sep = '='),
                                'responsecurves=true',
@@ -611,8 +611,8 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
       swd_bg$lat  <- NULL
       
       ## Need to create a taxa column here
-      swd_occ$searchTaxon <- name
-      swd_bg$searchTaxon  <- name
+      swd_occ$searchTaxon <- taxa
+      swd_bg$searchTaxon  <- taxa
       
       ## Run simplify rmaxent::simplify
       
@@ -624,7 +624,7 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
       # minimum number of predictors remains. It returns a model object for the
       # full model, rather than a list of models as does the previous function
       
-      ## Using a modified versionof rmaxent::simplify, so that the name of the
+      ## Using a modified versionof rmaxent::simplify, so that the taxa of the
       ## maxent model object "maxent_fitted.rds" is the same in both models.
       ## This is needed to run the mapping step over either the full or BS folder
       m <- local_simplify(
@@ -677,7 +677,7 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
     
   } else {
     message('Fewer occurrence records than the number of cross-validation ',
-            'replicates for taxa ', name,
+            'replicates for taxa ', taxa,
             ' Model not fit for this taxa')
   }
 }
@@ -716,7 +716,7 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
 fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
                                                 bg,
                                                 sdm_predictors,
-                                                name,
+                                                taxa,
                                                 outdir,
                                                 bsdir,
                                                 cor_thr,
@@ -735,8 +735,8 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
   
   ## First, stop if the outdir file exists,
   if(!file.exists(outdir)) stop('outdir does not exist :(', call. = FALSE)
-  outdir_sp <- file.path(outdir, gsub(' ', '_', name))
-  bsdir_sp  <- file.path(bsdir,  gsub(' ', '_', name))
+  outdir_sp <- file.path(outdir, gsub(' ', '_', taxa))
+  bsdir_sp  <- file.path(bsdir,  gsub(' ', '_', taxa))
   
   ## If the file doesn't exist, split out the features
   if(!file.exists(outdir_sp)) dir.create(outdir_sp)
@@ -773,7 +773,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
   if(nrow(occ) > min_n) {
     
     ## Subset the background records to the 200km buffered polygon
-    message(name, ' creating background cells')
+    message(taxa, ' creating background cells')
     system.time(o <- over(bg, buffer))
     bg        <- bg[which(!is.na(o)), ]
     bg_mat    <- cbind(lon = bg$lon, lat = bg$lat) 
@@ -787,21 +787,21 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     
     ## Find which of these cells fall within the Koppen-Geiger zones that the taxa occupies
     ## Crop the Kopppen raster to the extent of the occurrences, and snap it.
-    message(name, ' Do not intersect background cells with Koppen zones')
+    message(taxa, ' Do not intersect background cells with Koppen zones')
     message('country shp is a ', class(shp))
     i                   <- terra::cellFromXY(template_raster_spat, bg_mat_unique)
     bg_crop             <- bg_unique[which(i %in% bg_cells_unique), ]
     
     ## Now save an image of the background points
     ## This is useful to quality control the models
-    save_name = gsub(' ', '_', name)
+    save_name = gsub(' ', '_', taxa)
     
     ## Then save the occurrence points
     png(sprintf('%s/%s/%s_%s.png', outdir, save_name, save_name, "buffer_occ"),
         16, 10, units = 'in', res = 300)
 
     raster::plot(shp, legend = FALSE,
-         main = paste0('Occurence SDM records for ', name))
+         main = paste0('Occurence SDM records for ', taxa))
     raster::plot(buffer,  add = TRUE, col = "red")
     raster::plot(occ, add = TRUE, col = "blue")
 
@@ -810,13 +810,13 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     ## Reduce background sample, if it's larger than max_bg_size
     if (nrow(bg_crop) > max_bg_size) {
       
-      message(nrow(bg_crop), ' target taxa background records for ', name,
+      message(nrow(bg_crop), ' target taxa background records for ', taxa,
               ', reduced to random ', max_bg_size, ' using random points from :: ', unique(bg_crop$SOURCE))
       bg.samp <- bg_crop[sample(nrow(bg_crop), max_bg_size), ]
       
     } else {
       ## If the bg points are smaller that the max_bg_size, just get all the points
-      message(nrow(bg_crop), ' target taxa background records for ', name,
+      message(nrow(bg_crop), ' target taxa background records for ', taxa,
               ' using all points from :: ', unique(bg$SOURCE))
       bg.samp <- bg_crop
     }
@@ -826,7 +826,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
       
       suppressWarnings({
         
-        message(name, ' writing occ and bg shapefiles')
+        message(taxa, ' writing occ and bg shapefiles')
         writeOGR(SpatialPolygonsDataFrame(buffer, data.frame(ID = seq_len(length(buffer)))),
                  outdir_sp, paste0(save_name, '_bg_buffer'),       'ESRI Shapefile', overwrite_layer = TRUE)
         writeOGR(bg.samp,   outdir_sp, paste0(save_name, '_bg'),   'ESRI Shapefile', overwrite_layer = TRUE)
@@ -881,7 +881,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
       
       ## Run MAXENT for cross validation data splits of swd : so 5 replicaes, 0-4
       ## first argument is the predictors, the second is the occurrence data
-      message(name, ' running xval maxent')
+      message(taxa, ' running xval maxent')
       me_xval <- dismo::maxent(swd, pa, path = file.path(outdir_sp, 'xval'),
                                args = c(paste0('replicates=', replicates),
                                         'responsecurves=true',
@@ -892,7 +892,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     ## Run the full maxent model - using all the data in swd
     ## This uses DISMO to output standard files, but the names can't be altered
     full_args <- NULL
-    message(name, ' running full maxent')
+    message(taxa, ' running full maxent')
     me_full <- maxent(swd, pa, path = file.path(outdir_sp, 'full'),
                       args = c(off, paste(names(full_args), full_args, sep = '='),
                                'responsecurves=true',
@@ -915,8 +915,8 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
       swd_bg$lat  <- NULL
       
       ## Need to create a taxa column here
-      swd_occ$searchTaxon <- name
-      swd_bg$searchTaxon  <- name
+      swd_occ$searchTaxon <- taxa
+      swd_bg$searchTaxon  <- taxa
       
       ## Run simplify rmaxent::simplify
       
@@ -981,7 +981,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     
   } else {
     message('Fewer occurrence records than the number of cross-validation ',
-            'replicates for taxa ', name,
+            'replicates for taxa ', taxa,
             ' Model not fit for this taxa')
   }
 }
@@ -1057,17 +1057,17 @@ local_simplify = function (occ, bg, path, taxa_column = "taxa", response_curves 
   if (isTRUE(logistic_format))
     args <- c(args, "outputformat=logistic")
   
-  f <- function(name) {
+  f <- function(taxa) {
     
     if (!quiet)
-      message("\n\nDoing ", name)
-    name_ <- gsub(" ", "_", name)
-    swd <- rbind(occ_by_taxa[[name]], bg_by_taxa[[name]])
+      message("\n\nDoing ", taxa)
+    name_ <- gsub(" ", "_", taxa)
+    swd <- rbind(occ_by_taxa[[taxa]], bg_by_taxa[[taxa]])
     swd <- swd[, -match(taxa_column, names(swd))]
     
     if (ncol(swd) < k_thr)
       stop("Initial number of variables < k_thr", call. = FALSE)
-    pa <- rep(1:0, c(nrow(occ_by_taxa[[name]]), nrow(bg_by_taxa[[name]])))
+    pa <- rep(1:0, c(nrow(occ_by_taxa[[taxa]]), nrow(bg_by_taxa[[taxa]])))
     vc <- usdm::vifcor(swd, maxobservations = nrow(swd),
                        th = cor_thr)
     

@@ -190,7 +190,8 @@ project_maxent_current_grids_mess = function(country_shp,
             
             ## Write out not-novel raster :: this can go to the main directory
             ## Write the raster of novel environments to the MESS sub-directory
-            if(!file.exists(sprintf('%s%s/full/%s%s.tif', maxent_path, save_name, save_name, "_current_not_novel"))) {
+            if(!file.exists(sprintf('%s%s/full/%s%s.tif', maxent_path, 
+                                    save_name, save_name, "_current_not_novel"))) {
               
               message('Writing currently un-novel environments to file for ', species)
               raster::writeRaster(hs_current_not_novel, sprintf('%s%s/full/%s%s.tif', maxent_path,
@@ -206,27 +207,43 @@ project_maxent_current_grids_mess = function(country_shp,
             if(save_novel_poly == TRUE) {
               
               ## Create shape files 
-              current_novel_raster <- rast(sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel"))
-              values <- values(current_novel_raster)
-              unique(values[1])
+              current_novel_raster <- terra::rast(sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel"))
+              vals       <- terra::unique(current_novel_raster)
+              uniue_vals <- is.na(vals[[1]]) %>% unique()
               
-              if(!is.na(unique(values[1]))) {
+              if(!uniue_vals) {
                 
-                current_novel_poly   <- sf::as_Spatial(sf::st_as_sf(stars::st_as_stars(current_novel_raster), 
-                                                                    as_points = FALSE, 
-                                                                    merge     = TRUE,
-                                                                    fill      = FALSE, 
-                                                                    group     = FALSE,
-                                                                    agr       = FALSE))
+                message('Converting ', taxa, ' raster to polygon')
+                current_thresh_poly     <- terra::as.polygons(current_novel_raster) 
+                current_thresh_poly_dat <- terra::subset(current_thresh_poly, current_thresh_poly$layer == 1)
                 gc()
                 
                 ## Now save the novel areas as shapefiles
                 ## There is a problem with accessing the files at the same time
                 message('Saving current MESS maps to polygons for ', species)
-                writeOGR(obj    = current_novel_poly,
+                # writeOGR(obj    = current_novel_poly,
+                #          dsn    = sprintf('%s',  MESS_shp_path),
+                #          layer  = paste0(save_name, "_current_novel_polygon"),
+                #          driver = "ESRI Shapefile", overwrite_layer = TRUE)
+                
+                
+                st_write(current_thresh_poly_dat %>% st_as_sf(),
+                         
                          dsn    = sprintf('%s',  MESS_shp_path),
                          layer  = paste0(save_name, "_current_novel_polygon"),
-                         driver = "ESRI Shapefile", overwrite_layer = TRUE)
+                         
+                         quiet  = TRUE,
+                         append = FALSE)
+                
+                st_write(current_thresh_poly_dat %>% st_as_sf(), 
+                         
+                         dsn    = file.path(getwd(), output_path), 
+                         layer  = paste0(save_name, 
+                                         '_current_suit_not_novel_above_', 
+                                         thresh),
+                         
+                         quiet  = TRUE,
+                         append = FALSE)
                 
               } else {
                 message('Do not save current MESS maps to shapefile for ', species, ' no cells are novel')
@@ -300,6 +317,68 @@ project_maxent_current_grids_mess = function(country_shp,
 
 
 
+#' Resampling a Raster* object via GDAL
+#' 
+#' @param rast Raster* object to be resampled
+#' @param rast_base Raster* object with parameters that r
+#' should be resampled to.
+#' @param method Character. GDAL resampling_method
+#' ("near"|"bilinear"|"cubic"|"cubicspline"|
+#'  "lanczos"|"average"|"mode"|"max"|"min"|
+#'  "med"|"q1"|"q3")
+#' @param temp_dir Character. 
+#' @param write_rasters Character. 
+#' @param output_path Character. 
+#' @param output_file Character. 
+#' @export gdal_resample
+gdal_resample <- function(rast, 
+                          rast_base, 
+                          method, 
+                          temp_dir,
+                          write_rasters,
+                          output_path,
+                          output_file) {
+  
+  ## Geometry attributes
+  t1 <- c(xmin(rast_base), ymin(rast_base), 
+          xmax(rast_base), ymax(rast_base))
+  res <- res(rast_base)
+  
+  ## Temporary files
+  tmp_outname <- sprintf('%sout.tif', temp_dir)
+  tmp_inname  <- sprintf('%sin.tif',  temp_dir)
+  
+  message('saving temporary raster')
+  writeRaster(rast, 
+              tmp_inname, 
+              datatype  = "INT2U", 
+              options   = "COMPRESS=LZW",
+              overwrite = TRUE)
+  
+  ## GDAL time!
+  message('resampling raster using gdalwarp')
+  gdalwarp(tmp_inname, tmp_outname, 
+           tr = res, te = t1, r = method)
+  resample_raster = raster(tmp_outname)
+  
+  if(write_rasters) {
+    
+    message('saving resampled raster to file')
+    writeRaster(resample_raster, 
+                paste0(output_path, output_file),
+                datatype  = "INT2U", 
+                options   = "COMPRESS=LZW",
+                overwrite = TRUE)
+    
+    return(resample_raster)
+    
+  } else  {
+    return(resample_raster)  
+  }
+}  
+
+
+
 
 
 #' @title Threshold current habitat suitability rasters.
@@ -315,7 +394,7 @@ project_maxent_current_grids_mess = function(country_shp,
 habitat_threshold = function(taxa_list,
                              maxent_table,
                              maxent_path,
-                             cell_factor,
+                             output_path,
                              country_shp,
                              country_prj) {
   
@@ -341,14 +420,14 @@ habitat_threshold = function(taxa_list,
         dplyr::select(Logistic_threshold) %>%
         distinct() %>% .[1, ] %>% .[[1]]
       
-      taxa_name <- gsub(' ', '_', taxa)
+      save_name <- gsub(' ', '_', taxa)
       
       ## Check the threshold data exists
       current_file  = sprintf('%s/%s/full/%s_current_not_novel.tif',
-                              maxent_path, taxa_name, taxa_name)
+                              maxent_path, save_name, save_name)
       
       current_thresh =  sprintf('%s/%s/full/%s_%s%s.tif', maxent_path,
-                                taxa_name, taxa_name, "current_suit_not_novel_above_", thresh)
+                                save_name, save_name, "current_suit_not_novel_above_", thresh)
       
       ## If the threshold raster data doesn't exist :
       if(file.exists(current_file)) {
@@ -360,25 +439,17 @@ habitat_threshold = function(taxa_list,
           
           ## Read in the current suitability raster :: get the current_not_novel raster
           f_current <- raster(sprintf('%s/%s/full/%s_current_not_novel.tif',
-                                      maxent_path, taxa_name, taxa_name))
+                                      maxent_path, save_name, save_name))
           
           ## First, create a simple function to threshold each of the rasters in raster.list,
           ## Then apply this to just the current suitability raster.
           thresh_greater       = function (x) {x > thresh}
           current_suit_thresh  = thresh_greater(f_current)
           current_suit_rast    = terra::rast(current_suit_thresh)
-          FESM_rast            = terra::rast(FESM_100m)
           
           ## Re-sample rasters
-          message('Resampling ', taxa, ' to ', xres(FESM), 'm')
-          current_suit_thresh_resample <- terra::disagg(current_suit_rast, fact = cell_factor)
-          
-          intersect_sdm <- raster::resample(current_suit_thresh, 
-                                            FESM_100m, 
-                                            "bilinear", 
-                                            exent = extent(current_suit_thresh))
-          
-          ## Now write the rasters out
+          # message('Resampling Model for ', taxa, ' to ', xres(Ref_raster), 'm')
+          # current_suit_thresh_resample <- terra::disagg(current_suit_rast, fact = cell_factor)
           
           ## Write the current suitability raster, threshold-ed using the Maximum training
           ## sensitivity plus specificity Logistic threshold
@@ -386,30 +457,57 @@ habitat_threshold = function(taxa_list,
           
           ## Save in two places, in the taxa folder, 
           ## and in the habitat suitability folder
-          writeRaster(current_suit_thresh_resample, 
+          writeRaster(current_suit_rast, 
                       sprintf('%s/%s/full/%s_%s%s.tif', maxent_path,
-                              taxa_name, taxa_name, "current_suit_not_novel_above_", thresh),
+                              save_name, save_name, "current_suit_not_novel_above_", thresh),
                       overwrite = TRUE)
           
-          values <- values(current_suit_rast)
-          unique(values[1])
+          vals       <- terra::unique(current_suit_rast)
+          uniue_vals <- is.na(vals[[1]]) %>% unique()
           
-          if(!is.na(unique(values[1]))) {
+          if(!uniue_vals) {
             
-            current_thresh_poly   <- sf::as_Spatial(sf::st_as_sf(stars::st_as_stars(current_suit_rast), 
-                                                                 as_points = FALSE, 
-                                                                 merge     = TRUE,
-                                                                 fill      = FALSE, 
-                                                                 group     = FALSE,
-                                                                 agr       = FALSE))
-            gc()
+            message('Converting ', taxa, ' raster to polygon')
             
-            ## Now save the thresholded rasters as shapefiles
+            # current_thresh_poly <- sf::as_Spatial(sf::st_as_sf(stars::st_as_stars(current_suit_rast), 
+            #                                                    as_points = FALSE, 
+            #                                                    merge     = TRUE,
+            #                                                    fill      = FALSE, 
+            #                                                    group     = FALSE,
+            #                                                    agr       = FALSE))
+            # gc()
+            
+            current_thresh_poly     <- terra::as.polygons(current_suit_rast) 
+            current_thresh_poly_dat <- terra::subset(current_thresh_poly, current_thresh_poly$layer == 1)
+            
+            ## Now save the thresh-holded rasters as shapefiles
             message('Saving current threshold SDM rasters to polygons for ', taxa)
-            writeOGR(obj    = current_thresh_poly,
-                     dsn    = sprintf('%s',  maxent_path),
-                     layer  = paste0(taxa_name, "_current_novel_polygon"),
-                     driver = "ESRI Shapefile", overwrite_layer = TRUE)
+            st_write(current_thresh_poly_dat %>% st_as_sf(),
+                     
+                     dsn    = sprintf('%s/%s/full/%s_%s%s.gpkg', 
+                                      maxent_path,
+                                      save_name, 
+                                      save_name, 
+                                      'current_suit_not_novel_above_', 
+                                      thresh),
+                     
+                     layer  = paste0(save_name, 
+                                     '_current_suit_not_novel_above_', 
+                                     thresh),
+                     
+                     quiet  = TRUE,
+                     append = FALSE)
+            
+            st_write(current_thresh_poly_dat %>% st_as_sf(), 
+                     
+                     dsn    = file.path(getwd(), output_path), 
+                     
+                     layer  = paste0(save_name, 
+                                     '_current_suit_not_novel_above_', 
+                                     thresh),
+                     
+                     quiet  = TRUE,
+                     append = FALSE)
             
           } else {
             message('Do not save current MESS maps to shapefile for ', species, ' no cells are novel')
@@ -418,11 +516,11 @@ habitat_threshold = function(taxa_list,
           
           message('writing threshold png for ', taxa)
           png(sprintf('%s/%s/full/%s_%s%s.png', maxent_path,
-                      taxa_name, taxa_name, "current_suit_not_novel_above_", thresh),
+                      save_name, save_name, "current_suit_not_novel_above_", thresh),
               16, 10, units = 'in', res = 500)
           
           ##
-          raster::plot(current_suit_thresh_resample, main = paste0(taxa, ' > ', thresh), legend = FALSE)
+          raster::plot(current_suit_thresh, main = paste0(taxa, ' > ', thresh), legend = FALSE)
           raster::plot(country_poly, add = TRUE, legend = FALSE)
           dev.off()
           
@@ -437,6 +535,7 @@ habitat_threshold = function(taxa_list,
       }
     }) 
 }
+
 
 
 
@@ -467,8 +566,8 @@ taxa_records_habitat_intersect = function(analysis_df,
     ## Check if the taxa exists
     if(taxa %in%  unique(analysis_df$searchTaxon)) {
       
-      taxa_name  <- gsub(' ', '_', taxa)
-      raster_int <- paste0(output_path, taxa_name, '_VEG_intersection_', buffer, 'm.tif')
+      save_name  <- gsub(' ', '_', taxa)
+      raster_int <- paste0(output_path, save_name, '_VEG_intersection_', buffer, 'm.tif')
       
       if(!file.exists(raster_int)) {
         
@@ -519,13 +618,13 @@ taxa_records_habitat_intersect = function(analysis_df,
           # taxa_rs_habitat = habitat_raster[habitat_id, drop = FALSE]              ## Values
           writeOGR(obj    = taxa_VEG_intersects_clip,
                    dsn    = 'G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SVTM_intersect',
-                   layer  = paste0(taxa_name, '_VEG_intersect'), 
+                   layer  = paste0(save_name, '_VEG_intersect'), 
                    driver = 'ESRI Shapefile', 
                    overwrite_layer = TRUE)
           
           ## Save the taxa * habitat intersection as a raster
           message('writing threshold png for ', taxa)
-          png(paste0(output_path, taxa_name, "_VEG_intersection.png"),
+          png(paste0(output_path, save_name, "_VEG_intersection.png"),
               16, 10, units = 'in', res = 500)
           
           ##
@@ -536,7 +635,7 @@ taxa_records_habitat_intersect = function(analysis_df,
           ## Save in two places, in the taxa folder, 
           ## and in the habitat suitability folder
           writeRaster(taxa_VEG_intersects_raster, 
-                      paste0(output_path, taxa_name, '_VEG_intersection_', buffer, 'm.tif'),
+                      paste0(output_path, save_name, '_VEG_intersection_', buffer, 'm.tif'),
                       overwrite = TRUE)
           
           gc()
@@ -620,7 +719,7 @@ calculate_taxa_habitat = function(taxa_list,
           distinct() %>% .[1, ] %>% .[[1]]
         
         ## Get the taxa directory name
-        taxa_name <- gsub(' ', '_', taxa)
+        save_name <- gsub(' ', '_', taxa)
         host_name <- gsub(' ', '_', host_taxa)
         
       }
@@ -634,10 +733,10 @@ calculate_taxa_habitat = function(taxa_list,
       host_dir <- NA
       
       ## Get the taxa directory name
-      taxa_name <- gsub(' ', '_', taxa)
+      save_name <- gsub(' ', '_', taxa)
       
       current_thresh = sprintf('%s/%s/full/%s_%s%s.tif', target_path,
-                               taxa_name, taxa_name, "current_suit_not_novel_above_", target_thresh)
+                               save_name, save_name, "current_suit_not_novel_above_", target_thresh)
       
       ## If the invert taxa has a host plant, use the SDM from the host plant
       if(is.na(host_dir)) {
@@ -653,7 +752,7 @@ calculate_taxa_habitat = function(taxa_list,
           
           ## Read the SVTM intersect file in
           intersect_file <- list.files(intersect_path, pattern = raster_pattern, full.names = TRUE) %>% 
-            .[grep(paste0(taxa_name, collapse = '|'), ., ignore.case = TRUE)]
+            .[grep(paste0(save_name, collapse = '|'), ., ignore.case = TRUE)]
           
           if(length(intersect_file) == 1) {
             
@@ -702,20 +801,20 @@ calculate_taxa_habitat = function(taxa_list,
               )
             
             ## Save the % burnt layers
-            write.csv(sdm_fire_crosstab, paste0(output_path, taxa_name, '_SDM_VEG_intersect_Fire.csv'), row.names = FALSE)
+            write.csv(sdm_fire_crosstab, paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.csv'), row.names = FALSE)
             
             ## Now write the rasters
             ## If the rasters don't exist, write them for each taxa/threshold
             writeRaster(sdm_plus_veg, 
-                        paste0(output_path, taxa_name, '_SDM_VEG_intersect.tif'),
+                        paste0(output_path, save_name, '_SDM_VEG_intersect.tif'),
                         overwrite = TRUE)
             
             writeRaster(sdm_plus_veg_intersect_fire, 
-                        paste0(output_path, taxa_name, '_SDM_VEG_intersect_Fire.tif'),
+                        paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.tif'),
                         overwrite = TRUE)
             
             message('writing threshold png for ', taxa)
-            png(paste0(output_path, taxa_name, '_SDM_VEG_intersect_Fire.png'),
+            png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.png'),
                 11, 4, units = 'in', res = 300)
             
             print(levelplot(stack(sdm_plus_veg,
@@ -779,14 +878,14 @@ calculate_taxa_habitat = function(taxa_list,
               )
             
             ## Save the % burnt layers
-            write.csv(sdm_fire_crosstab, paste0(output_path, taxa_name, '_SDM_VEG_intersect_Fire.csv'), row.names = FALSE)
+            write.csv(sdm_fire_crosstab, paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.csv'), row.names = FALSE)
             
             writeRaster(sdm_intersect_fire, 
-                        paste0(output_path, taxa_name, '_SDM_VEG_intersect_Fire.tif'),
+                        paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.tif'),
                         overwrite = TRUE)
             
             message('writing threshold png for ', taxa)
-            png(paste0(output_path, taxa_name, '_SDM_VEG_intersect_Fire.png'),
+            png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.png'),
                 11, 4, units = 'in', res = 300)
             
             print(levelplot(stack(sdm_threshold,
@@ -836,7 +935,7 @@ calculate_taxa_habitat = function(taxa_list,
           
           ## Read the SVTM intersect file in
           intersect_file <- list.files(intersect_path, pattern = raster_pattern, full.names = TRUE) %>% 
-            .[grep(paste0(taxa_name, collapse = '|'), ., ignore.case = TRUE)]
+            .[grep(paste0(save_name, collapse = '|'), ., ignore.case = TRUE)]
           
           if(length(intersect_file) == 1) {
             
@@ -884,20 +983,20 @@ calculate_taxa_habitat = function(taxa_list,
                   TRUE                ~ "Outside FESM extent")
               )
             ## Save the % burnt layers
-            write.csv(sdm_fire_crosstab, paste0(output_path, taxa_name, '_SDM_Host_VEG_intersect_Fire.csv'), row.names = FALSE)
+            write.csv(sdm_fire_crosstab, paste0(output_path, save_name, '_SDM_Host_VEG_intersect_Fire.csv'), row.names = FALSE)
             
             ## Now write the rasters
             ## If the rasters don't exist, write them for each taxa/threshold
             writeRaster(sdm_plus_host_veg, 
-                        paste0(output_path, taxa_name, '_SDM_Host_intersect.tif'),
+                        paste0(output_path, save_name, '_SDM_Host_intersect.tif'),
                         overwrite = TRUE)
             
             writeRaster(sdm_plus_veg_intersect_fire, 
-                        paste0(output_path, taxa_name, '_SDM_Host_VEG_intersect_Fire.tif'),
+                        paste0(output_path, save_name, '_SDM_Host_VEG_intersect_Fire.tif'),
                         overwrite = TRUE)
             
             message('writing threshold png for ', taxa)
-            png(paste0(output_path, taxa_name, '_SDM_Host_VEG_intersect_Fire.png'),
+            png(paste0(output_path, save_name, '_SDM_Host_VEG_intersect_Fire.png'),
                 11, 4, units = 'in', res = 300)
             
             print(levelplot(stack(sdm_plus_veg,
@@ -964,7 +1063,7 @@ calculate_taxa_habitat = function(taxa_list,
               )
             
             ## Save the % burnt layers
-            write.csv(sdm_fire_crosstab, paste0(output_path, taxa_name, '_SDM_Host_intersect_Fire.csv'), row.names = FALSE)
+            write.csv(sdm_fire_crosstab, paste0(output_path, save_name, '_SDM_Host_intersect_Fire.csv'), row.names = FALSE)
             
             ## Write the current suitability raster, thresholded using the Maximum training
             ## sensitivity plus specificity Logistic threshold
@@ -973,17 +1072,17 @@ calculate_taxa_habitat = function(taxa_list,
             ## Now write the rasters
             ## If the rasters don't exist, write them for each taxa/threshold
             writeRaster(sdm_plus_host, 
-                        paste0(output_path, taxa_name, '_SDM_Host_intersect.tif'),
+                        paste0(output_path, save_name, '_SDM_Host_intersect.tif'),
                         overwrite = TRUE)
             
             ## Save in two places, in the taxa folder, 
             ## and in the habitat suitability folder
             writeRaster(sdm_plus_host_intersect_fire, 
-                        paste0(output_path, taxa_name, '_SDM_Host_intersect_Fire.tif'),
+                        paste0(output_path, save_name, '_SDM_Host_intersect_Fire.tif'),
                         overwrite = TRUE)
             
             message('writing SDM * FIRE png for ', taxa)
-            png(paste0(output_path, taxa_name, '_SDM_Host_intersect_Fire.png'),
+            png(paste0(output_path, save_name, '_SDM_Host_intersect_Fire.png'),
                 11, 4, units = 'in', res = 300)
             
             print(levelplot(stack(sdm_plus_veg,

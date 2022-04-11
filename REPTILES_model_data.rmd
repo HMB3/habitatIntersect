@@ -70,7 +70,6 @@ rasterOptions(tmpdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
 terraOptions(memfrac = 0.5, 
              tempdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
 
-
 ```
 
 \
@@ -220,10 +219,6 @@ package https://github.com/johnbaums/rmaxent. It assumes that the maxent models 
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Create a local projection for mapping : Australian Albers
-aus_albers <- CRS('+proj=aea +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=132 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs')
-
-
 ## Project SDMs across the Study area for the REPTILES taxa
 tryCatch(
   project_maxent_current_grids_mess(country_shp     = AUS, 
@@ -275,7 +270,7 @@ is not considered present. Here we've chosen the 10th% Logistic threshold for ea
 habitat_threshold(taxa_list     = sort(unique(REPTILES.MAXENT.RESULTS$searchTaxon)),
                   maxent_table  = REPTILES.MAXENT.RESULTS,
                   maxent_path   = './output/reptile_maxent/back_sel_models/',
-                  cell_factor   = 2.8,
+                  output_path   = 'output/reptile_maxent/Habitat_suitability/SDM_thresholds/sdm_thresholds_combo.gpkg',
                   country_shp   = 'AUS',
                   country_prj   = CRS("+init=EPSG:3577"))
 
