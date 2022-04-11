@@ -204,16 +204,13 @@ run_sdm_analysis_no_crop = function(taxa_list,
                                     features,
                                     replicates,
                                     responsecurves,
-                                    shp_path,
-                                    shp_layer) {
+                                    poly_layer) {
   
   
   ## Convert to SF object for selection - inefficient
   message('Preparing spatial data for SDMs')
   
-  shp <- readOGR(dsn              = shp_path,
-                 layer            = shp_layer,
-                 stringsAsFactors = FALSE) %>% spTransform(projection(sdm_df))
+  shp <- get(data(poly_layer))
   
   ## Loop over all the taxa
   ## taxa <- taxa_list[1]
