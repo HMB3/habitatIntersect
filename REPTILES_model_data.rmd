@@ -66,9 +66,9 @@ data('sdmgen_packages')
 ipak(sdmgen_packages)
 
 ## Try and set the raster temp directory to a location not on the partition, to save space
-rasterOptions(tmpdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
+rasterOptions(tmpdir = 'E:/Bush_fire_analysis/nenswniche/Temp')
 terraOptions(memfrac = 0.5, 
-             tempdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
+             tempdir = 'E:/Bush_fire_analysis/nenswniche/Temp')
 
 ```
 

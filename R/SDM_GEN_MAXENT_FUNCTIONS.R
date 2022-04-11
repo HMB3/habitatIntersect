@@ -183,8 +183,7 @@ run_sdm_analysis_crop = function(taxa_list,
 #' @param features           Character string - Which features should be used? (e.g. linear, product, quadratic 'lpq')
 #' @param replicates         Numeric - The number of replicates to use
 #' @param responsecurves     Logical - Save response curves of the maxent models (T/F)?
-#' @param shp_path           Character string - path to shapefile
-#' @param shp_layer          Character string - name of .shp layer
+#' @param poly_layer         Character string - name of poly layer in global env
 #' @export run_sdm_analysis_no_crop
 run_sdm_analysis_no_crop = function(taxa_list,
                                     taxa_level,
