@@ -119,10 +119,6 @@ SDM.SPAT.OCC.ALL.REPTILE.BG = readRDS('./output/reptile_maxent/results/SDM_SPAT_
 ## To Do :
 ## 1). Ryan has checked the taxonomy
 ## 2). Check the errors that Finlay may have found
-sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
-data('AUS')
-
-
 bionet_sdm <- SDM.SPAT.OCC.ALL.REPTILE.BG %>% .[.$searchTaxon %in% 'Hoplocephalus bungaroides', ]
 table(bionet_sdm$SOURCE)
 plot(bionet_sdm)
@@ -148,7 +144,8 @@ run_sdm_analysis_no_crop(taxa_list               = target_reptiles[-3],
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         poly_path              = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp')
+                         poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                         epsg                    = 3577)
 
 
 ## Run species-level models for all Hoplocephalus bungaroides

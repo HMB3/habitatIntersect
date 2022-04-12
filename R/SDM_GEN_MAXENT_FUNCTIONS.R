@@ -183,7 +183,8 @@ run_sdm_analysis_crop = function(taxa_list,
 #' @param features           Character string - Which features should be used? (e.g. linear, product, quadratic 'lpq')
 #' @param replicates         Numeric - The number of replicates to use
 #' @param responsecurves     Logical - Save response curves of the maxent models (T/F)?
-#' @param poly_path         Character string - name of poly layer in global env
+#' @param poly_path          Character string - file path to feature polygon layer
+#' @param poly_path          Numeric - ERSP code of coord ref system to be translated into WKT format
 #' @export run_sdm_analysis_no_crop
 run_sdm_analysis_no_crop = function(taxa_list,
                                     taxa_level,
@@ -203,7 +204,8 @@ run_sdm_analysis_no_crop = function(taxa_list,
                                     features,
                                     replicates,
                                     responsecurves,
-                                    poly_path) {
+                                    poly_path,
+                                    epsg) {
   
   
   ## Convert to SF object for selection - inefficient

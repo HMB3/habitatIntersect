@@ -23,7 +23,8 @@ run_sdm_analysis_no_crop(
   features,
   replicates,
   responsecurves,
-  poly_path
+  poly_path,
+  epsg
 )
 }
 \arguments{
@@ -63,7 +64,7 @@ run_sdm_analysis_no_crop(
 
 \item{responsecurves}{Logical - Save response curves of the maxent models (T/F)?}
 
-\item{poly_path}{Character string - name of poly layer in global env}
+\item{poly_path}{Numeric - ERSP code of coord ref system to be translated into WKT format}
 }
 \description{
 This function takes a data frame of all taxa records,
