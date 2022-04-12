@@ -12,14 +12,12 @@ project_maxent_current_grids_mess(
   taxa_list,
   maxent_path,
   current_grids,
-  create_mess
+  create_mess,
+  poly_path,
+  epsg
 )
 }
 \arguments{
-\item{country_shp}{SpatialPolygonsDataFrame - Spdf of the country for mapping maxent results (e.g. Australia)}
-
-\item{country_prj}{CRS object  - Local projection for mapping maxent results}
-
 \item{save_novel_poly}{Character string - Save the novel areas as shapefiles?}
 
 \item{local_prj}{CRS object  - Local projection for mapping maxent results}
@@ -31,6 +29,10 @@ project_maxent_current_grids_mess(
 \item{current_grids}{Character string - Vector of current enviro conditions that you want to include}
 
 \item{create_mess}{Logical - Create mess maps of the predictions (T/F)?}
+
+\item{poly_path}{Character string - file path to feature polygon layer}
+
+\item{epsg}{Numeric - ERSP code of coord ref system to be translated into WKT format}
 
 \item{climate_path}{Character string - The file path where the climate data is saved}
 

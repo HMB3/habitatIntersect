@@ -9,8 +9,6 @@
 #' @title Project current maxent models across geographic space
 #' @description This function takes the maxent models created by the 'fit_maxent_targ_bg_back_sel' function,
 #' and projects the model across geographic space - currently just for Australia.
-#' @param country_shp        SpatialPolygonsDataFrame - Spdf of the country for mapping maxent results (e.g. Australia)
-#' @param country_prj        CRS object  - Local projection for mapping maxent results
 #' @param local_prj          CRS object  - Local projection for mapping maxent results
 #' @param taxa_list          Character string - The species to run maxent predictions for
 #' @param maxent_path        Character string - The file path containin the existing maxent models
@@ -19,6 +17,8 @@
 #' @param current_grids      Character string - Vector of current enviro conditions that you want to include
 #' @param save_novel_poly    Character string - Save the novel areas as shapefiles?
 #' @param create_mess        Logical - Create mess maps of the predictions (T/F)?
+#' @param poly_path          Character string - file path to feature polygon layer
+#' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
 #' @details It uses the rmaxent package https://github.com/johnbaums/rmaxent
 #' @export project_maxent_current_grids_mess
 project_maxent_current_grids_mess = function(country_shp, 
@@ -26,11 +26,14 @@ project_maxent_current_grids_mess = function(country_shp,
                                              local_prj,     taxa_list,
                                              maxent_path,   
                                              current_grids, 
-                                             create_mess) {
+                                             create_mess,
+                                             poly_path,
+                                             epsg) {
   
-  ## Read in the Aus and world shapefile and re-rpoject
-  country_poly <- country_shp %>%
-    spTransform(country_prj)
+  
+  ## Convert to SF object for selection - inefficient
+  poly <- st_read(poly_path) %>% 
+    st_transform(., st_crs(epsg))
   
   ## Rename the raster grids
   ## Note this step is only needed if the current grids used in the 
@@ -155,8 +158,8 @@ project_maxent_current_grids_mess = function(country_shp,
                                colorkey = list(height = 0.6),
                                main = gsub('_', ' ', sprintf(' Current_mess_for_%s (%s)', raster_name, save_name))) +
                   
-                  latticeExtra::layer(sp.polygons(country_poly), 
-                                      data = list(country_poly = country_poly)) ## need list() for polygon
+                  latticeExtra::layer(sp.polygons(poly), 
+                                      data = list(poly = poly)) ## need list() for polygon
                 
                 p <- diverge0(p, 'RdBu')
                 f <- sprintf('%s/%s%s%s.png', MESS_dir, save_name, "_current_mess_", raster_name)
@@ -221,12 +224,6 @@ project_maxent_current_grids_mess = function(country_shp,
                 ## Now save the novel areas as shapefiles
                 ## There is a problem with accessing the files at the same time
                 message('Saving current MESS maps to polygons for ', species)
-                # writeOGR(obj    = current_novel_poly,
-                #          dsn    = sprintf('%s',  MESS_shp_path),
-                #          layer  = paste0(save_name, "_current_novel_polygon"),
-                #          driver = "ESRI Shapefile", overwrite_layer = TRUE)
-                
-                
                 st_write(current_thresh_poly_dat %>% st_as_sf(),
                          
                          dsn    = sprintf('%s',  MESS_shp_path),
@@ -289,7 +286,7 @@ project_maxent_current_grids_mess = function(country_shp,
                       ## Plot the Aus shapefile with the occurrence points for reference
                       ## Can the current layer be plotted on it's own?
                       ## Add the novel maps as vectors.
-                      latticeExtra::layer(sp.polygons(country_poly), data = list(country_poly = country_poly)) +
+                      latticeExtra::layer(sp.polygons(poly), data = list(poly = poly)) +
                       latticeExtra::layer(sp.points(occ, pch = 19, cex = 0.15,
                                                     col = c('red', 'transparent', 'transparent')[panel.number()]),
                                           data = list(occ = occ)))
@@ -390,17 +387,20 @@ gdal_resample <- function(rast,
 #' @param country_shp        Character string - Shapefile name that has already been read into R (e.g. in the Package)
 #' @param country_prj        Character string - Name of projection
 #' @param write_rasters      Logical          - Save rasters (T/F)?
+#' @param poly_path          Character string - file path to feature polygon layer
+#' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
 #' @export habitat_threshold
 habitat_threshold = function(taxa_list,
                              maxent_table,
                              maxent_path,
                              output_path,
-                             country_shp,
-                             country_prj) {
+                             poly_path,
+                             epsg) {
   
-  ## Get the AUS shapefile
-  country_poly <- get(country_shp) %>%
-    spTransform(country_prj)
+  
+  ## Convert to SF object for selection - inefficient
+  poly <- st_read(poly_path) %>% 
+    st_transform(., st_crs(epsg))
   
   ## Pipe the list into Lapply
   taxa_list %>%
@@ -521,7 +521,7 @@ habitat_threshold = function(taxa_list,
           
           ##
           raster::plot(current_suit_thresh, main = paste0(taxa, ' > ', thresh), legend = FALSE)
-          raster::plot(country_poly, add = TRUE, legend = FALSE)
+          raster::plot(poly, add = TRUE, legend = FALSE)
           dev.off()
           
         } else {
@@ -653,7 +653,470 @@ taxa_records_habitat_intersect = function(analysis_df,
     }
     
   })
+}
+
+
+
+
+
+#' @title Intersect habitat suitability feature layers with other feature layer (e.g. Fire).
+#' @description Takes a habitat suitability layer, and intersects it with a fire suitability layer.
+#' @param taxa_list          Character string - The species to run maxent predictions for
+#' @param target_path        Character string - The file path containing the existing maxent models
+#' @param intersect_path     Character string - The file path containing the intersecting rasters
+#' @param raster_pattern     Character string - The pattern to look for of Invertebrate rasters
+#' @param targ_maxent_table  Data frame       - A table of maxent results to be used for mapping 
+#' @param cell_size          Numeric          - Cell size to resample output
+#' @param poly_path          Character string - file path to feature polygon layer
+#' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
+#' @param write_rasters      Logical          - Save rasters (T/F)?
+#' @export calculate_taxa_habitat_rasters
+calculate_taxa_habitat_rasters = function(taxa_list,
+                                          targ_maxent_table,
+                                          host_maxent_table,
+                                          target_path,
+                                          output_path,
+                                          intersect_path,
+                                          raster_pattern,
+                                          fire_raster,
+                                          cell_size,
+                                          fire_thresh,
+                                          write_rasters,
+                                          poly_path,
+                                          epsg) {
   
+  ## Get the AUS shapefile
+  poly <- st_read(poly_path) %>% 
+    st_transform(., st_crs(epsg))
+  
+  ## Pipe the list into Lapply
+  taxa_list %>%
+    
+    ## Loop over just the species
+    ## taxa = taxa_list[74]
+    lapply(function(taxa) {
+      
+      
+      if(host_maxent_table != 'NONE') {
+        
+        ## Get the directory of the host plants
+        host_dir <- targ_maxent_table %>%
+          filter(searchTaxon == taxa) %>%
+          dplyr::select(host_dir)     %>%
+          distinct() %>% .[1, ] %>% .[[1]]
+        
+        ## Get the directory of the host plants
+        host_taxa <- targ_maxent_table    %>%
+          filter(searchTaxon == taxa)     %>%
+          dplyr::select(Host_Plant_taxon) %>%
+          distinct() %>% .[1, ] %>% .[[1]]
+        
+        ## Get the sdm threshold for each host taxa
+        host_thresh <- host_maxent_table    %>%
+          filter(searchTaxon == host_taxa)  %>%
+          dplyr::select(Logistic_threshold) %>%
+          distinct() %>% .[1, ] %>% .[[1]]
+        
+        ## Get the taxa directory name
+        save_name <- gsub(' ', '_', taxa)
+        host_name <- gsub(' ', '_', host_taxa)
+        
+      }
+      
+      ## Get the sdm threshold for each inv taxa
+      target_thresh <- targ_maxent_table  %>%
+        filter(searchTaxon == taxa)       %>%
+        dplyr::select(Logistic_threshold) %>%
+        distinct() %>% .[1, ] %>% .[[1]]
+      
+      host_dir <- NA
+      
+      ## Get the taxa directory name
+      save_name <- gsub(' ', '_', taxa)
+      
+      current_thresh = sprintf('%s/%s/full/%s_%s%s.tif', target_path,
+                               save_name, save_name, "current_suit_not_novel_above_", target_thresh)
+      
+      ## If the invert taxa has a host plant, use the SDM from the host plant
+      if(is.na(host_dir)) {
+        
+        ## If the threshold raster data doesn't exist :
+        if(file.exists(current_thresh)) {
+          
+          ## Print the taxa being analysed
+          message('Intersecting SDM with Fire for', taxa, ' | Logistic > ', target_thresh)
+          
+          ## Read in the current suitability raster :: get the current_not_novel raster
+          sdm_threshold    <- raster(current_thresh)
+          
+          ## Read the SVTM intersect file in
+          intersect_file <- list.files(intersect_path, pattern = raster_pattern, full.names = TRUE) %>% 
+            .[grep(paste0(save_name, collapse = '|'), ., ignore.case = TRUE)]
+          
+          if(length(intersect_file) == 1) {
+            
+            message('SDM and Veg rasters intersect for ', taxa, ' but it does not have a host taxa')
+            intersect_raster <- raster(intersect_file)
+            
+            ## Re-sample
+            message('resampling Veg intersect raster for ', taxa)
+            intersect_sdm <- raster::resample(intersect_raster, sdm_threshold, "bilinear", exent = extent(sdm_threshold))
+            
+            ##
+            message('mosaic Veg and SDM rasters for ', taxa)
+            sdm_plus_veg <- raster::mosaic(sdm_threshold, intersect_sdm, fun = max)
+            
+            ## Multiply the SDM raster by the Fire Raster
+            message('multiply habitat raster by the fire raster')
+            sdm_plus_veg_intersect_fire <- sdm_plus_veg * fire_raster
+            
+            ## Then do the Cell stats ::
+            ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
+            habitat_fire_crosstab <- raster::crosstab(sdm_plus_veg, fire_raster, useNA = TRUE, long = TRUE)
+            colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'km2')
+            
+            ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
+            ## If FIRE is NA, that means that....
+            sdm_fire_crosstab <- dplyr::filter(habitat_fire_crosstab, Habitat_taxa == 1)
+            sdm_fire_crosstab <- sdm_fire_crosstab %>%  
+              
+              ## Calculate the % burnt in each category, and also the km2
+              mutate(km2   = km2/cell_size)             %>% 
+              mutate(Percent      = km2/sum(km2) * 100) %>% 
+              mutate(Percent      = round(Percent, 2))  %>% 
+              mutate(Habitat_taxa = taxa) %>%
+              
+              ## FESM scores - there
+              mutate(
+                FESM_intensity = case_when(
+                  
+                  FESM_intensity == 0 ~ "Unburnt",
+                  FESM_intensity == 1 ~ "Non-FESM Burnt Area",
+                  FESM_intensity == 2 ~ "Low severity",
+                  FESM_intensity == 3 ~ "Moderate severity",
+                  FESM_intensity == 4 ~ "High severity",
+                  FESM_intensity == 5 ~ "Extreme severity",
+                  TRUE                ~ "Outside FESM extent")
+              )
+            
+            ## Save the % burnt layers
+            write.csv(sdm_fire_crosstab, paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.csv'), row.names = FALSE)
+            
+            ## Now write the rasters
+            ## If the rasters don't exist, write them for each taxa/threshold
+            writeRaster(sdm_plus_veg, 
+                        paste0(output_path, save_name, '_SDM_VEG_intersect.tif'),
+                        overwrite = TRUE)
+            
+            writeRaster(sdm_plus_veg_intersect_fire, 
+                        paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.tif'),
+                        overwrite = TRUE)
+            
+            message('writing threshold png for ', taxa)
+            png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.png'),
+                11, 4, units = 'in', res = 300)
+            
+            print(levelplot(stack(sdm_plus_veg,
+                                  fire_raster,
+                                  sdm_plus_intersect_fire, 
+                                  quick = TRUE), margin = FALSE,
+                            
+                            ## Create a colour scheme using colbrewer: 100 is to make it continuos
+                            ## Also, make it a one-directional colour scheme
+                            scales      = list(draw = FALSE),
+                            at = seq(0, 4, length = 8),
+                            col.regions = colorRampPalette(rev(brewer.pal(5, 'Spectral'))),
+                            
+                            ## Give each plot a name: the third panel is the GCM
+                            names.attr = c('SDM + Veg', 'Fire', ' [SDM + Veg] * Fire'),
+                            colorkey   = list(height = 0.5, width = 3), xlab = '', ylab = '',
+                            main       = list(gsub('_', ' ', taxa), font = 4, cex = 2)) +
+                    
+                    ## Plot the Aus shapefile with the occurrence points for reference
+                    ## Can the current layer be plotted on it's own?
+                    ## Add the novel maps as vectors.
+                    latticeExtra::layer(sp.polygons(poly), data = list(poly = poly))) 
+            dev.off()
+            
+            gc()
+            
+          } else {
+            message('SDM and Veg rasters do not intersect for ', taxa, ' and it does not have a host taxa')
+            
+            ## Multiply the SDM raster by the Fire Raster
+            message('multiply habitat raster by the fire raster')
+            sdm_intersect_fire <- sdm_threshold * fire_raster
+            
+            ## Then do the Cell stats ::
+            ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
+            habitat_fire_crosstab <- raster::crosstab(sdm_threshold, fire_raster, useNA = TRUE, long = TRUE)
+            colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'km2')
+            
+            ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
+            ## If FIRE is NA, that means that....
+            sdm_fire_crosstab <- dplyr::filter(habitat_fire_crosstab, Habitat_taxa == 1)
+            sdm_fire_crosstab <- sdm_fire_crosstab %>% 
+              
+              ## Calculate the % burnt in each category, and also the km2
+              mutate(km2   = km2/cell_size)             %>% 
+              mutate(Percent      = km2/sum(km2) * 100) %>% 
+              mutate(Percent      = round(Percent, 2))                %>% 
+              mutate(Habitat_taxa = taxa) %>%
+              
+              ## FESM scores - there
+              mutate(
+                FESM_intensity = case_when(
+                  
+                  FESM_intensity == 0 ~ "Unburnt",
+                  FESM_intensity == 1 ~ "Non-FESM Burnt Area",
+                  FESM_intensity == 2 ~ "Low severity",
+                  FESM_intensity == 3 ~ "Moderate severity",
+                  FESM_intensity == 4 ~ "High severity",
+                  FESM_intensity == 5 ~ "Extreme severity",
+                  TRUE                ~ "Outside FESM extent")
+              )
+            
+            ## Save the % burnt layers
+            write.csv(sdm_fire_crosstab, paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.csv'), row.names = FALSE)
+            
+            writeRaster(sdm_intersect_fire, 
+                        paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.tif'),
+                        overwrite = TRUE)
+            
+            message('writing threshold png for ', taxa)
+            png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.png'),
+                11, 4, units = 'in', res = 300)
+            
+            print(levelplot(stack(sdm_threshold,
+                                  fire_raster,
+                                  sdm_intersect_fire,
+                                  quick = TRUE), margin = FALSE,
+                            
+                            ## Create a colour scheme using colbrewer: 100 is to make it continuos
+                            ## Also, make it a one-directional colour scheme
+                            scales      = list(draw = FALSE),
+                            at = seq(0, 4, length = 8),
+                            col.regions = colorRampPalette(rev(brewer.pal(5, 'YlOrRd'))),
+                            
+                            ## Give each plot a name: the third panel is the GCM
+                            names.attr = c('SDM', 'Fire', 'SDM * Fire'),
+                            colorkey   = list(height = 0.5, width = 3), xlab = '', ylab = '',
+                            main       = list(gsub('_', ' ', taxa), font = 4, cex = 2)) +
+                    
+                    ## Plot the Aus shapefile with the occurrence points for reference
+                    ## Can the current layer be plotted on it's own?
+                    ## Add the novel maps as vectors.
+                    latticeExtra::layer(sp.polygons(poly), data = list(poly = poly))) 
+            dev.off()
+            
+            gc()
+            
+          }
+          
+        } else {
+          message('Habitat Suitability threshold raster does not exist for', taxa, ' skip')
+          cat(taxa)
+        }
+        
+        
+      } else {
+        message(taxa, ' has a host plant, use both SDMs')
+        
+        ## Print the taxa being analysed
+        message('calculating habitat * fire for ', taxa, ' | Logistic > ', target_thresh)
+        host_threshold <- paste0(host_dir, host_name, "_current_suit_not_novel_above_", host_thresh, '.tif')
+        
+        if(file.exists(host_threshold)) {
+          
+          ## Read in host and target rasters
+          host_threshold <- raster(host_threshold)
+          sdm_threshold  <- raster(current_thresh)
+          
+          ## Read the SVTM intersect file in
+          intersect_file <- list.files(intersect_path, pattern = raster_pattern, full.names = TRUE) %>% 
+            .[grep(paste0(save_name, collapse = '|'), ., ignore.case = TRUE)]
+          
+          if(length(intersect_file) == 1) {
+            
+            message('SDM and Veg rasters intersect for ', taxa, ' and it has a host taxa')
+            intersect_raster <- raster(intersect_file)
+            
+            ## Re-sample
+            message('resampling Veg intersect raster for ', taxa)
+            intersect_sdm <- raster::resample(intersect_raster, sdm_threshold, "bilinear", exent = extent(sdm_threshold))
+            
+            ##
+            message('mosaicing Veg, host and target SDM rasters for ', taxa)
+            sdm_plus_host_veg <- raster::mosaic(sdm_threshold, host_threshold, intersect_sdm, fun = max)
+            
+            ## Multiply the SDM raster by the Fire Raster
+            message('Multiply Combo habitat raster by the fire raster')
+            sdm_plus_veg_intersect_fire <- sdm_plus_host_veg * fire_raster
+            
+            ## Then do the Cell stats ::
+            ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
+            habitat_fire_crosstab <- raster::crosstab(sdm_plus_host_veg, fire_raster, useNA = TRUE, long = TRUE)
+            colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'km2')
+            
+            ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
+            ## If FIRE is NA, that means that....
+            sdm_fire_crosstab <- dplyr::filter(habitat_fire_crosstab, Habitat_taxa == 1)
+            sdm_fire_crosstab <- sdm_fire_crosstab %>%  
+              
+              ## Calculate the % burnt in each category, and also the km2
+              mutate(km2   = km2/cell_size)             %>% 
+              mutate(Percent      = km2/sum(km2) * 100) %>% 
+              mutate(Percent      = round(Percent, 2))                %>% 
+              mutate(Habitat_taxa = taxa) %>%
+              
+              ## FESM scores - there
+              mutate(
+                FESM_intensity = case_when(
+                  
+                  FESM_intensity == 0 ~ "Unburnt",
+                  FESM_intensity == 1 ~ "Non-FESM Burnt Area",
+                  FESM_intensity == 2 ~ "Low severity",
+                  FESM_intensity == 3 ~ "Moderate severity",
+                  FESM_intensity == 4 ~ "High severity",
+                  FESM_intensity == 5 ~ "Extreme severity",
+                  TRUE                ~ "Outside FESM extent")
+              )
+            ## Save the % burnt layers
+            write.csv(sdm_fire_crosstab, paste0(output_path, save_name, '_SDM_Host_VEG_intersect_Fire.csv'), row.names = FALSE)
+            
+            ## Now write the rasters
+            ## If the rasters don't exist, write them for each taxa/threshold
+            writeRaster(sdm_plus_host_veg, 
+                        paste0(output_path, save_name, '_SDM_Host_intersect.tif'),
+                        overwrite = TRUE)
+            
+            writeRaster(sdm_plus_veg_intersect_fire, 
+                        paste0(output_path, save_name, '_SDM_Host_VEG_intersect_Fire.tif'),
+                        overwrite = TRUE)
+            
+            message('writing threshold png for ', taxa)
+            png(paste0(output_path, save_name, '_SDM_Host_VEG_intersect_Fire.png'),
+                11, 4, units = 'in', res = 300)
+            
+            print(levelplot(stack(sdm_plus_veg,
+                                  fire_raster,
+                                  sdm_plus_veg_intersect_fire, 
+                                  quick = TRUE), margin = FALSE,
+                            
+                            ## Create a colour scheme using colbrewer: 100 is to make it continuous
+                            ## Also, make it a one-directional colour scheme
+                            scales      = list(draw = FALSE),
+                            at = seq(0, 4, length = 8),
+                            col.regions = colorRampPalette(rev(brewer.pal(5, 'YlOrRd'))),
+                            
+                            ## Give each plot a name: the third panel is the GCM
+                            names.attr = c('SDMs + Veg', 'Fire', ' [SDMs + Veg] * Fire'),
+                            colorkey   = list(height = 0.5, width = 3), xlab = '', ylab = '',
+                            main       = list(gsub('_', ' ', taxa), font = 4, cex = 2)) +
+                    
+                    ## Plot the Aus shapefile with the occurrence points for reference
+                    ## Can the current layer be plotted on it's own?
+                    ## Add the novel maps as vectors.
+                    latticeExtra::layer(sp.polygons(poly), data = list(poly = poly))) 
+            dev.off()
+            
+            gc()
+            
+          } else {
+            message('SDM and Veg rasters do not intersect for ', taxa, 'but it has a host taxa')
+            
+            message('mosaicing host and target SDM rasters for ', taxa)
+            sdm_plus_host <- raster::mosaic(sdm_threshold, host_threshold, fun = max)
+            
+            ## Multiply the SDM raster by the Fire Raster
+            message('multiply habitat raster by the fire raster')
+            sdm_plus_host_intersect_fire <- sdm_plus_host * fire_raster
+            
+            ## Then do the Cell stats ::
+            ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
+            habitat_fire_crosstab <- raster::crosstab(sdm_plus_host, fire_raster, useNA = TRUE, long = TRUE)
+            colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'km2')
+            
+            ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
+            ## If FIRE is NA, that means that....
+            sdm_fire_crosstab <- dplyr::filter(habitat_fire_crosstab, Habitat_taxa == 1)
+            sdm_fire_crosstab <- sdm_fire_crosstab %>%  
+              
+              ## Calculate the % burnt in each category, and also the km2
+              mutate(km2          = km2/cell_size)             %>% 
+              mutate(Percent      = km2/sum(km2) * 100) %>% 
+              mutate(Percent      = round(Percent, 2))                %>% 
+              mutate(Habitat_taxa = taxa) %>%
+              
+              ## FESM scores - there
+              mutate(
+                FESM_intensity = case_when(
+                  
+                  FESM_intensity == 0 ~ "Unburnt",
+                  FESM_intensity == 1 ~ "Non-FESM Burnt Area",
+                  FESM_intensity == 2 ~ "Low severity",
+                  FESM_intensity == 3 ~ "Moderate severity",
+                  FESM_intensity == 4 ~ "High severity",
+                  FESM_intensity == 5 ~ "Extreme severity",
+                  TRUE                ~ "Outside FESM extent")
+              )
+            
+            ## Save the % burnt layers
+            write.csv(sdm_fire_crosstab, paste0(output_path, save_name, '_SDM_Host_intersect_Fire.csv'), row.names = FALSE)
+            
+            ## Write the current suitability raster, thresholded using the Maximum training
+            ## sensitivity plus specificity Logistic threshold
+            message('Writing ', taxa, ' SDM * Fire rasdters', ' max train > ', target_thresh)
+            
+            ## Now write the rasters
+            ## If the rasters don't exist, write them for each taxa/threshold
+            writeRaster(sdm_plus_host, 
+                        paste0(output_path, save_name, '_SDM_Host_intersect.tif'),
+                        overwrite = TRUE)
+            
+            ## Save in two places, in the taxa folder, 
+            ## and in the habitat suitability folder
+            writeRaster(sdm_plus_host_intersect_fire, 
+                        paste0(output_path, save_name, '_SDM_Host_intersect_Fire.tif'),
+                        overwrite = TRUE)
+            
+            message('writing SDM * FIRE png for ', taxa)
+            png(paste0(output_path, save_name, '_SDM_Host_intersect_Fire.png'),
+                11, 4, units = 'in', res = 300)
+            
+            print(levelplot(stack(sdm_plus_veg,
+                                  sdm_plus_intersect_fire, 
+                                  quick = TRUE), margin = FALSE,
+                            
+                            ## Create a colour scheme using colbrewer: 100 is to make it continuos
+                            ## Also, make it a one-directional colour scheme
+                            scales      = list(draw = FALSE),
+                            at = seq(0, 4, length = 8),
+                            col.regions = colorRampPalette(rev(brewer.pal(5, 'YlOrRd'))),
+                            
+                            ## Give each plot a name: the third panel is the GCM
+                            names.attr = c('SDMs', ' [SDMs * Fire]'),
+                            colorkey   = list(height = 0.5, width = 3), xlab = '', ylab = '',
+                            main       = list(gsub('_', ' ', taxa), font = 4, cex = 2)) +
+                    
+                    ## Plot the Aus shapefile with the occurrence points for reference...
+                    ## Can the current layer be plotted on it's own?
+                    ## Add the novel maps as vectors.
+                    latticeExtra::layer(sp.polygons(poly), data = list(poly = poly)))
+            
+            dev.off()
+            
+            gc()
+            
+          }
+          
+        } else {
+          message('Habitat Suitability threshold raster does not exist for', taxa, ' skip')
+          cat(taxa)
+        }
+        
+      }
+    }) 
 }
 
 
@@ -668,26 +1131,26 @@ taxa_records_habitat_intersect = function(analysis_df,
 #' @param raster_pattern     Character string - The pattern to look for of Invertebrate rasters
 #' @param targ_maxent_table  Data frame       - A table of maxent results to be used for mapping 
 #' @param cell_size          Numeric          - Cell size to resample output
-#' @param country_shp        Character string - Shapefile name that has already been read into R (e.g. in the Package)
-#' @param country_prj        Character string - Name of projection
+#' @param poly_path          Character string - file path to feature polygon layer
+#' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
 #' @param write_rasters      Logical          - Save rasters (T/F)?
-#' @export calculate_taxa_habitat
-calculate_taxa_habitat = function(taxa_list,
-                                  targ_maxent_table,
-                                  host_maxent_table,
-                                  target_path,
-                                  output_path,
-                                  intersect_path,
-                                  raster_pattern,
-                                  fire_raster,
-                                  cell_size,
-                                  fire_thresh,
-                                  write_rasters,
-                                  country_shp,
-                                  country_prj) {
+#' @export calculate_taxa_habitat_features
+calculate_taxa_habitat_features = function(taxa_list,
+                                           targ_maxent_table,
+                                           host_maxent_table,
+                                           target_path,
+                                           output_path,
+                                           intersect_path,
+                                           raster_pattern,
+                                           fire_raster,
+                                           cell_size,
+                                           fire_thresh,
+                                           write_rasters,
+                                           poly_path,
+                                           epsg) {
   
   ## Get the AUS shapefile
-  country_poly <- get(country_shp) %>%
+  poly <- get(country_shp) %>%
     spTransform(country_prj)
   
   ## Pipe the list into Lapply
@@ -836,7 +1299,7 @@ calculate_taxa_habitat = function(taxa_list,
                     ## Plot the Aus shapefile with the occurrence points for reference
                     ## Can the current layer be plotted on it's own?
                     ## Add the novel maps as vectors.
-                    latticeExtra::layer(sp.polygons(country_poly), data = list(country_poly = country_poly))) 
+                    latticeExtra::layer(sp.polygons(poly), data = list(poly = poly))) 
             dev.off()
             
             gc()
@@ -907,7 +1370,7 @@ calculate_taxa_habitat = function(taxa_list,
                     ## Plot the Aus shapefile with the occurrence points for reference
                     ## Can the current layer be plotted on it's own?
                     ## Add the novel maps as vectors.
-                    latticeExtra::layer(sp.polygons(country_poly), data = list(country_poly = country_poly))) 
+                    latticeExtra::layer(sp.polygons(poly), data = list(poly = poly))) 
             dev.off()
             
             gc()
@@ -1018,7 +1481,7 @@ calculate_taxa_habitat = function(taxa_list,
                     ## Plot the Aus shapefile with the occurrence points for reference
                     ## Can the current layer be plotted on it's own?
                     ## Add the novel maps as vectors.
-                    latticeExtra::layer(sp.polygons(country_poly), data = list(country_poly = country_poly))) 
+                    latticeExtra::layer(sp.polygons(poly), data = list(poly = poly))) 
             dev.off()
             
             gc()
@@ -1103,7 +1566,7 @@ calculate_taxa_habitat = function(taxa_list,
                     ## Plot the Aus shapefile with the occurrence points for reference...
                     ## Can the current layer be plotted on it's own?
                     ## Add the novel maps as vectors.
-                    latticeExtra::layer(sp.polygons(country_poly), data = list(country_poly = country_poly)))
+                    latticeExtra::layer(sp.polygons(poly), data = list(poly = poly)))
             
             dev.off()
             
@@ -1156,7 +1619,7 @@ project_maxent_future_grids_mess = function(country_shp,   world_shp,
                                             nclust,        OSGeo_path) {
   
   ## Read in the Aus and world shapefile and re-rpoject
-  country_poly   <- country_shp %>%
+  poly   <- country_shp %>%
     spTransform(country_prj)
   
   world_poly <- world_shp %>%
@@ -1170,7 +1633,7 @@ project_maxent_future_grids_mess = function(country_shp,   world_shp,
     ## Could stack all the rasters, or, keep them separate
     ## x = scen_list[1]
     s <- stack(c(sprintf('%s/20%s/%s/%s%s.tif', climate_path, time_slice, x, x, 1:19)))
-    identical(projection(s), projection(country_poly))
+    identical(projection(s), projection(poly))
     
     ## Rename both the current and future environmental stack...
     ## critically important that the order of the name
@@ -1292,7 +1755,7 @@ project_maxent_future_grids_mess = function(country_shp,   world_shp,
                              colorkey = list(height = 0.6),
                              main = gsub('_', ' ', sprintf(' Current_mess_for_%s (%s)', raster_name, species))) +
                 
-                latticeExtra::layer(sp.polygons(country_poly), data = list(country_poly = country_poly))  ## need list() for polygon
+                latticeExtra::layer(sp.polygons(poly), data = list(poly = poly))  ## need list() for polygon
               
               p <- diverge0(p, 'RdBu')
               f <- sprintf('%s/%s%s%s.png', MESS_dir, species, "_current_mess_", raster_name)
@@ -1385,7 +1848,7 @@ project_maxent_future_grids_mess = function(country_shp,   world_shp,
                                main = gsub('_', ' ', sprintf('Future_mess_for_%s_%s (%s)',
                                                              raster_name, x, species, x))) +
                   
-                  latticeExtra::layer(sp.polygons(country_poly), data = list(country_poly = country_poly))
+                  latticeExtra::layer(sp.polygons(poly), data = list(poly = poly))
                 
                 p <- diverge0(p, 'RdBu')
                 f <- sprintf('%s/%s%s%s%s%s.png', MESS_dir, species, "_future_mess_", raster_name, "_", x)
@@ -1519,7 +1982,7 @@ project_maxent_future_grids_mess = function(country_shp,   world_shp,
                       ## Plot the Aus shapefile with the occurrence points for reference
                       ## Can the current layer be plotted on it's own?
                       ## Add the novel maps as vectors.
-                      latticeExtra::layer(sp.polygons(country_poly), data = list(country_poly = country_poly)) +
+                      latticeExtra::layer(sp.polygons(poly), data = list(poly = poly)) +
                       latticeExtra::layer(sp.points(occ, pch = 19, cex = 0.15,
                                                     col = c('red', 'transparent', 'transparent')[panel.number()]),
                                           data = list(occ = occ)) +
@@ -1603,7 +2066,7 @@ project_maxent_future_grids_mess = function(country_shp,   world_shp,
                     ## Plot the Aus shapefile with the occurrence points for reference
                     ## Can the current layer be plotted on it's own?
                     ## Add the novel maps as vectors.
-                    latticeExtra::layer(sp.polygons(country_poly), data = list(country_poly = country_poly)) +
+                    latticeExtra::layer(sp.polygons(poly), data = list(poly = poly)) +
                     latticeExtra::layer(sp.points(occ, pch = 19, cex = 0.15,
                                                   col = c('red', 'transparent', 'transparent')[panel.number()]),
                                         data = list(occ = occ)) +

@@ -76,7 +76,7 @@ terraOptions(memfrac = 0.5,
 First, get all the rasters to compare with SDM modelling :
 
 - SDM output     (Binary habitat suitability, 0-1, 100m) (Source)
-- NSW Vegetation (Veg maps, categorical, 100m)           (Source )
+- NSW Vegetation (Veg maps, categorical, 100m)           (Source)
 - Fire layers    (FESM, 0-5, 100m)                       (https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm)
 
 \

@@ -9,8 +9,8 @@ habitat_threshold(
   maxent_table,
   maxent_path,
   output_path,
-  country_shp,
-  country_prj
+  poly_path,
+  epsg
 )
 }
 \arguments{
@@ -20,11 +20,15 @@ habitat_threshold(
 
 \item{maxent_path}{Character string - The file path containing the existing maxent models}
 
+\item{poly_path}{Character string - file path to feature polygon layer}
+
+\item{epsg}{Numeric - ERSP code of coord ref system to be translated into WKT format}
+
+\item{cell_factor}{Numeric          - Cell size to resample output}
+
 \item{country_shp}{Character string - Shapefile name that has already been read into R (e.g. in the Package)}
 
 \item{country_prj}{Character string - Name of projection}
-
-\item{cell_factor}{Numeric          - Cell size to resample output}
 
 \item{write_rasters}{Logical          - Save rasters (T/F)?}
 }
