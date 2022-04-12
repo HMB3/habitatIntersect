@@ -183,7 +183,7 @@ run_sdm_analysis_crop = function(taxa_list,
 #' @param features           Character string - Which features should be used? (e.g. linear, product, quadratic 'lpq')
 #' @param replicates         Numeric - The number of replicates to use
 #' @param responsecurves     Logical - Save response curves of the maxent models (T/F)?
-#' @param poly_layer         Character string - name of poly layer in global env
+#' @param poly_path         Character string - name of poly layer in global env
 #' @export run_sdm_analysis_no_crop
 run_sdm_analysis_no_crop = function(taxa_list,
                                     taxa_level,
@@ -203,13 +203,14 @@ run_sdm_analysis_no_crop = function(taxa_list,
                                     features,
                                     replicates,
                                     responsecurves,
-                                    poly_layer) {
+                                    poly_path) {
   
   
   ## Convert to SF object for selection - inefficient
   message('Preparing spatial data for SDMs')
   
-  shp <- get(data(poly_layer))
+  poly <- st_read(poly_path) %>% 
+    st_transform(., st_crs(epsg))
   
   ## Loop over all the taxa
   ## taxa <- taxa_list[1]
@@ -267,7 +268,7 @@ run_sdm_analysis_no_crop = function(taxa_list,
                                               features                = features,
                                               replicates              = replicates,
                                               responsecurves          = responsecurves,
-                                              shp                     = shp),
+                                              poly                    = poly),
           
           
           ## Save error message
@@ -705,7 +706,7 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
 #' @param features           Character string - Which features should be used? (e.g. linear, product, quadratic 'lpq')
 #' @param replicates         Numeric - The number of replicates to use
 #' @param responsecurves     Logical - Save response curves of the maxent models (T/F)?
-#' @param shp                Character string - path to shapefile
+#' @param poly                Character string - path to shapefile
 #' @param rep_args           RasterLayer of global koppen zones, in Mollweide54009 projection
 #' @param full_args          Dataframe of global koppen zones, with columns : GRIDCODE, Koppen
 #' @export fit_maxent_targ_bg_back_sel_no_crop 
@@ -727,7 +728,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
                                                 features,
                                                 replicates,
                                                 responsecurves,
-                                                shp) {
+                                                poly) {
   
   ## First, stop if the outdir file exists,
   if(!file.exists(outdir)) stop('outdir does not exist :(', call. = FALSE)
@@ -784,7 +785,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     ## Find which of these cells fall within the Koppen-Geiger zones that the taxa occupies
     ## Crop the Kopppen raster to the extent of the occurrences, and snap it.
     message(taxa, ' Do not intersect background cells with Koppen zones')
-    message('country shp is a ', class(shp))
+    message('country poly is a ', class(poly))
     i                   <- terra::cellFromXY(template_raster_spat, bg_mat_unique)
     bg_crop             <- bg_unique[which(i %in% bg_cells_unique), ]
     
@@ -795,12 +796,12 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     ## Then save the occurrence points
     png(sprintf('%s/%s/%s_%s.png', outdir, save_name, save_name, "buffer_occ"),
         16, 10, units = 'in', res = 300)
-
-    raster::plot(shp, legend = FALSE,
-         main = paste0('Occurence SDM records for ', taxa))
+    
+    raster::plot(poly, legend = FALSE,
+                 main = paste0('Occurence SDM records for ', taxa))
     raster::plot(buffer,  add = TRUE, col = "red")
     raster::plot(occ, add = TRUE, col = "blue")
-
+    
     dev.off()
     
     ## Reduce background sample, if it's larger than max_bg_size

@@ -148,7 +148,7 @@ run_sdm_analysis_no_crop(taxa_list               = target_reptiles[-3],
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         shp_layer               = 'AUS')
+                         poly_path              = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp')
 
 
 ## Run species-level models for all Hoplocephalus bungaroides
@@ -171,7 +171,7 @@ run_sdm_analysis_no_crop(taxa_list               = target_reptiles[3],
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         shp_layer               = 'AUS')
+                         poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp')
 
 ``` 
 
