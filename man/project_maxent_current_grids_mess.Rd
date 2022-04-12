@@ -30,7 +30,7 @@ project_maxent_current_grids_mess(
 
 \item{create_mess}{Logical - Create mess maps of the predictions (T/F)?}
 
-\item{poly_path}{Character string - file path to feature polygon layer}
+\item{poly_path}{Character string - file path to feature polygon layer.}
 
 \item{epsg}{Numeric - ERSP code of coord ref system to be translated into WKT format}
 

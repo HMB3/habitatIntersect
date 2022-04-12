@@ -17,7 +17,7 @@
 #' @param current_grids      Character string - Vector of current enviro conditions that you want to include
 #' @param save_novel_poly    Character string - Save the novel areas as shapefiles?
 #' @param create_mess        Logical - Create mess maps of the predictions (T/F)?
-#' @param poly_path          Character string - file path to feature polygon layer
+#' @param poly_path          Character string - file path to feature polygon layer.
 #' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
 #' @details It uses the rmaxent package https://github.com/johnbaums/rmaxent
 #' @export project_maxent_current_grids_mess
@@ -31,7 +31,7 @@ project_maxent_current_grids_mess = function(country_shp,
                                              epsg) {
   
   
-  ## Convert to SF object for selection - inefficient
+  ## Create feature polygon for plotting
   poly <- st_read(poly_path) %>% 
     st_transform(., st_crs(epsg))
   
@@ -735,7 +735,8 @@ calculate_taxa_habitat_rasters = function(taxa_list,
       save_name <- gsub(' ', '_', taxa)
       
       current_thresh = sprintf('%s/%s/full/%s_%s%s.tif', target_path,
-                               save_name, save_name, "current_suit_not_novel_above_", target_thresh)
+                               save_name, save_name, 
+                               "current_suit_not_novel_above_", target_thresh)
       
       ## If the invert taxa has a host plant, use the SDM from the host plant
       if(is.na(host_dir)) {
@@ -760,7 +761,8 @@ calculate_taxa_habitat_rasters = function(taxa_list,
             
             ## Re-sample
             message('resampling Veg intersect raster for ', taxa)
-            intersect_sdm <- raster::resample(intersect_raster, sdm_threshold, "bilinear", exent = extent(sdm_threshold))
+            intersect_sdm <- raster::resample(intersect_raster, sdm_threshold, "bilinear", 
+                                              exent = extent(sdm_threshold))
             
             ##
             message('mosaic Veg and SDM rasters for ', taxa)

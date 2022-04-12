@@ -168,7 +168,8 @@ run_sdm_analysis_no_crop(taxa_list               = target_reptiles[3],
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp')
+                         poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                         epsg                    = 3577)
 
 ``` 
 
@@ -225,7 +226,9 @@ tryCatch(
                                     
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
-                                    save_novel_poly = TRUE),
+                                    save_novel_poly = TRUE,
+                                    poly_path       = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                                    epsg            = 3577),
   
   ## If the species fails, write a fail message to file.
   error = function(cond) {
