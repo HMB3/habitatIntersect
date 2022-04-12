@@ -184,7 +184,7 @@ run_sdm_analysis_crop = function(taxa_list,
 #' @param replicates         Numeric - The number of replicates to use
 #' @param responsecurves     Logical - Save response curves of the maxent models (T/F)?
 #' @param poly_path          Character string - file path to feature polygon layer
-#' @param poly_path          Numeric - ERSP code of coord ref system to be translated into WKT format
+#' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
 #' @export run_sdm_analysis_no_crop
 run_sdm_analysis_no_crop = function(taxa_list,
                                     taxa_level,
@@ -799,8 +799,10 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     png(sprintf('%s/%s/%s_%s.png', outdir, save_name, save_name, "buffer_occ"),
         16, 10, units = 'in', res = 300)
     
-    raster::plot(poly, legend = FALSE,
-                 main = paste0('Occurence SDM records for ', taxa))
+    raster::plot(st_geometry(poly), 
+                 legend = FALSE,
+                 main   = paste0('Occurence SDM records for ', taxa))
+    
     raster::plot(buffer,  add = TRUE, col = "red")
     raster::plot(occ, add = TRUE, col = "blue")
     
