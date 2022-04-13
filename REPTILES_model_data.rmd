@@ -229,7 +229,8 @@ tryCatch(
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
                                     save_novel_poly = TRUE,
-                                    output_path     = 'output/reptile_maxent/Habitat_suitability/SDM_thresholds/sdm_novel_combo.gpkg',
+                                    output_path     = 
+                                      'output/reptile_maxent/Habitat_suitability/SDM_thresholds/reptiles_sdm_novel_combo.gpkg',
                                     poly_path       = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                     epsg            = 3577),
   
@@ -273,11 +274,26 @@ is not considered present. Here we've chosen the 10th% Logistic threshold for ea
 habitat_threshold(taxa_list     = sort(unique(REPTILES.MAXENT.RESULTS$searchTaxon)),
                   maxent_table  = REPTILES.MAXENT.RESULTS,
                   maxent_path   = './output/reptile_maxent/back_sel_models/',
-                  output_path   = 'output/reptile_maxent/Habitat_suitability/SDM_thresholds/reptile_sdm_thresholds_combo.gpkg',
+                  output_path   = paste0(threshold_folders, 'reptiles_sdm_thresholds_combo.gpkg'),
                   poly_path     = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                   epsg          = 3577)
 
 gc()
+
+
+## Now copy the thresh-holded SDM rasters to stand alone folder (i.e. all taxa in one folder)
+thresholded_sdms <- list.files(path    = './output/reptile_maxent/back_sel_models/',
+                               pattern = '_current_suit_not_novel_above_', 
+                               recursive = TRUE,
+                               full.names = TRUE) %>% 
+  .[grep(".tif", .)] 
+
+
+file.copy(from      = thresholded_sdms, 
+          to        = 'output/reptile_maxent/Habitat_suitability/SDM_thresholds/', 
+          overwrite = TRUE, 
+          recursive = TRUE, 
+          copy.mode = TRUE)
 
 ``` 
 

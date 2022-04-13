@@ -99,18 +99,57 @@ study_sdm_binary <- stack(
              'current_suit_not_novel_above', full.names = TRUE))
 
 
+## Get the names of all the layers
+sdm_threshold_features <- list.files(path    = './output/reptile_maxent/Habitat_suitability/SDM_thresholds/',
+                                     pattern    = '_current_suit_not_novel_above_', 
+                                     recursive  = FALSE,
+                                     full.names = FALSE) %>% 
+  
+  .[grep(".tif", .)] %>% gsub('.tif', '', .) 
+
+
+for(feat in sdm_threshold_features) { 
+  
+  layer_name <- sdm_threshold_list[[feat]]
+  tempData   <- st_read(dsn   = paste0(threshold_folders, 'reptiles_sdm_thresholds_combo.gpkg'), 
+                        layer = layer_name) 
+  
+  message('assigning ', feat, ' layer')
+  assign (layer_name, tempData, envir = .GlobalEnv) 
+  
+}
+
+
+
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
 ## VALUES : 1-4, burn intensity from 2019-2020 fires, originally @ 10m resolution, re-sampled to 100m
 FESM_NSW_10m    <- raster('./data/Remote_sensing/FESM/fesm_20200319_albers.tif')
-FESM_AUS_20m    <- raster('./data/Remote_sensing/FESM/fesm_20200319_albers.tif')
-Burn_severity   <- raster('./data/Remote_sensing/FESM/NBR_Burn_severity_classed.tif') 
-Burnt_unburnt   <- raster('./data/Remote_sensing/NIAFED/raster/NIAFED.tif') 
+FESM_AUS_20m    <- raster('./data/Remote_sensing/FESM/NBR_Burn_severity_classed_ALB.tif')
 
+
+## Read in feature layers for fire that have been repaired in ArcMap
+FESM_east_20m   <- st_read('./data/Remote_sensing/FESM/Fire_perimeters_for_forests_and_woodlands.shp') %>% 
+  st_transform(., st_crs(3577)) %>% filter(!st_is_empty(.)) %>% as_Spatial()
+
+
+## NIAFED data is much coarser and has more empty geometries
+Burnt_unburnt   <- 
+  
+  st_read('./data/Remote_sensing/NIAFED/National_Indicative_Aggregated_Fire_Extent_Dataset_v20200211.shp') %>%
+  
+  st_transform(., st_crs(3577)) %>% 
+  filter(!st_is_empty(.)) %>% 
+  st_make_valid() %>% 
+  st_cast("MULTIPOLYGON") %>% 
+  as_Spatial()
 
 
 ## Read in the SDM data, to intersect with the Veg layers
-SVTM_Veg_Class_GDA          = readRDS('./data/Remote_sensing/aligned_rasters/SVTM_Veg_Class_GDA.rds')
-AUS_forest_RS               = raster('./data/Remote_sensing/Veg_data/Forest_cover/alpsbk_aust_y2009_sf1a2_forest.tif')
+# SVTM_Veg_Class_GDA          = readRDS('./data/Remote_sensing/aligned_rasters/SVTM_Veg_Class_GDA.rds')
+AUS_forest_RS_ras           = raster('./data/Remote_sensing/Veg_data/Forest_cover/alpsbk_aust_y2009_sf1a2_forest.tif')
+AUS_forest_RS_feat          = st_read('./data/Remote_sensing/Veg_data/Forest_cover/Aus_forest_cover_east_coast.shp') %>% 
+  st_transform(., st_crs(3577)) %>% filter(!st_is_empty(.)) %>% as_Spatial()
+
 SDM.SPAT.OCC.ALL.REPTILE.BG = readRDS('./output/reptile_maxent/results/SDM_SPAT_OCC_BG_ALL_REPTILE_TAXA_VARS.rds')
 
 
@@ -127,7 +166,7 @@ raster::xres(FESM_10m);raster::xres(study_sdm_binary[[1]])
 
 \
 
-Let's intersect the SDMs for each REPTILEebrate taxa with the Vegetation Habitat Raster
+Let's intersect the SDMs for each REPTILE taxa with the Vegetation Habitat Raster
 
 \
 
@@ -198,9 +237,9 @@ table of estimated area.
 
 ## Calculate Insect habitat
 REPTILE.FESM.list <- list.files('./output/reptile_maxent/Habitat_suitability/FESM_SDM_intersect/', 
-                               pattern     = '_intersect_Fire.csv', 
-                               full.names  = TRUE, 
-                               recursive   = TRUE) 
+                                pattern     = '_intersect_Fire.csv', 
+                                full.names  = TRUE, 
+                                recursive   = TRUE) 
 
 
 ## Now combine the SUA tables for each species into one table 
