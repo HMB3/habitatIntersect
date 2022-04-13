@@ -66,9 +66,9 @@ data('sdmgen_packages')
 ipak(sdmgen_packages)
 
 ## Try and set the raster temp directory to a location not on the partition, to save space
-rasterOptions(tmpdir = 'E:/Bush_fire_analysis/nenswniche/Temp')
+rasterOptions(tmpdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
 terraOptions(memfrac = 0.5, 
-             tempdir = 'E:/Bush_fire_analysis/nenswniche/Temp')
+             tempdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
 
 ```
 
@@ -147,6 +147,7 @@ run_sdm_analysis_no_crop(taxa_list               = target_reptiles[-3],
                          poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                          epsg                    = 3577)
 
+gc()
 
 ## Run species-level models for all Hoplocephalus bungaroides
 run_sdm_analysis_no_crop(taxa_list               = target_reptiles[3],
@@ -170,6 +171,9 @@ run_sdm_analysis_no_crop(taxa_list               = target_reptiles[3],
                          responsecurves          = TRUE,
                          poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                          epsg                    = 3577)
+
+
+gc()
 
 ``` 
 
@@ -201,6 +205,8 @@ REPTILES.MAXENT.RESULTS    = compile_sdm_results(taxa_list    = target_reptiles,
 ## Get map_taxa from the maxent results table above, change the species column,
 ## then create a list of logistic thresholds
 reptiles_map_taxa <- REPTILES.MAXENT.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
+
+gc()
 
 ``` 
 
@@ -237,6 +243,8 @@ tryCatch(
     
   })
 
+gc()
+
 
 ``` 
 
@@ -266,8 +274,10 @@ habitat_threshold(taxa_list     = sort(unique(REPTILES.MAXENT.RESULTS$searchTaxo
                   maxent_table  = REPTILES.MAXENT.RESULTS,
                   maxent_path   = './output/reptile_maxent/back_sel_models/',
                   output_path   = 'output/reptile_maxent/Habitat_suitability/SDM_thresholds/sdm_thresholds_combo.gpkg',
-                  country_shp   = 'AUS',
-                  country_prj   = CRS("+init=EPSG:3577"))
+                  poly_path     = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                  epsg          = 3577)
+
+gc()
 
 ``` 
 

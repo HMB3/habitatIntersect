@@ -129,7 +129,6 @@ project_maxent_current_grids_mess = function(taxa_list,
               
               gc()
               
-              
             } else {
               ## Otherwise, read in the current novel layer
               message(taxa, ' Current similarity analysis already run')
@@ -203,6 +202,8 @@ project_maxent_current_grids_mess = function(taxa_list,
               message(taxa, ' Current un-novel environments file already saved')
             }
             
+            gc()
+            
             ## Create the MESS path and save shapefiles
             MESS_shp_path <- sprintf('%s%s/full/%s', maxent_path, save_name, 'MESS_output')
             if(save_novel_poly) {
@@ -237,6 +238,8 @@ project_maxent_current_grids_mess = function(taxa_list,
                          
                          quiet  = TRUE,
                          append = FALSE)
+                
+                gc()
                 
               } else {
                 message('Do not save current MESS maps to shapefile for ', taxa, ' no cells are novel')
@@ -464,6 +467,8 @@ habitat_threshold = function(taxa_list,
           vals       <- terra::unique(current_suit_rast)
           uniue_vals <- is.na(vals[[1]]) %>% unique()
           
+          gc()
+          
           if(!uniue_vals) {
             
             message('Converting ', taxa, ' raster to polygon')
@@ -507,6 +512,8 @@ habitat_threshold = function(taxa_list,
                      
                      quiet  = TRUE,
                      append = FALSE)
+            
+            gc()
             
           } else {
             message('Do not save current MESS maps to shapefile for ', taxa, ' no cells are novel')
@@ -581,6 +588,8 @@ taxa_records_habitat_features_intersect = function(analysis_df,
         ## Clip the habitat polygon by the 50km buffer
         message('Clip habitat layer to the taxa df for ', taxa)
         habitat_subset <- habitat_poly[taxa_buffer, ]
+        
+        gc()
         
         if(nrow(habitat_subset@data) >0 ) {
           
@@ -778,6 +787,8 @@ calculate_taxa_habitat_rasters = function(taxa_list,
             habitat_fire_crosstab <- raster::crosstab(sdm_plus_veg, fire_raster, useNA = TRUE, long = TRUE)
             colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'km2')
             
+            gc()
+            
             ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
             ## If FIRE is NA, that means that....
             sdm_fire_crosstab <- dplyr::filter(habitat_fire_crosstab, Habitat_taxa == 1)
@@ -801,6 +812,8 @@ calculate_taxa_habitat_rasters = function(taxa_list,
                   FESM_intensity == 5 ~ "Extreme severity",
                   TRUE                ~ "Outside FESM extent")
               )
+            
+            gc()
             
             ## Save the % burnt layers
             write.csv(sdm_fire_crosstab, paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.csv'), row.names = FALSE)
@@ -947,6 +960,7 @@ calculate_taxa_habitat_rasters = function(taxa_list,
             ## Re-sample
             message('resampling Veg intersect raster for ', taxa)
             intersect_sdm <- raster::resample(intersect_raster, sdm_threshold, "bilinear", exent = extent(sdm_threshold))
+            gc()
             
             ##
             message('mosaicing Veg, host and target SDM rasters for ', taxa)
@@ -1039,6 +1053,8 @@ calculate_taxa_habitat_rasters = function(taxa_list,
             ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
             habitat_fire_crosstab <- raster::crosstab(sdm_plus_host, fire_raster, useNA = TRUE, long = TRUE)
             colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'km2')
+            
+            gc()
             
             ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
             ## If FIRE is NA, that means that....
@@ -1238,6 +1254,8 @@ calculate_taxa_habitat_features = function(taxa_list,
             message('multiply habitat raster by the fire raster')
             sdm_plus_veg_intersect_fire <- sdm_plus_veg * fire_raster
             
+            gc()
+            
             ## Then do the Cell stats ::
             ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
             habitat_fire_crosstab <- raster::crosstab(sdm_plus_veg, fire_raster, useNA = TRUE, long = TRUE)
@@ -1412,6 +1430,7 @@ calculate_taxa_habitat_features = function(taxa_list,
             ## Re-sample
             message('resampling Veg intersect raster for ', taxa)
             intersect_sdm <- raster::resample(intersect_raster, sdm_threshold, "bilinear", exent = extent(sdm_threshold))
+            gc()
             
             ##
             message('mosaicing Veg, host and target SDM rasters for ', taxa)
@@ -1504,6 +1523,8 @@ calculate_taxa_habitat_features = function(taxa_list,
             ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
             habitat_fire_crosstab <- raster::crosstab(sdm_plus_host, fire_raster, useNA = TRUE, long = TRUE)
             colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'km2')
+            
+            gc()
             
             ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
             ## If FIRE is NA, that means that....
@@ -2187,6 +2208,8 @@ shapefile_vector_from_raster = function (shp_file,
     ## so 'a' needs to match in this step, and the next
     targ_ras, tr = res(template),
     te = c(bbox(template)), a = agg_var, a_nodata = 0, init = 0, ot = 'UInt16', output_Raster = TRUE)
+  
+  gc()
   
   areal_unit_vec <- c(areal_unit_rast[])
   summary(areal_unit_vec)

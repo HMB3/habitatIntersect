@@ -249,6 +249,8 @@ run_sdm_analysis_no_crop = function(taxa_list,
         background <- sdm_df %>% .[!.[[taxa_level]] %in% taxa, ]
         message('Using ', nrow(background), ' background records from ', unique(background$SOURCE))
         
+        gc()
+        
         ## Finally fit the models using FIT_MAXENT_TARG_BG. Also use tryCatch to skip any exceptions
         tryCatch(
           fit_maxent_targ_bg_back_sel_no_crop(occ                     = occurrence,
@@ -808,6 +810,8 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     
     dev.off()
     
+    gc()
+    
     ## Reduce background sample, if it's larger than max_bg_size
     if (nrow(bg_crop) > max_bg_size) {
       
@@ -855,6 +859,8 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
       writeOGR(swd_bg,  outdir_sp,  paste0(save_name, '_bg_swd'),  'ESRI Shapefile', overwrite_layer = TRUE)
     }
     
+    gc()
+    
     ## Now combine the occurrence and background data
     swd <- as.data.frame(rbind(swd_occ@data, swd_bg@data))
     saveRDS(swd, file.path(outdir_sp, 'swd.rds'))
@@ -889,6 +895,8 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
                                         'outputformat=logistic',
                                         off, paste(names(rep_args), rep_args, sep = '=')))
     }
+    
+    gc()
     
     ## Run the full maxent model - using all the data in swd
     ## This uses DISMO to output standard files, but the names can't be altered
@@ -1143,6 +1151,9 @@ local_simplify = function (occ, bg, path, taxa_column = "taxa", response_curves 
                                                     args, value = TRUE,
                                                     invert = TRUE), path = d)
     }
+    
+    gc()
+    
     if (isTRUE(save)) {
       saveRDS(m, file.path(d, "maxent_fitted.rds"))
     }
