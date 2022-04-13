@@ -5,38 +5,32 @@
 \title{Project current maxent models across geographic space}
 \usage{
 project_maxent_current_grids_mess(
-  country_shp,
-  country_prj,
-  save_novel_poly,
-  local_prj,
   taxa_list,
   maxent_path,
   current_grids,
   create_mess,
+  save_novel_poly,
+  output_path,
   poly_path,
   epsg
 )
 }
 \arguments{
-\item{save_novel_poly}{Character string - Save the novel areas as shapefiles?}
+\item{taxa_list}{Character string - The taxa to run maxent predictions for}
 
-\item{local_prj}{CRS object  - Local projection for mapping maxent results}
-
-\item{taxa_list}{Character string - The species to run maxent predictions for}
-
-\item{maxent_path}{Character string - The file path containin the existing maxent models}
+\item{maxent_path}{Character string - The file path containing the existing maxent models}
 
 \item{current_grids}{Character string - Vector of current enviro conditions that you want to include}
 
 \item{create_mess}{Logical - Create mess maps of the predictions (T/F)?}
 
+\item{save_novel_poly}{Character string - Save the novel areas as polygons?}
+
+\item{output_path}{Character string - The file path where the polygon data will be saved}
+
 \item{poly_path}{Character string - file path to feature polygon layer.}
 
 \item{epsg}{Numeric - ERSP code of coord ref system to be translated into WKT format}
-
-\item{climate_path}{Character string - The file path where the climate data is saved}
-
-\item{grid_names}{Character string - Vector of enviro conditions that you want to include}
 }
 \description{
 This function takes the maxent models created by the 'fit_maxent_targ_bg_back_sel' function,

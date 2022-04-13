@@ -14,7 +14,7 @@ habitat_threshold(
 )
 }
 \arguments{
-\item{taxa_list}{Character string - The species to run maxent predictions for}
+\item{taxa_list}{Character string - The taxa to run maxent predictions for}
 
 \item{maxent_table}{Data frame       - A table of maxent results to be used for mapping}
 

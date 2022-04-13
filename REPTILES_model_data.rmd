@@ -217,16 +217,13 @@ package https://github.com/johnbaums/rmaxent. It assumes that the maxent models 
 
 ## Project SDMs across the Study area for the REPTILES taxa
 tryCatch(
-  project_maxent_current_grids_mess(country_shp     = AUS, 
-                                    country_prj     = sp_epsg3577,
-                                    local_prj       = sp_epsg3577,
-                                    
-                                    taxa_list       = rev(reptiles_map_taxa),    
+  
+  project_maxent_current_grids_mess(taxa_list       = rev(reptiles_map_taxa),    
                                     maxent_path     = './output/reptile_maxent/back_sel_models/',
-                                    
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
                                     save_novel_poly = TRUE,
+                                    output_path     = 'output/reptile_maxent/Habitat_suitability/SDM_thresholds/sdm_novel_combo.gpkg',
                                     poly_path       = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                     epsg            = 3577),
   

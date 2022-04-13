@@ -35,7 +35,7 @@ project_maxent_future_grids_mess(
 
 \item{scen_list}{Character string - The list of global circulation models to create predictions for}
 
-\item{taxa_list}{Character string - The species to run maxent predictions for}
+\item{taxa_list}{Character string - The taxa to run maxent predictions for}
 
 \item{maxent_path}{Character string - The file path containin the existing maxent models}
 
