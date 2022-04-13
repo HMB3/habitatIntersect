@@ -281,7 +281,7 @@ project_maxent_current_grids_mess = function(taxa_list,
                               col.regions = colorRampPalette(rev(brewer.pal(9, 'YlOrRd'))),
                               
                               ## Give each plot a name: the third panel is the GCM
-                              names.attr = c('HSM pts', ' Current'),
+                              names.attr = c('HSM records', ' Current'),
                               colorkey   = list(height = 0.5, width = 3), xlab = '', ylab = '',
                               main       = list(gsub('_', ' ', taxa), font = 4, cex = 2)) +
                       

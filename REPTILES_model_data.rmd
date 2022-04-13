@@ -273,7 +273,7 @@ is not considered present. Here we've chosen the 10th% Logistic threshold for ea
 habitat_threshold(taxa_list     = sort(unique(REPTILES.MAXENT.RESULTS$searchTaxon)),
                   maxent_table  = REPTILES.MAXENT.RESULTS,
                   maxent_path   = './output/reptile_maxent/back_sel_models/',
-                  output_path   = 'output/reptile_maxent/Habitat_suitability/SDM_thresholds/sdm_thresholds_combo.gpkg',
+                  output_path   = 'output/reptile_maxent/Habitat_suitability/SDM_thresholds/reptile_sdm_thresholds_combo.gpkg',
                   poly_path     = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                   epsg          = 3577)
 
