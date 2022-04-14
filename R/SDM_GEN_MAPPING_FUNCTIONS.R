@@ -1614,23 +1614,22 @@ calculate_taxa_habitat_host_features = function(taxa_list,
 #' @title Intersect habitat suitability features with Fire layers.
 #' @description Takes a habitat suitability layer, and intersects it with a fire suitability layer.
 #' @param taxa_list          Character string - The taxa to run maxent predictions for
+#' @param layer_list         Character string - list of feature layers to look up
 #' @param targ_maxent_table  data frame - table of maxent results for target taxa
-#' @param host_maxent_table  data frame - table of maxent results for host taxa
 #' @param target_path        Character string - The file path containing the existing maxent models
 #' @param intersect_path     Character string - The file path containing the intersecting rasters
-#' @param raster_pattern     Character string - The pattern to look for of Invertebrate rasters
-#' @param cell_size          Numeric          - Cell size to resample output
 #' @param poly_path          Character string - file path to feature polygon layer
 #' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
 #' @param write_rasters      Logical          - Save rasters (T/F)?
 #' @export calculate_taxa_habitat_features
 calculate_taxa_habitat_features = function(taxa_list,
+                                           layer_list,
                                            targ_maxent_table,
                                            target_path,
+                                           threshold_path,
                                            output_path,
                                            intersect_path,
-                                           raster_pattern,
-                                           fire_raster,
+                                           intersect_layer,
                                            cell_size,
                                            fire_thresh,
                                            write_rasters,
@@ -1645,7 +1644,7 @@ calculate_taxa_habitat_features = function(taxa_list,
   taxa_list %>%
     
     ## Loop over just the taxa
-    ## taxa = taxa_list[74]
+    ## taxa = taxa_list[1]
     lapply(function(taxa) {
       
       ## Get the sdm threshold for each inv taxa
@@ -1655,10 +1654,8 @@ calculate_taxa_habitat_features = function(taxa_list,
         distinct() %>% .[1, ] %>% .[[1]]
       
       ## Get the taxa directory name
-      save_name <- gsub(' ', '_', taxa)
-      
-      current_thresh = sprintf('%s/%s/full/%s_%s%s.tif', target_path,
-                               save_name, save_name, "current_suit_not_novel_above_", target_thresh)
+      save_name  <- gsub(' ', '_', taxa)
+      layer_name <- layer_list[grep(save_name, layer_list)][[1]]
       
       ## If the invert taxa has a host plant, use the SDM from the host plant
       
@@ -1669,15 +1666,12 @@ calculate_taxa_habitat_features = function(taxa_list,
         message('Intersecting SDM with Fire for', taxa, ' | Logistic > ', target_thresh)
         
         ## Read in the current suitability raster :: get the current_not_novel raster
-        sdm_threshold <- raster(current_thresh)
-        
-        ## Multiply the SDM raster by the Fire Raster
-        message('multiply habitat raster by the fire raster')
-        sdm_intersect_fire <- sdm_threshold * fire_raster
-        
+        sdm_threshold <- st_read(dsn   = threshold_path, 
+                                 layer = layer_name) 
+
         ## Then do the Cell stats ::
         ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
-        habitat_fire_crosstab <- raster::crosstab(sdm_threshold, fire_raster, useNA = TRUE, long = TRUE)
+        habitat_fire_intersect <- st_intersection(sdm_threshold, main_int_layer)
         colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'km2')
         
         ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
@@ -1716,7 +1710,7 @@ calculate_taxa_habitat_features = function(taxa_list,
             11, 4, units = 'in', res = 300)
         
         print(levelplot(stack(sdm_threshold,
-                              fire_raster,
+                              intersect_layer,
                               sdm_intersect_fire,
                               quick = TRUE), margin = FALSE,
                         

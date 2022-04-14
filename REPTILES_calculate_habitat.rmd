@@ -105,20 +105,22 @@ sdm_threshold_features <- list.files(path    = './output/reptile_maxent/Habitat_
                                      recursive  = FALSE,
                                      full.names = FALSE) %>% 
   
-  .[grep(".tif", .)] %>% gsub('.tif', '', .) 
+  .[grep(".tif", .)] %>% gsub('.tif', '', .)
+
+sdm_threshold_list        <- sdm_threshold_features %>% as.list() 
+names(sdm_threshold_list) <- sdm_threshold_features
 
 
-for(feat in sdm_threshold_features) { 
+for(feat in sdm_threshold_list) { 
   
   layer_name <- sdm_threshold_list[[feat]]
   tempData   <- st_read(dsn   = paste0(threshold_folders, 'reptiles_sdm_thresholds_combo.gpkg'), 
                         layer = layer_name) 
   
   message('assigning ', feat, ' layer')
-  assign (layer_name, tempData, envir = .GlobalEnv) 
+  assign(layer_name, tempData, envir = .GlobalEnv) 
   
 }
-
 
 
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
@@ -139,23 +141,23 @@ Burnt_unburnt   <-
   
   st_transform(., st_crs(3577)) %>% 
   filter(!st_is_empty(.)) %>% 
-  st_make_valid() %>% 
-  st_cast("MULTIPOLYGON") %>% 
-  as_Spatial()
+  st_make_valid() 
 
 
 ## Read in the SDM data, to intersect with the Veg layers
 # SVTM_Veg_Class_GDA          = readRDS('./data/Remote_sensing/aligned_rasters/SVTM_Veg_Class_GDA.rds')
 AUS_forest_RS_ras           = raster('./data/Remote_sensing/Veg_data/Forest_cover/alpsbk_aust_y2009_sf1a2_forest.tif')
 AUS_forest_RS_feat          = st_read('./data/Remote_sensing/Veg_data/Forest_cover/Aus_forest_cover_east_coast.shp') %>% 
-  st_transform(., st_crs(3577)) %>% filter(!st_is_empty(.)) %>% as_Spatial()
+  st_transform(., st_crs(3577)) %>% filter(!st_is_empty(.)) 
 
+
+## Read in the reptile points
 SDM.SPAT.OCC.ALL.REPTILE.BG = readRDS('./output/reptile_maxent/results/SDM_SPAT_OCC_BG_ALL_REPTILE_TAXA_VARS.rds')
 
 
 ## Check projections and resolutions
-projection(FESM_10m);projection(study_sdm_binary[[1]]);projection(SDM.SPAT.OCC.ALL.REPTILE.BG)
-raster::xres(FESM_10m);raster::xres(study_sdm_binary[[1]])
+projection(FESM_NSW_10m);projection(study_sdm_binary[[1]]);projection(SDM.SPAT.OCC.ALL.REPTILE.BG)
+raster::xres(FESM_AUS_20m);raster::xres(study_sdm_binary[[1]])
 
 
 ``` 
@@ -198,11 +200,11 @@ For each REPTILEebrate species, calculate the % of suitable habitat that was bur
 
 \
 
-- [REPTILE_SDM + Host_plant_SDM + Inv Veg pixels] * Fire_layer 
+- [REPTILE_SDM ] * Fire_layer * Forested areas
 
 \
 
-This will give us the % of suitable habitat in each burn intensity category(0-5).
+This will give us the % of suitable habitat that was burnt, as well as % burnt in each Vegetation class.
 
 \
 
@@ -210,18 +212,18 @@ This will give us the % of suitable habitat in each burn intensity category(0-5)
 
 ## Calculate Insect habitat - fails after this species?
 ## Code is stalling before or after :: Naranjakotta - it should be the taxa either side of that...
-calculate_taxa_habitat(taxa_list          = sort(REPTILES.MAXENT.RESULTS$searchTaxon),
-                       targ_maxent_table  = REPTILES.MAXENT.RESULTS,
-                       host_maxent_table  = 'NONE',
-                       target_path        = './output/reptile_maxent/back_sel_models/',
-                       intersect_path     = 'G:/North_east_NSW_fire_recovery/output/reptile_maxent/Habitat_suitability/SVTM_intersect',
-                       raster_pattern     = '_SVTM_intersection_5000m.tif',
-                       fire_raster        = FESM_100m_align,
-                       cell_size          = 100,
-                       output_path        = './output/reptile_maxent/Habitat_suitability/FESM_SDM_intersect/',
-                       country_shp        = 'AUS',
-                       country_prj        = CRS("+init=EPSG:3577"),
-                       write_rasters      = TRUE)
+calculate_taxa_habitat_features(taxa_list          = sort(REPTILES.MAXENT.RESULTS$searchTaxon),
+                                targ_maxent_table  = REPTILES.MAXENT.RESULTS,
+                                target_path        = './output/reptile_maxent/back_sel_models/',
+                                threshold_path     = 'output/reptile_maxent/Habitat_suitability/SDM_thresholds/reptiles_sdm_thresholds_combo.gpkg'
+                                intersect_path     = 'G:/North_east_NSW_fire_recovery/output/reptile_maxent/Habitat_suitability/SVTM_intersect',
+                                layer_list         = sdm_threshold_list,
+                                main_int_layer     = Burnt_unburnt,
+                                second_int_layer   = AUS_forest_RS_feat,
+                                output_path        = './output/reptile_maxent/Habitat_suitability/FESM_SDM_intersect/',
+                                poly_path          = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                                epsg               = 3577,
+                                write_rasters      = TRUE)
 
 ``` 
 
