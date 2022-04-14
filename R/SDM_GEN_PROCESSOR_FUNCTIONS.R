@@ -2314,6 +2314,63 @@ split_shp <- function(taxa_list,
 
 
 
+#' Identify and repair invalid geometry in spatial polygons data frames
+#' @description Using functions from sf, check the geometry of a set of polygons. If the geometry invalid, it attempts to buffer the polygons with \code{sf::st_buffer(dist = 0)}. If the geometry is corrupt or fine, it does nothing.
+#' @param polygons Spatial polygons (either sf or spatial polygons data frame). The polygons to be checked. Note that the function will halt if the geometry is corrupt and not return a value.
+#' @param verbose Logical. If \code{TRUE} then the function will produce informative messages as it executes its steps. Useful for debugging. Defaults to \code{FALSE}.
+#' @param force Logical. If \code{TRUE} then both valid and invalid polygons will be buffered by 0. This shouldn't be necessary, but is a feature for the paranoid.
+#' @return The spatial polygons data frame \code{polygons1}. This will be unchanged if the geometry was valid or repaired if it was invalid.
+#' @export repair_geometry
+#' @details It uses the aim.analysis package https://https://github.com/nstauffer/aim.analysis
+repair_geometry <- function(polygons,
+                            verbose = FALSE,
+                            force = FALSE) {
+  if(class(polygons) == "SpatialPolygonsDataFrame") {
+    polygons_sf <- sf::st_as_sf(polygons)
+    spdf <- TRUE
+  } else if ("sf" %in% class(polygons)) {
+    polygons_sf <- polygons
+    spdf <- FALSE
+  } else {
+    stop("polygons must either be a spatial polygons data frame or an sf object")
+  }
+  
+  validity_check <- sf::st_is_valid(polygons_sf)
+  
+  if (any(is.na(validity_check))) {
+    stop("The geometry of the polygons is corrupt. Unable to repair.")
+  }
+  
+  if (!all(validity_check)) {
+    if (verbose) {
+      message("Invalid geometry found. Attempting to repair.")
+    }
+    output <- sf::st_buffer(x = polygons_sf,
+                            dist = 0)
+  } else if (force) {
+    if (verbose) {
+      message("No invalid geometry found. Attempting to repair anyway.")
+    }
+    output <- sf::st_buffer(x = polygons_sf,
+                            dist = 0)
+  } else {
+    if (verbose) {
+      message("No invalid geometry found.")
+    }
+    output <- polygons_sf
+  }
+  
+  if (spdf) {
+    output <- methods::as(output, "Spatial")
+  }
+  
+  return(output)
+}
+
+
+
+
+
 
 #########################################################################################################################
 ####################################################  TBC  ##############################################################

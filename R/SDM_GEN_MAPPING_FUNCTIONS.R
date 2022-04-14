@@ -1667,7 +1667,10 @@ calculate_taxa_habitat_features = function(taxa_list,
         
         ## Read in the current suitability raster :: get the current_not_novel raster
         sdm_threshold <- st_read(dsn   = threshold_path, 
-                                 layer = layer_name) 
+                                 layer = layer_name) %>%
+          
+          filter(!st_is_empty(.)) %>% 
+          repair_geometry() 
 
         ## Then do the Cell stats ::
         ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).

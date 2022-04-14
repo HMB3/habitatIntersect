@@ -111,16 +111,16 @@ sdm_threshold_list        <- sdm_threshold_features %>% as.list()
 names(sdm_threshold_list) <- sdm_threshold_features
 
 
-for(feat in sdm_threshold_list) { 
-  
-  layer_name <- sdm_threshold_list[[feat]]
-  tempData   <- st_read(dsn   = paste0(threshold_folders, 'reptiles_sdm_thresholds_combo.gpkg'), 
-                        layer = layer_name) 
-  
-  message('assigning ', feat, ' layer')
-  assign(layer_name, tempData, envir = .GlobalEnv) 
-  
-}
+# for(feat in sdm_threshold_list) { 
+#   
+#   layer_name <- sdm_threshold_list[[feat]]
+#   tempData   <- st_read(dsn   = paste0(threshold_folders, 'reptiles_sdm_thresholds_combo.gpkg'), 
+#                         layer = layer_name) 
+#   
+#   message('assigning ', feat, ' layer')
+#   assign(layer_name, tempData, envir = .GlobalEnv) 
+#   
+# }
 
 
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
@@ -140,15 +140,14 @@ Burnt_unburnt   <-
   st_read('./data/Remote_sensing/NIAFED/National_Indicative_Aggregated_Fire_Extent_Dataset_v20200211.shp') %>%
   
   st_transform(., st_crs(3577)) %>% 
-  filter(!st_is_empty(.)) %>% 
-  st_make_valid() 
+  filter(!st_is_empty(.)) %>% repair_geometry() 
 
 
 ## Read in the SDM data, to intersect with the Veg layers
 # SVTM_Veg_Class_GDA          = readRDS('./data/Remote_sensing/aligned_rasters/SVTM_Veg_Class_GDA.rds')
 AUS_forest_RS_ras           = raster('./data/Remote_sensing/Veg_data/Forest_cover/alpsbk_aust_y2009_sf1a2_forest.tif')
 AUS_forest_RS_feat          = st_read('./data/Remote_sensing/Veg_data/Forest_cover/Aus_forest_cover_east_coast.shp') %>% 
-  st_transform(., st_crs(3577)) %>% filter(!st_is_empty(.)) 
+  st_transform(., st_crs(3577)) %>% filter(!st_is_empty(.)) %>% %>% repair_geometry() 
 
 
 ## Read in the reptile points
