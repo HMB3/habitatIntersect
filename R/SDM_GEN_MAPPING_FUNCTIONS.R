@@ -471,7 +471,7 @@ habitat_threshold = function(taxa_list,
           
           if(!uniue_vals) {
             
-            message('Converting ', taxa, ' raster to polygon')
+            message('Converting ', taxa, ' raster to repaired polygon')
             
             # current_thresh_poly <- sf::as_Spatial(sf::st_as_sf(stars::st_as_stars(current_suit_rast), 
             #                                                    as_points = FALSE, 
@@ -481,12 +481,13 @@ habitat_threshold = function(taxa_list,
             #                                                    agr       = FALSE))
             # gc()
             
-            current_thresh_poly     <- terra::as.polygons(current_suit_rast) 
-            current_thresh_poly_dat <- terra::subset(current_thresh_poly, current_thresh_poly$layer == 1)
+            current_thresh_poly      <- terra::as.polygons(current_suit_rast) 
+            current_thresh_poly_dat  <- terra::subset(current_thresh_poly, current_thresh_poly$layer == 1)
+            current_thresh_poly_geom <- current_thresh_poly_dat %>% st_as_sf() %>% repair_geometry()
             
             ## Now save the thresh-holded rasters as shapefiles
             message('Saving current threshold SDM rasters to polygons for ', taxa)
-            st_write(current_thresh_poly_dat %>% st_as_sf(),
+            st_write(current_thresh_poly_geom,
                      
                      dsn    = sprintf('%s/%s/full/%s_%s%s.gpkg', 
                                       maxent_path,
@@ -502,10 +503,9 @@ habitat_threshold = function(taxa_list,
                      quiet  = TRUE,
                      append = FALSE)
             
-            st_write(current_thresh_poly_dat %>% st_as_sf(), 
+            st_write(current_thresh_poly_geom, 
                      
                      dsn    = file.path(getwd(), output_path), 
-                     
                      layer  = paste0(save_name, 
                                      '_current_suit_not_novel_above_', 
                                      thresh),
@@ -1620,11 +1620,10 @@ calculate_taxa_habitat_host_features = function(taxa_list,
 #' @param intersect_path     Character string - The file path containing the intersecting rasters
 #' @param poly_path          Character string - file path to feature polygon layer
 #' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
-#' @param write_rasters      Logical          - Save rasters (T/F)?
+#' @param write_rasters      Logical - Save rasters (T/F)?
 #' @export calculate_taxa_habitat_features
 calculate_taxa_habitat_features = function(taxa_list,
                                            layer_list,
-                                           targ_maxent_table,
                                            target_path,
                                            threshold_path,
                                            output_path,
@@ -1654,26 +1653,26 @@ calculate_taxa_habitat_features = function(taxa_list,
         distinct() %>% .[1, ] %>% .[[1]]
       
       ## Get the taxa directory name
-      save_name  <- gsub(' ', '_', taxa)
-      layer_name <- layer_list[grep(save_name, layer_list)][[1]]
+      save_name <- gsub(' ', '_', taxa)
       
-      ## If the invert taxa has a host plant, use the SDM from the host plant
+      current_thresh = sprintf('%s/%s/full/%s_%s%s.tif', target_path,
+                               save_name, save_name, "current_suit_not_novel_above_", target_thresh)
       
       ## If the threshold raster data doesn't exist :
       if(file.exists(current_thresh)) {
         
         ## Print the taxa being analysed
-        message('Intersecting SDM with Fire for', taxa, ' | Logistic > ', target_thresh)
+        message('Intersecting SDM with Fire for ', taxa)
         
         ## Read in the current suitability raster :: get the current_not_novel raster
+        ## Get the taxa directory name
+        layer_name    <- layer_list[grep(save_name, layer_list)][[1]]
         sdm_threshold <- st_read(dsn   = threshold_path, 
-                                 layer = layer_name) %>%
-          
-          filter(!st_is_empty(.)) %>% 
-          repair_geometry() 
-
+                                 layer = layer_name) %>% filter(!st_is_empty(.))
+        
         ## Then do the Cell stats ::
         ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
+        ## Need spatial output, and also table of areas
         habitat_fire_intersect <- st_intersection(sdm_threshold, main_int_layer)
         colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'km2')
         
