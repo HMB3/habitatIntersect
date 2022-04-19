@@ -1664,16 +1664,53 @@ calculate_taxa_habitat_features = function(taxa_list,
         ## Print the taxa being analysed
         message('Intersecting SDM with Fire for ', taxa)
         
-        ## Read in the current suitability raster :: get the current_not_novel raster
+        ## Read in the current suitability raster :: get the current_not`_novel raster
         ## Get the taxa directory name
         layer_name    <- layer_list[grep(save_name, layer_list)][[1]]
         sdm_threshold <- st_read(dsn   = threshold_path, 
                                  layer = layer_name) %>% filter(!st_is_empty(.))
         
+        ## create sf attributes for each sdm polygon
+        sdm_threshold_att <- sdm_threshold %>% st_cast(., "POLYGON") %>% 
+          
+          mutate(Habitat  = 1,
+                 Taxa     = taxa,
+                 Fire     = 'Burnt',
+                 Area_km2 = st_area(geom)/1000000,
+                 Area_km2 = drop_units(Area_km2))
+        
+        ## Calculate area of the SDM - don't need the fire area
+        sdm_area_km2 <- st_area(sdm_threshold)/1000000
+        sdm_area_km2 <- drop_units(sdm_area_km2)
+        
         ## Then do the Cell stats ::
-        ## estimated x % of each taxa's habitat in each fire intensity category (Severe, moderate, low, etc).
-        ## Need spatial output, and also table of areas
-        habitat_fire_intersect <- st_intersection(sdm_threshold, main_int_layer)
+        ## estimated x % of each taxa's habitat in each fire intensity category 
+        message('Intersecting SDM with Fire layers for ', taxa)
+        hsm_fire_int     <- st_intersection(sdm_threshold, main_int_layer)
+        
+        
+        ## create sf attributes for each intersecting polygon
+        hsm_fire_int_att <- hsm_fire_int %>% st_cast(., "POLYGON") %>% 
+          
+          mutate(Habitat  = 1,
+                 Taxa     = taxa,
+                 Fire     = 'Burnt',
+                 Area_km2 = st_area(geom)/1000000,
+                 Area_km2 = drop_units(Area_km2))
+        
+        ## calc % burnt overall
+        hsm_fire_int_area_m2  <- st_area(hsm_fire_int)/1000000
+        hsm_fire_int_area_km2 <- drop_units(hsm_fire_int_area_m2) 
+        percent_burnt         <- hsm_fire_int_area_km2/sdm_area_km2 * 100 %>% round(., 1)
+        
+        ## calc % burnt within forest
+        message('Intersecting SDM + Fire layer with Forest for ', taxa)
+        hsm_fire_forest_int      <- st_intersection(hsm_fire_int, second_int_layer)
+        hsm_fire_forest_area_m2  <- st_area(hsm_fire_forest_int)/1000000
+        hsm_fire_forest_area_km2 <- drop_units(hsm_fire_forest_area_m2)
+        percent_burnt            <- hsm_fire_int_area_km2/sdm_area_km2 * 100 %>% round(., 1)
+        
+        ##
         colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'km2')
         
         ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
