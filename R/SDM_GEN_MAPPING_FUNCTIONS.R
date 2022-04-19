@@ -1622,18 +1622,18 @@ calculate_taxa_habitat_host_features = function(taxa_list,
 #' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
 #' @param write_rasters      Logical - Save rasters (T/F)?
 #' @export calculate_taxa_habitat_features
-calculate_taxa_habitat_features = function(taxa_list,
-                                           layer_list,
-                                           target_path,
-                                           threshold_path,
-                                           output_path,
-                                           intersect_path,
-                                           intersect_layer,
-                                           cell_size,
-                                           fire_thresh,
-                                           write_rasters,
-                                           poly_path,
-                                           epsg) {
+calculate_taxa_habitat_fire_features = function(taxa_list,
+                                                layer_list,
+                                                target_path,
+                                                threshold_path,
+                                                output_path,
+                                                intersect_path,
+                                                intersect_layer,
+                                                cell_size,
+                                                fire_thresh,
+                                                write_rasters,
+                                                poly_path,
+                                                epsg) {
   
   ## Get the AUS shapefile
   poly <- st_read(poly_path) %>% 
@@ -1643,7 +1643,7 @@ calculate_taxa_habitat_features = function(taxa_list,
   taxa_list %>%
     
     ## Loop over just the taxa
-    ## taxa = taxa_list[1]
+    ## taxa = taxa_list[2]
     lapply(function(taxa) {
       
       ## Get the sdm threshold for each inv taxa
@@ -1668,7 +1668,7 @@ calculate_taxa_habitat_features = function(taxa_list,
         ## Get the taxa directory name
         layer_name    <- layer_list[grep(save_name, layer_list)][[1]]
         sdm_threshold <- st_read(dsn   = threshold_path, 
-                                 layer = layer_name) %>% filter(!st_is_empty(.))
+                                 layer = layer_name) %>% filter(!st_is_empty(.)) %>% repair_geometry()
         
         ## create sf attributes for each sdm polygon
         sdm_threshold_att <- sdm_threshold %>% st_cast(., "POLYGON") %>% 
@@ -1688,7 +1688,6 @@ calculate_taxa_habitat_features = function(taxa_list,
         message('Intersecting SDM with Fire layers for ', taxa)
         hsm_fire_int     <- st_intersection(sdm_threshold, main_int_layer)
         
-        
         ## create sf attributes for each intersecting polygon
         hsm_fire_int_att <- hsm_fire_int %>% st_cast(., "POLYGON") %>% 
           
@@ -1698,44 +1697,60 @@ calculate_taxa_habitat_features = function(taxa_list,
                  Area_km2 = st_area(geom)/1000000,
                  Area_km2 = drop_units(Area_km2))
         
-        ## calc % burnt overall
+        ## Intersect forest with fire
         hsm_fire_int_area_m2  <- st_area(hsm_fire_int)/1000000
         hsm_fire_int_area_km2 <- drop_units(hsm_fire_int_area_m2) 
-        percent_burnt         <- hsm_fire_int_area_km2/sdm_area_km2 * 100 %>% round(., 1)
+        percent_burnt         <- hsm_fire_int_area_km2/sdm_area_km2 * 100 %>% round(.)
         
         ## calc % burnt within forest
         message('Intersecting SDM + Fire layer with Forest for ', taxa)
-        hsm_fire_forest_int      <- st_intersection(hsm_fire_int, second_int_layer)
+        hsm_fire_forest_int      <- st_intersection(hsm_fire_int,     second_int_layer)
+        hsm_forest_int           <- st_intersection(hsm_fire_int_att, second_int_layer)
+        
+        hsm_forest_int_area_m2   <- st_area(hsm_forest_int)/1000000
+        hsm_forest_int_area_km2  <- drop_units(hsm_forest_int_area_m2)
+        
         hsm_fire_forest_area_m2  <- st_area(hsm_fire_forest_int)/1000000
         hsm_fire_forest_area_km2 <- drop_units(hsm_fire_forest_area_m2)
-        percent_burnt            <- hsm_fire_int_area_km2/sdm_area_km2 * 100 %>% round(., 1)
         
-        ##
-        colnames(habitat_fire_crosstab) <- c('Habitat_taxa', 'FESM_intensity', 'km2')
+        ## create sf attributes for each intersecting polygon
+        hsm_fire_forest_int_att <- hsm_fire_forest_int %>% st_cast(., "POLYGON") %>% 
+          
+          mutate(Taxa          = taxa,
+                 Fire          = 'Burnt',
+                 Area_km2      = st_area(geom)/1000000,
+                 Area_km2      = drop_units(Area_km2),
+                 percent_burnt = (Area_km2/sdm_area_km2 * 100 %>% round(., 1)))
         
-        ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
-        ## If FIRE is NA, that means that....
-        sdm_fire_crosstab <- dplyr::filter(habitat_fire_crosstab, Habitat_taxa == 1)
-        sdm_fire_crosstab <- sdm_fire_crosstab %>% 
+        ## calc % burnt within forest classes
+        percent_burnt_forest <- hsm_fire_forest_area_km2/sdm_area_km2 * 100 %>% round(., 1)
+        
+        
+        ## Create a tibble of overall areas for each taxa
+        sdm_fire_overall_areas <- data.frame(matrix(NA, ncol=4, nrow = 1))
+        colnames(sdm_fire_overall_areas) <- c('Taxa', 'Habitat_km2', 'Habitat_burnt_km2', 'Percent_burnt')
+        
+        
+        sdm_fire_overall_areas <- sdm_fire_overall_areas %>% 
           
-          ## Calculate the % burnt in each category, and also the km2
-          mutate(km2   = km2/cell_size)             %>% 
-          mutate(Percent      = km2/sum(km2) * 100) %>% 
-          mutate(Percent      = round(Percent, 2))                %>% 
-          mutate(Habitat_taxa = taxa) %>%
+          mutate(Taxa              = taxa,
+                 Habitat_km2       = sdm_area_km2,
+                 Habitat_burnt_km2 = hsm_fire_int_area_km2,
+                 Percent_burnt     = percent_burnt)
+        
+        ## Create a tibble of vegetation areas for each taxa
+        sdm_fire_forest_areas <- data.frame(matrix(NA, ncol=5, nrow = 7))
+        colnames(sdm_fire_forest_areas) <- c('Taxa', 'Vegetation', 'Habitat_km2', 'Habitat_burnt_km2', 'Percent_burnt')
+        
+        
+        sdm_fire_forest_areas <- sdm_fire_forest_areas %>% 
           
-          ## FESM scores - there
-          mutate(
-            FESM_intensity = case_when(
-              
-              FESM_intensity == 0 ~ "Unburnt",
-              FESM_intensity == 1 ~ "Non-FESM Burnt Area",
-              FESM_intensity == 2 ~ "Low severity",
-              FESM_intensity == 3 ~ "Moderate severity",
-              FESM_intensity == 4 ~ "High severity",
-              FESM_intensity == 5 ~ "Extreme severity",
-              TRUE                ~ "Outside FESM extent")
-          )
+          mutate(Taxa              = taxa,
+                 Vegetation        = unique(hsm_fire_forest_int$Vegetation),
+                 Habitat_km2       = sdm_area_km2,
+                 Habitat_burnt_km2 = hsm_fire_forest_area_km2,
+                 Percent_burnt     = percent_burnt_forest)
+        
         
         ## Save the % burnt layers
         write.csv(sdm_fire_crosstab, paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.csv'), row.names = FALSE)
@@ -1779,6 +1794,10 @@ calculate_taxa_habitat_features = function(taxa_list,
       
     }) 
 }
+
+
+
+
 
 
 

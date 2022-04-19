@@ -90,7 +90,11 @@ First, get all the rasters to compare with SDM modelling :
 ## To Do :
 ## 1). Check the output with Shawn
 ## 2). Check all the rasters align in QGIS
-## 2). Get examples working for the 18 bugs with host species;
+## 2). Get examples working for the 18 bugs with host species
+results_dir   <- './output/reptile_maxent/results/'
+habitat_dir   <- './output/reptile_maxent/Habitat_suitability/'
+threshold_dir <- './output/reptile_maxent/Habitat_suitability/SDM_thresholds/'
+intersect_dir <- './output/reptile_maxent/Habitat_suitability/FESM_SDM_intersect/'
 
 
 ## SDM output, re-sampled to 100m
@@ -111,22 +115,10 @@ sdm_threshold_list        <- sdm_threshold_features %>% as.list()
 names(sdm_threshold_list) <- sdm_threshold_features
 
 
-# for(feat in sdm_threshold_list) { 
-#   
-#   layer_name <- sdm_threshold_list[[feat]]
-#   tempData   <- st_read(dsn   = paste0(threshold_dir, 'reptiles_sdm_thresholds_combo.gpkg'), 
-#                         layer = layer_name) 
-#   
-#   message('assigning ', feat, ' layer')
-#   assign(layer_name, tempData, envir = .GlobalEnv) 
-#   
-# }
-
-
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
 ## VALUES : 1-4, burn intensity from 2019-2020 fires, originally @ 10m resolution, re-sampled to 100m
-FESM_NSW_10m    <- raster('./data/Remote_sensing/FESM/fesm_20200319_albers.tif')
-FESM_AUS_20m    <- raster('./data/Remote_sensing/FESM/NBR_Burn_severity_classed_ALB.tif')
+FESM_NSW_10m  <- raster('./data/Remote_sensing/FESM/fesm_20200319_albers.tif')
+FESM_AUS_20m  <- raster('./data/Remote_sensing/FESM/NBR_Burn_severity_classed_ALB.tif')
 
 
 ## Read in feature layers for fire that have been repaired in ArcMap
@@ -145,7 +137,7 @@ Burnt_unburnt <-
 ## Read in the SDM data, to intersect with the Veg layers
 # SVTM_Veg_Class_GDA          = readRDS('./data/Remote_sensing/aligned_rasters/SVTM_Veg_Class_GDA.rds')
 AUS_forest_RS_ras           = raster('./data/Remote_sensing/Veg_data/Forest_cover/alpsbk_aust_y2009_sf1a2_forest.tif')
-AUS_forest_RS_feat          = st_read('./data/Remote_sensing/Veg_data/Forest_cover/Aus_forest_cover_east_coast.shp') %>% 
+AUS_forest_RS_feat          = st_read('./data/Remote_sensing/Veg_data/Forest_cover/Aus_forest_cover_east_coast_classes.shp') %>% 
   st_transform(., st_crs(3577))
 
 
@@ -181,10 +173,10 @@ target_reptiles  <- c('Phyllurus platurus',  'Eulamprus tympanum',      'Hoploce
 
 REPTILES.MAXENT.RESULTS = compile_sdm_results(taxa_list    = target_reptiles,
                                               results_dir  = 'output/reptile_maxent/back_sel_models',
-                                              data_path    = "./output/reptile_maxent/Habitat_suitability/",
-                                              sdm_path     = "./output/reptile_maxent/back_sel_models/",
+                                              data_path    = './output/reptile_maxent/Habitat_suitability/',
+                                              sdm_path     = './output/reptile_maxent/back_sel_models/',
                                               save_data    = TRUE,
-                                              save_run     = "REPTILES_target_reptiles")
+                                              save_run     = 'REPTILES_target_reptiles')
 
 
 ## Get map_taxa from the maxent results table above, change the species column,
@@ -200,7 +192,7 @@ gc()
 # 3). Calculate Estimated fire habitat after the 2019-2020 Fires
 
 
-For each REPTILEebrate species, calculate the % of suitable habitat that was burnt by the
+For each REPTILE species, calculate the % of suitable habitat that was burnt by the
 2019-2020 fires. We can do this by combining pixels in the rasters like this: 
 
 \
