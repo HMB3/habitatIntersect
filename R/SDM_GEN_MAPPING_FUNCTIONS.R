@@ -1639,6 +1639,11 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
   poly <- st_read(poly_path) %>% 
     st_transform(., st_crs(epsg)) %>% as_Spatial()
   
+  message('Spherical geometry (s2) switched off for sf operations to speed up intersections')
+  sf_use_s2(FALSE)
+  
+  million_metres <- 1000000
+  
   ## Pipe the list into Lapply
   taxa_list %>%
     
@@ -1676,17 +1681,23 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
           mutate(Habitat  = 1,
                  Taxa     = taxa,
                  Fire     = 'Burnt',
-                 Area_km2 = st_area(geom)/1000000,
+                 Area_km2 = st_area(geom)/million_metres,
                  Area_km2 = drop_units(Area_km2))
         
         ## Calculate area of the SDM - don't need the fire area
-        sdm_area_km2 <- st_area(sdm_threshold)/1000000
+        sdm_area_km2 <- st_area(sdm_threshold)/million_metres
         sdm_area_km2 <- drop_units(sdm_area_km2)
         
         ## Then do the Cell stats ::
         ## estimated x % of each taxa's habitat in each fire intensity category 
         message('Intersecting SDM with Fire layers for ', taxa)
-        hsm_fire_int     <- st_intersection(sdm_threshold, main_int_layer)
+        sdm_threshold_sub  <- st_subdivide(sdm_threshold)
+        main_int_layer_sub <- st_subdivide(main_int_layer)
+        hsm_fire_int       <- st_intersection(sdm_threshold_sub, main_int_layer_sub) %>% 
+          
+          mutate(Area_km2 = st_area(geom)/million_metres,
+                 Area_km2 = drop_units(Area_km2)) %>% st_subdivide()
+        
         
         ## create sf attributes for each intersecting polygon
         hsm_fire_int_att <- hsm_fire_int %>% st_cast(., "POLYGON") %>% 
@@ -1694,23 +1705,29 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
           mutate(Habitat  = 1,
                  Taxa     = taxa,
                  Fire     = 'Burnt',
-                 Area_km2 = st_area(geom)/1000000,
+                 Area_km2 = st_area(geom)/million_metres,
                  Area_km2 = drop_units(Area_km2))
         
         ## Intersect forest with fire
-        hsm_fire_int_area_m2  <- st_area(hsm_fire_int)/1000000
+        hsm_fire_int_area_m2  <- st_area(hsm_fire_int)/million_metres
         hsm_fire_int_area_km2 <- drop_units(hsm_fire_int_area_m2) 
         percent_burnt         <- hsm_fire_int_area_km2/sdm_area_km2 * 100 %>% round(.)
         
         ## calc % burnt within forest
-        message('Intersecting SDM + Fire layer with Forest for ', taxa)
-        hsm_fire_forest_int      <- st_intersection(hsm_fire_int,     second_int_layer)
-        hsm_forest_int           <- st_intersection(hsm_fire_int_att, second_int_layer)
+        message('Intersecting SDM + Fire layer with Forest layer for ', taxa)
+        second_int_layer_sub  <- st_subdivide(second_int_layer)
+        hsm_fire_forest_int   <- st_intersection(hsm_fire_int,  second_int_layer)
+        hsm_forest_int        <- st_intersection(sdm_threshold, second_int_layer)
         
-        hsm_forest_int_area_m2   <- st_area(hsm_forest_int)/1000000
-        hsm_forest_int_area_km2  <- drop_units(hsm_forest_int_area_m2)
+        ## Group by vegetation and calc area
+        hsm_forest_int_group     <- hsm_forest_int %>% as_tibble %>% 
+          dplyr::select(Taxa, Vegetation, Area_km2) %>% 
+          group_by(Taxa, Vegetation) %>% summarise(Area_km2 = sum(Area_km2))
         
-        hsm_fire_forest_area_m2  <- st_area(hsm_fire_forest_int)/1000000
+        hsm_forest_int_area_m2   <- st_area(hsm_forest_int)/million_metres 
+        hsm_forest_int_area_km2  <- drop_units(hsm_forest_int_area_m2) %>% sum()
+        
+        hsm_fire_forest_area_m2  <- st_area(hsm_fire_forest_int)/million_metres
         hsm_fire_forest_area_km2 <- drop_units(hsm_fire_forest_area_m2)
         
         ## create sf attributes for each intersecting polygon
@@ -1718,7 +1735,7 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
           
           mutate(Taxa          = taxa,
                  Fire          = 'Burnt',
-                 Area_km2      = st_area(geom)/1000000,
+                 Area_km2      = st_area(geom)/million_metres,
                  Area_km2      = drop_units(Area_km2),
                  percent_burnt = (Area_km2/sdm_area_km2 * 100 %>% round(., 1)))
         
