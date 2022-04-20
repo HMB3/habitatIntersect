@@ -210,6 +210,8 @@ This will give us the % of suitable habitat that was burnt, as well as % burnt i
 ## Calculate Insect habitat - fails after this species?
 ## Code is stalling before or after :: Naranjakotta - it should be the taxa either side of that...
 calculate_taxa_habitat_features(taxa_list          = sort(REPTILES.MAXENT.RESULTS$searchTaxon),
+                                analysis_df        = SDM.SPAT.OCC.ALL.REPTILE.BG,
+                                taxa_level         = 'species',
                                 targ_maxent_table  = REPTILES.MAXENT.RESULTS,
                                 target_path        = './output/reptile_maxent/back_sel_models/',
                                 threshold_path     = paste0(threshold_dir, 'reptiles_sdm_thresholds_combo.gpkg')

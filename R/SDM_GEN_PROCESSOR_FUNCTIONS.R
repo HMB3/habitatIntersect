@@ -878,7 +878,7 @@ combine_gbif_records = function(taxa_list,
           message ('Formatting occurrence data for ', x)
           searchtax <- gsub(records_extension, "",    x)
           
-          ## Filter the data for each taxa
+          ## Filter the data for each taxon
           message('filter records for ', searchtax)
           d <- d %>% dplyr::mutate(searchTaxon = searchtax) %>%
             dplyr::select(one_of(keep_cols)) %>% 
@@ -1358,7 +1358,7 @@ check_spatial_outliers = function(occ_df,
     }
     
   } else {
-    message('Do not create maps of each taxa coord clean records')   ##
+    message('Do not create maps of each taxon coord clean records')   ##
   }
   
   ## Split the table into ALA and site data
@@ -1573,7 +1573,7 @@ calc_1km_niches = function(coord_df,
   ## The ,] acts just like a clip in a GIS
   NICHE.AUS <-  NICHE.1KM.84[AUS.WGS, ]
   
-  ## Aggregate the number of Koppen zones (and IBRA regions) each taxa is found in
+  ## Aggregate the number of Koppen zones (and IBRA regions) each taxon is found in
   COMBO.KOP <- NICHE.1KM.84 %>%
     cbind.data.frame(., KOP.JOIN)
   
@@ -1650,7 +1650,7 @@ calc_1km_niches = function(coord_df,
   names(Aus_records) = c("searchTaxon", "Aus_records")
   identical(nrow(Aus_records), nrow(AUS.NICHE))
   
-  ## Add the counts of Australian records for each taxa to the niche database
+  ## Add the counts of Australian records for each taxon to the niche database
   GLOB.NICHE = join(Aus_records, GLOB.NICHE,  type = "right")
   
   ## Check the record and POA counts
@@ -1765,11 +1765,11 @@ completeFun <- function(data, desiredCols) {
 
 #' @title Estimate niches
 #' @description  Takes a data frame of all taxa records,
-#' and estimates the environmental niche for each taxa
+#' and estimates the environmental niche for each taxon
 #' It assumes that the input df is that prepared by the calc_1km_niches function
 #' @param  DF        Data.frame of all taxa records prepared by the calc_1km_niches function
 #' @param  colname   Character string - the columns to estimate niches for E.G. 'rainfall', etc.
-#' @return           Data.frame of estimated environmental niches for each taxa
+#' @return           Data.frame of estimated environmental niches for each taxon
 #' @export niche_estimate
 niche_estimate = function (DF,
                            colname) {
@@ -1839,7 +1839,7 @@ niche_estimate = function (DF,
 
 #' @title Plot Histograms
 #' @description This function takes a data frame of all taxa records,
-#' and plots histograms and convex hulls for each taxa in global enviromental space
+#' and plots histograms and convex hulls for each taxon in global enviromental space
 #' It assumes that the input df is that prepared by the check_spatial_outliers function
 #' @param  coord_df           Data.frame of all taxa records prepared by the check_spatial_outliers function
 #' @param  taxa_list       Character string - the taxa analysed
@@ -2281,7 +2281,7 @@ prepare_sdm_table = function(coord_df,
 
 #' @title Split SDM table
 #' @description  'This function takes a shapefile of all taxa records,
-#' and splits in into shp files for each taxa
+#' and splits in into shp files for each taxon
 #' @param taxa_list     Character string - List of species    
 #' @param data_path     Character string - The file path used for saving the data frame
 #' @param sdm_  Path of taxa records, with spatial outlier T/F flag for each record
