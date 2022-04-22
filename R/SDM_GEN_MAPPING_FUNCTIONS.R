@@ -1624,8 +1624,7 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
                                                 intersect_layer,
                                                 cell_size,
                                                 fire_thresh,
-                                                
-                                                layer_list,
+                                              
                                                 main_int_layer,
                                                 second_int_layer,
                                                 template_raster,
