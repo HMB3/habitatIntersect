@@ -91,6 +91,7 @@ First, get all the rasters to compare with SDM modelling :
 ## 1). Check the output with Shawn
 ## 2). Check all the rasters align in QGIS
 ## 2). Get examples working for the 18 bugs with host species
+veg_dir       <- './data/Remote_sensing/Veg_data/Forest_cover/'
 results_dir   <- './output/reptile_maxent/results/'
 habitat_dir   <- './output/reptile_maxent/Habitat_suitability/'
 threshold_dir <- './output/reptile_maxent/Habitat_suitability/SDM_thresholds/'
@@ -124,7 +125,8 @@ FESM_AUS_20m  <- raster('./data/Remote_sensing/FESM/NBR_Burn_severity_classed_AL
 
 ## Read in feature layers for fire that have been repaired in ArcMap
 FESM_east_20m <- st_read('./data/Remote_sensing/FESM/Fire_perimeters_for_forests_and_woodlands.shp') %>% 
-  st_transform(., st_crs(3577)) %>% filter(!st_is_empty(.)) %>% as_Spatial() %>% repair_geometry() 
+  st_transform(., st_crs(3577)) %>% filter(!st_is_empty(.)) %>% 
+  as_Spatial() %>% repair_geometry() 
 
 
 ## NIAFED data is much coarser and has more empty geometries
@@ -137,8 +139,8 @@ Burnt_unburnt <-
 
 ## Read in the SDM data, to intersect with the Veg layers
 # SVTM_Veg_Class_GDA          = readRDS('./data/Remote_sensing/aligned_rasters/SVTM_Veg_Class_GDA.rds')
-AUS_forest_RS_ras           = raster('./data/Remote_sensing/Veg_data/Forest_cover/alpsbk_aust_y2009_sf1a2_forest.tif')
-AUS_forest_RS_feat          = st_read('./data/Remote_sensing/Veg_data/Forest_cover/Aus_forest_cover_east_coast_classes.shp') %>% 
+AUS_forest_RS_ras           = raster(paste0(veg_dir, 'alpsbk_aust_y2009_sf1a2_forest.tif'))
+AUS_forest_RS_feat          = st_read(paste0(veg_dir, 'Aus_forest_cover_east_coast_classes.shp')) %>% 
   st_transform(., st_crs(3577))
 
 
@@ -215,9 +217,10 @@ calculate_taxa_habitat_fire_features(taxa_list          = sort(REPTILES.MAXENT.R
                                      taxa_level         = 'species',
                                      targ_maxent_table  = REPTILES.MAXENT.RESULTS,
                                      
+                                     threshold_path     = paste0(threshold_dir, 'reptiles_sdm_thresholds_combo.gpkg'),
                                      target_path        = './output/reptile_maxent/back_sel_models/',
                                      output_path        = './output/reptile_maxent/Habitat_suitability/FESM_SDM_intersect/',
-                                     threshold_path     = paste0(threshold_dir, 'reptiles_sdm_thresholds_combo.gpkg'),
+                                     intersect_name     = 'reptiles_sdm_intersect_fire_combo.gpkg',
                                      
                                      layer_list         = sdm_threshold_list,
                                      main_int_layer     = Burnt_unburnt,

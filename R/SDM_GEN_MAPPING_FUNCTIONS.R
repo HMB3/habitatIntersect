@@ -1609,8 +1609,9 @@ calculate_taxa_habitat_host_features = function(taxa_list,
 #' @param layer_list         Character string - list of feature layers to look up
 #' @param targ_maxent_table  data frame - table of maxent results for target taxa
 #' @param target_path        Character string - The file path containing the existing maxent models
-#' @param threshold_path     Character string - The file path containing the thresholded rasters
-#' @param output_path        Character string - The file path containing the intersecting rasters
+#' @param threshold_path     Character string - The file path containing the thresh-holded layers
+#' @param output_path        Character string - The file path containing the intersecting layers
+#' @param intersect_name     Character string - The file name for the output intersecting layers
 #' @param main_int_layer     Simple features polygon - The main layer to intersect with the habitat layer (e.g. fire)
 #' @param second_int_layer   Simple features polygon - The 2nd layer to intersect with the habitat layer (e.g. Veg)
 #' @param poly_path          Character string - file path to feature polygon layer
@@ -1623,6 +1624,7 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
                                                 targ_maxent_table,
                                                 target_path,
                                                 output_path,
+                                                intersect_name,
                                                 threshold_path,
                                                 layer_list,
                                                 main_int_layer,
@@ -1789,7 +1791,7 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
         
         ## Now save the thresh-holded rasters as shapefiles
         message('Saving SDM Fire intersect polygons for ', taxa)
-        save_intersect <- paste0(output_path, 'reptiles_sdm_intersect_fire_combo.gpkg')
+        save_intersect <- paste0(output_path, intersect_name)
         
         st_write(sdm_fire_int, 
                  
