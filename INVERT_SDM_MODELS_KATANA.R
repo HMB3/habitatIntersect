@@ -205,12 +205,13 @@ check_dir     <- './data/ALA/Insects/check_plots/'
 back_dir      <- './output/invert_maxent_raster_update/back_sel_models'
 full_dir      <- './output/invert_maxent_raster_update/full_models'
 results_dir   <- './output/invert_maxent_raster_update/results/'
+plants_dir    <- './output/plant_maxent_raster_update/results/'
 habitat_dir   <- './output/invert_maxent_raster_update/Habitat_suitability/'
 threshold_dir <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
 intersect_dir <- './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
 
 
-dir_lists   <- c(ALA_dir,  check_dir,   back_dir,  
+dir_lists   <- c(ALA_dir,  check_dir,   back_dir,  habitat_dir,
                  full_dir, results_dir, habitat_dir,
                  threshold_dir, intersect_dir)
 
@@ -226,9 +227,8 @@ for(dir in dir_lists) {
 
 
 ## Read in the SDM data
-sp_epsg3577  <- '+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
-SDM.SPAT.OCC.BG.GDA       <- readRDS('./output/invert_maxent_raster_update/results/SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds')
-SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS('./output/plant_maxent_raster_update/results/SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds')
+SDM.SPAT.OCC.BG.GDA       <- readRDS(paste0(results_dir, 'SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds'))
+SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS(paste0(results_dir, 'SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds'))
 
 
 ## Run family-level models for invertebrates
@@ -455,7 +455,7 @@ tryCatch(
 habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)),
                   maxent_table  = INVERT.MAXENT.RESULTS,
                   maxent_path   = './output/invert_maxent_raster_update/back_sel_models/',
-                  output_path   = paste0(threshold_folders, 'inverts_sdm_thresholds_combo.gpkg'),
+                  output_path   = paste0(threshold_dir, 'inverts_sdm_thresholds_combo.gpkg'),
                   poly_path     = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                   epsg          = 3577)
 
@@ -466,7 +466,7 @@ gc()
 habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTaxon)),
                   maxent_table  = INVERT.MAXENT.SPP.RESULTS,
                   maxent_path   = './output/invert_maxent_raster_update/back_sel_models/',
-                  output_path   = paste0(threshold_folders, 'inverts_sdm_thresholds_combo.gpkg'),
+                  output_path   = paste0(threshold_dir, 'inverts_sdm_thresholds_combo.gpkg'),
                   poly_path     = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                   epsg          = 3577)
                   
@@ -475,7 +475,7 @@ habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTa
 habitat_threshold(taxa_list     = sort(unique(PLANT.MAXENT.RESULTS$searchTaxon)),
                   maxent_table  = PLANT.MAXENT.RESULTS,
                   maxent_path   = './output/invert_maxent_raster_update/back_sel_models/',
-                  output_path   = paste0(threshold_folders, 'inverts_sdm_thresholds_combo.gpkg'),
+                  output_path   = paste0(threshold_dir, 'inverts_sdm_thresholds_combo.gpkg'),
                   poly_path     = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                   epsg          = 3577)
 

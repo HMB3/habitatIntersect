@@ -155,7 +155,7 @@ raster::xres(FESM_AUS_20m);raster::xres(study_sdm_binary[[1]])
 
 \
 
-# 2). Select pixels from the Vegetation Habitat Raster that intersect the records for each REPTILEebrate taxa, as habitat surrogates
+# 2). Load Maxent Results
 
 \
 
@@ -190,7 +190,7 @@ gc()
 \
 
 
-# 3). Calculate Estimated fire habitat after the 2019-2020 Fires
+# 3). Estimate the habitat burnt by the 2019-2020 Fires per taxon
 
 
 For each REPTILE species, calculate the % of suitable habitat that was burnt by the
