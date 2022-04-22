@@ -210,21 +210,21 @@ This will give us the % of suitable habitat that was burnt, as well as % burnt i
 
 ## Calculate Insect habitat - fails after this species?
 ## Code is stalling before or after :: Naranjakotta - it should be the taxa either side of that...
-calculate_taxa_habitat_features(taxa_list          = sort(REPTILES.MAXENT.RESULTS$searchTaxon),
-                                analysis_df        = SDM.SPAT.OCC.ALL.REPTILE.BG,
-                                taxa_level         = 'species',
-                                targ_maxent_table  = REPTILES.MAXENT.RESULTS,
-                                target_path        = './output/reptile_maxent/back_sel_models/',
-                                threshold_path     = paste0(threshold_dir, 'reptiles_sdm_thresholds_combo.gpkg')
-                                intersect_path     = 'G:/North_east_NSW_fire_recovery/output/reptile_maxent/Habitat_suitability/SVTM_intersect',
-                                layer_list         = sdm_threshold_list,
-                                main_int_layer     = Burnt_unburnt,
-                                second_int_layer   = AUS_forest_RS_feat,
-                                template_raster    = template_raster_250m,
-                                output_path        = './output/reptile_maxent/Habitat_suitability/FESM_SDM_intersect/',
-                                poly_path          = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
-                                epsg               = 3577,
-                                write_rasters      = TRUE)
+calculate_taxa_habitat_fire_features(taxa_list          = sort(REPTILES.MAXENT.RESULTS$searchTaxon),
+                                     analysis_df        = SDM.SPAT.OCC.ALL.REPTILE.BG,
+                                     taxa_level         = 'species',
+                                     targ_maxent_table  = REPTILES.MAXENT.RESULTS,
+                                     
+                                     target_path        = './output/reptile_maxent/back_sel_models/',
+                                     output_path        = './output/reptile_maxent/Habitat_suitability/FESM_SDM_intersect/',
+                                     threshold_path     = paste0(threshold_dir, 'reptiles_sdm_thresholds_combo.gpkg'),
+                                     
+                                     layer_list         = sdm_threshold_list,
+                                     main_int_layer     = Burnt_unburnt,
+                                     second_int_layer   = AUS_forest_RS_feat,
+                                     template_raster    = template_raster_250m,
+                                     poly_path          = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                                     epsg               = 3577)
 
 ``` 
 

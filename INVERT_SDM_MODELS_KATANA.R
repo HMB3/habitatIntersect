@@ -157,6 +157,13 @@ aus_annual_precip_alb[aus_annual_precip_alb > 0] <- 1
 template_raster_250m <- aus_annual_precip_alb
 
 
+## Now remove the individual rasters
+rm(list = ls(pattern = 'aus_'))
+rm(list = ls(pattern = 'east_'))
+gc()
+
+
+
 
 
 ## 2). RUN SDM ANALYSIS =============================================================
@@ -188,7 +195,34 @@ data('target.host.plants')
 data('all.insect.plant.spp')
 
 
+## Full list of analysis taxa
 analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
+
+
+## The functions expect these folders,
+ALA_dir       <- './data/ALA/Insects/'
+check_dir     <- './data/ALA/Insects/check_plots/'
+back_dir      <- './output/invert_maxent_raster_update/back_sel_models'
+full_dir      <- './output/invert_maxent_raster_update/full_models'
+results_dir   <- './output/invert_maxent_raster_update/results/'
+habitat_dir   <- './output/invert_maxent_raster_update/Habitat_suitability/'
+threshold_dir <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
+intersect_dir <- './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
+
+
+dir_lists   <- c(ALA_dir,  check_dir,   back_dir,  
+                 full_dir, results_dir, habitat_dir,
+                 threshold_dir, intersect_dir)
+
+
+## Create the folders if they don't exist
+for(dir in dir_lists) {
+  if(!dir.exists(dir)) {
+    message('Creating ', dir, ' directory')
+    dir.create(dir) 
+  } else {
+    message(dir, ' directory already exists')}
+}
 
 
 ## Read in the SDM data
@@ -217,8 +251,8 @@ run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.families),
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         shp_path                = './data/Spatial_data/AUS_2016_AUST.shp',
-                         shp_layer               = 'AUS_2016_AUST')
+                         poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                         epsg                    = 3577)
 
 
 gc()
@@ -244,8 +278,8 @@ run_sdm_analysis_no_crop(taxa_list               = rev(sort(target.insect.genera
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         shp_path                = './data/Spatial_data/AUS_2016_AUST.shp',
-                         shp_layer               = 'AUS_2016_AUST')
+                         poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                         epsg                    = 3577)
 
 
 gc()
@@ -271,8 +305,8 @@ run_sdm_analysis_no_crop(taxa_list               = target.insect.spp,
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         shp_path                = './data/Spatial_data/AUS_2016_AUST.shp',
-                         shp_layer               = 'AUS_2016_AUST')
+                         poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                         epsg                    = 3577)
 
 gc()
 
@@ -300,8 +334,8 @@ run_sdm_analysis_no_crop(taxa_list               = sort(target.host.plants),
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         shp_path                = './data/Spatial_data/AUS_2016_AUST.shp',
-                         shp_layer               = 'AUS_2016_AUST')
+                         poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                         epsg                    = 3577)
 
 
 
@@ -353,9 +387,9 @@ INVERT.MAXENT.SPP.RESULTS <- compile_sdm_results(taxa_list    = target.insect.sp
 
 
 PLANT.MAXENT.RESULTS      <- compile_sdm_results(taxa_list    = target.host.plants,
-                                                 results_dir  = 'output/plant_maxent/back_sel_models',
-                                                 data_path    = "./output/invert_maxent_raster_update/Habitat_suitability/",
-                                                 sdm_path     = "./output/plant_maxent/back_sel_models/",
+                                                 results_dir  = 'output/plant_maxent_raster_update/back_sel_models',
+                                                 data_path    = "./output/plant_maxent_raster_update/Habitat_suitability/",
+                                                 sdm_path     = "./output/plant_maxent_raster_update/back_sel_models/",
                                                  save_data    = FALSE,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
@@ -379,23 +413,16 @@ plant_map_taxa  <- PLANT.MAXENT.RESULTS$searchTaxon  %>% gsub(" ", "_", .,)
 # 'fit_maxent_targ_bg_back_sel' function. Note that this step is quite memory heavy, best run with > 64GB of RAM.
 
 
-
-## Create a local projection for mapping : Australian Albers
-aus_albers <- CRS('+proj=aea +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=132 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs')
-
-
 ## Project SDMs across the Study area for the invert taxa
 tryCatch(
-  project_maxent_current_grids_mess(country_shp     = AUS, 
-                                    country_prj     = sp_epsg3577,
-                                    local_prj       = sp_epsg3577,
-                                    
-                                    taxa_list       = invert_map_taxa,    
-                                    maxent_path     ='./output/invert_maxent_raster_update/back_sel_models/',
-                                    
+  project_maxent_current_grids_mess(taxa_list       = rev(invert_map_taxa),    
+                                    maxent_path     = './output/invert_maxent_raster_update/back_sel_models/',
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
-                                    save_novel_poly = TRUE),
+                                    save_novel_poly = TRUE,
+                                    output_path     = paste0(threshold_dir, 'inverts_sdm_novel_combo.gpkg'),
+                                    poly_path       = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                                    epsg            = 3577),
   
   ## If the species fails, write a fail message to file
   error = function(cond) {
@@ -424,31 +451,53 @@ tryCatch(
 # \
 
 
-## Threshold the invertebrate SDM models to be either 0 or 1 
-habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTaxon)),
-                  maxent_table  = INVERT.MAXENT.RESULTS,
-                  maxent_path   = './output/invert_maxent_raster_update/back_sel_models/',
-                  cell_factor   = 9,
-                  country_shp   = 'AUS',
-                  country_prj   = CRS("+init=EPSG:3577"))
-
-
 ## Threshold the invertebrate SDM models to be either 0 or 1
 habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)),
                   maxent_table  = INVERT.MAXENT.RESULTS,
                   maxent_path   = './output/invert_maxent_raster_update/back_sel_models/',
-                  cell_factor   = 9,
-                  country_shp   = 'AUS',
-                  country_prj   = CRS("+init=EPSG:3577"))
+                  output_path   = paste0(threshold_folders, 'inverts_sdm_thresholds_combo.gpkg'),
+                  poly_path     = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                  epsg          = 3577)
+
+gc()
 
 
-## Threshold the Plant SDM models to be either 0 or 1
+## Threshold the invertebrate SDM models to be either 0 or 1 
+habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTaxon)),
+                  maxent_table  = INVERT.MAXENT.SPP.RESULTS,
+                  maxent_path   = './output/invert_maxent_raster_update/back_sel_models/',
+                  output_path   = paste0(threshold_folders, 'inverts_sdm_thresholds_combo.gpkg'),
+                  poly_path     = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                  epsg          = 3577)
+                  
+
+## Threshold the invertebrate SDM models to be either 0 or 1
 habitat_threshold(taxa_list     = sort(unique(PLANT.MAXENT.RESULTS$searchTaxon)),
                   maxent_table  = PLANT.MAXENT.RESULTS,
-                  maxent_path   = './output/plant_maxent/back_sel_models/',
-                  cell_factor   = 9,
-                  country_shp   = 'AUS',
-                  country_prj   = CRS("+init=EPSG:3577"),
-                  write_rasters = TRUE)
+                  maxent_path   = './output/invert_maxent_raster_update/back_sel_models/',
+                  output_path   = paste0(threshold_folders, 'inverts_sdm_thresholds_combo.gpkg'),
+                  poly_path     = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                  epsg          = 3577)
 
 
+## Now copy the thresh-holded SDM rasters to stand alone folder (i.e. all taxa in one folder)
+thresholded_sdms <- list.files(path       = './output/invert_maxent_raster_update/back_sel_models/',
+                               pattern    = '_current_suit_not_novel_above_', 
+                               recursive  = TRUE,
+                               full.names = TRUE) %>% 
+  .[grep(".tif", .)] 
+
+
+file.copy(from      = thresholded_sdms, 
+          to        = 'output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/', 
+          overwrite = TRUE, 
+          recursive = TRUE, 
+          copy.mode = TRUE)
+
+
+message('sdm code successfuly run')
+
+
+
+
+## END =============================================================

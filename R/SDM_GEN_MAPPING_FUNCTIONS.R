@@ -232,7 +232,7 @@ project_maxent_current_grids_mess = function(taxa_list,
                 
                 st_write(current_thresh_poly %>% st_as_sf(), 
                          
-                         dsn    = file.path(getwd(), output_path), 
+                         dsn    = output_path, 
                          layer  = paste0(save_name, 
                                          '_current_novel_above'),
                          
@@ -1604,13 +1604,15 @@ calculate_taxa_habitat_host_features = function(taxa_list,
 #' @title Intersect habitat suitability features with Fire layers.
 #' @description Takes a habitat suitability layer, and intersects it with a fire suitability layer.
 #' @param taxa_list          Character string - The taxa to run maxent predictions for
+#' @param analysis_df        spdf - The spatial table of maxent records for all taxa
+#' @param taxa_level         Character string - The taxonomic level of analysis
 #' @param layer_list         Character string - list of feature layers to look up
 #' @param targ_maxent_table  data frame - table of maxent results for target taxa
 #' @param target_path        Character string - The file path containing the existing maxent models
-#' @param intersect_path     Character string - The file path containing the intersecting rasters
+#' @param threshold_path     Character string - The file path containing the thresholded rasters
 #' @param output_path        Character string - The file path containing the intersecting rasters
 #' @param main_int_layer     Simple features polygon - The main layer to intersect with the habitat layer (e.g. fire)
-#' @param main_int_layer     Simple features polygon - The 2nd layer to intersect with the habitat layer (e.g. Veg)
+#' @param second_int_layer   Simple features polygon - The 2nd layer to intersect with the habitat layer (e.g. Veg)
 #' @param poly_path          Character string - file path to feature polygon layer
 #' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
 #' @param template_raster    Raster::raster - Grid with the analysis extent and resolution
@@ -1618,13 +1620,11 @@ calculate_taxa_habitat_host_features = function(taxa_list,
 calculate_taxa_habitat_fire_features = function(taxa_list,
                                                 analysis_df,
                                                 taxa_level,
-                                                layer_list,
+                                                targ_maxent_table,
                                                 target_path,
                                                 output_path,
-                                                intersect_layer,
-                                                cell_size,
-                                                fire_thresh,
-                                              
+                                                threshold_path,
+                                                layer_list,
                                                 main_int_layer,
                                                 second_int_layer,
                                                 template_raster,
