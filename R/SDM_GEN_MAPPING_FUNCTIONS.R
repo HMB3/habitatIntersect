@@ -1614,7 +1614,7 @@ calculate_taxa_habitat_host_features = function(taxa_list,
 #' @param poly_path          Character string - file path to feature polygon layer
 #' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
 #' @param template_raster    Raster::raster - Grid with the analysis extent and resolution
-#' @export calculate_taxa_habitat_features
+#' @export calculate_taxa_habitat_fire_features
 calculate_taxa_habitat_fire_features = function(taxa_list,
                                                 analysis_df,
                                                 taxa_level,
