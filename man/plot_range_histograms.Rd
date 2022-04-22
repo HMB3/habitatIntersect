@@ -15,6 +15,6 @@ plot_range_histograms(coord_df, taxa_list, range_path)
 }
 \description{
 This function takes a data frame of all taxa records,
-and plots histograms and convex hulls for each taxa in global enviromental space
+and plots histograms and convex hulls for each taxon in global enviromental space
 It assumes that the input df is that prepared by the check_spatial_outliers function
 }

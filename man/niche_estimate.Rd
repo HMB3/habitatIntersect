@@ -12,10 +12,10 @@ niche_estimate(DF, colname)
 \item{colname}{Character string - the columns to estimate niches for E.G. 'rainfall', etc.}
 }
 \value{
-Data.frame of estimated environmental niches for each taxa
+Data.frame of estimated environmental niches for each taxon
 }
 \description{
 Takes a data frame of all taxa records,
-and estimates the environmental niche for each taxa
+and estimates the environmental niche for each taxon
 It assumes that the input df is that prepared by the calc_1km_niches function
 }

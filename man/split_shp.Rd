@@ -15,5 +15,5 @@ split_shp(taxa_list, sdm_df, data_path)
 }
 \description{
 'This function takes a shapefile of all taxa records,
-and splits in into shp files for each taxa
+and splits in into shp files for each taxon
 }
