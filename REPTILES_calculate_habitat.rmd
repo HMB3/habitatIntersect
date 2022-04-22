@@ -117,6 +117,7 @@ names(sdm_threshold_list) <- sdm_threshold_features
 
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
 ## VALUES : 1-4, burn intensity from 2019-2020 fires, originally @ 10m resolution, re-sampled to 100m
+template_raster_250m <- raster('./data/Bushfire_indices/R_outputs/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
 FESM_NSW_10m  <- raster('./data/Remote_sensing/FESM/fesm_20200319_albers.tif')
 FESM_AUS_20m  <- raster('./data/Remote_sensing/FESM/NBR_Burn_severity_classed_ALB.tif')
 
@@ -168,7 +169,7 @@ Let's intersect the SDMs for each REPTILE taxa with the Vegetation Habitat Raste
 ## This function aggregates the results for models that ran successfully
 target_reptiles  <- c('Phyllurus platurus',  'Eulamprus tympanum',      'Hoplocephalus bungaroides', 'Drysdalia rhodogaster', 
                       'Amalosia lesuerii',   'Cryptophis nigrescens',   'Eulamprus heatwolei',       'Varanus varius',
-                      'Morelia spilota',     'Pseudechis porphyriacus', 'Varanus rosenbergi')
+                      'Morelia spilota',     'Pseudechis porphyriacus', 'Varanus rosenbergi',        'Eulamprus tympanum')
 
 
 REPTILES.MAXENT.RESULTS = compile_sdm_results(taxa_list    = target_reptiles,
@@ -219,6 +220,7 @@ calculate_taxa_habitat_features(taxa_list          = sort(REPTILES.MAXENT.RESULT
                                 layer_list         = sdm_threshold_list,
                                 main_int_layer     = Burnt_unburnt,
                                 second_int_layer   = AUS_forest_RS_feat,
+                                template_raster    = template_raster_250m,
                                 output_path        = './output/reptile_maxent/Habitat_suitability/FESM_SDM_intersect/',
                                 poly_path          = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                 epsg               = 3577,

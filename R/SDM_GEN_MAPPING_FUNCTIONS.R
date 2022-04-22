@@ -1288,16 +1288,6 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             ## Save the % burnt layers
             write.csv(sdm_fire_crosstab, paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.csv'), row.names = FALSE)
             
-            ## Now write the rasters
-            ## If the rasters don't exist, write them for each taxon/threshold
-            writeRaster(sdm_plus_veg, 
-                        paste0(output_path, save_name, '_SDM_VEG_intersect.tif'),
-                        overwrite = TRUE)
-            
-            writeRaster(sdm_plus_veg_intersect_fire, 
-                        paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.tif'),
-                        overwrite = TRUE)
-            
             message('writing threshold png for ', taxa)
             png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.png'),
                 11, 4, units = 'in', res = 300)
@@ -1618,22 +1608,27 @@ calculate_taxa_habitat_host_features = function(taxa_list,
 #' @param targ_maxent_table  data frame - table of maxent results for target taxa
 #' @param target_path        Character string - The file path containing the existing maxent models
 #' @param intersect_path     Character string - The file path containing the intersecting rasters
+#' @param output_path        Character string - The file path containing the intersecting rasters
+#' @param main_int_layer     Simple features polygon - The main layer to intersect with the habitat layer (e.g. fire)
+#' @param main_int_layer     Simple features polygon - The 2nd layer to intersect with the habitat layer (e.g. Veg)
 #' @param poly_path          Character string - file path to feature polygon layer
 #' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
-#' @param write_rasters      Logical - Save rasters (T/F)?
+#' @param template_raster    Raster::raster - Grid with the analysis extent and resolution
 #' @export calculate_taxa_habitat_features
 calculate_taxa_habitat_fire_features = function(taxa_list,
                                                 analysis_df,
                                                 taxa_level,
                                                 layer_list,
                                                 target_path,
-                                                threshold_path,
                                                 output_path,
-                                                intersect_path,
                                                 intersect_layer,
                                                 cell_size,
                                                 fire_thresh,
-                                                write_rasters,
+                                                
+                                                layer_list,
+                                                main_int_layer,
+                                                second_int_layer,
+                                                template_raster,
                                                 poly_path,
                                                 epsg) {
   
@@ -1643,7 +1638,6 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
   
   message('Spherical geometry (s2) switched off for sf operations to speed up intersections')
   sf_use_s2(FALSE)
-  
   million_metres <- 1000000
   
   ## Pipe the list into Lapply
@@ -1846,7 +1840,7 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
         gc()
         
         ## Create rasters for plotting
-        t <- raster::raster(template_raster_250m) %>% 
+        t <- raster::raster(template_raster) %>% 
           raster::crop(., extent(main_int_layer))
         
         current_thresh_ras <- current_thresh_ras %>% 
@@ -1868,8 +1862,8 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
                         ## Create a colour scheme using colbrewer: 100 is to make it continuous
                         ## Also, make it a one-directional colour scheme
                         scales      = list(draw = FALSE),
-                        at = seq(0, 4, length = 8),
-                        col.regions = colorRampPalette(rev(brewer.pal(5, 'YlOrRd'))),
+                        at = seq(0, 1, length = 3),
+                        col.regions = colorRampPalette(rev(brewer.pal(3, 'YlOrRd'))),
                         
                         ## Give each plot a name: the third panel is the GCM
                         names.attr = c('SDM', 'Fire', 'SDM * Fire'),
@@ -1880,7 +1874,7 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
                 ## Can the current layer be plotted on it's own?
                 ## Add the novel maps as vectors.
                 latticeExtra::layer(sp.polygons(poly), data = list(poly = poly)) +
-                latticeExtra::layer(sp.points(occ, pch = 19, cex = 0.15,
+                latticeExtra::layer(sp.points(occ, pch = 19, cex = 0.4,
                                               col = c('blue', 'transparent', 'transparent')[panel.number()]),
                                     data = list(occ = occ)))
         
