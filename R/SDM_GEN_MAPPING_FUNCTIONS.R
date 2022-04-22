@@ -1800,6 +1800,8 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
                  quiet  = TRUE,
                  append = FALSE)
         
+        gc()
+        
         st_write(sdm_fire_int_att, 
                  
                  dsn    = save_intersect, 
@@ -1808,6 +1810,8 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
                  
                  quiet  = TRUE,
                  append = FALSE)
+        
+        gc()
         
         st_write(sdm_fire_forest_int, 
                  
@@ -1818,6 +1822,8 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
                  quiet  = TRUE,
                  append = FALSE)
         
+        gc()
+        
         st_write(sdm_fire_forest_int_att, 
                  
                  dsn    = save_intersect, 
@@ -1826,6 +1832,8 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
                  
                  quiet  = TRUE,
                  append = FALSE)
+        
+        gc()
         
         st_write(sdm_forest_int, 
                  

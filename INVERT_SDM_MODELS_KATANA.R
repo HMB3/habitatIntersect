@@ -228,7 +228,7 @@ for(dir in dir_lists) {
 
 ## Read in the SDM data
 SDM.SPAT.OCC.BG.GDA       <- readRDS(paste0(results_dir, 'SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds'))
-SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS(paste0(results_dir, 'SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds'))
+SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS(paste0(plants_dir,  'SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds'))
 
 
 ## Run family-level models for invertebrates
@@ -336,6 +336,8 @@ run_sdm_analysis_no_crop(taxa_list               = sort(target.host.plants),
                          responsecurves          = TRUE,
                          poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                          epsg                    = 3577)
+
+
 
 
 
