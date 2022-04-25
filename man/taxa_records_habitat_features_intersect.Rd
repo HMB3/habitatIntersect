@@ -29,6 +29,6 @@ taxa_records_habitat_features_intersect(
 \item{write_rasters}{Logical          - Save rasters (T/F)?}
 }
 \description{
-Take a table of taxa records, and intersect the records for each taxon with a shapefile  
-of habitat (e.g. Vegetation).
+Take a table of taxa records, and intersect the records for each taxon with a feature 
+layer (e.g. Vegetation).
 }
