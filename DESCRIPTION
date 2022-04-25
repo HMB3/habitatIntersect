@@ -23,7 +23,7 @@ Imports:
   ENMeval,   
   exactextractr, 
   flexdashboard,
-  gdalUtils, 
+  gdalUtilities, 
   GGally,
   ggmap, 
   ggplot2,   

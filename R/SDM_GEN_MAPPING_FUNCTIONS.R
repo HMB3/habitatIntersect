@@ -1883,7 +1883,7 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
                 ## Can the current layer be plotted on it's own?
                 ## Add the novel maps as vectors.
                 latticeExtra::layer(sp.polygons(poly), data = list(poly = poly)) +
-                latticeExtra::layer(sp.points(occ, pch = 19, cex = 0.4,
+                latticeExtra::layer(sp.points(occ, pch = 19, cex = 0.25,
                                               col = c('blue', 'transparent', 'transparent')[panel.number()]),
                                     data = list(occ = occ)))
         
