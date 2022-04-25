@@ -547,8 +547,8 @@ habitat_threshold = function(taxa_list,
 
 
 #' @title Taxa records intersect 
-#' @description Take a table of taxa records, and intersect the records for each taxon with a shapefile  
-#' of habitat (e.g. Vegetation).
+#' @description Take a table of taxa records, and intersect the records for each taxon with a feature 
+#' layer (e.g. Vegetation).
 
 #' @param analysis_df     SpatialPolygonsDataFrame - Spdf of all the taxa analysed
 #' @param taxa_list       Character string - The taxa to run maxent predictions for
