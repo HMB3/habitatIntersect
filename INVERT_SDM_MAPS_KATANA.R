@@ -232,6 +232,7 @@ taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                         habitat_poly   = AUS_forest_RS_feat,
                                         output_path    = intersect_dir,
                                         buffer         = 5000,
+                                        poly_path      = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                         epsg           = 3577)
 
 

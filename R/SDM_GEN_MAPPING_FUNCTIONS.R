@@ -557,6 +557,7 @@ habitat_threshold = function(taxa_list,
 #' @param country_shp     Character string - Shapefile name that has already been read into R (e.g. in the Package)
 #' @param buffer          Numeric          - Distance by which to buffer the points (metres using a projected system)
 #' @param write_rasters   Logical          - Save rasters (T/F)?
+#' @param poly_path       Character string - file path to feature polygon layer
 #' @param epsg            Numeric - ERSP code of coord ref system to be translated into WKT format
 #' @export taxa_records_habitat_features_intersect
 taxa_records_habitat_features_intersect = function(analysis_df,
@@ -565,11 +566,15 @@ taxa_records_habitat_features_intersect = function(analysis_df,
                                                    habitat_poly,
                                                    output_path,
                                                    buffer,
-                                                   epsg) {
+                                                   epsg,
+                                                   poly_path) {
   
   ## Loop over each directory
   ## taxa = taxa_list[10]
   sf_use_s2(FALSE)
+  
+  poly <- st_read(poly_path) %>% 
+    st_transform(., st_crs(epsg)) %>% as_Spatial()
   
   lapply(taxa_list, function(taxa) {
     
@@ -582,7 +587,6 @@ taxa_records_habitat_features_intersect = function(analysis_df,
       if(!file.exists(raster_int)) {
         
         ## For each taxon, get the same records that were used in the SDM analysis 
-        # taxa_df   <- analysis_df %>% .[.$searchTaxon %in% taxa | .$!sym(taxa_level) %!in% analysis_taxa, ]
         taxa_df   <- st_as_sf(analysis_df) %>% 
           filter(., searchTaxon == taxa | !!sym(taxa_level) == taxa)
         
@@ -604,11 +608,7 @@ taxa_records_habitat_features_intersect = function(analysis_df,
           
           ## Intersect clipped habitat with buffer
           ## do we need another exception here?
-          message('Intersect taxa df with SVTM for ', taxa)
-          # taxa_intersects          <- gIntersects(habitat_subset, taxa_buffer, byid = TRUE) 
-          # taxa_VEG_intersects      <- habitat_subset[as.vector(taxa_intersects), ]
-          # taxa_VEG_intersects_clip <- raster::crop(taxa_VEG_intersects, taxa_buffer)
-          
+          message('Intersect taxa df with Vegetation for ', taxa)
           gc()
           
           ## Save intersection as a raster
@@ -646,8 +646,11 @@ taxa_records_habitat_features_intersect = function(analysis_df,
               16, 10, units = 'in', res = 500)
           
           ##
-          plot(taxa_VEG_intersects_raster, main = paste0(taxa, ' SVTM Intersection'))
-          plot(taxa_df, add = TRUE, col = "red", lwd = 3)
+          plot(st_geometry(taxa_VEG_intersects_clip), 
+               main = paste0(taxa, ' Veg Intersection'), col = "red")
+          
+          # plot(taxa_df, add = TRUE, col = "red",   lwd = 1)
+          plot(poly, add = TRUE)
           dev.off()
           
           ## Save in two places, in the taxa folder, 
