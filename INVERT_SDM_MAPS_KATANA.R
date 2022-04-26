@@ -13,9 +13,11 @@
 # To install, run :
 
 
+## Set env
 rm(list = ls())
 options(java.parameters = "-Xmx64000m")
 Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jre1.8.0_321')
+
 
 ## Function to load or install packages
 ipak <- function(pkg){
@@ -27,14 +29,48 @@ ipak <- function(pkg){
 
 
 ## Load packages
+#devtools::install_github("HMB3/nenswniche")
 library(nenswniche)
 data('sdmgen_packages')
 ipak(sdmgen_packages)
 
+
+## The functions expect these folders,
+tempdir              <- './TEMP/'
+ALA_dir              <- './data/ALA/Insects/'
+check_dir            <- './data/ALA/Insects/check_plots/'
+back_dir             <- './output/invert_maxent_raster_update/back_sel_models'
+full_dir             <- './output/invert_maxent_raster_update/full_models'
+results_dir          <- './output/invert_maxent_raster_update/results/'
+plants_dir           <- './output/plant_maxent_raster_update/results/'
+veg_dir              <- './data/Remote_sensing/Veg_data/Forest_cover/'
+habitat_dir          <- './output/invert_maxent_raster_update/Habitat_suitability/'
+intersect_dir        <- './output/invert_maxent_raster_update/Habitat_suitability/SVTM_intersect/'
+threshold_dir        <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
+plants_threshold_dir <- './output/plant_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
+intersect_dir        <- './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
+
+
+dir_lists   <- c(ALA_dir,  tempdir, check_dir,   back_dir,  habitat_dir, intersect_dir,
+                 full_dir, results_dir, habitat_dir, veg_dir,
+                 threshold_dir, intersect_dir)
+
+
+## Create the folders if they don't exist
+for(dir in dir_lists) {
+  if(!dir.exists(dir)) {
+    message('Creating ', dir, ' directory')
+    dir.create(dir) 
+  } else {
+    message(dir, ' directory already exists')}
+}
+
+
+
 ## Try and set the raster temp directory to a location not on the partition, to save space
-rasterOptions(tmpdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
+rasterOptions(tmpdir = tempdir)
 terraOptions(memfrac = 0.5, 
-             tempdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
+             tempdir = tempdir) 
 
 
 
@@ -67,34 +103,112 @@ analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.inse
 
 
 ## Read in the SDM data
-sp_epsg3577  <- '+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
-SDM.SPAT.OCC.BG.GDA       <- readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
-SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_HOST_PLANTS.rds')
+## This function aggregates the results for models that ran successfully
+INVERT.MAXENT.RESULTS     <- compile_sdm_results(taxa_list    = analysis_taxa,
+                                                 results_dir  = back_dir,
+                                                 data_path    = habitat_dir,
+                                                 sdm_path     = back_dir,
+                                                 save_data    = FALSE,
+                                                 save_run     = 'INVERT_ANALYSIS_TAXA')
 
 
-## SVTM Rasters : https://www.environment.nsw.gov.au/vegetation/state-vegetation-type-map.htm
-## The State Vegetation Type Map (SVTM)  of Plant Community Types across NSW, originally @ 5m resolution, re-sampled to 100m
-GBAM        <- raster('./data/Remote_sensing/aligned_rasters/GBAM_100m.tif')
+INVERT.MAXENT.FAM.RESULTS <- compile_sdm_results(taxa_list    = target.insect.families,
+                                                 results_dir  = back_dir,
+                                                 data_path    = habitat_dir,
+                                                 sdm_path     = back_dir,
+                                                 save_data    = FALSE,
+                                                 save_run     = 'INVERT_ANALYSIS_TAXA')
+
+
+INVERT.MAXENT.GEN.RESULTS <- compile_sdm_results(taxa_list    = target.insect.genera,
+                                                 results_dir  = back_dir,
+                                                 data_path    = habitat_dir,
+                                                 sdm_path     = back_dir,
+                                                 save_data    = FALSE,
+                                                 save_run     = 'INVERT_ANALYSIS_TAXA')
+
+
+INVERT.MAXENT.SPP.RESULTS <- compile_sdm_results(taxa_list    = target.insect.spp,
+                                                 results_dir  = back_dir,
+                                                 data_path    = habitat_dir,
+                                                 sdm_path     = back_dir,
+                                                 save_data    = FALSE,
+                                                 save_run     = 'INVERT_ANALYSIS_TAXA')
+
+
+PLANT.MAXENT.RESULTS      <- compile_sdm_results(taxa_list    = target.host.plants,
+                                                 results_dir  = './output/plant_maxent_raster_update/back_sel_models',
+                                                 data_path    = './output/plant_maxent_raster_update/Habitat_suitability/',
+                                                 sdm_path     = './output/plant_maxent_raster_update/back_sel_models/',
+                                                 save_data    = FALSE,
+                                                 save_run     = 'INVERT_ANALYSIS_TAXA')
+
+
+## How many target taxa were modelled?
+nrow(INVERT.MAXENT.SPP.RESULTS)/length(target.insect.spp)      *100 
+nrow(INVERT.MAXENT.GEN.RESULTS)/length(target.insect.genera)   *100
+nrow(INVERT.MAXENT.FAM.RESULTS)/length(target.insect.families) *100
+
+
+## Get map_taxa from the maxent results table above, change the species column,
+## then create a list of logistic thresholds
+invert_map_taxa <- INVERT.MAXENT.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
+invert_map_spp  <- INVERT.MAXENT.SPP.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
+plant_map_taxa  <- PLANT.MAXENT.RESULTS$searchTaxon  %>% gsub(" ", "_", .,)
 
 
 ## SDM output, re-sampled to 100m
 study_sdm_binary <- stack(
-  list.files('./output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds',
+  list.files(threshold_dir,
              'current_suit_not_novel_above', full.names = TRUE))
+
+
+sdm_threshold_features <- list.files(path       = threshold_dir,
+                                     pattern    = '_current_suit_not_novel_above_', 
+                                     recursive  = FALSE,
+                                     full.names = FALSE) %>% 
+  
+  .[grep(".tif", .)] %>% gsub('.tif', '', .)
+
+sdm_threshold_list        <- sdm_threshold_features %>% as.list() 
+names(sdm_threshold_list) <- sdm_threshold_features
 
 
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
 ## VALUES : 1-4, burn intensity from 2019-2020 fires, originally @ 10m resolution, re-sampled to 100m
-FESM_2_100m     <- raster('./data/Remote_sensing/aligned_rasters/FESM_2_100m_align.tif')
-FESM_100m       <- raster('./data/Remote_sensing/aligned_rasters/FESM_100m_align.tif')
-FESM_100m_align <- readRDS('./data/Remote_sensing/aligned_rasters/FESM_100m_align.rds')
-SVTM_Veg_Class_GDA        <- readRDS('./data/Remote_sensing/aligned_rasters/SVTM_Veg_Class_GDA.rds')
+template_raster_250m <- raster('./data/Bushfire_indices/R_outputs/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
+FESM_NSW_10m         <- raster('./data/Remote_sensing/FESM/fesm_20200319_albers.tif')
+FESM_AUS_20m         <- raster('./data/Remote_sensing/FESM/NBR_Burn_severity_classed_ALB.tif')
 
+
+## Read in feature layers for fire that have been repaired in ArcMap
+FESM_east_20m <- st_read('./data/Remote_sensing/FESM/Fire_perimeters_for_forests_and_woodlands.shp') %>% 
+  st_transform(., st_crs(3577)) %>% filter(!st_is_empty(.)) %>% 
+  as_Spatial() %>% repair_geometry() 
+
+
+## NIAFED data is much coarser and has more empty geometries
+Burnt_unburnt <- 
+  
+  st_read('./data/Remote_sensing/NIAFED/NIAFED_combo_east_Alb.shp') %>%
+  st_transform(., st_crs(3577)) %>% 
+  filter(!st_is_empty(.)) 
+
+
+## Read in the SDM data, to intersect with the Veg layers
+# SVTM_Veg_Class_GDA          = readRDS('./data/Remote_sensing/aligned_rasters/SVTM_Veg_Class_GDA.rds')
+AUS_forest_RS_ras           = raster(paste0(veg_dir, 'alpsbk_aust_y2009_sf1a2_forest.tif'))
+AUS_forest_RS_feat          = st_read(paste0(veg_dir, 'Aus_forest_cover_east_coast_classes.shp')) %>% 
+  st_transform(., st_crs(3577))
+
+
+## Read in the reptile points
+SDM.SPAT.OCC.BG.GDA = readRDS(paste0(results_dir, 'SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds'))
 
 
 ## Check projections and resolutions
-projection(FESM_100m);projection(study_sdm_binary[[1]]);projection(GBAM);projection(SDM.SPAT.OCC.BG.GDA)
-raster::xres(FESM_100m);raster::xres(study_sdm_binary[[1]]);raster::xres(GBAM)
+projection(FESM_NSW_10m);projection(study_sdm_binary[[1]]);projection(SDM.SPAT.OCC.BG.GDA)
+raster::xres(FESM_AUS_20m);raster::xres(study_sdm_binary[[1]])
 
 
 
@@ -112,30 +226,31 @@ raster::xres(FESM_100m);raster::xres(study_sdm_binary[[1]]);raster::xres(GBAM)
 
 
 ## Select the Vegetation pixels that intersect with the records of each invertebrate species
-taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
-                               taxa_list      = target.insect.spp,
-                               taxa_level     = 'species',
-                               habitat_poly   = SVTM_Veg_Class_GDA,
-                               output_path    = './output/invert_maxent_raster_update/Habitat_suitability/SVTM_intersect/',
-                               buffer         = 5000)
+taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
+                                        taxa_list      = target.insect.spp,
+                                        taxa_level     = 'species',
+                                        habitat_poly   = AUS_forest_RS_feat,
+                                        output_path    = intersect_dir,
+                                        buffer         = 5000,
+                                        epsg           = 3577)
 
 
 ## Select the Vegetation pixels that intersect with the records of each invertebrate genus 
-taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
-                               taxa_list      = target.insect.genera,
-                               taxa_level     = 'genus',
-                               habitat_poly   = SVTM_Veg_Class_GDA,
-                               output_path    = './output/invert_maxent_raster_update/Habitat_suitability/SVTM_intersect/',
-                               buffer         = 5000)
+taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
+                                        taxa_list      = target.insect.genera,
+                                        taxa_level     = 'genus',
+                                        habitat_poly   = SVTM_Veg_Class_GDA,
+                                        output_path    = intersect_dir,
+                                        buffer         = 5000)
 
 
 ## Select the Vegetation pixels that intersect with the records of each invertebrate family
-taxa_records_habitat_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
-                               taxa_list      = target.insect.families,
-                               taxa_level     = 'family',
-                               habitat_poly   = SVTM_Veg_Class_GDA,
-                               output_path    = './output/invert_maxent_raster_update/Habitat_suitability/SVTM_intersect/',
-                               buffer         = 5000)
+taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
+                                        taxa_list      = target.insect.families,
+                                        taxa_level     = 'family',
+                                        habitat_poly   = SVTM_Veg_Class_GDA,
+                                        output_path    = intersect_dir,
+                                        buffer         = 5000)
 
 
 

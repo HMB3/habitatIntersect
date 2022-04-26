@@ -629,6 +629,7 @@ combine_ala_records = function(taxa_list,
                                  proj4string = CRS("+proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs"))
     
     ## Now extract the temperature values for the unique 1km centroids which contain ALA data
+    ## getValues is much faster than extract
     class(xy)
     z   = terra::extract(world_raster, xy)
     

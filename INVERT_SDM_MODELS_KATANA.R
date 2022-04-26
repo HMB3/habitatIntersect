@@ -34,10 +34,43 @@ data('sdmgen_packages')
 ipak(sdmgen_packages)
 
 
+## The functions expect these folders,
+tempdir              <- './TEMP/'
+ALA_dir              <- './data/ALA/Insects/'
+check_dir            <- './data/ALA/Insects/check_plots/'
+back_dir             <- './output/invert_maxent_raster_update/back_sel_models'
+full_dir             <- './output/invert_maxent_raster_update/full_models'
+results_dir          <- './output/invert_maxent_raster_update/results/'
+plants_dir           <- './output/plant_maxent_raster_update/results/'
+veg_dir              <- './data/Remote_sensing/Veg_data/Forest_cover/'
+habitat_dir          <- './output/invert_maxent_raster_update/Habitat_suitability/'
+intersect_dir        <- './output/invert_maxent_raster_update/Habitat_suitability/SVTM_intersect/'
+threshold_dir        <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
+plants_threshold_dir <- './output/plant_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
+intersect_dir        <- './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
+
+
+dir_lists   <- c(ALA_dir,  tempdir, check_dir,   back_dir,  habitat_dir, intersect_dir,
+                 full_dir, results_dir, habitat_dir, veg_dir,
+                 threshold_dir, intersect_dir)
+
+
+## Create the folders if they don't exist
+for(dir in dir_lists) {
+  if(!dir.exists(dir)) {
+    message('Creating ', dir, ' directory')
+    dir.create(dir) 
+  } else {
+    message(dir, ' directory already exists')}
+}
+
+
+
+
 ## Try and set the raster temp directory to a location not on the partition, to save space
-rasterOptions(tmpdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
+rasterOptions(tmpdir = tempdir)
 terraOptions(memfrac = 0.5, 
-             tempdir = 'E:/Bush_fire_analysis/nenswniche/TEMP') 
+             tempdir = tempdir) 
 
 
 
@@ -200,6 +233,7 @@ analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.inse
 
 
 ## The functions expect these folders,
+tmpdir        <- './TEMP/'
 ALA_dir       <- './data/ALA/Insects/'
 check_dir     <- './data/ALA/Insects/check_plots/'
 back_dir      <- './output/invert_maxent_raster_update/back_sel_models'
@@ -235,8 +269,8 @@ SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS(paste0(plants_dir,  'SDM_SPAT_OCC_BG_ALL_TA
 ## Run family-level models for invertebrates
 run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.families),
                          taxa_level              = 'family',
-                         maxent_dir              = 'output/invert_maxent_raster_update/full_models',     
-                         bs_dir                  = 'output/invert_maxent_raster_update/back_sel_models',
+                         maxent_dir              = full_dir,     
+                         bs_dir                  = back_dir,
                          sdm_df                  = SDM.SPAT.OCC.BG.GDA,
                          sdm_predictors          = names(aus.climate.veg.grids.250m),
                          
@@ -262,8 +296,8 @@ gc()
 ## Run genus-level models for invertebrates
 run_sdm_analysis_no_crop(taxa_list               = rev(sort(target.insect.genera)),
                          taxa_level              = 'genus',
-                         maxent_dir              = 'output/invert_maxent_raster_update/full_models',     
-                         bs_dir                  = 'output/invert_maxent_raster_update/back_sel_models',
+                         maxent_dir              = full_dir,     
+                         bs_dir                  = back_dir,
                          sdm_df                  = SDM.SPAT.OCC.BG.GDA,
                          sdm_predictors          = names(aus.climate.veg.grids.250m),
                          
@@ -289,8 +323,8 @@ gc()
 ## Run species-level models for invertebrates
 run_sdm_analysis_no_crop(taxa_list               = target.insect.spp,
                          taxa_level              = 'species',
-                         maxent_dir              = 'output/invert_maxent_raster_update/full_models',     
-                         bs_dir                  = 'output/invert_maxent_raster_update/back_sel_models',
+                         maxent_dir              = full_dir,     
+                         bs_dir                  = back_dir,
                          sdm_df                  = SDM.SPAT.OCC.BG.GDA,
                          sdm_predictors          = names(aus.climate.veg.grids.250m),
                          
@@ -358,39 +392,39 @@ run_sdm_analysis_no_crop(taxa_list               = sort(target.host.plants),
 ## Create a table of maxent results
 ## This function aggregates the results for models that ran successfully
 INVERT.MAXENT.RESULTS     <- compile_sdm_results(taxa_list    = analysis_taxa,
-                                                 results_dir  = 'output/invert_maxent_raster_update/back_sel_models',
-                                                 data_path    = "./output/invert_maxent_raster_update/Habitat_suitability/",
-                                                 sdm_path     = "./output/invert_maxent_raster_update/back_sel_models/",
+                                                 results_dir  = back_dir,
+                                                 data_path    = habitat_dir,
+                                                 sdm_path     = back_dir,
                                                  save_data    = FALSE,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
 
 INVERT.MAXENT.FAM.RESULTS <- compile_sdm_results(taxa_list    = target.insect.families,
-                                                 results_dir  = 'output/invert_maxent_raster_update/back_sel_models',
-                                                 data_path    = "./output/invert_maxent_raster_update/Habitat_suitability/",
-                                                 sdm_path     = "./output/invert_maxent_raster_update/back_sel_models/",
+                                                 results_dir  = back_dir,
+                                                 data_path    = habitat_dir,
+                                                 sdm_path     = back_dir,
                                                  save_data    = FALSE,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
 
 INVERT.MAXENT.GEN.RESULTS <- compile_sdm_results(taxa_list    = target.insect.genera,
-                                                 results_dir  = 'output/invert_maxent_raster_update/back_sel_models',
-                                                 data_path    = "./output/invert_maxent_raster_update/Habitat_suitability/",
-                                                 sdm_path     = "./output/invert_maxent_raster_update/back_sel_models/",
+                                                 results_dir  = back_dir,
+                                                 data_path    = habitat_dir,
+                                                 sdm_path     = back_dir,
                                                  save_data    = FALSE,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
 
 INVERT.MAXENT.SPP.RESULTS <- compile_sdm_results(taxa_list    = target.insect.spp,
-                                                 results_dir  = 'output/invert_maxent_raster_update/back_sel_models',
-                                                 data_path    = "./output/invert_maxent_raster_update/Habitat_suitability/",
-                                                 sdm_path     = "./output/invert_maxent_raster_update/back_sel_models/",
+                                                 results_dir  = back_dir,
+                                                 data_path    = habitat_dir,
+                                                 sdm_path     = back_dir,
                                                  save_data    = FALSE,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
 
 PLANT.MAXENT.RESULTS      <- compile_sdm_results(taxa_list    = target.host.plants,
-                                                 results_dir  = 'output/plant_maxent_raster_update/back_sel_models',
+                                                 results_dir  = back_dir,
                                                  data_path    = "./output/plant_maxent_raster_update/Habitat_suitability/",
                                                  sdm_path     = "./output/plant_maxent_raster_update/back_sel_models/",
                                                  save_data    = FALSE,

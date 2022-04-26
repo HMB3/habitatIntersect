@@ -557,16 +557,20 @@ habitat_threshold = function(taxa_list,
 #' @param country_shp     Character string - Shapefile name that has already been read into R (e.g. in the Package)
 #' @param buffer          Numeric          - Distance by which to buffer the points (metres using a projected system)
 #' @param write_rasters   Logical          - Save rasters (T/F)?
+#' @param epsg            Numeric - ERSP code of coord ref system to be translated into WKT format
 #' @export taxa_records_habitat_features_intersect
 taxa_records_habitat_features_intersect = function(analysis_df,
                                                    taxa_list,
                                                    taxa_level,
                                                    habitat_poly,
                                                    output_path,
-                                                   buffer) {
+                                                   buffer,
+                                                   epsg) {
   
   ## Loop over each directory
-  ## taxa = taxa_list[7]
+  ## taxa = taxa_list[10]
+  sf_use_s2(FALSE)
+  
   lapply(taxa_list, function(taxa) {
     
     ## Check if the taxa exists
@@ -578,27 +582,32 @@ taxa_records_habitat_features_intersect = function(analysis_df,
       if(!file.exists(raster_int)) {
         
         ## For each taxon, get the same records that were used in the SDM analysis 
-        taxa_df   <- subset(analysis_df, searchTaxon == taxa | !!sym(taxa_level) == taxa)
+        # taxa_df   <- analysis_df %>% .[.$searchTaxon %in% taxa | .$!sym(taxa_level) %!in% analysis_taxa, ]
+        taxa_df   <- st_as_sf(analysis_df) %>% 
+          filter(., searchTaxon == taxa | !!sym(taxa_level) == taxa)
         
-        ## Buffer the points by 50km
-        taxa_buffer <- gBuffer(taxa_df, width = buffer)
+        ## Buffer thet points by Xkm
+        message('buffer SDM points for ', taxa)
+        taxa_buffer <- st_buffer(taxa_df, dist = buffer) %>% 
+          st_set_crs(., epsg)
         
         ## If the taxa don't intersect with the veg layer, we need an exception there
         
         ## Clip the habitat polygon by the 50km buffer
-        message('Clip habitat layer to the taxa df for ', taxa)
-        habitat_subset <- habitat_poly[taxa_buffer, ]
+        message('Clip habitat layer to the SDM points for ', taxa)
+        habitat_sub    <- st_subdivide(habitat_poly) %>% st_buffer(., 0)
+        taxa_VEG_intersects_clip <- st_intersection(taxa_sub, habitat_poly)
         
         gc()
         
-        if(nrow(habitat_subset@data) >0 ) {
+        if(nrow(habitat_subset) > 0 ) {
           
           ## Intersect clipped habitat with buffer
           ## do we need another exception here?
           message('Intersect taxa df with SVTM for ', taxa)
-          taxa_intersects          <- gIntersects(habitat_subset, taxa_buffer, byid = TRUE) 
-          taxa_VEG_intersects      <- habitat_subset[as.vector(taxa_intersects), ]
-          taxa_VEG_intersects_clip <- raster::crop(taxa_VEG_intersects, taxa_buffer)
+          # taxa_intersects          <- gIntersects(habitat_subset, taxa_buffer, byid = TRUE) 
+          # taxa_VEG_intersects      <- habitat_subset[as.vector(taxa_intersects), ]
+          # taxa_VEG_intersects_clip <- raster::crop(taxa_VEG_intersects, taxa_buffer)
           
           gc()
           
@@ -622,13 +631,14 @@ taxa_records_habitat_features_intersect = function(analysis_df,
           
           ## Raster intersect :: doesn't work because the LUT is not working
           ## Get the cells from the raster at those points
-          # habitat_id      = cellFromXY(habitat_raster, taxa_df[c("lon", "lat")])  ## Index
-          # taxa_rs_habitat = habitat_raster[habitat_id, drop = FALSE]              ## Values
-          writeOGR(obj    = taxa_VEG_intersects_clip,
-                   dsn    = 'G:/North_east_NSW_fire_recovery/output/veg_climate_topo_maxent/Habitat_suitability/SVTM_intersect',
-                   layer  = paste0(save_name, '_VEG_intersect'), 
-                   driver = 'ESRI Shapefile', 
-                   overwrite_layer = TRUE)
+          st_write(taxa_VEG_intersects_clip %>% st_as_sf(), 
+                   paste0(intersect_dir, save_name, '_VEG_intersection.shp'))
+          
+          st_write(taxa_VEG_intersects_clip %>% st_as_sf(), 
+                   
+                   dsn   = paste0(intersect_dir, 'SDM_INVERT_TARG_TAXA_SEPARATED.gpkg'), 
+                   layer = paste0(taxa, '_VEG_intersection'), 
+                   quiet = TRUE)
           
           ## Save the taxa * habitat intersection as a raster
           message('writing threshold png for ', taxa)
