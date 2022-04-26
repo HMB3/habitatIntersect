@@ -408,7 +408,7 @@ habitat_threshold = function(taxa_list,
   taxa_list %>%
     
     ## Loop over just the taxa
-    ## taxa = taxa_list[1]
+    ## taxa = taxa_list[3]
     lapply(function(taxa) {
       
       ## Get the directory

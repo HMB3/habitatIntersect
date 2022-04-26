@@ -208,6 +208,7 @@ results_dir   <- './output/invert_maxent_raster_update/results/'
 plants_dir    <- './output/plant_maxent_raster_update/results/'
 habitat_dir   <- './output/invert_maxent_raster_update/Habitat_suitability/'
 threshold_dir <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
+plants_threshold_dir <- './output/plant_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
 intersect_dir <- './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
 
 
@@ -417,7 +418,50 @@ plant_map_taxa  <- PLANT.MAXENT.RESULTS$searchTaxon  %>% gsub(" ", "_", .,)
 
 ## Project SDMs across the Study area for the invert taxa
 tryCatch(
-  project_maxent_current_grids_mess(taxa_list       = rev(invert_map_taxa),    
+  project_maxent_current_grids_mess(taxa_list       = invert_map_spp,    
+                                    maxent_path     = './output/invert_maxent_raster_update/back_sel_models/',
+                                    current_grids   = east.climate.veg.grids.250m,         
+                                    create_mess     = TRUE,
+                                    save_novel_poly = TRUE,
+                                    output_path     = paste0(threshold_dir, 'inverts_sdm_novel_combo.gpkg'),
+                                    poly_path       = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                                    epsg            = 3577),
+  
+  ## If the species fails, write a fail message to file
+  error = function(cond) {
+    
+    ## This will write the error message inside the text file, but it won't include the species
+    file.create(file.path("output/invert_maxent_raster_update/back_sel_models/mapping_failed_current.txt"))
+    cat(cond$message, file = file.path("output/invert_maxent_raster_update/back_sel_models/inv_mapping_failed_current.txt"))
+    warning(cond$message)
+    
+  })
+
+
+tryCatch(
+  project_maxent_current_grids_mess(taxa_list       = plant_map_taxa,    
+                                    maxent_path     = './output/plant_maxent_raster_update/back_sel_models/',
+                                    current_grids   = east.climate.veg.grids.250m,         
+                                    create_mess     = TRUE,
+                                    save_novel_poly = TRUE,
+                                    output_path     = paste0(plants_threshold_dir, 'plants_sdm_novel_combo.gpkg'),
+                                    poly_path       = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                                    epsg            = 3577),
+  
+  ## If the species fails, write a fail message to file
+  error = function(cond) {
+    
+    ## This will write the error message inside the text file, but it won't include the species
+    file.create(file.path("output/invert_maxent_raster_update/back_sel_models/mapping_failed_current.txt"))
+    cat(cond$message, file = file.path("output/invert_maxent_raster_update/back_sel_models/inv_mapping_failed_current.txt"))
+    warning(cond$message)
+    
+  })
+
+
+
+tryCatch(
+  project_maxent_current_grids_mess(taxa_list       = invert_map_taxa,    
                                     maxent_path     = './output/invert_maxent_raster_update/back_sel_models/',
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
