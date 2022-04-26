@@ -535,7 +535,7 @@ thresholded_sdms <- list.files(path       = './output/invert_maxent_raster_updat
 
 
 file.copy(from      = thresholded_sdms, 
-          to        = 'output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/', 
+          to        = threshold_dir, 
           overwrite = TRUE, 
           recursive = TRUE, 
           copy.mode = TRUE)
