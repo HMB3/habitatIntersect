@@ -14,9 +14,15 @@
 
 ## Set env
 rm(list = ls())
-options(java.parameters = "-Xmx64000m")
-Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jre1.8.0_321')
+#if (!Sys.getenv("JAVA_TOOL_OPTIONS")) {
+if (all(Sys.getenv("JAVA_HOME")=="")) {
+  Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jre1.8.0_321')
+}
+if (all(Sys.getenv("JAVA_TOOL_OPTIONS")=="")) {
+  options(java.parameters = "-Xmx64G")
+}
 
+options(warn=0)
 
 ## Function to load or install packages
 ipak <- function(pkg){
@@ -267,54 +273,54 @@ SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS(paste0(plants_dir,  'SDM_SPAT_OCC_BG_ALL_TA
 
 
 ## Run family-level models for invertebrates
-run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.families),
-                         taxa_level              = 'family',
-                         maxent_dir              = full_dir,     
-                         bs_dir                  = back_dir,
-                         sdm_df                  = SDM.SPAT.OCC.BG.GDA,
-                         sdm_predictors          = names(aus.climate.veg.grids.250m),
-                         
-                         backwards_sel           = TRUE,      
-                         template_raster         = template_raster_250m,
-                         cor_thr                 = 0.8,  
-                         pct_thr                 = 5, 
-                         k_thr                   = 4, 
-                         min_n                   = 10,  
-                         max_bg_size             = 100000,
-                         background_buffer_width = 100000,
-                         shapefiles              = TRUE,
-                         features                = 'lpq',
-                         replicates              = 5,
-                         responsecurves          = TRUE,
-                         poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
-                         epsg                    = 3577)
+#run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.families),
+                         #taxa_level              = 'family',
+                         #maxent_dir              = full_dir,     
+                         #bs_dir                  = back_dir,
+                         #sdm_df                  = SDM.SPAT.OCC.BG.GDA,
+                         #sdm_predictors          = names(aus.climate.veg.grids.250m),
+                         #
+                         #backwards_sel           = TRUE,      
+                         #template_raster         = template_raster_250m,
+                         #cor_thr                 = 0.8,  
+                         #pct_thr                 = 5, 
+                         #k_thr                   = 4, 
+                         #min_n                   = 10,  
+                         #max_bg_size             = 100000,
+                         #background_buffer_width = 100000,
+                         #shapefiles              = TRUE,
+                         #features                = 'lpq',
+                         #replicates              = 5,
+                         #responsecurves          = TRUE,
+                         #poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                         #epsg                    = 3577)
 
 
 gc()
 
 
 ## Run genus-level models for invertebrates
-run_sdm_analysis_no_crop(taxa_list               = rev(sort(target.insect.genera)),
-                         taxa_level              = 'genus',
-                         maxent_dir              = full_dir,     
-                         bs_dir                  = back_dir,
-                         sdm_df                  = SDM.SPAT.OCC.BG.GDA,
-                         sdm_predictors          = names(aus.climate.veg.grids.250m),
-                         
-                         backwards_sel           = TRUE,      
-                         template_raster         = template_raster_250m,
-                         cor_thr                 = 0.8,  
-                         pct_thr                 = 5, 
-                         k_thr                   = 4, 
-                         min_n                   = 10,  
-                         max_bg_size             = 100000,
-                         background_buffer_width = 100000,
-                         shapefiles              = TRUE,
-                         features                = 'lpq',
-                         replicates              = 5,
-                         responsecurves          = TRUE,
-                         poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
-                         epsg                    = 3577)
+#run_sdm_analysis_no_crop(taxa_list               = rev(sort(target.insect.genera)),
+                         #taxa_level              = 'genus',
+                         #maxent_dir              = full_dir,     
+                         #bs_dir                  = back_dir,
+                         #sdm_df                  = SDM.SPAT.OCC.BG.GDA,
+                         #sdm_predictors          = names(aus.climate.veg.grids.250m),
+                         #
+                         #backwards_sel           = TRUE,      
+                         #template_raster         = template_raster_250m,
+                         #cor_thr                 = 0.8,  
+                         #pct_thr                 = 5, 
+                         #k_thr                   = 4, 
+                         #min_n                   = 10,  
+                         #max_bg_size             = 100000,
+                         #background_buffer_width = 100000,
+                         #shapefiles              = TRUE,
+                         #features                = 'lpq',
+                         #replicates              = 5,
+                         #responsecurves          = TRUE,
+                         #poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                         #epsg                    = 3577)
 
 
 gc()
