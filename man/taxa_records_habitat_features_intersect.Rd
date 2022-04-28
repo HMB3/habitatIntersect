@@ -10,7 +10,9 @@ taxa_records_habitat_features_intersect(
   taxa_level,
   habitat_poly,
   output_path,
-  buffer
+  buffer,
+  epsg,
+  poly_path
 )
 }
 \arguments{
@@ -21,6 +23,10 @@ taxa_records_habitat_features_intersect(
 \item{taxa_level}{Character string - the taxnomic level to run maxent models for}
 
 \item{buffer}{Numeric          - Distance by which to buffer the points (metres using a projected system)}
+
+\item{epsg}{Numeric - ERSP code of coord ref system to be translated into WKT format}
+
+\item{poly_path}{Character string - file path to feature polygon layer}
 
 \item{habitat_raster}{Character string - The habitat raster which has already been read in}
 
