@@ -204,50 +204,50 @@ Let's create all the raster data we need. First let's get the rasters needed for
 
 ## 250m Precip layers
 aus_precip_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Precip',        pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/AUS/Precip',        pattern =".tif", full.names = TRUE))
 
 east_precip_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Precip', pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/EAST_COAST/Precip', pattern =".tif", full.names = TRUE))
 
 
 ## 250m temperature layers
 aus_temp_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Temp',          pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/AUS/Temp',          pattern =".tif", full.names = TRUE))
 
 east_temp_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Temp',   pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/EAST_COAST/Temp',   pattern =".tif", full.names = TRUE))
 
 
 ## 250m Soil layers
 aus_soil_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Soil',          pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/AUS/Soil',          pattern =".tif", full.names = TRUE))
 
 east_soil_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Soil',   pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/EAST_COAST/Soil',   pattern =".tif", full.names = TRUE))
 
 
 ## 250m Geology Australia
 aus_geology_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Geology',        pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/AUS/Geology',        pattern =".tif", full.names = TRUE))
 
 east_geology_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Geology', pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/EAST_COAST/Geology', pattern =".tif", full.names = TRUE))
 
 
 ## 250m topo Australia
 aus_topo_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Topo',           pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/AUS/Topo',           pattern =".tif", full.names = TRUE))
 
 east_topo_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Topo',    pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/EAST_COAST/Topo',    pattern =".tif", full.names = TRUE))
 
 
 ## 250m terrain indices Australia
 aus_terrain_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Indices',        pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/AUS/Indices',        pattern =".tif", full.names = TRUE))
 
 east_terrain_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Indices', pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/EAST_COAST/Indices', pattern =".tif", full.names = TRUE))
 
 
 ## Climate data for Australia, in GDA Albers projection
@@ -296,25 +296,19 @@ names(aus.veg.grids.250m)      <- names(east.veg.grids.250m) <- c("Plant_cover_f
 ## Combine the grids into raster stacks
 aus.climate.veg.grids.250m   <- stack(aus.grids.current.250m, aus.veg.grids.250m)
 east.climate.veg.grids.250m  <- stack(east.grids.current.250m, east.veg.grids.250m)
-aus_annual_precip            <- raster('./data/Bushfire_indices/R_outputs/250m/AUS/Extra/Annual_precip_WGS84.tif')
-aus_annual_precip_alb        <- raster('./data/Bushfire_indices/R_outputs/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
+aus_annual_precip            <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip_WGS84.tif')
+aus_annual_precip_alb        <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
 
 
-## Should be 1km*1km, It should have a value of 1 for land, and NA for the ocean
+## Should be 1km*1km, It should havle a value of 1 for land, and NA for the ocean
 aus_annual_precip_alb[aus_annual_precip_alb > 0] <- 1
 template_raster_250m <- aus_annual_precip_alb
-Koppen_1975_1km      <- raster('data/world_koppen/Koppen_1000m_Mollweide54009.tif')
 
 
-## Add shapefiles
-NENSW_study_area <- readOGR(dsn              = './data/Spatial_data/NE_NSW_study_area_buffer_GDA.shp',
-                            layer            = "NE_NSW_study_area_buffer_GDA",
-                            stringsAsFactors = FALSE)
-
-
-east_study_area <- readOGR(dsn              = './data/Spatial_data/east_coast_shapefile/polygon_east_coast.shp',
-                           layer            = "polygon_east_coast",
-                           stringsAsFactors = FALSE)
+## Now remove the individual rasters
+rm(list = ls(pattern = 'aus_'))
+rm(list = ls(pattern = 'east_'))
+gc()
 
 
 ```

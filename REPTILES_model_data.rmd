@@ -47,9 +47,15 @@ To install, run :
 
 ## Set env
 rm(list = ls())
-options(java.parameters = "-Xmx64000m")
-Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jre1.8.0_321')
+#if (!Sys.getenv("JAVA_TOOL_OPTIONS")) {
+if (all(Sys.getenv("JAVA_HOME")=="")) {
+  Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jre1.8.0_321')
+}
+if (all(Sys.getenv("JAVA_TOOL_OPTIONS")=="")) {
+  options(java.parameters = "-Xmx64G")
+}
 
+options(warn=0)
 
 ## Function to load or install packages
 ipak <- function(pkg){
@@ -61,14 +67,81 @@ ipak <- function(pkg){
 
 
 ## Load packages
+#devtools::install_github("HMB3/nenswniche")
 library(nenswniche)
 data('sdmgen_packages')
 ipak(sdmgen_packages)
 
+
+## The functions expect these folders,
+main_dir             <- paste0(getwd(), "/")
+tempdir              <- './TEMP/'
+ALA_dir              <- './data/ALA/'
+INV_dir              <- './data/ALA/Insects/'
+check_dir            <- './data/ALA/Insects/check_plots/'
+out_dir              <- './output/'
+
+inv_rs_dir           <- './output/invert_maxent_raster_update/'
+inv_back_dir         <- './output/invert_maxent_raster_update/back_sel_models'
+inv_full_dir         <- './output/invert_maxent_raster_update/full_models'
+inv_results_dir      <- './output/invert_maxent_raster_update/results/'
+
+plant_rs_dir         <- './output/plant_maxent_raster_update/'
+plant_back_dir       <- './output/plant_maxent_raster_update/back_sel_models'
+plant_full_dir       <- './output/plant_maxent_raster_update/full_models'
+plant_results_dir    <- './output/plant_maxent_raster_update/results/'
+
+reptile_rs_dir         <- './output/reptile_maxent_raster_update/'
+reptile_back_dir       <- './output/reptile_maxent_raster_update/back_sel_models'
+reptile_full_dir       <- './output/reptile_maxent_raster_update/full_models'
+reptile_results_dir    <- './output/reptile_maxent_raster_update/results/'
+
+
+veg_dir              <- './data/Remote_sensing/Veg_data/Forest_cover/'
+inv_habitat_dir      <- './output/invert_maxent_raster_update/Habitat_suitability/'
+inv_inters_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/Veg_intersect/'
+inv_thresh_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
+inv_fire_dir         <- './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
+
+
+plant_habitat_dir    <- './output/plant_maxent_raster_update/Habitat_suitability/'
+plant_inters_dir     <- './output/plant_maxent_raster_update/Habitat_suitability/Veg_intersect/'
+plant_thresh_dir     <- './output/plant_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
+plant_fire_dir       <- './output/plant_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
+
+
+reptile_habitat_dir    <- './output/reptile_maxent_raster_update/Habitat_suitability/'
+reptile_inters_dir     <- './output/reptile_maxent_raster_update/Habitat_suitability/Veg_intersect/'
+reptile_thresh_dir     <- './output/reptile_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
+reptile_fire_dir       <- './output/reptile_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
+
+
+
+dir_list <- c(tempdir, ALA_dir, 
+              INV_dir, check_dir, out_dir, inv_rs_dir, inv_back_dir, inv_full_dir, inv_results_dir,
+              plant_rs_dir, plant_back_dir, plant_full_dir, plant_results_dir, veg_dir,
+              reptile_rs_dir, reptile_back_dir, reptile_full_dir, reptile_results_dir,
+              inv_habitat_dir, inv_inters_dir, inv_thresh_dir, inv_fire_dir,
+              plant_habitat_dir, plant_inters_dir, plant_thresh_dir, plant_fire_dir,
+              reptile_habitat_dir, reptile_inters_dir, reptile_thresh_dir, reptile_fire_dir)
+
+
+## Create the folders if they don't exist
+for(dir in dir_list) {
+  
+  if(!dir.exists(paste0(main_dir, dir))) {
+    message('Creating ', dir, ' directory')
+    dir.create(file.path(main_dir, dir), recursive = TRUE) 
+    
+  } else {
+    message(dir, ' directory already exists')}
+}
+
+
 ## Try and set the raster temp directory to a location not on the partition, to save space
-rasterOptions(tmpdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
+rasterOptions(tmpdir = tempdir)
 terraOptions(memfrac = 0.5, 
-             tempdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
+             tempdir = tempdir) 
 
 ```
 
@@ -107,7 +180,7 @@ minimum number of predictors remains.
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Read in the reptile taxa
-SDM.SPAT.OCC.ALL.REPTILE.BG <- readRDS('./output/reptile_maxent/results/SDM_SPAT_OCC_BG_ALL_REPTILE_TAXA_VARS.rds')
+SDM.SPAT.OCC.ALL.REPTILE.BG <- readRDS(paste0(reptile_results_dir, 'SDM_SPAT_OCC_BG_ALL_REPTILE_TAXA_VARS.rds'))
 
 
 ## Are the control taxa present? And the extra records?
@@ -124,11 +197,17 @@ table(bionet_sdm$SOURCE)
 plot(bionet_sdm)
 
 
+target_reptiles  <- c('Phyllurus platurus',  'Eulamprus tympanum',      'Hoplocephalus bungaroides', 'Drysdalia rhodogaster', 
+                      'Amalosia lesuerii',   'Cryptophis nigrescens',   'Eulamprus heatwolei',       'Varanus varius',
+                      'Morelia spilota',     'Pseudechis porphyriacus', 'Varanus rosenbergi')
+
+
+
 ## Run species-level models for all reptiles
 run_sdm_analysis_no_crop(taxa_list               = target_reptiles[-3],
                          taxa_level              = 'species',
-                         maxent_dir              = 'output/reptile_maxent/full_models',     
-                         bs_dir                  = 'output/reptile_maxent/back_sel_models',
+                         maxent_dir              = 'output/reptile_maxent_raster_update/full_models',     
+                         bs_dir                  = 'output/reptile_maxent_raster_update/back_sel_models',
                          sdm_df                  = SDM.SPAT.OCC.ALL.REPTILE.BG,
                          sdm_predictors          = names(aus.climate.veg.grids.250m),
                          
@@ -144,16 +223,17 @@ run_sdm_analysis_no_crop(taxa_list               = target_reptiles[-3],
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                         poly_path               = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
                          epsg                    = 3577)
 
 gc()
 
+
 ## Run species-level models for all Hoplocephalus bungaroides
 run_sdm_analysis_no_crop(taxa_list               = target_reptiles[3],
                          taxa_level              = 'species',
-                         maxent_dir              = 'output/reptile_maxent/full_models',     
-                         bs_dir                  = 'output/reptile_maxent/back_sel_models',
+                         maxent_dir              = 'output/reptile_maxent_raster_update/full_models',     
+                         bs_dir                  = 'output/reptile_maxent_raster_update/back_sel_models',
                          sdm_df                  = SDM.SPAT.OCC.ALL.REPTILE.BG,
                          sdm_predictors          = names(aus.climate.veg.grids.250m)[12:43],
                          
@@ -169,7 +249,7 @@ run_sdm_analysis_no_crop(taxa_list               = target_reptiles[3],
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                         poly_path               = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
                          epsg                    = 3577)
 
 
@@ -194,16 +274,16 @@ across Australia ().
 
 ## Create a table of maxent results
 ## This function aggregates the results for models that ran successfully
-results_dir   <- './output/reptile_maxent/results/'
-habitat_dir   <- './output/reptile_maxent/Habitat_suitability/'
-threshold_dir <- './output/reptile_maxent/Habitat_suitability/SDM_thresholds/'
-intersect_dir <- './output/reptile_maxent/Habitat_suitability/FESM_SDM_intersect/'
+results_dir   <- './output/reptile_maxent_raster_update/results/'
+habitat_dir   <- './output/reptile_maxent_raster_update/Habitat_suitability/'
+threshold_dir <- './output/reptile_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
+intersect_dir <- './output/reptile_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
 
 
 REPTILES.MAXENT.RESULTS <- compile_sdm_results(taxa_list    = target_reptiles,
-                                               results_dir  = 'output/reptile_maxent/back_sel_models',
-                                               data_path    = "./output/reptile_maxent/Habitat_suitability/",
-                                               sdm_path     = "./output/reptile_maxent/back_sel_models/",
+                                               results_dir  = 'output/reptile_maxent_raster_update/back_sel_models',
+                                               data_path    = "./output/reptile_maxent_raster_update/Habitat_suitability/",
+                                               sdm_path     = "./output/reptile_maxent_raster_update/back_sel_models/",
                                                save_data    = TRUE,
                                                save_run     = "REPTILES_target_reptiles")
 
@@ -231,20 +311,20 @@ package https://github.com/johnbaums/rmaxent. It assumes that the maxent models 
 tryCatch(
   
   project_maxent_current_grids_mess(taxa_list       = rev(reptiles_map_taxa),    
-                                    maxent_path     = './output/reptile_maxent/back_sel_models/',
+                                    maxent_path     = './output/reptile_maxent_raster_update/back_sel_models/',
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
                                     save_novel_poly = TRUE,
                                     output_path     = paste0(threshold_dir, 'reptiles_sdm_novel_combo.gpkg'),
-                                    poly_path       = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                                    poly_path       = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
                                     epsg            = 3577),
   
   ## If the species fails, write a fail message to file.
   error = function(cond) {
     
     ## This will write the error message inside the text file, but it won't include the species
-    file.create(file.path("output/reptile_maxent/back_sel_models/mapping_failed_current.txt"))
-    cat(cond$message, file = file.path("output/reptile_maxent/back_sel_models/reptiles_mapping_failed_current.txt"))
+    file.create(file.path("output/reptile_maxent_raster_update/back_sel_models/mapping_failed_current.txt"))
+    cat(cond$message, file = file.path("output/reptile_maxent_raster_update/back_sel_models/reptiles_mapping_failed_current.txt"))
     warning(cond$message)
     
   })
@@ -278,16 +358,16 @@ is not considered present. Here we've chosen the 10th% Logistic threshold for ea
 ## Threshold the Reptile SDM models to be either 0 or 1
 habitat_threshold(taxa_list     = sort(unique(REPTILES.MAXENT.RESULTS$searchTaxon)),
                   maxent_table  = REPTILES.MAXENT.RESULTS,
-                  maxent_path   = './output/reptile_maxent/back_sel_models/',
+                  maxent_path   = './output/reptile_maxent_raster_update/back_sel_models/',
                   output_path   = paste0(threshold_folders, 'reptiles_sdm_thresholds_combo.gpkg'),
-                  poly_path     = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                  poly_path     = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
                   epsg          = 3577)
 
 gc()
 
 
 ## Now copy the thresh-holded SDM rasters to stand alone folder (i.e. all taxa in one folder)
-thresholded_sdms <- list.files(path    = './output/reptile_maxent/back_sel_models/',
+thresholded_sdms <- list.files(path    = './output/reptile_maxent_raster_update/back_sel_models/',
                                pattern = '_current_suit_not_novel_above_', 
                                recursive = TRUE,
                                full.names = TRUE) %>% 
@@ -295,7 +375,7 @@ thresholded_sdms <- list.files(path    = './output/reptile_maxent/back_sel_model
 
 
 file.copy(from      = thresholded_sdms, 
-          to        = 'output/reptile_maxent/Habitat_suitability/SDM_thresholds/', 
+          to        = 'output/reptile_maxent_raster_update/Habitat_suitability/SDM_thresholds/', 
           overwrite = TRUE, 
           recursive = TRUE, 
           copy.mode = TRUE)
