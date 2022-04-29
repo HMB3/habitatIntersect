@@ -603,7 +603,7 @@ taxa_records_habitat_features_intersect = function(analysis_df,
         ## Clip the habitat polygon by the 50km buffer
         message('Clip habitat layer to the SDM points for ', taxa)
         taxa_VEG_intersects_clip <- st_intersection(taxa_buffer, habitat_poly) %>% 
-          dplyr::select(int_cols)
+          dplyr::select(all_of(int_cols))
           
         
         gc()
@@ -666,10 +666,6 @@ taxa_records_habitat_features_intersect = function(analysis_df,
           
           ## Save in two places, in the taxa folder, 
           ## and in the habitat suitability folder
-          writeRaster(taxa_VEG_intersects_raster, 
-                      paste0(output_path, save_name, '_VEG_intersection_', buffer, 'm.tif'),
-                      overwrite = TRUE)
-          
           gc()
           
         } else {

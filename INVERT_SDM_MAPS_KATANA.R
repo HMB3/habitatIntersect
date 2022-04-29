@@ -296,7 +296,7 @@ taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                         int_cols       = intersect_cols,
                                         output_path    = inv_inters_dir,
                                         buffer         = 5000,
-                                        raster_convert = FALSE,
+                                        raster_convert = TRUE,
                                         poly_path      = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                         epsg           = 3577)
 
