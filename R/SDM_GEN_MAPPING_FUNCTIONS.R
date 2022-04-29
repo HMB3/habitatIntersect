@@ -556,8 +556,9 @@ habitat_threshold = function(taxa_list,
 #' @param habitat_raster  Character string - The habitat raster which has already been read in
 #' @param country_shp     Character string - Shapefile name that has already been read into R (e.g. in the Package)
 #' @param buffer          Numeric          - Distance by which to buffer the points (metres using a projected system)
-#' @param write_rasters   Logical          - Save rasters (T/F)?
+#' @param raster_convert  Logical          - Convert to raster?
 #' @param poly_path       Character string - file path to feature polygon layer
+#' @param int_cols        Character string - list of columns to keep from records * layer intersect
 #' @param epsg            Numeric - ERSP code of coord ref system to be translated into WKT format
 #' @export taxa_records_habitat_features_intersect
 taxa_records_habitat_features_intersect = function(analysis_df,
@@ -566,6 +567,8 @@ taxa_records_habitat_features_intersect = function(analysis_df,
                                                    habitat_poly,
                                                    output_path,
                                                    buffer,
+                                                   raster_convert,
+                                                   int_cols,
                                                    epsg,
                                                    poly_path) {
   
@@ -599,20 +602,22 @@ taxa_records_habitat_features_intersect = function(analysis_df,
         
         ## Clip the habitat polygon by the 50km buffer
         message('Clip habitat layer to the SDM points for ', taxa)
-        habitat_sub    <- st_subdivide(habitat_poly) %>% st_buffer(., 0)
-        taxa_VEG_intersects_clip <- st_intersection(taxa_sub, habitat_poly)
+        taxa_VEG_intersects_clip <- st_intersection(taxa_buffer, habitat_poly) %>% 
+          dplyr::select(int_cols)
+          
         
         gc()
         
-        if(nrow(habitat_subset) > 0 ) {
+        if(nrow(taxa_VEG_intersects_clip) > 0 ) {
           
           ## Intersect clipped habitat with buffer
           ## do we need another exception here?
           message('Intersect taxa df with Vegetation for ', taxa)
-          gc()
           
           ## Save intersection as a raster
           ## Set the ncol/nrow to match 100m resolutions
+          if(raster_convert) {
+          
           message('convert shapefile to raster for ', taxa)
           extent   <- extent(taxa_VEG_intersects_clip)
           x_length <- (extent[2] - extent[1])/100
@@ -629,14 +634,20 @@ taxa_records_habitat_features_intersect = function(analysis_df,
           
           gc()
           
+          writeRaster(taxa_VEG_intersects_raster, 
+                      paste0(output_path, save_name, '_VEG_intersection_', buffer, 'm.tif'),
+                      overwrite = TRUE)
+          
+          }
+          
           ## Raster intersect :: doesn't work because the LUT is not working
           ## Get the cells from the raster at those points
           st_write(taxa_VEG_intersects_clip %>% st_as_sf(), 
-                   paste0(intersect_dir, save_name, '_VEG_intersection.shp'))
+                   paste0(output_path, save_name, '_VEG_intersection.shp'))
           
           st_write(taxa_VEG_intersects_clip %>% st_as_sf(), 
                    
-                   dsn   = paste0(intersect_dir, 'SDM_INVERT_TARG_TAXA_SEPARATED.gpkg'), 
+                   dsn   = paste0(output_path, 'SDM_INVERT_TARG_TAXA_SEPARATED.gpkg'), 
                    layer = paste0(taxa, '_VEG_intersection'), 
                    quiet = TRUE)
           

@@ -36,35 +36,68 @@ ipak(sdmgen_packages)
 
 
 ## The functions expect these folders,
+main_dir             <- paste0(getwd(), "/")
 tempdir              <- './TEMP/'
-ALA_dir              <- './data/ALA/Insects/'
+ALA_dir              <- './data/ALA/'
+INV_dir              <- './data/ALA/Insects/'
 check_dir            <- './data/ALA/Insects/check_plots/'
-back_dir             <- './output/invert_maxent_raster_update/back_sel_models'
-full_dir             <- './output/invert_maxent_raster_update/full_models'
-results_dir          <- './output/invert_maxent_raster_update/results/'
-plants_dir           <- './output/plant_maxent_raster_update/results/'
+out_dir              <- './output/'
+
+inv_rs_dir           <- './output/invert_maxent_raster_update/'
+inv_back_dir         <- './output/invert_maxent_raster_update/back_sel_models'
+inv_full_dir         <- './output/invert_maxent_raster_update/full_models'
+inv_results_dir      <- './output/invert_maxent_raster_update/results/'
+
+plant_rs_dir         <- './output/plant_maxent_raster_update/'
+plant_back_dir       <- './output/plant_maxent_raster_update/back_sel_models'
+plant_full_dir       <- './output/plant_maxent_raster_update/full_models'
+plant_results_dir    <- './output/plant_maxent_raster_update/results/'
+
+reptile_rs_dir         <- './output/reptile_maxent_raster_update/'
+reptile_back_dir       <- './output/reptile_maxent_raster_update/back_sel_models'
+reptile_full_dir       <- './output/reptile_maxent_raster_update/full_models'
+reptile_results_dir    <- './output/reptile_maxent_raster_update/results/'
+
+
 veg_dir              <- './data/Remote_sensing/Veg_data/Forest_cover/'
-habitat_dir          <- './output/invert_maxent_raster_update/Habitat_suitability/'
-intersect_dir        <- './output/invert_maxent_raster_update/Habitat_suitability/SVTM_intersect/'
-threshold_dir        <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
-plants_threshold_dir <- './output/plant_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
-intersect_dir        <- './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
+inv_habitat_dir      <- './output/invert_maxent_raster_update/Habitat_suitability/'
+inv_inters_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/Veg_intersect/'
+inv_thresh_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
+inv_fire_dir         <- './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
 
 
-dir_lists   <- c(ALA_dir,  tempdir, check_dir,   back_dir,  habitat_dir, intersect_dir,
-                 full_dir, results_dir, habitat_dir, veg_dir,
-                 threshold_dir, intersect_dir)
+plant_habitat_dir    <- './output/plant_maxent_raster_update/Habitat_suitability/'
+plant_inters_dir     <- './output/plant_maxent_raster_update/Habitat_suitability/Veg_intersect/'
+plant_thresh_dir     <- './output/plant_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
+plant_fire_dir       <- './output/plant_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
+
+
+reptile_habitat_dir    <- './output/reptile_maxent_raster_update/Habitat_suitability/'
+reptile_inters_dir     <- './output/reptile_maxent_raster_update/Habitat_suitability/Veg_intersect/'
+reptile_thresh_dir     <- './output/reptile_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
+reptile_fire_dir       <- './output/reptile_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
+
+
+
+dir_list <- c(tempdir, ALA_dir, 
+              INV_dir, check_dir, out_dir, inv_rs_dir, inv_back_dir, inv_full_dir, inv_results_dir,
+              plant_rs_dir, plant_back_dir, plant_full_dir, plant_results_dir, veg_dir,
+              reptile_rs_dir, reptile_back_dir, reptile_full_dir, reptile_results_dir,
+              inv_habitat_dir, inv_inters_dir, inv_thresh_dir, inv_fire_dir,
+              plant_habitat_dir, plant_inters_dir, plant_thresh_dir, plant_fire_dir,
+              reptile_habitat_dir, reptile_inters_dir, reptile_thresh_dir, reptile_fire_dir)
 
 
 ## Create the folders if they don't exist
-for(dir in dir_lists) {
-  if(!dir.exists(dir)) {
+for(dir in dir_list) {
+  
+  if(!dir.exists(paste0(main_dir, dir))) {
     message('Creating ', dir, ' directory')
-    dir.create(dir) 
+    dir.create(file.path(main_dir, dir), recursive = TRUE) 
+    
   } else {
     message(dir, ' directory already exists')}
 }
-
 
 
 ## Try and set the raster temp directory to a location not on the partition, to save space
@@ -99,31 +132,33 @@ data('target.host.plants')
 data('all.insect.plant.spp')
 
 
-analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
+analysis_taxa <- str_trim(c(target.insect.spp, 
+                            target.insect.genera, 
+                            target.insect.families)) %>% unique()
 
 
 ## Read in the SDM data
 ## This function aggregates the results for models that ran successfully
 INVERT.MAXENT.RESULTS     <- compile_sdm_results(taxa_list    = analysis_taxa,
-                                                 results_dir  = back_dir,
-                                                 data_path    = habitat_dir,
-                                                 sdm_path     = back_dir,
+                                                 results_dir  = inv_back_dir,
+                                                 data_path    = inv_habitat_dir,
+                                                 sdm_path     = inv_back_dir,
                                                  save_data    = FALSE,
                                                  save_run     = 'INVERT_ANALYSIS_TAXA')
 
 
 INVERT.MAXENT.FAM.RESULTS <- compile_sdm_results(taxa_list    = target.insect.families,
-                                                 results_dir  = back_dir,
-                                                 data_path    = habitat_dir,
-                                                 sdm_path     = back_dir,
+                                                 results_dir  = inv_back_dir,
+                                                 data_path    = inv_habitat_dir,
+                                                 sdm_path     = inv_back_dir,
                                                  save_data    = FALSE,
                                                  save_run     = 'INVERT_ANALYSIS_TAXA')
 
 
 INVERT.MAXENT.GEN.RESULTS <- compile_sdm_results(taxa_list    = target.insect.genera,
-                                                 results_dir  = back_dir,
-                                                 data_path    = habitat_dir,
-                                                 sdm_path     = back_dir,
+                                                 results_dir  = inv_back_dir,
+                                                 data_path    = inv_habitat_dir,
+                                                 sdm_path     = inv_back_dir,
                                                  save_data    = FALSE,
                                                  save_run     = 'INVERT_ANALYSIS_TAXA')
 
@@ -159,11 +194,11 @@ plant_map_taxa  <- PLANT.MAXENT.RESULTS$searchTaxon  %>% gsub(" ", "_", .,)
 
 ## SDM output, re-sampled to 100m
 study_sdm_binary <- stack(
-  list.files(threshold_dir,
+  list.files(inv_thresh_dir,
              'current_suit_not_novel_above', full.names = TRUE))
 
 
-sdm_threshold_features <- list.files(path       = threshold_dir,
+sdm_threshold_features <- list.files(path       = inv_thresh_dir,
                                      pattern    = '_current_suit_not_novel_above_', 
                                      recursive  = FALSE,
                                      full.names = FALSE) %>% 
@@ -182,7 +217,7 @@ FESM_AUS_20m         <- raster('./data/Remote_sensing/FESM/NBR_Burn_severity_cla
 
 
 ## Read in feature layers for fire that have been repaired in ArcMap
-FESM_east_20m <- st_read('./data/Remote_sensing/FESM/Fire_perimeters_for_forests_and_woodlands.shp') %>% 
+FESM_east_20m <- st_read('./data/Remote_sensing/FESM/Fire_perimeters_for_forests_and_woodlands_split.shp') %>% 
   st_transform(., st_crs(3577)) %>% filter(!st_is_empty(.)) %>% 
   as_Spatial() %>% repair_geometry() 
 
@@ -197,18 +232,21 @@ Burnt_unburnt <-
 
 ## Read in the SDM data, to intersect with the Veg layers
 # SVTM_Veg_Class_GDA          = readRDS('./data/Remote_sensing/aligned_rasters/SVTM_Veg_Class_GDA.rds')
-AUS_forest_RS_ras           = raster(paste0(veg_dir, 'alpsbk_aust_y2009_sf1a2_forest.tif'))
-AUS_forest_RS_feat          = st_read(paste0(veg_dir, 'Aus_forest_cover_east_coast_classes.shp')) %>% 
+AUS_forest_RS_ras           <- raster(paste0(veg_dir, 'alpsbk_aust_y2009_sf1a2_forest.tif'))
+AUS_forest_RS_feat          <- st_read(paste0(veg_dir, 'Aus_forest_cover_east_coast_classes_split.shp')) %>% 
   st_transform(., st_crs(3577))
 
 
 ## Read in the reptile points
-SDM.SPAT.OCC.BG.GDA = readRDS(paste0(results_dir, 'SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds'))
+SDM.SPAT.OCC.BG.GDA <- readRDS(paste0(inv_results_dir, 'SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds'))
+intersect_cols      <- c("searchTaxon", "species", "genus", "family", "SOURCE", "gridcode", "Vegetation") 
 
 
 ## Check projections and resolutions
 projection(FESM_NSW_10m);projection(study_sdm_binary[[1]]);projection(SDM.SPAT.OCC.BG.GDA)
 raster::xres(FESM_AUS_20m);raster::xres(study_sdm_binary[[1]])
+
+
 
 
 
@@ -224,14 +262,15 @@ raster::xres(FESM_AUS_20m);raster::xres(study_sdm_binary[[1]])
 # \
 
 
-
 ## Select the Vegetation pixels that intersect with the records of each invertebrate species
 taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                         taxa_list      = target.insect.spp,
                                         taxa_level     = 'species',
                                         habitat_poly   = AUS_forest_RS_feat,
-                                        output_path    = intersect_dir,
+                                        int_cols       = intersect_cols,
+                                        output_path    = inv_inters_dir,
                                         buffer         = 5000,
+                                        raster_convert = TRUE,
                                         poly_path      = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                         epsg           = 3577)
 
@@ -240,18 +279,26 @@ taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
 taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                         taxa_list      = target.insect.genera,
                                         taxa_level     = 'genus',
-                                        habitat_poly   = SVTM_Veg_Class_GDA,
-                                        output_path    = intersect_dir,
-                                        buffer         = 5000)
+                                        habitat_poly   = AUS_forest_RS_feat,
+                                        int_cols       = intersect_cols,
+                                        output_path    = inv_inters_dir,
+                                        buffer         = 5000,
+                                        raster_convert = TRUE,
+                                        poly_path      = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                                        epsg           = 3577)
 
 
 ## Select the Vegetation pixels that intersect with the records of each invertebrate family
 taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                         taxa_list      = target.insect.families,
                                         taxa_level     = 'family',
-                                        habitat_poly   = SVTM_Veg_Class_GDA,
-                                        output_path    = intersect_dir,
-                                        buffer         = 5000)
+                                        habitat_poly   = AUS_forest_RS_feat,
+                                        int_cols       = intersect_cols,
+                                        output_path    = inv_inters_dir,
+                                        buffer         = 5000,
+                                        raster_convert = FALSE,
+                                        poly_path      = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                                        epsg           = 3577)
 
 
 
