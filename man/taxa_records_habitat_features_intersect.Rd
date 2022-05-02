@@ -31,7 +31,7 @@ taxa_records_habitat_features_intersect(
 
 \item{int_cols}{Character string - list of columns to keep from records * layer intersect}
 
-\item{save_shp}{Logical          - Save as .shp? Geopackage is much better}
+\item{save_shp}{Logical          - Save as .shp? Geopackage is much better.}
 
 \item{epsg}{Numeric - ERSP code of coord ref system to be translated into WKT format}
 

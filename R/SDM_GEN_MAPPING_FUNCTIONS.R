@@ -557,7 +557,7 @@ habitat_threshold = function(taxa_list,
 #' @param country_shp     Character string - Shapefile name that has already been read into R (e.g. in the Package)
 #' @param buffer          Numeric          - Distance by which to buffer the points (metres using a projected system)
 #' @param raster_convert  Logical          - Convert to raster?
-#' @param save_shp        Logical          - Save as .shp? Geopackage is much better
+#' @param save_shp        Logical          - Save as .shp? Geopackage is much better.
 #' @param poly_path       Character string - file path to feature polygon layer
 #' @param int_cols        Character string - list of columns to keep from records * layer intersect
 #' @param epsg            Numeric - ERSP code of coord ref system to be translated into WKT format
