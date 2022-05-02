@@ -11,6 +11,9 @@ taxa_records_habitat_features_intersect(
   habitat_poly,
   output_path,
   buffer,
+  raster_convert,
+  int_cols,
+  save_shp,
   epsg,
   poly_path
 )
@@ -24,6 +27,12 @@ taxa_records_habitat_features_intersect(
 
 \item{buffer}{Numeric          - Distance by which to buffer the points (metres using a projected system)}
 
+\item{raster_convert}{Logical          - Convert to raster?}
+
+\item{int_cols}{Character string - list of columns to keep from records * layer intersect}
+
+\item{save_shp}{Logical          - Save as .shp? Geopackage is much better}
+
 \item{epsg}{Numeric - ERSP code of coord ref system to be translated into WKT format}
 
 \item{poly_path}{Character string - file path to feature polygon layer}
@@ -31,8 +40,6 @@ taxa_records_habitat_features_intersect(
 \item{habitat_raster}{Character string - The habitat raster which has already been read in}
 
 \item{country_shp}{Character string - Shapefile name that has already been read into R (e.g. in the Package)}
-
-\item{write_rasters}{Logical          - Save rasters (T/F)?}
 }
 \description{
 Take a table of taxa records, and intersect the records for each taxon with a feature 
