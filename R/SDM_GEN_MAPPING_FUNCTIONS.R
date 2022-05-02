@@ -585,9 +585,9 @@ taxa_records_habitat_features_intersect = function(analysis_df,
     if(taxa %in%  unique(analysis_df$searchTaxon)) {
       
       save_name  <- gsub(' ', '_', taxa)
-      raster_int <- paste0(output_path, save_name, '_VEG_intersection_', buffer, 'm.tif')
+      veg_inter  <- paste0(output_path, save_name, "_VEG_intersection.png")
       
-      if(!file.exists(raster_int)) {
+      if(!file.exists(veg_inter)) {
         
         ## For each taxon, get the same records that were used in the SDM analysis 
         taxa_df   <- st_as_sf(analysis_df) %>% 
@@ -647,7 +647,7 @@ taxa_records_habitat_features_intersect = function(analysis_df,
           
           st_write(taxa_VEG_intersects_clip %>% st_as_sf(), 
                    
-                   dsn   = paste0(output_path, 'SDM_INVERT_TARG_TAXA_SEPARATED.gpkg'), 
+                   dsn   = paste0(output_path, taxa_level, 'SDM_INVERT_TARG_TAXA_SEPARATED.gpkg'), 
                    layer = paste0(taxa, '_VEG_intersection'), 
                    quiet = TRUE)
           

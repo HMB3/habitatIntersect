@@ -61,7 +61,7 @@ reptile_results_dir    <- './output/reptile_maxent_raster_update/results/'
 
 veg_dir              <- './data/Remote_sensing/Veg_data/Forest_cover/'
 inv_habitat_dir      <- './output/invert_maxent_raster_update/Habitat_suitability/'
-inv_inters_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/Veg_intersect/'
+inv_inters_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_Veg_intersect/'
 inv_thresh_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
 inv_fire_dir         <- './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
 
@@ -164,19 +164,19 @@ INVERT.MAXENT.GEN.RESULTS <- compile_sdm_results(taxa_list    = target.insect.ge
 
 
 INVERT.MAXENT.SPP.RESULTS <- compile_sdm_results(taxa_list    = target.insect.spp,
-                                                 results_dir  = back_dir,
+                                                 results_dir  = inv_back_dir,
                                                  data_path    = habitat_dir,
-                                                 sdm_path     = back_dir,
+                                                 sdm_path     = inv_back_dir,
                                                  save_data    = FALSE,
                                                  save_run     = 'INVERT_ANALYSIS_TAXA')
 
 
 PLANT.MAXENT.RESULTS      <- compile_sdm_results(taxa_list    = target.host.plants,
-                                                 results_dir  = './output/plant_maxent_raster_update/back_sel_models',
-                                                 data_path    = './output/plant_maxent_raster_update/Habitat_suitability/',
-                                                 sdm_path     = './output/plant_maxent_raster_update/back_sel_models/',
+                                                 results_dir  = plant_back_dir,
+                                                 data_path    = plant_habitat_dir,
+                                                 sdm_path     = plant_back_dir,
                                                  save_data    = FALSE,
-                                                 save_run     = 'INVERT_ANALYSIS_TAXA')
+                                                 save_run     = 'PLANT_ANALYSIS_TAXA')
 
 
 ## How many target taxa were modelled?
@@ -252,6 +252,7 @@ raster::xres(FESM_AUS_20m);raster::xres(study_sdm_binary[[1]])
 
 ## 2). INTERSECT SDMs WITH VEG RASTER =============================================================
 
+
 # \
 # 
 # To use the habitat suitability rasters in area calculations (e.g. comparing the area of suitable habitat
@@ -264,39 +265,39 @@ raster::xres(FESM_AUS_20m);raster::xres(study_sdm_binary[[1]])
 
 ## Select the Vegetation pixels that intersect with the records of each invertebrate species
 taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
-                                        taxa_list      = target.insect.spp,
+                                        taxa_list      = rev(target.insect.spp),
                                         taxa_level     = 'species',
                                         habitat_poly   = AUS_forest_RS_feat,
                                         int_cols       = intersect_cols,
                                         output_path    = inv_inters_dir,
                                         buffer         = 5000,
-                                        raster_convert = TRUE,
+                                        raster_convert = FALSE,
                                         poly_path      = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                         epsg           = 3577)
 
 
 ## Select the Vegetation pixels that intersect with the records of each invertebrate genus 
 taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
-                                        taxa_list      = target.insect.genera,
+                                        taxa_list      = rev(target.insect.genera),
                                         taxa_level     = 'genus',
                                         habitat_poly   = AUS_forest_RS_feat,
                                         int_cols       = intersect_cols,
                                         output_path    = inv_inters_dir,
                                         buffer         = 5000,
-                                        raster_convert = TRUE,
+                                        raster_convert = FALSE,
                                         poly_path      = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                         epsg           = 3577)
 
 
 ## Select the Vegetation pixels that intersect with the records of each invertebrate family
 taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
-                                        taxa_list      = target.insect.families,
+                                        taxa_list      = rev(target.insect.families),
                                         taxa_level     = 'family',
                                         habitat_poly   = AUS_forest_RS_feat,
                                         int_cols       = intersect_cols,
                                         output_path    = inv_inters_dir,
                                         buffer         = 5000,
-                                        raster_convert = TRUE,
+                                        raster_convert = FALSE,
                                         poly_path      = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                         epsg           = 3577)
 
@@ -327,7 +328,7 @@ host_plants <- read_excel('./output/invert_maxent_raster_update/Habitat_suitabil
 
 MAXENT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>% left_join(., host_plants, by = "searchTaxon") %>%
   mutate(host_dir = gsub(' ', '_', Host_Plant_taxon)) %>%
-  mutate(host_dir = ifelse(!is.na(Host_Plant_taxon),  paste0(host_back_dir, host_dir, '/full/'), NA))
+  mutate(host_dir = ifelse(!is.na(Host_Plant_taxon),  paste0(plant_back_dir, host_dir, '/full/'), NA))
 
 
 # For each Invertebrate species, calculate the % of suitable habitat that was burnt by the
