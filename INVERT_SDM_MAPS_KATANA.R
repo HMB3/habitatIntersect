@@ -279,7 +279,7 @@ taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
 
 ## Select the Vegetation pixels that intersect with the records of each invertebrate genus 
 taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
-                                        taxa_list      = rev(target.insect.genera),
+                                        taxa_list      = target.insect.genera,
                                         taxa_level     = 'genus',
                                         habitat_poly   = AUS_forest_RS_feat,
                                         int_cols       = intersect_cols,
@@ -300,6 +300,7 @@ taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                         output_path    = inv_inters_dir,
                                         buffer         = 5000,
                                         raster_convert = FALSE,
+                                        save_shp       = FALSE,
                                         poly_path      = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                         epsg           = 3577)
 
@@ -323,14 +324,14 @@ taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
 
 ## Add Host Plants to the Maxent LUT 
 ## Read in the host plant species
-host_plants <- read_excel(paste0(inv_habitat_dir, '/NENSW_INVERTEBRATES_SPATIAL_DATA_LUT_SEP2021.xlsm'),
-                          sheet = 'NENSW_INV_TAXA_ASSOCIATIONS') %>% filter(Target_taxon == "Yes") %>%
+host_plants <- read_excel(paste0(inv_habitat_dir, '/INVERTS_FIRE_SPATIAL_DATA_LUT_SEP2021.xlsm'),
+                          sheet = 'INV_TAXA_ASSOC') %>% filter(Target_taxon == "Yes") %>%
   dplyr::select(searchTaxon, Host_Plant_taxon)
 
 
 MAXENT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>% left_join(., host_plants, by = "searchTaxon") %>%
   mutate(host_dir = gsub(' ', '_', Host_Plant_taxon)) %>%
-  mutate(host_dir = ifelse(!is.na(Host_Plant_taxon),  paste0(plant_back_dir, host_dir, '/full/'), NA))
+  mutate(host_dir = ifelse(!is.na(Host_Plant_taxon),  paste0(plant_back_dir, '/', host_dir, '/full/'), NA))
 
 
 # For each Invertebrate species, calculate the % of suitable habitat that was burnt by the
@@ -344,18 +345,23 @@ MAXENT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>% left_join(., host_plants, by =
 
 ## Calculate Insect habitat - fails after this species?
 ## Code is stalling before or after :: Naranjakotta - it should be the taxa either side of that...
-calculate_taxa_habitat(taxa_list          = rev(MAXENT.RESULTS.HOSTS$searchTaxon),
-                       targ_maxent_table  = MAXENT.RESULTS.HOSTS,
-                       host_maxent_table  = PLANT.MAXENT.RESULTS,
-                       target_path        = './output/invert_maxent_raster_update/back_sel_models/',
-                       intersect_path     = 'G:/North_east_NSW_fire_recovery/output/invert_maxent_raster_update/Habitat_suitability/SVTM_intersect',
-                       raster_pattern     = '_SVTM_intersection_5000m.tif',
-                       fire_raster        = FESM_100m_align,
-                       cell_size          = 100,
-                       output_path        = './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/',
-                       country_shp        = 'AUS',
-                       country_prj        = CRS("+init=EPSG:3577"),
-                       write_rasters      = TRUE)
+calculate_taxa_habitat_host_features(taxa_list          = sort(REPTILES.MAXENT.RESULTS$searchTaxon),
+                                     analysis_df        = SDM.SPAT.OCC.ALL.REPTILE.BG,
+                                     taxa_level         = 'species',
+                                     targ_maxent_table  = REPTILES.MAXENT.RESULTS,
+                                     host_maxent_table  = MAXENT.RESULTS.HOSTS,
+                                     
+                                     threshold_path     = paste0(threshold_dir, 'reptiles_sdm_thresholds_combo.gpkg'),
+                                     target_path        = './output/reptile_maxent/back_sel_models/',
+                                     output_path        = './output/reptile_maxent/Habitat_suitability/FESM_SDM_intersect/',
+                                     intersect_name     = 'reptiles_sdm_intersect_fire_combo.gpkg',
+                                     
+                                     layer_list         = sdm_threshold_list,
+                                     main_int_layer     = Burnt_unburnt,
+                                     second_int_layer   = AUS_forest_RS_feat,
+                                     template_raster    = template_raster_250m,
+                                     poly_path          = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                                     epsg               = 3577)
 
 
 # For each taxa, we create a table of the area in square kilometers of suitable habitat that intersects with each burn 
