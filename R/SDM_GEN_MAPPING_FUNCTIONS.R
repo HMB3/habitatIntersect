@@ -557,6 +557,7 @@ habitat_threshold = function(taxa_list,
 #' @param country_shp     Character string - Shapefile name that has already been read into R (e.g. in the Package)
 #' @param buffer          Numeric          - Distance by which to buffer the points (metres using a projected system)
 #' @param raster_convert  Logical          - Convert to raster?
+#' @param save_shp        Logical          - Save as .shp? Geopackage is much better
 #' @param poly_path       Character string - file path to feature polygon layer
 #' @param int_cols        Character string - list of columns to keep from records * layer intersect
 #' @param epsg            Numeric - ERSP code of coord ref system to be translated into WKT format
@@ -569,6 +570,7 @@ taxa_records_habitat_features_intersect = function(analysis_df,
                                                    buffer,
                                                    raster_convert,
                                                    int_cols,
+                                                   save_shp,
                                                    epsg,
                                                    poly_path) {
   
@@ -642,12 +644,13 @@ taxa_records_habitat_features_intersect = function(analysis_df,
           
           ## Raster intersect :: doesn't work because the LUT is not working
           ## Get the cells from the raster at those points
+          if(save_shp) {
           st_write(taxa_VEG_intersects_clip %>% st_as_sf(), 
-                   paste0(output_path, save_name, '_VEG_intersection.shp'))
+                   paste0(output_path, save_name, '_VEG_intersection.shp'))}
           
           st_write(taxa_VEG_intersects_clip %>% st_as_sf(), 
                    
-                   dsn   = paste0(output_path, taxa_level, 'SDM_INVERT_TARG_TAXA_SEPARATED.gpkg'), 
+                   dsn   = paste0(output_path, taxa_level, '_SDM_INVERT_TARG_TAXA_SEPARATED.gpkg'), 
                    layer = paste0(taxa, '_VEG_intersection'), 
                    quiet = TRUE)
           

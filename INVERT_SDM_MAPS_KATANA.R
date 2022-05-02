@@ -265,13 +265,14 @@ raster::xres(FESM_AUS_20m);raster::xres(study_sdm_binary[[1]])
 
 ## Select the Vegetation pixels that intersect with the records of each invertebrate species
 taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
-                                        taxa_list      = rev(target.insect.spp),
+                                        taxa_list      = target.insect.spp,
                                         taxa_level     = 'species',
                                         habitat_poly   = AUS_forest_RS_feat,
                                         int_cols       = intersect_cols,
                                         output_path    = inv_inters_dir,
                                         buffer         = 5000,
                                         raster_convert = FALSE,
+                                        save_shp       = FALSE,
                                         poly_path      = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                         epsg           = 3577)
 
@@ -285,6 +286,7 @@ taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                         output_path    = inv_inters_dir,
                                         buffer         = 5000,
                                         raster_convert = FALSE,
+                                        save_shp       = FALSE,
                                         poly_path      = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                         epsg           = 3577)
 
@@ -321,7 +323,7 @@ taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
 
 ## Add Host Plants to the Maxent LUT 
 ## Read in the host plant species
-host_plants <- read_excel('./output/invert_maxent_raster_update/Habitat_suitability/NENSW_INVERTEBRATES_SPATIAL_DATA_LUT_SEP2021.xlsm',
+host_plants <- read_excel(paste0(inv_habitat_dir, '/NENSW_INVERTEBRATES_SPATIAL_DATA_LUT_SEP2021.xlsm'),
                           sheet = 'NENSW_INV_TAXA_ASSOCIATIONS') %>% filter(Target_taxon == "Yes") %>%
   dplyr::select(searchTaxon, Host_Plant_taxon)
 
