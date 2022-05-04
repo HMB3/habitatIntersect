@@ -49,13 +49,13 @@ check_dir            <- './data/ALA/Insects/check_plots/'
 out_dir              <- './output/'
 
 inv_rs_dir           <- './output/invert_maxent_raster_update/'
-inv_back_dir         <- './output/invert_maxent_raster_update/back_sel_models'
-inv_full_dir         <- './output/invert_maxent_raster_update/full_models'
+inv_back_dir         <- './output/invert_maxent_raster_update/back_sel_models/'
+inv_full_dir         <- './output/invert_maxent_raster_update/full_models/'
 inv_results_dir      <- './output/invert_maxent_raster_update/results/'
 
 plant_rs_dir         <- './output/plant_maxent_raster_update/'
-plant_back_dir       <- './output/plant_maxent_raster_update/back_sel_models'
-plant_full_dir       <- './output/plant_maxent_raster_update/full_models'
+plant_back_dir       <- './output/plant_maxent_raster_update/back_sel_models/'
+plant_full_dir       <- './output/plant_maxent_raster_update/full_models/'
 plant_results_dir    <- './output/plant_maxent_raster_update/results/'
 
 veg_dir              <- './data/Remote_sensing/Veg_data/Forest_cover/'
@@ -548,7 +548,7 @@ gc()
 
 
 ## Threshold the invertebrate SDM models to be either 0 or 1 
-habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTaxon))[25],
+habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTaxon)),
                   maxent_table  = INVERT.MAXENT.SPP.RESULTS,
                   maxent_path   = inv_back_dir,
                   output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),

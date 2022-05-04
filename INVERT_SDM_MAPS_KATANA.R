@@ -207,6 +207,7 @@ sdm_threshold_features <- list.files(path       = inv_thresh_dir,
 
 sdm_threshold_list        <- sdm_threshold_features %>% as.list() 
 names(sdm_threshold_list) <- sdm_threshold_features
+gc()
 
 
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
@@ -218,8 +219,7 @@ FESM_AUS_20m         <- raster('./data/Remote_sensing/FESM/NBR_Burn_severity_cla
 
 ## Read in feature layers for fire that have been repaired in ArcMap
 FESM_east_20m <- st_read('./data/Remote_sensing/FESM/Fire_perimeters_for_forests_and_woodlands_split.shp') %>% 
-  st_transform(., st_crs(3577)) %>% filter(!st_is_empty(.)) %>% 
-  as_Spatial() %>% repair_geometry() 
+  st_transform(., st_crs(3577)) %>% filter(!st_is_empty(.)) %>% repair_geometry()
 
 
 ## NIAFED data is much coarser and has more empty geometries
@@ -245,7 +245,7 @@ intersect_cols      <- c("searchTaxon", "species", "genus", "family", "SOURCE", 
 ## Check projections and resolutions
 projection(FESM_NSW_10m);projection(study_sdm_binary[[1]]);projection(SDM.SPAT.OCC.BG.GDA)
 raster::xres(FESM_AUS_20m);raster::xres(study_sdm_binary[[1]])
-
+gc()
 
 
 
@@ -276,6 +276,8 @@ taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                         poly_path      = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                         epsg           = 3577)
 
+gc()
+
 
 ## Select the Vegetation pixels that intersect with the records of each invertebrate genus 
 taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
@@ -289,6 +291,7 @@ taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                         save_shp       = FALSE,
                                         poly_path      = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                         epsg           = 3577)
+gc()
 
 
 ## Select the Vegetation pixels that intersect with the records of each invertebrate family
@@ -303,6 +306,8 @@ taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                         save_shp       = FALSE,
                                         poly_path      = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                         epsg           = 3577)
+
+gc()
 
 
 
@@ -360,10 +365,11 @@ calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.RES
                                      analysis_df        = SDM.SPAT.OCC.BG.GDA,
                                      taxa_level         = 'species',
                                      targ_maxent_table  = INVERT.RESULTS.HOSTS,
-                                     host_maxent_table  = MAXENT.RESULTS.HOSTS,
+                                     host_maxent_table  = PLANT.RESULTS.HOSTS,
                                      
                                      threshold_path     = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
-                                     intersect_path     = paste0(inv_inters_dir, 'SDM_INVERT_TARG_TAXA_SEPARATED.gpkg'),
+                                     intersect_path     = inv_inters_dir, #paste0(inv_inters_dir, 'SDM_INVERT_TARG_TAXA_SEPARATED.gpkg'),
+                                     intersect_patt     = 'VEG_intersection.gpkg',
                                      target_path        = inv_back_dir,
                                      output_path        = inv_fire_dir,
                                      intersect_name     = 'inverts_sdm_intersect_fire_combo.gpkg',
@@ -374,6 +380,8 @@ calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.RES
                                      template_raster    = template_raster_250m,
                                      poly_path          = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                      epsg               = 3577)
+
+gc()
 
 
 # For each taxa, we create a table of the area in square kilometers of suitable habitat that intersects with each burn 

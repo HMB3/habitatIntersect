@@ -606,7 +606,7 @@ taxa_records_habitat_features_intersect = function(analysis_df,
         message('Clip habitat layer to the SDM points for ', taxa)
         taxa_VEG_intersects_clip <- st_intersection(taxa_buffer, habitat_poly) %>% 
           dplyr::select(all_of(int_cols))
-          
+        
         
         gc()
         
@@ -619,35 +619,38 @@ taxa_records_habitat_features_intersect = function(analysis_df,
           ## Save intersection as a raster
           ## Set the ncol/nrow to match 100m resolutions
           if(raster_convert) {
-          
-          message('convert shapefile to raster for ', taxa)
-          extent   <- extent(taxa_VEG_intersects_clip)
-          x_length <- (extent[2] - extent[1])/100
-          x_length <- round(x_length)
-          y_length <- (extent[4] - extent[3])/100
-          y_length <- round(y_length)
-          
-          ## Set the values to 1 : any veg within xkm is considered decent habitat
-          r          <- raster(ncol = x_length, nrow = y_length)
-          extent(r)  <- extent
-          taxa_VEG_intersects_raster <- terra::rasterize(taxa_VEG_intersects_clip, r)
-          taxa_VEG_intersects_raster[taxa_VEG_intersects_raster > 0] <- 1
-          taxa_VEG_intersects_raster[taxa_VEG_intersects_raster < 0] <- 1
-          
-          gc()
-          
-          writeRaster(taxa_VEG_intersects_raster, 
-                      paste0(output_path, save_name, '_VEG_intersection_', buffer, 'm.tif'),
-                      overwrite = TRUE)
-          
+            
+            message('convert shapefile to raster for ', taxa)
+            extent   <- extent(taxa_VEG_intersects_clip)
+            x_length <- (extent[2] - extent[1])/100
+            x_length <- round(x_length)
+            y_length <- (extent[4] - extent[3])/100
+            y_length <- round(y_length)
+            
+            ## Set the values to 1 : any veg within xkm is considered decent habitat
+            r          <- raster(ncol = x_length, nrow = y_length)
+            extent(r)  <- extent
+            taxa_VEG_intersects_raster <- terra::rasterize(taxa_VEG_intersects_clip, r)
+            taxa_VEG_intersects_raster[taxa_VEG_intersects_raster > 0] <- 1
+            taxa_VEG_intersects_raster[taxa_VEG_intersects_raster < 0] <- 1
+            
+            gc()
+            
+            writeRaster(taxa_VEG_intersects_raster, 
+                        paste0(output_path, save_name, '_VEG_intersection_', buffer, 'm.tif'),
+                        overwrite = TRUE)
+            
           }
           
           ## Raster intersect :: doesn't work because the LUT is not working
           ## Get the cells from the raster at those points
           if(save_shp) {
+            
+            st_write(taxa_VEG_intersects_clip %>% st_as_sf(), 
+                     paste0(output_path, save_name, '_VEG_intersection.shp'))
+          }
+          
           st_write(taxa_VEG_intersects_clip %>% st_as_sf(), 
-                   paste0(output_path, save_name, '_VEG_intersection.shp'))}
-                    st_write(taxa_VEG_intersects_clip %>% st_as_sf(), 
                    
                    dsn   = paste0(output_path, save_name, '_SDM_VEG_intersection.gpkg'), 
                    layer = paste0(taxa, '_VEG_intersection'), 
@@ -1640,6 +1643,8 @@ calculate_taxa_habitat_host_features = function(taxa_list,
 #' @param targ_maxent_table  data frame - table of maxent results for target taxa
 #' @param target_path        Character string - The file path containing the existing maxent models
 #' @param threshold_path     Character string - The file path containing the thresh-holded layers
+#' @param intersect_path     Character string - The file path containing the intersected layers
+#' @param intersect_patt     Character string - The pattern for the intersected layers
 #' @param output_path        Character string - The file path containing the intersecting layers
 #' @param intersect_name     Character string - The file name for the output intersecting layers
 #' @param main_int_layer     Simple features polygon - The main layer to intersect with the habitat layer (e.g. fire)
@@ -1656,6 +1661,8 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
                                                 output_path,
                                                 intersect_name,
                                                 threshold_path,
+                                                intersect_path,
+                                                intersect_patt,
                                                 layer_list,
                                                 main_int_layer,
                                                 second_int_layer,
@@ -1709,6 +1716,8 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
         ## create sf attributes for each sdm polygon
         sdm_threshold_att <- sdm_threshold %>% st_cast(., "POLYGON") %>% 
           
+          ## I think this is wrong, it hasn't been burnt yet.
+          ## That is the intersect
           mutate(Habitat  = 1,
                  Taxa     = taxa,
                  Fire     = 'Burnt',
