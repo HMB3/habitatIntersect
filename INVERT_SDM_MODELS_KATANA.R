@@ -92,8 +92,10 @@ for(dir in dir_list) {
 
 
 ## Try and set the raster temp directory to a location not on the partition, to save space
-rasterOptions(tmpdir = tempdir)
-terraOptions(memfrac = 0.5, 
+rasterOptions(memfrac = 0.9,
+              tmpdir  = tempdir)
+
+terraOptions(memfrac = 0.9, 
              tempdir = tempdir) 
 
 
@@ -420,9 +422,9 @@ INVERT.MAXENT.GEN.RESULTS <- compile_sdm_results(taxa_list    = target.insect.ge
 
 
 INVERT.MAXENT.SPP.RESULTS <- compile_sdm_results(taxa_list    = target.insect.spp,
-                                                 results_dir  = back_dir,
-                                                 data_path    = habitat_dir,
-                                                 sdm_path     = back_dir,
+                                                 results_dir  = inv_back_dir,
+                                                 data_path    = inv_habitat_dir,
+                                                 sdm_path     = inv_back_dir,
                                                  save_data    = FALSE,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
