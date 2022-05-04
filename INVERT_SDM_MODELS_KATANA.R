@@ -41,36 +41,54 @@ ipak(sdmgen_packages)
 
 
 ## The functions expect these folders,
+main_dir             <- paste0(getwd(), "/")
 tempdir              <- './TEMP/'
-ALA_dir              <- './data/ALA/Insects/'
+ALA_dir              <- './data/ALA/'
+INV_dir              <- './data/ALA/Insects/'
 check_dir            <- './data/ALA/Insects/check_plots/'
-back_dir             <- './output/invert_maxent_raster_update/back_sel_models'
-full_dir             <- './output/invert_maxent_raster_update/full_models'
-results_dir          <- './output/invert_maxent_raster_update/results/'
-plants_dir           <- './output/plant_maxent_raster_update/results/'
+out_dir              <- './output/'
+
+inv_rs_dir           <- './output/invert_maxent_raster_update/'
+inv_back_dir         <- './output/invert_maxent_raster_update/back_sel_models'
+inv_full_dir         <- './output/invert_maxent_raster_update/full_models'
+inv_results_dir      <- './output/invert_maxent_raster_update/results/'
+
+plant_rs_dir         <- './output/plant_maxent_raster_update/'
+plant_back_dir       <- './output/plant_maxent_raster_update/back_sel_models'
+plant_full_dir       <- './output/plant_maxent_raster_update/full_models'
+plant_results_dir    <- './output/plant_maxent_raster_update/results/'
+
 veg_dir              <- './data/Remote_sensing/Veg_data/Forest_cover/'
-habitat_dir          <- './output/invert_maxent_raster_update/Habitat_suitability/'
-intersect_dir        <- './output/invert_maxent_raster_update/Habitat_suitability/SVTM_intersect/'
-threshold_dir        <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
-plants_threshold_dir <- './output/plant_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
-intersect_dir        <- './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
+inv_habitat_dir      <- './output/invert_maxent_raster_update/Habitat_suitability/'
+inv_inters_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_Veg_intersect/'
+inv_thresh_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
+inv_fire_dir         <- './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
+
+plant_habitat_dir    <- './output/plant_maxent_raster_update/Habitat_suitability/'
+plant_inters_dir     <- './output/plant_maxent_raster_update/Habitat_suitability/Veg_intersect/'
+plant_thresh_dir     <- './output/plant_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
+plant_fire_dir       <- './output/plant_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
 
 
-dir_lists   <- c(ALA_dir,  tempdir, check_dir,   back_dir,  habitat_dir, intersect_dir,
-                 full_dir, results_dir, habitat_dir, veg_dir,
-                 threshold_dir, intersect_dir)
+
+
+dir_list <- c(tempdir, ALA_dir, 
+              INV_dir, check_dir, out_dir, inv_rs_dir, inv_back_dir, inv_full_dir, inv_results_dir,
+              plant_rs_dir, plant_back_dir, plant_full_dir, plant_results_dir, veg_dir,
+              inv_habitat_dir, inv_inters_dir, inv_thresh_dir, inv_fire_dir,
+              plant_habitat_dir, plant_inters_dir, plant_thresh_dir, plant_fire_dir)
 
 
 ## Create the folders if they don't exist
-for(dir in dir_lists) {
-  if(!dir.exists(dir)) {
+for(dir in dir_list) {
+  
+  if(!dir.exists(paste0(main_dir, dir))) {
     message('Creating ', dir, ' directory')
-    dir.create(dir) 
+    dir.create(file.path(main_dir, dir), recursive = TRUE) 
+    
   } else {
     message(dir, ' directory already exists')}
 }
-
-
 
 
 ## Try and set the raster temp directory to a location not on the partition, to save space
@@ -234,37 +252,17 @@ data('target.host.plants')
 data('all.insect.plant.spp')
 
 
-## Full list of analysis taxa
-analysis_taxa <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
+## Full list of analysis taxa 
+analysis_taxa   <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
 
 
-## The functions expect these folders,
-tmpdir        <- './TEMP/'
-ALA_dir       <- './data/ALA/Insects/'
-check_dir     <- './data/ALA/Insects/check_plots/'
-back_dir      <- './output/invert_maxent_raster_update/back_sel_models'
-full_dir      <- './output/invert_maxent_raster_update/full_models'
-results_dir   <- './output/invert_maxent_raster_update/results/'
-plants_dir    <- './output/plant_maxent_raster_update/results/'
-habitat_dir   <- './output/invert_maxent_raster_update/Habitat_suitability/'
-threshold_dir <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
-plants_threshold_dir <- './output/plant_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
-intersect_dir <- './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
+host_plant_taxa <- read_excel(paste0(inv_habitat_dir, '/INVERTS_FIRE_SPATIAL_DATA_LUT_SEP2021.xlsm'),
+                          sheet = 'INV_TAXA_ASSOC') %>% 
+  filter(Target_taxon == "Yes") %>%
+  dplyr::select(searchTaxon, Host_Plant_taxon) %>% 
+  .$Host_Plant_taxon
 
-
-dir_lists   <- c(ALA_dir,  check_dir,   back_dir,  habitat_dir,
-                 full_dir, results_dir, habitat_dir,
-                 threshold_dir, intersect_dir)
-
-
-## Create the folders if they don't exist
-for(dir in dir_lists) {
-  if(!dir.exists(dir)) {
-    message('Creating ', dir, ' directory')
-    dir.create(dir) 
-  } else {
-    message(dir, ' directory already exists')}
-}
+ 
 
 
 ## Read in the SDM data
@@ -356,7 +354,7 @@ gc()
 target.host.plants %in% SDM.PLANT.SPAT.OCC.BG.GDA$searchTaxon %>% table()
 
 
-run_sdm_analysis_no_crop(taxa_list               = sort(target.host.plants),
+run_sdm_analysis_no_crop(taxa_list               = sort(host_plant_taxa),
                          taxa_level              = 'species',
                          maxent_dir              = 'output/plant_maxent_raster_update/full_models',     
                          bs_dir                  = 'output/plant_maxent_raster_update/back_sel_models',
@@ -430,7 +428,7 @@ INVERT.MAXENT.SPP.RESULTS <- compile_sdm_results(taxa_list    = target.insect.sp
 
 
 PLANT.MAXENT.RESULTS      <- compile_sdm_results(taxa_list    = target.host.plants,
-                                                 results_dir  = back_dir,
+                                                 results_dir  = plant_back_dir,
                                                  data_path    = "./output/plant_maxent_raster_update/Habitat_suitability/",
                                                  sdm_path     = "./output/plant_maxent_raster_update/back_sel_models/",
                                                  save_data    = FALSE,
@@ -448,6 +446,7 @@ nrow(INVERT.MAXENT.FAM.RESULTS)/length(target.insect.families) *100
 invert_map_taxa <- INVERT.MAXENT.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
 invert_map_spp  <- INVERT.MAXENT.SPP.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
 plant_map_taxa  <- PLANT.MAXENT.RESULTS$searchTaxon  %>% gsub(" ", "_", .,)
+host_map_taxa   <- host_plant_taxa %>% gsub(" ", "_", .,)
 
 
 # The projection function takes the maxent models created by the 'fit_maxent_targ_bg_back_sel' function, 
@@ -458,7 +457,7 @@ plant_map_taxa  <- PLANT.MAXENT.RESULTS$searchTaxon  %>% gsub(" ", "_", .,)
 
 ## Project SDMs across the Study area for the invert taxa
 tryCatch(
-  project_maxent_current_grids_mess(taxa_list       = invert_map_spp,    
+  project_maxent_current_grids_mess(taxa_list       = invert_map_spp[25],    
                                     maxent_path     = './output/invert_maxent_raster_update/back_sel_models/',
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
@@ -479,7 +478,7 @@ tryCatch(
 
 
 tryCatch(
-  project_maxent_current_grids_mess(taxa_list       = plant_map_taxa,    
+  project_maxent_current_grids_mess(taxa_list       = host_map_taxa,    
                                     maxent_path     = './output/plant_maxent_raster_update/back_sel_models/',
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
@@ -549,7 +548,7 @@ gc()
 
 
 ## Threshold the invertebrate SDM models to be either 0 or 1 
-habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTaxon)),
+habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTaxon))[25],
                   maxent_table  = INVERT.MAXENT.SPP.RESULTS,
                   maxent_path   = './output/invert_maxent_raster_update/back_sel_models/',
                   output_path   = paste0(threshold_dir, 'inverts_sdm_thresholds_combo.gpkg'),

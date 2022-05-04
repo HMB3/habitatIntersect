@@ -647,6 +647,11 @@ taxa_records_habitat_features_intersect = function(analysis_df,
           if(save_shp) {
           st_write(taxa_VEG_intersects_clip %>% st_as_sf(), 
                    paste0(output_path, save_name, '_VEG_intersection.shp'))}
+                    st_write(taxa_VEG_intersects_clip %>% st_as_sf(), 
+                   
+                   dsn   = paste0(output_path, save_name, '_SDM_VEG_intersection.gpkg'), 
+                   layer = paste0(taxa, '_VEG_intersection'), 
+                   quiet = TRUE)
           
           st_write(taxa_VEG_intersects_clip %>% st_as_sf(), 
                    
@@ -784,7 +789,9 @@ calculate_taxa_habitat_host_rasters = function(taxa_list,
           sdm_threshold    <- raster(current_thresh)
           
           ## Read the SVTM intersect file in
-          intersect_file <- list.files(intersect_path, pattern = raster_pattern, full.names = TRUE) %>% 
+          intersect_file <- list.files(intersect_path, 
+                                       pattern = int_patt, 
+                                       full.names = TRUE) %>% 
             .[grep(paste0(save_name, collapse = '|'), ., ignore.case = TRUE)]
           
           if(length(intersect_file) == 1) {
@@ -1684,7 +1691,7 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
                                save_name, save_name, "current_suit_not_novel_above_", target_thresh)
       
       current_thresh_ras <- raster(current_thresh)
-      occ <- readRDS(sprintf('%s%s/%s_occ.rds', target_path, save_name, save_name)) 
+      occ <- readRDS(sprintf('%s/%s/%s_occ.rds', target_path, save_name, save_name)) 
       
       ## If the threshold raster data doesn't exist :
       if(file.exists(current_thresh)) {
@@ -1696,7 +1703,8 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
         ## Get the taxa directory name
         layer_name    <- layer_list[grep(save_name, layer_list)][[1]]
         sdm_threshold <- st_read(dsn   = threshold_path, 
-                                 layer = layer_name) %>% filter(!st_is_empty(.)) %>% repair_geometry()
+                                 layer = layer_name) %>% 
+          filter(!st_is_empty(.)) %>% repair_geometry()
         
         ## create sf attributes for each sdm polygon
         sdm_threshold_att <- sdm_threshold %>% st_cast(., "POLYGON") %>% 

@@ -329,9 +329,20 @@ host_plants <- read_excel(paste0(inv_habitat_dir, '/INVERTS_FIRE_SPATIAL_DATA_LU
   dplyr::select(searchTaxon, Host_Plant_taxon)
 
 
-MAXENT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>% left_join(., host_plants, by = "searchTaxon") %>%
-  mutate(host_dir = gsub(' ', '_', Host_Plant_taxon)) %>%
-  mutate(host_dir = ifelse(!is.na(Host_Plant_taxon),  paste0(plant_back_dir, '/', host_dir, '/full/'), NA))
+PLANT.RESULTS.HOSTS <- PLANT.MAXENT.RESULTS %>% 
+  
+  rename(Host_Plant_taxon = "searchTaxon") %>% 
+  left_join(., host_plants, by = "Host_Plant_taxon") %>% 
+  dplyr::select(searchTaxon, Host_Plant_taxon, everything()) #%>% 
+  
+  # mutate(host_dir = gsub(' ', '_', Host_Plant_taxon)) %>%
+  # mutate(host_dir = ifelse(!is.na(Host_Plant_taxon),  paste0(plant_back_dir, '/', host_dir, '/full/'), NA))
+
+INVERT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>% 
+  
+  left_join(., host_plants, by = "searchTaxon") %>% 
+  mutate(host_dir = gsub(' ', '_', Host_Plant_taxon)) #%>% 
+  # mutate(host_dir = ifelse(!is.na(Host_Plant_taxon),  paste0(host_back_dir, host_dir, '/full/'), NA))
 
 
 # For each Invertebrate species, calculate the % of suitable habitat that was burnt by the
@@ -345,19 +356,20 @@ MAXENT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>% left_join(., host_plants, by =
 
 ## Calculate Insect habitat - fails after this species?
 ## Code is stalling before or after :: Naranjakotta - it should be the taxa either side of that...
-calculate_taxa_habitat_host_features(taxa_list          = sort(REPTILES.MAXENT.RESULTS$searchTaxon),
-                                     analysis_df        = SDM.SPAT.OCC.ALL.REPTILE.BG,
+calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.RESULTS$searchTaxon),
+                                     analysis_df        = SDM.SPAT.OCC.BG.GDA,
                                      taxa_level         = 'species',
-                                     targ_maxent_table  = REPTILES.MAXENT.RESULTS,
+                                     targ_maxent_table  = INVERT.RESULTS.HOSTS,
                                      host_maxent_table  = MAXENT.RESULTS.HOSTS,
                                      
-                                     threshold_path     = paste0(threshold_dir, 'reptiles_sdm_thresholds_combo.gpkg'),
-                                     target_path        = './output/reptile_maxent/back_sel_models/',
-                                     output_path        = './output/reptile_maxent/Habitat_suitability/FESM_SDM_intersect/',
-                                     intersect_name     = 'reptiles_sdm_intersect_fire_combo.gpkg',
+                                     threshold_path     = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
+                                     intersect_path     = paste0(inv_inters_dir, 'SDM_INVERT_TARG_TAXA_SEPARATED.gpkg'),
+                                     target_path        = inv_back_dir,
+                                     output_path        = inv_fire_dir,
+                                     intersect_name     = 'inverts_sdm_intersect_fire_combo.gpkg',
                                      
                                      layer_list         = sdm_threshold_list,
-                                     main_int_layer     = Burnt_unburnt,
+                                     main_int_layer     = FESM_east_20m,
                                      second_int_layer   = AUS_forest_RS_feat,
                                      template_raster    = template_raster_250m,
                                      poly_path          = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
