@@ -79,7 +79,7 @@ dir_list <- c(tempdir, ALA_dir,
               plant_habitat_dir, plant_inters_dir, plant_thresh_dir, plant_fire_dir)
 
 
-## Create the folders if they don't exist
+## Create the folders if they don't exist.
 for(dir in dir_list) {
   
   if(!dir.exists(paste0(main_dir, dir))) {
