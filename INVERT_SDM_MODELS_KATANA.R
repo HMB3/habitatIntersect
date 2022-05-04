@@ -566,15 +566,15 @@ habitat_threshold(taxa_list     = sort(unique(PLANT.MAXENT.RESULTS$searchTaxon))
 
 
 ## Now copy the thresh-holded SDM rasters to stand alone folder (i.e. all taxa in one folder)
-thresholded_sdms <- list.files(path       = inv_back_dir,
-                               pattern    = '_current_suit_not_novel_above_', 
-                               recursive  = TRUE,
-                               full.names = TRUE) %>% 
+inv_thresh_sdms <- list.files(path       = inv_back_dir,
+                              pattern    = '_current_suit_not_novel_above_', 
+                              recursive  = TRUE,
+                              full.names = TRUE) %>% 
   .[grep(".tif", .)] 
 
 
-file.copy(from      = thresholded_sdms, 
-          to        = threshold_dir, 
+file.copy(from      = inv_thresh_sdms, 
+          to        = inv_thresh_dir, 
           overwrite = TRUE, 
           recursive = TRUE, 
           copy.mode = TRUE)
