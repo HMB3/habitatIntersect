@@ -356,8 +356,8 @@ target.host.plants %in% SDM.PLANT.SPAT.OCC.BG.GDA$searchTaxon %>% table()
 
 run_sdm_analysis_no_crop(taxa_list               = sort(host_plant_taxa),
                          taxa_level              = 'species',
-                         maxent_dir              = 'output/plant_maxent_raster_update/full_models',     
-                         bs_dir                  = 'output/plant_maxent_raster_update/back_sel_models',
+                         maxent_dir              = plant_back_dir,     
+                         bs_dir                  = plant_back_dir,
                          sdm_df                  = SDM.PLANT.SPAT.OCC.BG.GDA,
                          sdm_predictors          = names(aus.climate.veg.grids.250m),
                          
@@ -443,10 +443,10 @@ nrow(INVERT.MAXENT.FAM.RESULTS)/length(target.insect.families) *100
 
 ## Get map_taxa from the maxent results table above, change the species column,
 ## then create a list of logistic thresholds
-invert_map_taxa <- INVERT.MAXENT.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
+invert_map_taxa <- INVERT.MAXENT.RESULTS$searchTaxon     %>% gsub(" ", "_", .,)
 invert_map_spp  <- INVERT.MAXENT.SPP.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
-plant_map_taxa  <- PLANT.MAXENT.RESULTS$searchTaxon  %>% gsub(" ", "_", .,)
-host_map_taxa   <- host_plant_taxa %>% gsub(" ", "_", .,)
+plant_map_taxa  <- PLANT.MAXENT.RESULTS$searchTaxon      %>% gsub(" ", "_", .,)
+host_map_taxa   <- host_plant_taxa                       %>% gsub(" ", "_", .,)
 
 
 # The projection function takes the maxent models created by the 'fit_maxent_targ_bg_back_sel' function, 
@@ -458,7 +458,7 @@ host_map_taxa   <- host_plant_taxa %>% gsub(" ", "_", .,)
 ## Project SDMs across the Study area for the invert taxa
 tryCatch(
   project_maxent_current_grids_mess(taxa_list       = invert_map_spp[25],    
-                                    maxent_path     = './output/invert_maxent_raster_update/back_sel_models/',
+                                    maxent_path     = inv_back_dir,
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
                                     save_novel_poly = TRUE,
@@ -470,8 +470,8 @@ tryCatch(
   error = function(cond) {
     
     ## This will write the error message inside the text file, but it won't include the species
-    file.create(file.path("output/invert_maxent_raster_update/back_sel_models/mapping_failed_current.txt"))
-    cat(cond$message, file = file.path("output/invert_maxent_raster_update/back_sel_models/inv_mapping_failed_current.txt"))
+    file.create(file.path(inv_back_dir, "mapping_failed_current.txt"))
+    cat(cond$message, file = file.path(inv_back_dir, "inv_mapping_failed_current.txt"))
     warning(cond$message)
     
   })
@@ -479,11 +479,11 @@ tryCatch(
 
 tryCatch(
   project_maxent_current_grids_mess(taxa_list       = host_map_taxa,    
-                                    maxent_path     = './output/plant_maxent_raster_update/back_sel_models/',
+                                    maxent_path     = plant_back_dir,
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
                                     save_novel_poly = TRUE,
-                                    output_path     = paste0(plants_threshold_dir, 'plants_sdm_novel_combo.gpkg'),
+                                    output_path     = paste0(plant_thresh_dir, 'plants_sdm_novel_combo.gpkg'),
                                     poly_path       = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                     epsg            = 3577),
   
@@ -501,11 +501,11 @@ tryCatch(
 
 tryCatch(
   project_maxent_current_grids_mess(taxa_list       = invert_map_taxa,    
-                                    maxent_path     = './output/invert_maxent_raster_update/back_sel_models/',
+                                    maxent_path     = inv_back_dir,
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
                                     save_novel_poly = TRUE,
-                                    output_path     = paste0(threshold_dir, 'inverts_sdm_novel_combo.gpkg'),
+                                    output_path     = paste0(inv_thresh_dir, 'inverts_sdm_novel_combo.gpkg'),
                                     poly_path       = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                     epsg            = 3577),
   
