@@ -254,46 +254,44 @@ data('target.host.plants')
 data('all.insect.plant.spp')
 
 
-## Full list of analysis taxa 
+## Full list of analysis taxa, 
 analysis_taxa   <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
 
 
 host_plant_taxa <- read_excel(paste0(inv_habitat_dir, '/INVERTS_FIRE_SPATIAL_DATA_LUT_SEP2021.xlsm'),
-                          sheet = 'INV_TAXA_ASSOC') %>% 
+                              sheet = 'INV_TAXA_ASSOC') %>% 
   filter(Target_taxon == "Yes") %>%
   dplyr::select(searchTaxon, Host_Plant_taxon) %>% 
   .$Host_Plant_taxon
 
- 
-
 
 ## Read in the SDM data
-SDM.SPAT.OCC.BG.GDA       <- readRDS(paste0(results_dir, 'SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds'))
-SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS(paste0(plants_dir,  'SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds'))
+SDM.SPAT.OCC.BG.GDA       <- readRDS(paste0(inv_results_dir,     'SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds'))
+SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS(paste0(plant_results_dir,  'SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds'))
 
 
 ## Run family-level models for invertebrates
 #run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.families),
-                         #taxa_level              = 'family',
-                         #maxent_dir              = full_dir,     
-                         #bs_dir                  = back_dir,
-                         #sdm_df                  = SDM.SPAT.OCC.BG.GDA,
-                         #sdm_predictors          = names(aus.climate.veg.grids.250m),
-                         #
-                         #backwards_sel           = TRUE,      
-                         #template_raster         = template_raster_250m,
-                         #cor_thr                 = 0.8,  
-                         #pct_thr                 = 5, 
-                         #k_thr                   = 4, 
-                         #min_n                   = 10,  
-                         #max_bg_size             = 100000,
-                         #background_buffer_width = 100000,
-                         #shapefiles              = TRUE,
-                         #features                = 'lpq',
-                         #replicates              = 5,
-                         #responsecurves          = TRUE,
-                         #poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
-                         #epsg                    = 3577)
+#taxa_level              = 'family',
+#maxent_dir              = full_dir,     
+#bs_dir                  = back_dir,
+#sdm_df                  = SDM.SPAT.OCC.BG.GDA,
+#sdm_predictors          = names(aus.climate.veg.grids.250m),
+#
+#backwards_sel           = TRUE,      
+#template_raster         = template_raster_250m,
+#cor_thr                 = 0.8,  
+#pct_thr                 = 5, 
+#k_thr                   = 4, 
+#min_n                   = 10,  
+#max_bg_size             = 100000,
+#background_buffer_width = 100000,
+#shapefiles              = TRUE,
+#features                = 'lpq',
+#replicates              = 5,
+#responsecurves          = TRUE,
+#poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+#epsg                    = 3577)
 
 
 gc()
@@ -301,26 +299,26 @@ gc()
 
 ## Run genus-level models for invertebrates
 #run_sdm_analysis_no_crop(taxa_list               = rev(sort(target.insect.genera)),
-                         #taxa_level              = 'genus',
-                         #maxent_dir              = full_dir,     
-                         #bs_dir                  = back_dir,
-                         #sdm_df                  = SDM.SPAT.OCC.BG.GDA,
-                         #sdm_predictors          = names(aus.climate.veg.grids.250m),
-                         #
-                         #backwards_sel           = TRUE,      
-                         #template_raster         = template_raster_250m,
-                         #cor_thr                 = 0.8,  
-                         #pct_thr                 = 5, 
-                         #k_thr                   = 4, 
-                         #min_n                   = 10,  
-                         #max_bg_size             = 100000,
-                         #background_buffer_width = 100000,
-                         #shapefiles              = TRUE,
-                         #features                = 'lpq',
-                         #replicates              = 5,
-                         #responsecurves          = TRUE,
-                         #poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
-                         #epsg                    = 3577)
+#taxa_level              = 'genus',
+#maxent_dir              = full_dir,     
+#bs_dir                  = back_dir,
+#sdm_df                  = SDM.SPAT.OCC.BG.GDA,
+#sdm_predictors          = names(aus.climate.veg.grids.250m),
+#
+#backwards_sel           = TRUE,      
+#template_raster         = template_raster_250m,
+#cor_thr                 = 0.8,  
+#pct_thr                 = 5, 
+#k_thr                   = 4, 
+#min_n                   = 10,  
+#max_bg_size             = 100000,
+#background_buffer_width = 100000,
+#shapefiles              = TRUE,
+#features                = 'lpq',
+#replicates              = 5,
+#responsecurves          = TRUE,
+#poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+#epsg                    = 3577)
 
 
 gc()
@@ -556,7 +554,7 @@ habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTa
                   output_path   = paste0(threshold_dir, 'inverts_sdm_thresholds_combo.gpkg'),
                   poly_path     = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                   epsg          = 3577)
-                  
+
 
 ## Threshold the invertebrate SDM models to be either 0 or 1
 habitat_threshold(taxa_list     = sort(unique(PLANT.MAXENT.RESULTS$searchTaxon)),
