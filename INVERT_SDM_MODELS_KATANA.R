@@ -350,7 +350,7 @@ run_sdm_analysis_no_crop(taxa_list               = target.insect.spp,
 gc()
 
 
-## Run species-level models for host plants - how many plants are in the dataset
+## Run species-level models for host plants - how many plants are in the dataset.
 target.host.plants %in% SDM.PLANT.SPAT.OCC.BG.GDA$searchTaxon %>% table()
 
 
