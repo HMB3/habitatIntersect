@@ -539,8 +539,8 @@ tryCatch(
 ## Threshold the invertebrate SDM models to be either 0 or 1
 habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)),
                   maxent_table  = INVERT.MAXENT.RESULTS,
-                  maxent_path   = './output/invert_maxent_raster_update/back_sel_models/',
-                  output_path   = paste0(threshold_dir, 'inverts_sdm_thresholds_combo.gpkg'),
+                  maxent_path   = inv_back_dir,
+                  output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
                   poly_path     = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                   epsg          = 3577)
 
@@ -550,8 +550,8 @@ gc()
 ## Threshold the invertebrate SDM models to be either 0 or 1 
 habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTaxon))[25],
                   maxent_table  = INVERT.MAXENT.SPP.RESULTS,
-                  maxent_path   = './output/invert_maxent_raster_update/back_sel_models/',
-                  output_path   = paste0(threshold_dir, 'inverts_sdm_thresholds_combo.gpkg'),
+                  maxent_path   = inv_back_dir,
+                  output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
                   poly_path     = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                   epsg          = 3577)
 
@@ -559,14 +559,14 @@ habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTa
 ## Threshold the invertebrate SDM models to be either 0 or 1
 habitat_threshold(taxa_list     = sort(unique(PLANT.MAXENT.RESULTS$searchTaxon)),
                   maxent_table  = PLANT.MAXENT.RESULTS,
-                  maxent_path   = './output/invert_maxent_raster_update/back_sel_models/',
-                  output_path   = paste0(threshold_dir, 'inverts_sdm_thresholds_combo.gpkg'),
+                  maxent_path   = inv_back_dir,
+                  output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
                   poly_path     = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                   epsg          = 3577)
 
 
 ## Now copy the thresh-holded SDM rasters to stand alone folder (i.e. all taxa in one folder)
-thresholded_sdms <- list.files(path       = './output/invert_maxent_raster_update/back_sel_models/',
+thresholded_sdms <- list.files(path       = inv_back_dir,
                                pattern    = '_current_suit_not_novel_above_', 
                                recursive  = TRUE,
                                full.names = TRUE) %>% 
