@@ -327,8 +327,8 @@ gc()
 ## Run species-level models for invertebrates
 run_sdm_analysis_no_crop(taxa_list               = target.insect.spp,
                          taxa_level              = 'species',
-                         maxent_dir              = full_dir,     
-                         bs_dir                  = back_dir,
+                         maxent_dir              = inv_back_dir,     
+                         bs_dir                  = inv_back_dir,
                          sdm_df                  = SDM.SPAT.OCC.BG.GDA,
                          sdm_predictors          = names(aus.climate.veg.grids.250m),
                          
@@ -429,8 +429,8 @@ INVERT.MAXENT.SPP.RESULTS <- compile_sdm_results(taxa_list    = target.insect.sp
 
 PLANT.MAXENT.RESULTS      <- compile_sdm_results(taxa_list    = target.host.plants,
                                                  results_dir  = plant_back_dir,
-                                                 data_path    = "./output/plant_maxent_raster_update/Habitat_suitability/",
-                                                 sdm_path     = "./output/plant_maxent_raster_update/back_sel_models/",
+                                                 data_path    = plant_habitat_dir,
+                                                 sdm_path     = plant_back_dir,
                                                  save_data    = FALSE,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
