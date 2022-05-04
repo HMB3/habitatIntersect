@@ -44,18 +44,18 @@ check_dir            <- './data/ALA/Insects/check_plots/'
 out_dir              <- './output/'
 
 inv_rs_dir           <- './output/invert_maxent_raster_update/'
-inv_back_dir         <- './output/invert_maxent_raster_update/back_sel_models'
-inv_full_dir         <- './output/invert_maxent_raster_update/full_models'
+inv_back_dir         <- './output/invert_maxent_raster_update/back_sel_models/'
+inv_full_dir         <- './output/invert_maxent_raster_update/full_models/'
 inv_results_dir      <- './output/invert_maxent_raster_update/results/'
 
 plant_rs_dir         <- './output/plant_maxent_raster_update/'
-plant_back_dir       <- './output/plant_maxent_raster_update/back_sel_models'
-plant_full_dir       <- './output/plant_maxent_raster_update/full_models'
+plant_back_dir       <- './output/plant_maxent_raster_update/back_sel_models/'
+plant_full_dir       <- './output/plant_maxent_raster_update/full_models/'
 plant_results_dir    <- './output/plant_maxent_raster_update/results/'
 
 reptile_rs_dir         <- './output/reptile_maxent_raster_update/'
-reptile_back_dir       <- './output/reptile_maxent_raster_update/back_sel_models'
-reptile_full_dir       <- './output/reptile_maxent_raster_update/full_models'
+reptile_back_dir       <- './output/reptile_maxent_raster_update/back_sel_models/'
+reptile_full_dir       <- './output/reptile_maxent_raster_update/full_models/'
 reptile_results_dir    <- './output/reptile_maxent_raster_update/results/'
 
 
