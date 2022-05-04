@@ -396,25 +396,25 @@ run_sdm_analysis_no_crop(taxa_list               = sort(host_plant_taxa),
 ## Create a table of maxent results
 ## This function aggregates the results for models that ran successfully
 INVERT.MAXENT.RESULTS     <- compile_sdm_results(taxa_list    = analysis_taxa,
-                                                 results_dir  = back_dir,
-                                                 data_path    = habitat_dir,
-                                                 sdm_path     = back_dir,
+                                                 results_dir  = inv_back_dir,
+                                                 data_path    = inv_habitat_dir,
+                                                 sdm_path     = inv_back_dir,
                                                  save_data    = FALSE,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
 
 INVERT.MAXENT.FAM.RESULTS <- compile_sdm_results(taxa_list    = target.insect.families,
-                                                 results_dir  = back_dir,
-                                                 data_path    = habitat_dir,
-                                                 sdm_path     = back_dir,
+                                                 results_dir  = inv_back_dir,
+                                                 data_path    = inv_habitat_dir,
+                                                 sdm_path     = inv_back_dir,
                                                  save_data    = FALSE,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
 
 INVERT.MAXENT.GEN.RESULTS <- compile_sdm_results(taxa_list    = target.insect.genera,
-                                                 results_dir  = back_dir,
-                                                 data_path    = habitat_dir,
-                                                 sdm_path     = back_dir,
+                                                 results_dir  = inv_back_dir,
+                                                 data_path    = inv_habitat_dir,
+                                                 sdm_path     = inv_back_dir,
                                                  save_data    = FALSE,
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
