@@ -220,7 +220,7 @@ FESM_AUS_20m         <- raster('./data/Remote_sensing/FESM/NBR_Burn_severity_cla
 ## Read in feature layers for fire that have been repaired in ArcMap
 FESM_east_20m <- st_read('./data/Remote_sensing/FESM/Fire_perimeters_for_forests_and_woodlands_split.shp') %>% 
   st_transform(., st_crs(3577)) %>% filter(!st_is_empty(.)) %>% 
-  repair_geometry() %>% st_buffer(., 0)
+  repair_geometry() %>% st_buffer(., 0) %>% st_as_sf()
 
 
 ## NIAFED data is much coarser and has more empty geometries

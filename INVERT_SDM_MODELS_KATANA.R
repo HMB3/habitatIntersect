@@ -266,59 +266,59 @@ host_plant_taxa <- read_excel(paste0(inv_habitat_dir, '/INVERTS_FIRE_SPATIAL_DAT
 
 
 ## Read in the SDM data
-SDM.SPAT.OCC.BG.GDA       <- readRDS(paste0(inv_results_dir,     'SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds'))
+SDM.SPAT.OCC.BG.GDA       <- readRDS(paste0(inv_results_dir,    'SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds'))
 SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS(paste0(plant_results_dir,  'SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds'))
 
 
 ## Run family-level models for invertebrates
-#run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.families),
-#taxa_level              = 'family',
-#maxent_dir              = full_dir,     
-#bs_dir                  = back_dir,
-#sdm_df                  = SDM.SPAT.OCC.BG.GDA,
-#sdm_predictors          = names(aus.climate.veg.grids.250m),
-#
-#backwards_sel           = TRUE,      
-#template_raster         = template_raster_250m,
-#cor_thr                 = 0.8,  
-#pct_thr                 = 5, 
-#k_thr                   = 4, 
-#min_n                   = 10,  
-#max_bg_size             = 100000,
-#background_buffer_width = 100000,
-#shapefiles              = TRUE,
-#features                = 'lpq',
-#replicates              = 5,
-#responsecurves          = TRUE,
-#poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
-#epsg                    = 3577)
+run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.families),
+                         taxa_level              = 'family',
+                         maxent_dir              = full_dir,
+                         bs_dir                  = back_dir,
+                         sdm_df                  = SDM.SPAT.OCC.BG.GDA,
+                         sdm_predictors          = names(aus.climate.veg.grids.250m),
+                         
+                         backwards_sel           = TRUE,
+                         template_raster         = template_raster_250m,
+                         cor_thr                 = 0.8,
+                         pct_thr                 = 5,
+                         k_thr                   = 4,
+                         min_n                   = 10,
+                         max_bg_size             = 100000,
+                         background_buffer_width = 100000,
+                         shapefiles              = TRUE,
+                         features                = 'lpq',
+                         replicates              = 5,
+                         responsecurves          = TRUE,
+                         poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                         epsg                    = 3577)
 
 
 gc()
 
 
 ## Run genus-level models for invertebrates
-#run_sdm_analysis_no_crop(taxa_list               = rev(sort(target.insect.genera)),
-#taxa_level              = 'genus',
-#maxent_dir              = full_dir,     
-#bs_dir                  = back_dir,
-#sdm_df                  = SDM.SPAT.OCC.BG.GDA,
-#sdm_predictors          = names(aus.climate.veg.grids.250m),
-#
-#backwards_sel           = TRUE,      
-#template_raster         = template_raster_250m,
-#cor_thr                 = 0.8,  
-#pct_thr                 = 5, 
-#k_thr                   = 4, 
-#min_n                   = 10,  
-#max_bg_size             = 100000,
-#background_buffer_width = 100000,
-#shapefiles              = TRUE,
-#features                = 'lpq',
-#replicates              = 5,
-#responsecurves          = TRUE,
-#poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
-#epsg                    = 3577)
+run_sdm_analysis_no_crop(taxa_list               = rev(sort(target.insect.genera)),
+                         taxa_level              = 'genus',
+                         maxent_dir              = full_dir,
+                         bs_dir                  = back_dir,
+                         sdm_df                  = SDM.SPAT.OCC.BG.GDA,
+                         sdm_predictors          = names(aus.climate.veg.grids.250m),
+                         
+                         backwards_sel           = TRUE,
+                         template_raster         = template_raster_250m,
+                         cor_thr                 = 0.8,
+                         pct_thr                 = 5,
+                         k_thr                   = 4,
+                         min_n                   = 10,
+                         max_bg_size             = 100000,
+                         background_buffer_width = 100000,
+                         shapefiles              = TRUE,
+                         features                = 'lpq',
+                         replicates              = 5,
+                         responsecurves          = TRUE,
+                         poly_path               = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                         epsg                    = 3577)
 
 
 gc()
@@ -457,7 +457,7 @@ host_map_taxa   <- host_plant_taxa                       %>% gsub(" ", "_", .,)
 
 ## Project SDMs across the Study area for the invert taxa
 tryCatch(
-  project_maxent_current_grids_mess(taxa_list       = invert_map_spp[25],    
+  project_maxent_current_grids_mess(taxa_list       = invert_map_spp,    
                                     maxent_path     = inv_back_dir,
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
@@ -491,8 +491,8 @@ tryCatch(
   error = function(cond) {
     
     ## This will write the error message inside the text file, but it won't include the species
-    file.create(file.path("output/invert_maxent_raster_update/back_sel_models/mapping_failed_current.txt"))
-    cat(cond$message, file = file.path("output/invert_maxent_raster_update/back_sel_models/inv_mapping_failed_current.txt"))
+    file.create(file.path(inv_back_dir, "mapping_failed_current.txt"))
+    cat(cond$message, file = file.path(inv_back_dir, "inv_mapping_failed_current.txt"))
     warning(cond$message)
     
   })
@@ -513,8 +513,8 @@ tryCatch(
   error = function(cond) {
     
     ## This will write the error message inside the text file, but it won't include the species
-    file.create(file.path("output/invert_maxent_raster_update/back_sel_models/mapping_failed_current.txt"))
-    cat(cond$message, file = file.path("output/invert_maxent_raster_update/back_sel_models/inv_mapping_failed_current.txt"))
+    file.create(file.path(inv_back_dir, "mapping_failed_current.txt"))
+    cat(cond$message, file = file.path(inv_back_dir, "inv_mapping_failed_current.txt"))
     warning(cond$message)
     
   })

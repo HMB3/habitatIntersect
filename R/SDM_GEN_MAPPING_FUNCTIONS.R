@@ -1720,7 +1720,6 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
           ## That is the intersect
           mutate(Habitat  = 1,
                  Taxa     = taxa,
-                 Fire     = 'Burnt',
                  Area_km2 = st_area(geom)/million_metres,
                  Area_km2 = drop_units(Area_km2))
         
