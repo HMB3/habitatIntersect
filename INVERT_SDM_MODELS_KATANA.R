@@ -462,7 +462,7 @@ tryCatch(
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
                                     save_novel_poly = TRUE,
-                                    output_path     = paste0(threshold_dir, 'inverts_sdm_novel_combo.gpkg'),
+                                    output_path     = paste0(inv_thresh_dir, 'inverts_sdm_novel_combo.gpkg'),
                                     poly_path       = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                     epsg            = 3577),
   

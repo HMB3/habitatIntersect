@@ -219,7 +219,8 @@ FESM_AUS_20m         <- raster('./data/Remote_sensing/FESM/NBR_Burn_severity_cla
 
 ## Read in feature layers for fire that have been repaired in ArcMap
 FESM_east_20m <- st_read('./data/Remote_sensing/FESM/Fire_perimeters_for_forests_and_woodlands_split.shp') %>% 
-  st_transform(., st_crs(3577)) %>% filter(!st_is_empty(.)) %>% repair_geometry()
+  st_transform(., st_crs(3577)) %>% filter(!st_is_empty(.)) %>% 
+  repair_geometry() %>% st_buffer(., 0)
 
 
 ## NIAFED data is much coarser and has more empty geometries
@@ -227,14 +228,14 @@ Burnt_unburnt <-
   
   st_read('./data/Remote_sensing/NIAFED/NIAFED_combo_east_Alb.shp') %>%
   st_transform(., st_crs(3577)) %>% 
-  filter(!st_is_empty(.)) 
+  filter(!st_is_empty(.)) %>% st_buffer(., 0)
 
 
 ## Read in the SDM data, to intersect with the Veg layers
 # SVTM_Veg_Class_GDA          = readRDS('./data/Remote_sensing/aligned_rasters/SVTM_Veg_Class_GDA.rds')
-AUS_forest_RS_ras           <- raster(paste0(veg_dir, 'alpsbk_aust_y2009_sf1a2_forest.tif'))
-AUS_forest_RS_feat          <- st_read(paste0(veg_dir, 'Aus_forest_cover_east_coast_classes_split.shp')) %>% 
-  st_transform(., st_crs(3577))
+AUS_forest_RS_ras           = raster(paste0(veg_dir,  'alpsbk_aust_y2009_sf1a2_forest.tif'))
+AUS_forest_RS_feat          = st_read(paste0(veg_dir, 'Aus_forest_cover_east_coast_classes_split.shp')) %>% 
+  st_transform(., st_crs(3577)) %>% st_buffer(., 0)
 
 
 ## Read in the reptile points

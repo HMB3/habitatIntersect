@@ -1731,9 +1731,8 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
         ## Then do the Cell stats ::
         ## estimated x % of each taxon's habitat in each fire intensity category 
         message('Intersecting SDM with Fire layers for ', taxa)
-        sdm_threshold_sub  <- st_subdivide(sdm_threshold)  %>% st_buffer(., 0)
-        main_int_layer_sub <- st_subdivide(main_int_layer) %>% st_buffer(., 0) 
-        sdm_fire_int       <- st_intersection(sdm_threshold_sub, main_int_layer_sub) %>% 
+        sdm_threshold_sub    <- st_subdivide(sdm_threshold)    %>% st_buffer(., 0)
+        sdm_fire_int         <- st_intersection(sdm_threshold_sub, main_int_layer) %>% 
           
           ## Calculate the area again
           mutate(Area_km2 = st_area(geom)/million_metres,
@@ -1754,7 +1753,6 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
         sdm_fire_int_area_m2  <- st_area(sdm_fire_int)/million_metres
         sdm_fire_int_area_km2 <- drop_units(sdm_fire_int_area_m2) 
         percent_burnt         <- sdm_fire_int_area_km2/sdm_area_km2 * 100 %>% round(.)
-        
         gc()
         
         ## calc % burnt within forest
