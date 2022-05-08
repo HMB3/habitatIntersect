@@ -848,7 +848,7 @@ calculate_taxa_habitat_host_rasters = function(taxa_list,
             
             gc()
             
-            ## Save the % burnt layers
+            ## Save the % burnt layers..
             write.csv(sdm_fire_crosstab, paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.csv'), row.names = FALSE)
             
             ## Now write the rasters

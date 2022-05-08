@@ -6,7 +6,7 @@
 
 
 
-#' @title Run SDM analyses for 'species with data' format, with biogeographic cropping.
+#' @title Run SDM analyses for 'species with data' format, with bio-geographic cropping.
 #' 
 #' @description This function takes a data frame of all taxa records,
 #' and runs a specialised maxent analysis for each taxa.
@@ -1076,7 +1076,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
       
     }
     
-    ## Also save the background and occurrence points as .rds files
+    ## Also save the background and occurrence points as .rds files.
     saveRDS(bg.samp,  file.path(outdir_sp, paste0(save_name, '_bg.rds')))
     saveRDS(occ,      file.path(outdir_sp, paste0(save_name, '_occ.rds')))
     
