@@ -270,11 +270,11 @@ SDM.SPAT.OCC.BG.GDA       <- readRDS(paste0(inv_results_dir,    'SDM_SPAT_OCC_BG
 SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS(paste0(plant_results_dir,  'SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds'))
 
 
-## Run family-level models for invertebrates
+## Run family-level models for invertebrates.
 run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.families),
                          taxa_level              = 'family',
-                         maxent_dir              = full_dir,
-                         bs_dir                  = back_dir,
+                         maxent_dir              = inv_back_dir,
+                         bs_dir                  = inv_back_dir,
                          sdm_df                  = SDM.SPAT.OCC.BG.GDA,
                          sdm_predictors          = names(aus.climate.veg.grids.250m),
                          
@@ -297,11 +297,11 @@ run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.families),
 gc()
 
 
-## Run genus-level models for invertebrates
+## Run genus-level models for invertebrates.
 run_sdm_analysis_no_crop(taxa_list               = rev(sort(target.insect.genera)),
                          taxa_level              = 'genus',
-                         maxent_dir              = full_dir,
-                         bs_dir                  = back_dir,
+                         maxent_dir              = inv_back_dir,
+                         bs_dir                  = inv_back_dir,
                          sdm_df                  = SDM.SPAT.OCC.BG.GDA,
                          sdm_predictors          = names(aus.climate.veg.grids.250m),
                          

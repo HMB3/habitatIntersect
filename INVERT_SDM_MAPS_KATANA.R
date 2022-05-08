@@ -218,24 +218,13 @@ FESM_AUS_20m         <- raster('./data/Remote_sensing/FESM/NBR_Burn_severity_cla
 
 
 ## Read in feature layers for fire that have been repaired in ArcMap
-FESM_east_20m <- st_read('./data/Remote_sensing/FESM/Fire_perimeters_for_forests_and_woodlands_split.shp') %>% 
-  st_transform(., st_crs(3577)) %>% filter(!st_is_empty(.)) %>% 
-  repair_geometry() %>% st_buffer(., 0) %>% st_as_sf()
-
-
-## NIAFED data is much coarser and has more empty geometries
-Burnt_unburnt <- 
-  
-  st_read('./data/Remote_sensing/NIAFED/NIAFED_combo_east_Alb.shp') %>%
-  st_transform(., st_crs(3577)) %>% 
-  filter(!st_is_empty(.)) %>% st_buffer(., 0)
+FESM_east_20m_binary <- readRDS('./data/Remote_sensing/FESM/Fire_perimeters_for_forests_and_woodlands_split.rds') %>% st_as_sf()
+FESM_east_20m_categ  <- readRDS('./data/Remote_sensing/FESM/NBR_Burn_severity_classes.rds') %>% st_as_sf()
 
 
 ## Read in the SDM data, to intersect with the Veg layers
-# SVTM_Veg_Class_GDA          = readRDS('./data/Remote_sensing/aligned_rasters/SVTM_Veg_Class_GDA.rds')
-AUS_forest_RS_ras           = raster(paste0(veg_dir,  'alpsbk_aust_y2009_sf1a2_forest.tif'))
-AUS_forest_RS_feat          = st_read(paste0(veg_dir, 'Aus_forest_cover_east_coast_classes_split.shp')) %>% 
-  st_transform(., st_crs(3577)) %>% st_buffer(., 0)
+AUS_forest_RS_ras   <- raster(paste0(veg_dir,  'alpsbk_aust_y2009_sf1a2_forest.tif'))
+AUS_forest_RS_feat  <- readRDS(paste0(veg_dir, 'Aus_forest_cover_east_coast_classes_split.rds')) %>% st_as_sf()
 
 
 ## Read in the reptile points
@@ -363,20 +352,20 @@ INVERT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>%
 ## Calculate Insect habitat - fails after this species?
 ## Code is stalling before or after :: Naranjakotta - it should be the taxa either side of that...
 calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.RESULTS$searchTaxon),
-                                     analysis_df        = SDM.SPAT.OCC.BG.GDA,
                                      taxa_level         = 'species',
                                      targ_maxent_table  = INVERT.RESULTS.HOSTS,
                                      host_maxent_table  = PLANT.RESULTS.HOSTS,
                                      
                                      threshold_path     = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
-                                     intersect_path     = inv_inters_dir, #paste0(inv_inters_dir, 'SDM_INVERT_TARG_TAXA_SEPARATED.gpkg'),
+                                     intersect_path     = inv_inters_dir,
                                      intersect_patt     = 'VEG_intersection.gpkg',
                                      target_path        = inv_back_dir,
                                      output_path        = inv_fire_dir,
                                      intersect_name     = 'inverts_sdm_intersect_fire_combo.gpkg',
                                      
                                      layer_list         = sdm_threshold_list,
-                                     main_int_layer     = FESM_east_20m,
+                                     main_int_layer     = FESM_east_20m_binary,
+                                     main_int_cat       = FESM_east_20m_categ,
                                      second_int_layer   = AUS_forest_RS_feat,
                                      template_raster    = template_raster_250m,
                                      poly_path          = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',

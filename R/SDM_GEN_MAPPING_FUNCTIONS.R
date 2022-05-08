@@ -1804,21 +1804,21 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
                  Percent_burnt     = percent_burnt)
         
         ## Create a tibble of vegetation areas for each taxon
-        sdm_fire_forest_areas <- data.frame(matrix(NA, ncol = 6, nrow = 7))
+        sdm_fire_forest_areas <- data.frame(matrix(NA, ncol = 4, nrow = 7))
         colnames(sdm_fire_forest_areas) <- c('Taxa', 
                                              'Vegetation', 
-                                             'Habitat_Total', 
+                                             # 'Habitat_Total', 
                                              'Habitat_Veg',  
-                                             'Percent_Habitat_burnt', 
+                                             #'Percent_Habitat_burnt', 
                                              'Percent_Habitat_Veg_burnt')
         
         sdm_fire_forest_areas <- sdm_fire_forest_areas %>% 
           
           mutate(Taxa                      = taxa,
                  Vegetation                = unique(sdm_fire_forest_int$Vegetation),
-                 Habitat_Total             = sdm_area_km2,
+                 # Habitat_Total             = sdm_area_km2,
                  Habitat_Veg               = sdm_forest_int$Area_km2,
-                 Percent_Habitat_burnt     = percent_burnt_forest_overall,
+                 # Percent_Habitat_burnt     = percent_burnt_forest_overall,
                  Percent_Habitat_Veg_burnt = percent_burnt_forest_class)
         
         ## Save the % burnt layers

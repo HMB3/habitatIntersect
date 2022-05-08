@@ -66,11 +66,11 @@ run_sdm_analysis_crop = function(taxa_list,
   lapply(taxa_list, function(taxa){
     
     ## Skip the taxa if the directory already exists, before the loop
-    outdir <- maxent_dir
+    # outdir <- maxent_dir
     
     ## Could also check the folder size, so folders with no contents aren't skipped eg
     ## && sum(file.info(dir_name)$size) < 1000 (EG 1MB)
-    dir_name = file.path(outdir, gsub(' ', '_', taxa))
+    dir_name = file.path(maxent_dir, gsub(' ', '_', taxa))
     
     if(!dir.exists(dir_name)) {
       message('Maxent not yet run for ', taxa, ' - running')
@@ -215,15 +215,15 @@ run_sdm_analysis_no_crop = function(taxa_list,
     st_transform(., st_crs(epsg))
   
   ## Loop over all the taxa
-  ## taxa <- taxa_list[1]
+  ## taxa <- taxa_list[2]
   lapply(taxa_list, function(taxa){
     
     ## Skip the taxa if the directory already exists, before the loop
-    outdir <- maxent_dir
+    # outdir <- maxent_dir
     
     ## Could also check the folder size, so folders with no contents aren't skipped eg
     ## && sum(file.info(dir_name)$size) < 1000 (EG 1MB)
-    dir_name = file.path(outdir, gsub(' ', '_', taxa))
+    dir_name = file.path(maxent_dir, gsub(' ', '_', taxa))
     
     if(!dir.exists(dir_name)) {
       message('Maxent not yet run for ', taxa, ' - running')
@@ -968,10 +968,11 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
                                                 responsecurves,
                                                 poly) {
   
-  ## First, stop if the outdir file exists,
-  if(!file.exists(outdir)) stop('outdir does not exist :(', call. = FALSE)
+  ## First, stop if the outdir file exists :
   outdir_sp <- file.path(outdir, gsub(' ', '_', taxa))
   bsdir_sp  <- file.path(bsdir,  gsub(' ', '_', taxa))
+  
+  if(!file.exists(bsdir_sp)) stop('outdir does not exist :(', call. = FALSE)
   
   ## If the file doesn't exist, split out the features
   if(!file.exists(outdir_sp)) dir.create(outdir_sp)
