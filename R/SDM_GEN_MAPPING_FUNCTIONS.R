@@ -473,14 +473,6 @@ habitat_threshold = function(taxa_list,
             
             message('Converting ', taxa, ' raster to repaired polygon')
             
-            # current_thresh_poly <- sf::as_Spatial(sf::st_as_sf(stars::st_as_stars(current_suit_rast), 
-            #                                                    as_points = FALSE, 
-            #                                                    merge     = TRUE,
-            #                                                    fill      = FALSE, 
-            #                                                    group     = FALSE,
-            #                                                    agr       = FALSE))
-            # gc()
-            
             current_thresh_poly      <- terra::as.polygons(current_suit_rast) 
             current_thresh_poly_dat  <- terra::subset(current_thresh_poly, current_thresh_poly$layer == 1)
             current_thresh_poly_geom <- current_thresh_poly_dat %>% st_as_sf() %>% repair_geometry()
@@ -558,6 +550,7 @@ habitat_threshold = function(taxa_list,
 #' @param buffer          Numeric          - Distance by which to buffer the points (metres using a projected system)
 #' @param raster_convert  Logical          - Convert to raster?
 #' @param save_shp        Logical          - Save as .shp? Geopackage is much better.
+#' @param save_png        Logical          - Save as .png?
 #' @param poly_path       Character string - file path to feature polygon layer
 #' @param int_cols        Character string - list of columns to keep from records * layer intersect
 #' @param epsg            Numeric - ERSP code of coord ref system to be translated into WKT format
@@ -571,6 +564,7 @@ taxa_records_habitat_features_intersect = function(analysis_df,
                                                    raster_convert,
                                                    int_cols,
                                                    save_shp,
+                                                   save_png,
                                                    epsg,
                                                    poly_path) {
   
@@ -587,7 +581,7 @@ taxa_records_habitat_features_intersect = function(analysis_df,
     if(taxa %in%  unique(analysis_df$searchTaxon)) {
       
       save_name  <- gsub(' ', '_', taxa)
-      veg_inter  <- paste0(output_path, save_name, "_VEG_intersection.png")
+      veg_inter  <- paste0(output_path, save_name, '_SDM_VEG_intersection.gpkg')
       
       if(!file.exists(veg_inter)) {
         
@@ -650,20 +644,17 @@ taxa_records_habitat_features_intersect = function(analysis_df,
                      paste0(output_path, save_name, '_VEG_intersection.shp'))
           }
           
+          message('Writing SDM + Veg intersect for ', taxa)
           st_write(taxa_VEG_intersects_clip %>% st_as_sf(), 
                    
-                   dsn   = paste0(output_path, save_name, '_SDM_VEG_intersection.gpkg'), 
-                   layer = paste0(taxa, '_VEG_intersection'), 
-                   quiet = TRUE)
-          
-          st_write(taxa_VEG_intersects_clip %>% st_as_sf(), 
-                   
-                   dsn   = paste0(output_path, taxa_level, '_SDM_INVERT_TARG_TAXA_SEPARATED.gpkg'), 
-                   layer = paste0(taxa, '_VEG_intersection'), 
-                   quiet = TRUE)
+                   dsn    = paste0(output_path, save_name, '_SDM_VEG_intersection.gpkg'), 
+                   layer  = paste0(taxa, '_VEG_intersection'), 
+                   quiet  = TRUE, 
+                   append = FALSE)
           
           ## Save the taxa * habitat intersection as a raster
           message('writing threshold png for ', taxa)
+          if(save_png){
           png(paste0(output_path, save_name, "_VEG_intersection.png"),
               16, 10, units = 'in', res = 500)
           
@@ -673,7 +664,7 @@ taxa_records_habitat_features_intersect = function(analysis_df,
           
           # plot(taxa_df, add = TRUE, col = "red",   lwd = 1)
           plot(poly, add = TRUE)
-          dev.off()
+          dev.off()}
           
           ## Save in two places, in the taxa folder, 
           ## and in the habitat suitability folder
@@ -684,7 +675,7 @@ taxa_records_habitat_features_intersect = function(analysis_df,
         }
         
       } else {
-        message('Habitat intersect already done for ', taxa, ' skip')
+        message('Habitat-Veg intersect already done for ', taxa, ' skip')
       }
       
     } else {
@@ -1816,9 +1807,7 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
           
           mutate(Taxa                      = taxa,
                  Vegetation                = unique(sdm_fire_forest_int$Vegetation),
-                 # Habitat_Total             = sdm_area_km2,
                  Habitat_Veg               = sdm_forest_int$Area_km2,
-                 # Percent_Habitat_burnt     = percent_burnt_forest_overall,
                  Percent_Habitat_Veg_burnt = percent_burnt_forest_class)
         
         ## Save the % burnt layers
@@ -1829,17 +1818,6 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
         ## Now save the thresh-holded rasters as shapefiles
         message('Saving SDM Fire intersect polygons for ', taxa)
         save_intersect <- paste0(output_path, intersect_name)
-        
-        st_write(sdm_fire_int, 
-                 
-                 dsn    = save_intersect, 
-                 layer  = paste0(save_name, 
-                                 '_sdm_intersect_fire'),
-                 
-                 quiet  = TRUE,
-                 append = FALSE)
-        
-        gc()
         
         st_write(sdm_fire_int_att, 
                  
@@ -1852,33 +1830,11 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
         
         gc()
         
-        st_write(sdm_fire_forest_int, 
-                 
-                 dsn    = save_intersect, 
-                 layer  = paste0(save_name, 
-                                 '_sdm_intersect_fire_forest'),
-                 
-                 quiet  = TRUE,
-                 append = FALSE)
-        
-        gc()
-        
         st_write(sdm_fire_forest_int_att, 
                  
                  dsn    = save_intersect, 
                  layer  = paste0(save_name, 
                                  '_sdm_intersect_fire_forest_subset'),
-                 
-                 quiet  = TRUE,
-                 append = FALSE)
-        
-        gc()
-        
-        st_write(sdm_forest_int, 
-                 
-                 dsn    = save_intersect, 
-                 layer  = paste0(save_name, 
-                                 '_sdm_intersect_forest'),
                  
                  quiet  = TRUE,
                  append = FALSE)
