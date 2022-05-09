@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_MAXENT_FUNCTIONS.R
 \name{run_sdm_analysis_crop}
 \alias{run_sdm_analysis_crop}
-\title{Run SDM analyses for 'species with data' format, with biogeographic cropping.}
+\title{Run SDM analyses for 'species with data' format, with bio-geographic cropping.}
 \usage{
 run_sdm_analysis_crop(
   taxa_list,

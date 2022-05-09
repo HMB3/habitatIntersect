@@ -2,7 +2,7 @@
 % Please edit documentation in R/SDM_GEN_MAXENT_FUNCTIONS.R
 \name{fit_maxent_targ_bg_back_sel_no_crop}
 \alias{fit_maxent_targ_bg_back_sel_no_crop}
-\title{Maxent Backwards selection for 'species with data' format, without cropping.}
+\title{Maxent Backwards selection for 'species with data' format, without biogeographic cropping.}
 \usage{
 fit_maxent_targ_bg_back_sel_no_crop(
   occ,

@@ -13,6 +13,8 @@ calculate_taxa_habitat_fire_features(
   output_path,
   intersect_name,
   threshold_path,
+  intersect_path,
+  intersect_patt,
   layer_list,
   main_int_layer,
   second_int_layer,
@@ -37,6 +39,10 @@ calculate_taxa_habitat_fire_features(
 \item{intersect_name}{Character string - The file name for the output intersecting layers}
 
 \item{threshold_path}{Character string - The file path containing the thresh-holded layers}
+
+\item{intersect_path}{Character string - The file path containing the intersected layers}
+
+\item{intersect_patt}{Character string - The pattern for the intersected layers}
 
 \item{layer_list}{Character string - list of feature layers to look up}
 
