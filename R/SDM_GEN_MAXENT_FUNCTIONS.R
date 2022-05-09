@@ -968,7 +968,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
                                                 responsecurves,
                                                 poly) {
   
-  ## First, stop if the outdir file exists :
+  ## First, stop if the outdir file exists:
   outdir_sp <- file.path(outdir, gsub(' ', '_', taxa))
   bsdir_sp  <- file.path(bsdir,  gsub(' ', '_', taxa))
   

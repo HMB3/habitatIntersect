@@ -433,7 +433,7 @@ ALA.LAND.SPP <- combine_ala_records(taxa_list         = target.insect.spp,
 
 ## Take a data dump from the ALA of all the reptiles, 
 ## and format it to the columns names we want for the niche analyses
-Insects_ALA         <- readRDS('./data/ALA/Insects/INVERTS_2022_0303.rds')
+Insects_ALA       <- readRDS('./data/ALA/Insects/INVERTS_2022_0303.rds')
 
 
 ALA.LAND.INV.SPP  <- format_ala_dump(ALA_table         = Insects_ALA,
@@ -508,7 +508,7 @@ COMBO.RASTER.GEN = combine_records_extract(ala_df           = ALA.LAND.GEN,
                                            data_path        = "./output/results/")
 
 
-COMBO.RASTER.SPP = combine_records_extract(ala_df           = ALA.LAND.BACKG.SPP,
+COMBO.RASTER.SPP = combine_records_extract(ala_df           = ALA.LAND.INV.SPP,
                                            add_sites        = TRUE,
                                            filter_taxo      = FALSE,
                                            
