@@ -1066,11 +1066,25 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
       
       suppressWarnings({
         
-        message(taxa, ' writing occ and bg shapefiles')
-        writeOGR(SpatialPolygonsDataFrame(buffer, data.frame(ID = seq_len(length(buffer)))),
-                 outdir_sp, paste0(save_name, '_bg_buffer'),       'ESRI Shapefile', overwrite_layer = TRUE)
-        writeOGR(bg.samp,   outdir_sp, paste0(save_name, '_bg'),   'ESRI Shapefile', overwrite_layer = TRUE)
-        writeOGR(occ,       outdir_sp, paste0(save_name, '_occ'),  'ESRI Shapefile', overwrite_layer = TRUE)
+        message(taxa, ' writing occ and bg geopackages')
+        
+        st_write(buffer %>% st_as_sf(), 
+                 dsn    = paste0(outdir_sp, '/', save_name, '_maxent_points.gpkg'), 
+                 layer  = paste0(save_name, '_buffer'), 
+                 quiet  = TRUE, 
+                 append = FALSE)
+        
+        st_write(bg.samp %>% st_as_sf(),   
+                 dsn    = paste0(outdir_sp, '/', save_name, '_maxent_points.gpkg'), 
+                 layer  = paste0(save_name, '_samples'), 
+                 quiet  = TRUE, 
+                 append = FALSE)
+        
+        st_write(occ %>% st_as_sf(),       
+                 dsn    = paste0(outdir_sp, '/', save_name, '_maxent_points.gpkg'), 
+                 layer  = paste0(save_name, '_occurrence'), 
+                 quiet  = TRUE, 
+                 append = FALSE)
         
       })
       
