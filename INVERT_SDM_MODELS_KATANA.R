@@ -350,9 +350,6 @@ run_sdm_analysis_no_crop(taxa_list               = target.insect.spp,
 gc()
 
 
-## Run species-level models for host plants - how many plants are in the dataset.
-target.host.plants %in% SDM.PLANT.SPAT.OCC.BG.GDA$searchTaxon %>% table()
-
 
 run_sdm_analysis_no_crop(taxa_list               = sort(host_plant_taxa),
                          taxa_level              = 'species',
@@ -427,7 +424,7 @@ INVERT.MAXENT.SPP.RESULTS <- compile_sdm_results(taxa_list    = target.insect.sp
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
 
-PLANT.MAXENT.RESULTS      <- compile_sdm_results(taxa_list    = target.host.plants,
+PLANT.MAXENT.RESULTS      <- compile_sdm_results(taxa_list    = host_plant_taxa,
                                                  results_dir  = plant_back_dir,
                                                  data_path    = plant_habitat_dir,
                                                  sdm_path     = plant_back_dir,
@@ -478,6 +475,7 @@ tryCatch(
 
 
 tryCatch(
+  
   project_maxent_current_grids_mess(taxa_list       = host_map_taxa,    
                                     maxent_path     = plant_back_dir,
                                     current_grids   = east.climate.veg.grids.250m,         
@@ -566,14 +564,28 @@ habitat_threshold(taxa_list     = sort(unique(PLANT.MAXENT.RESULTS$searchTaxon))
 
 
 ## Now copy the thresh-holded SDM rasters to stand alone folder (i.e. all taxa in one folder)
-inv_thresh_sdms <- list.files(path       = inv_back_dir,
-                              pattern    = '_current_suit_not_novel_above_', 
-                              recursive  = TRUE,
-                              full.names = TRUE) %>% 
-  .[grep(".tif", .)] 
+inv_thresh_sdms_ras <- list.files(path       = inv_back_dir,
+                                  pattern    = '_current_suit_not_novel_above_', 
+                                  recursive  = TRUE,
+                                  full.names = TRUE) %>% 
+  .[grep(".tif", .)]
 
 
-file.copy(from      = inv_thresh_sdms, 
+inv_thresh_sdms_feat <- list.files(path       = inv_back_dir,
+                                   pattern    = '_current_suit_not_novel_above_', 
+                                   recursive  = TRUE,
+                                   full.names = TRUE) %>% 
+  .[grep(".gpkg", .)] 
+
+
+file.copy(from      = inv_thresh_sdms_ras, 
+          to        = inv_thresh_dir, 
+          overwrite = TRUE, 
+          recursive = TRUE, 
+          copy.mode = TRUE)
+
+
+file.copy(from      = inv_thresh_sdms_feat, 
           to        = inv_thresh_dir, 
           overwrite = TRUE, 
           recursive = TRUE, 
@@ -581,6 +593,7 @@ file.copy(from      = inv_thresh_sdms,
 
 
 message('sdm code successfuly run')
+
 
 
 

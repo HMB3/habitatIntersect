@@ -372,6 +372,12 @@ names(aus.veg.grids.250m)      <- names(east.veg.grids.250m) <- c("Plant_cover_f
 ## Combine the grids into raster stacks
 aus.climate.veg.grids.250m   <- stack(aus.grids.current.250m, aus.veg.grids.250m)
 east.climate.veg.grids.250m  <- stack(east.grids.current.250m, east.veg.grids.250m)
+
+
+## Now remove the individual rasters
+rm(list = ls(pattern = 'aus_'))
+rm(list = ls(pattern = 'east_'))
+
 aus_annual_precip            <- raster('./data/Bushfire_indices/R_outputs/250m/AUS/Extra/Annual_precip_WGS84.tif')
 aus_annual_precip_alb        <- raster('./data/Bushfire_indices/R_outputs/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
 
@@ -380,10 +386,6 @@ aus_annual_precip_alb        <- raster('./data/Bushfire_indices/R_outputs/250m/A
 aus_annual_precip_alb[aus_annual_precip_alb > 0] <- 1
 template_raster_250m <- aus_annual_precip_alb
 
-
-## Now remove the individual rasters
-rm(list = ls(pattern = 'aus_'))
-rm(list = ls(pattern = 'east_'))
 gc()
 
 ```
@@ -433,19 +435,27 @@ ALA.LAND.SPP <- combine_ala_records(taxa_list         = target.insect.spp,
 
 ## Take a data dump from the ALA of all the reptiles, 
 ## and format it to the columns names we want for the niche analyses
-Insects_ALA       <- readRDS('./data/ALA/Insects/INVERTS_2022_0303.rds')
+Insects_ALA <- readRDS('./data/ALA/Insects/INVERTS_2022_0303.rds')
 
 
-ALA.LAND.INV.SPP  <- format_ala_dump(ALA_table         = Insects_ALA,
-                                     record_type       = "ALA",
-                                     keep_cols         = ALA_keep,
-                                     world_raster      = aus_annual_precip) 
+ALA.LAND.INV.SPP   <- format_ala_dump(ALA_table         = Insects_ALA,
+                                      record_type       = "ALA",
+                                      keep_cols         = ALA_keep,
+                                      world_raster      = aus_annual_precip)
 
 
-ALA.LAND.BACKG.SPP  <- format_ala_dump(ALA_table         = Insects_ALA,
-                                       record_type       = "ALA",
-                                       keep_cols         = ALA_keep,
-                                       world_raster      = aus_annual_precip) %>%
+ALA.LAND.INV.GENUS <- ALA.LAND.INV.SPP %>% dplyr::select(-searchTaxon) %>% 
+  dplyr::rename(searchTaxon = genus)   %>% dplyr::select(searchTaxon, everything())
+
+
+ALA.LAND.INV.FAM   <- ALA.LAND.INV.SPP %>% dplyr::select(-searchTaxon) %>% 
+  dplyr::rename(searchTaxon = family)  %>% dplyr::s4elect(searchTaxon, everything())
+
+
+ALA.LAND.BACKG.SPP <- format_ala_dump(ALA_table         = Insects_ALA,
+                                      record_type       = "ALA",
+                                      keep_cols         = ALA_keep,
+                                      world_raster      = aus_annual_precip) %>%
   
   ## Remove the species which have unreliable ALA records,
   .[!.$searchTaxon %in% analysis_taxa, ] %>%
@@ -465,11 +475,16 @@ Next we combine occurrence files from ALA and GBIF into one table, and extracts 
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
+
+## The below shold really all be one big table
+## Where we use different columns for the analysis :: species, genus or family
+
+
 ## Update with the full insects download from ALA ----
 ## Combine GBIF and ALA data, and extract environmental values
 ## Some of the site records will be removed here, if they are outside the raster bounds.
 ## This seems strange, but maybe they are right on the coast
-COMBO.RASTER.FAM = combine_records_extract(ala_df           = ALA.LAND.FAM,
+COMBO.RASTER.FAM = combine_records_extract(ala_df           = ALA.LAND.INV.FAM,
                                            add_sites        = TRUE,
                                            filter_taxo      = FALSE,
                                            
@@ -488,7 +503,7 @@ COMBO.RASTER.FAM = combine_records_extract(ala_df           = ALA.LAND.FAM,
                                            data_path        = "./output/results/")
 
 
-COMBO.RASTER.GEN = combine_records_extract(ala_df           = ALA.LAND.GEN,
+COMBO.RASTER.GEN = combine_records_extract(ala_df           = ALA.LAND.INV.GENUS,
                                            add_sites        = TRUE,
                                            filter_taxo      = FALSE,
                                            

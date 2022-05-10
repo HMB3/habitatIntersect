@@ -187,27 +187,29 @@ nrow(INVERT.MAXENT.FAM.RESULTS)/length(target.insect.families) *100
 
 ## Get map_taxa from the maxent results table above, change the species column,
 ## then create a list of logistic thresholds
-invert_map_taxa <- INVERT.MAXENT.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
+invert_map_taxa <- INVERT.MAXENT.RESULTS$searchTaxon     %>% gsub(" ", "_", .,)
 invert_map_spp  <- INVERT.MAXENT.SPP.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
-plant_map_taxa  <- PLANT.MAXENT.RESULTS$searchTaxon  %>% gsub(" ", "_", .,)
+plant_map_taxa  <- PLANT.MAXENT.RESULTS$searchTaxon      %>% gsub(" ", "_", .,)
 
 
 ## SDM output, re-sampled to 100m
-study_sdm_binary <- stack(
-  list.files(inv_thresh_dir,
-             'current_suit_not_novel_above', full.names = TRUE))
-
-
-sdm_threshold_features <- list.files(path       = inv_thresh_dir,
-                                     pattern    = '_current_suit_not_novel_above_', 
-                                     recursive  = FALSE,
-                                     full.names = FALSE) %>% 
-  
-  .[grep(".tif", .)] %>% gsub('.tif', '', .)
-
-sdm_threshold_list        <- sdm_threshold_features %>% as.list() 
-names(sdm_threshold_list) <- sdm_threshold_features
-gc()
+# study_sdm_binary <- stack(
+#   list.files(inv_thresh_dir,
+#              'current_suit_not_novel_above', full.names = TRUE)) %>%
+#   
+#   .[grep(".gpkg", .)] %>% gsub('.gpkg', '', .)
+# 
+# 
+# sdm_threshold_features <- list.files(path       = inv_thresh_dir,
+#                                      pattern    = '_current_suit_not_novel_above_',
+#                                      recursive  = FALSE,
+#                                      full.names = FALSE) %>%
+# 
+#   .[grep(".tif", .)] %>% gsub('.tif', '', .)
+# 
+# sdm_threshold_list        <- sdm_threshold_features %>% as.list()
+# names(sdm_threshold_list) <- sdm_threshold_features
+# gc()
 
 
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
@@ -233,9 +235,10 @@ intersect_cols      <- c("searchTaxon", "species", "genus", "family", "SOURCE", 
 
 
 ## Check projections and resolutions
-projection(FESM_NSW_10m);projection(study_sdm_binary[[1]]);projection(SDM.SPAT.OCC.BG.GDA)
-raster::xres(FESM_AUS_20m);raster::xres(study_sdm_binary[[1]])
+projection(FESM_NSW_10m);projection(SDM.SPAT.OCC.BG.GDA)
+raster::xres(FESM_AUS_20m)
 gc()
+
 
 
 
@@ -255,7 +258,7 @@ gc()
 
 ## Select the Vegetation pixels that intersect with the records of each invertebrate species
 taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
-                                        taxa_list      = target.insect.spp,
+                                        taxa_list      = rev(target.insect.spp),
                                         taxa_level     = 'species',
                                         habitat_poly   = AUS_forest_RS_feat,
                                         int_cols       = intersect_cols,
@@ -263,6 +266,7 @@ taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                         buffer         = 5000,
                                         raster_convert = FALSE,
                                         save_shp       = FALSE,
+                                        save_png       = FALSE,
                                         poly_path      = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                         epsg           = 3577)
 
@@ -279,8 +283,10 @@ taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                         buffer         = 5000,
                                         raster_convert = FALSE,
                                         save_shp       = FALSE,
+                                        save_png       = FALSE,
                                         poly_path      = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                         epsg           = 3577)
+
 gc()
 
 
@@ -358,12 +364,15 @@ calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.RES
                                      
                                      threshold_path     = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
                                      intersect_path     = inv_inters_dir,
-                                     intersect_patt     = 'VEG_intersection.gpkg',
+                                     intersect_patt     = '_SDM_VEG_intersection.gpkg',
+                                     int_cols           = intersect_cols,
                                      target_path        = inv_back_dir,
                                      output_path        = inv_fire_dir,
-                                     intersect_name     = 'inverts_sdm_intersect_fire_combo.gpkg',
+                                     intersect_name     = 'sdm_intersect_fire_combo.gpkg',
+                                     intersect_cols     = intersect_cols,
+                                     intersect_category = FALSE,
                                      
-                                     layer_list         = sdm_threshold_list,
+                                     # layer_list         = sdm_threshold_list,
                                      main_int_layer     = FESM_east_20m_binary,
                                      main_int_cat       = FESM_east_20m_categ,
                                      second_int_layer   = AUS_forest_RS_feat,

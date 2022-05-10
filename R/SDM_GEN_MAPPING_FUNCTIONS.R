@@ -123,7 +123,7 @@ project_maxent_current_grids_mess = function(taxa_list,
               ## Create a map of novel environments for current conditions.
               ## This similarity function only uses variables (e.g. n bioclim), not features
               message('Run similarity function for current condtions for ', taxa)
-              mess_current  <- similarity(current_grids, swd, full = TRUE)
+              mess_current  <- rmaxent::similarity(current_grids, swd, full = TRUE)
               novel_current <- mess_current$similarity_min < 0    ## All novel environments are < 0
               novel_current[novel_current==0]              <- NA  ## 0 values are NA
               
@@ -229,16 +229,7 @@ project_maxent_current_grids_mess = function(taxa_list,
                          
                          quiet  = TRUE,
                          append = FALSE)
-                
-                st_write(current_thresh_poly %>% st_as_sf(), 
-                         
-                         dsn    = output_path, 
-                         layer  = paste0(save_name, 
-                                         '_current_novel_above'),
-                         
-                         quiet  = TRUE,
-                         append = FALSE)
-                
+              
                 gc()
                 
               } else {
