@@ -220,7 +220,6 @@ project_maxent_current_grids_mess = function(taxa_list,
                 gc()
                 
                 ## Now save the novel areas as shapefiles
-                ## There is a problem with accessing the files at the same time
                 message('Saving current MESS maps to polygons for ', taxa)
                 st_write(current_thresh_poly %>% st_as_sf(),
                          
