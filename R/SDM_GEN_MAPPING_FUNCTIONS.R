@@ -1163,7 +1163,6 @@ calculate_taxa_habitat_host_rasters = function(taxa_list,
 #' @param targ_maxent_table  data frame - table of maxent results for target taxa
 #' @param host_maxent_table  data frame - table of maxent results for host taxa
 #' @param target_path        Character string - The file path containing the existing maxent models
-#' @param threshold_path     Character string - The file path containing the existing maxent models
 #' @param output_path        Character string - The file path to save the function output
 #' @param intersect_path     Character string - The file path containing the intersecting rasters
 #' @param intersect_patt     Character string - The pattern for the intersect files
@@ -1181,7 +1180,6 @@ calculate_taxa_habitat_host_features = function(taxa_list,
                                                 targ_maxent_table,
                                                 host_maxent_table,
                                                 target_path,
-                                                threshold_path,
                                                 output_path,
                                                 intersect_path,
                                                 intersect_patt,
@@ -1190,6 +1188,7 @@ calculate_taxa_habitat_host_features = function(taxa_list,
                                                 main_int_layer,
                                                 main_int_category,
                                                 second_int_layer,
+                                                template_raster, 
                                                 poly_path,
                                                 epsg) {
   
