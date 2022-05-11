@@ -110,108 +110,32 @@ terraOptions(memfrac = 0.9,
 # Load raster data at 280m resolution.
 # 
 # \
+aus.climate.veg.grids.250m <- raster::stack(
+  list.files('./data/CSIRO_layers/250m/AUS/',      pattern =".tif", full.names = TRUE))
+
+east.climate.veg.grids.250m  <- raster::stack(
+  list.files('./data/CSIRO_layers/250m/FESM_EXT/', pattern =".tif", full.names = TRUE))
 
 
+names(aus.climate.veg.grids.250m)[1:11] <- names(east.climate.veg.grids.250m)[1:11]  <- c("Tree_canopy_peak_foliage_total",
+                                                                                          "Plant_cover_fraction_0_5m", 
+                                                                                          "Plant_cover_fraction_5_10m",  
+                                                                                          "Plant_cover_fraction_10_30m",      
+                                                                                          "Plant_cover_fraction_30m",
+                                                                                          "Total_Plant_cover_fraction",  
+                                                                                          "Tree_canopy_height_25th", 
+                                                                                          "Tree_canopy_height_50th", 
+                                                                                          "Tree_canopy_height_75th",   
+                                                                                          "Tree_canopy_height_95th",   
+                                                                                          "Tree_canopy_peak_foliage")
 
-## 250m Precip layers
-aus_precip_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Precip',        pattern =".tif", full.names = TRUE))
+identical(names(east.climate.veg.grids.250m),
+          names(aus.climate.veg.grids.250m))
 
-east_precip_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Precip', pattern =".tif", full.names = TRUE))
-
-
-## 250m temperature layers
-aus_temp_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Temp',          pattern =".tif", full.names = TRUE))
-
-east_temp_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Temp',   pattern =".tif", full.names = TRUE))
-
-
-## 250m Soil layers
-aus_soil_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Soil',          pattern =".tif", full.names = TRUE))
-
-east_soil_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Soil',   pattern =".tif", full.names = TRUE))
-
-
-## 250m Geology Australia
-aus_geology_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Geology',        pattern =".tif", full.names = TRUE))
-
-east_geology_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Geology', pattern =".tif", full.names = TRUE))
-
-
-## 250m topo Australia
-aus_topo_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Topo',           pattern =".tif", full.names = TRUE))
-
-east_topo_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Topo',    pattern =".tif", full.names = TRUE))
-
-
-## 250m terrain indices Australia
-aus_terrain_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Indices',        pattern =".tif", full.names = TRUE))
-
-east_terrain_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Indices', pattern =".tif", full.names = TRUE))
-
-
-## Climate data for Australia, in GDA Albers projection
-aus.grids.current.250m <- stack(aus_precip_250m,
-                                aus_temp_250m,
-                                aus_soil_250m,
-                                aus_topo_250m,
-                                aus_terrain_250m,
-                                aus_geology_250m)
-
-east.grids.current.250m <- stack(east_precip_250m,
-                                 east_temp_250m,
-                                 east_soil_250m,
-                                 east_topo_250m,
-                                 east_terrain_250m,
-                                 east_geology_250m)
-
-
-## And a stack of grids for vegetation, in GDA Albers projection
-aus.veg.grids.250m <- stack(
-  
-  list.files('./data/Remote_sensing/Veg_data/height_and_cover/Aus/250m', 
-             '_250m.tif', full.names = TRUE))
-
-east.veg.grids.250m <- stack(
-  
-  list.files('./data/Remote_sensing/Veg_data/height_and_cover/Eastern_Aus/250m', 
-             '_east_coast.tif', full.names = TRUE))
-
-
-names(east.grids.current.250m) <- gsub('_EAST_COAST', '', names(east.grids.current.250m))
-names(aus.veg.grids.250m)      <- names(east.veg.grids.250m) <- c("Plant_cover_fraction_0_5m", 
-                                                                  "Plant_cover_fraction_5_10m",  
-                                                                  "Plant_cover_fraction_10_30m",      
-                                                                  "Plant_cover_fraction_30m",
-                                                                  "Total_Plant_cover_fraction",  
-                                                                  "Tree_canopy_height_25th", 
-                                                                  "Tree_canopy_height_50th", 
-                                                                  "Tree_canopy_height_75th",   
-                                                                  "Tree_canopy_height_95th",   
-                                                                  "Tree_canopy_peak_foliage",
-                                                                  "Tree_canopy_peak_foliage_total",
-                                                                  "mrvbf")
 
 
 ## Combine the grids into raster stacks
-aus.climate.veg.grids.250m   <- stack(aus.grids.current.250m, aus.veg.grids.250m)
-east.climate.veg.grids.250m  <- stack(east.grids.current.250m, east.veg.grids.250m)
-aus_annual_precip            <- raster('./data/Bushfire_indices/R_outputs/250m/AUS/Extra/Annual_precip_WGS84.tif')
-aus_annual_precip_alb        <- raster('./data/Bushfire_indices/R_outputs/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
-
-
-## Should be 1km*1km, It should havle a value of 1 for land, and NA for the ocean
+aus_annual_precip_alb        <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
 aus_annual_precip_alb[aus_annual_precip_alb > 0] <- 1
 template_raster_250m <- aus_annual_precip_alb
 
@@ -220,7 +144,6 @@ template_raster_250m <- aus_annual_precip_alb
 rm(list = ls(pattern = 'aus_'))
 rm(list = ls(pattern = 'east_'))
 gc()
-
 
 
 

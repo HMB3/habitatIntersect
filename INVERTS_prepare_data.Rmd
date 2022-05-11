@@ -280,50 +280,50 @@ Let's create all the raster data we need. First let's get the rasters needed for
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 aus_precip_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Precip',        pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/AUS/Precip',        pattern =".tif", full.names = TRUE))
 
 east_precip_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Precip', pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/EAST_COAST/Precip', pattern =".tif", full.names = TRUE))
 
 
 ## 250m temperature layers
 aus_temp_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Temp',          pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/AUS/Temp',          pattern =".tif", full.names = TRUE))
 
 east_temp_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Temp',   pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/EAST_COAST/Temp',   pattern =".tif", full.names = TRUE))
 
 
 ## 250m Soil layers
 aus_soil_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Soil',          pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/AUS/Soil',          pattern =".tif", full.names = TRUE))
 
 east_soil_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Soil',   pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/EAST_COAST/Soil',   pattern =".tif", full.names = TRUE))
 
 
 ## 250m Geology Australia
 aus_geology_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Geology',        pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/AUS/Geology',        pattern =".tif", full.names = TRUE))
 
 east_geology_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Geology', pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/EAST_COAST/Geology', pattern =".tif", full.names = TRUE))
 
 
 ## 250m topo Australia
 aus_topo_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Topo',           pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/AUS/Topo',           pattern =".tif", full.names = TRUE))
 
 east_topo_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Topo',    pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/EAST_COAST/Topo',    pattern =".tif", full.names = TRUE))
 
 
 ## 250m terrain indices Australia
 aus_terrain_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/AUS/Indices',        pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/AUS/Indices',        pattern =".tif", full.names = TRUE))
 
 east_terrain_250m <- raster::stack(
-  list.files('./data/Bushfire_indices/R_outputs/250m/EAST_COAST/Indices', pattern =".tif", full.names = TRUE))
+  list.files('./data/CSIRO_layers/250m/EAST_COAST/Indices', pattern =".tif", full.names = TRUE))
 
 
 ## Climate data for Australia, in GDA Albers projection
@@ -378,8 +378,8 @@ east.climate.veg.grids.250m  <- stack(east.grids.current.250m, east.veg.grids.25
 rm(list = ls(pattern = 'aus_'))
 rm(list = ls(pattern = 'east_'))
 
-aus_annual_precip            <- raster('./data/Bushfire_indices/R_outputs/250m/AUS/Extra/Annual_precip_WGS84.tif')
-aus_annual_precip_alb        <- raster('./data/Bushfire_indices/R_outputs/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
+aus_annual_precip            <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip_WGS84.tif')
+aus_annual_precip_alb        <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
 
 
 ## Should be 1km*1km, It should havle a value of 1 for land, and NA for the ocean
@@ -693,7 +693,11 @@ SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD.CLEAN,
                                          sdm_table_vars    = c('searchTaxon', 
                                                                'species',  
                                                                'genus', 
-                                                               'family',      
+                                                               'family',
+                                                               'order',
+                                                               'class',                         
+                                                               'phylum',                        
+                                                               'kingdom',
                                                                'lon',      
                                                                'lat',
                                                                'year',
@@ -747,7 +751,7 @@ We need to check that all the taxa analysed have all the quality records we need
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Save each taxa as an individual shapefile
-# SDM.SPAT.OCC.BG.GDA      <- readRDS(paste0(inv_results_dir, 'SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds'))
+SDM.SPAT.OCC.BG.GDA      <- readRDS(paste0(inv_results_dir, 'SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA_UPDATE.rds'))
 
 
 ## Also save a big table of just the background taxa
@@ -843,7 +847,7 @@ for(taxa in target.insect.genera) {
 ## Loop through species
 for(taxa in target.insect.spp) {
   
-  ## taxa = target.insect.spp[1] 
+  ## taxa = target.insect.spp[79] 
   if(taxa %in% unique(SDM.SPAT.OCC.BG.TARG.GDA$searchTaxon)) {
     
     taxa_shp <- paste0(inv_records_dir,
@@ -856,6 +860,11 @@ for(taxa in target.insect.spp) {
       
       st_write(taxa_occ %>% st_as_sf(), 
                paste0(inv_records_dir, taxa, '_SDM_POINTS.shp'))
+      
+            st_write(taxa_occ %>% st_as_sf(), 
+               dsn = paste0(inv_records_dir, taxa, '_SDM_POINTS.gpkg'), 
+               layer = paste0(taxa, '_SDM_points'), 
+               quiet = TRUE)
       
       st_write(taxa_occ %>% st_as_sf(), 
                dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA_UPDATE.gpkg'), 
