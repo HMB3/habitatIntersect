@@ -14,6 +14,7 @@ taxa_records_habitat_features_intersect(
   raster_convert,
   int_cols,
   save_shp,
+  save_png,
   epsg,
   poly_path
 )
@@ -32,6 +33,8 @@ taxa_records_habitat_features_intersect(
 \item{int_cols}{Character string - list of columns to keep from records * layer intersect}
 
 \item{save_shp}{Logical          - Save as .shp? Geopackage is much better.}
+
+\item{save_png}{Logical          - Save as .png?}
 
 \item{epsg}{Numeric - ERSP code of coord ref system to be translated into WKT format}
 

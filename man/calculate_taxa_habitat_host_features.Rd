@@ -11,11 +11,13 @@ calculate_taxa_habitat_host_features(
   target_path,
   output_path,
   intersect_path,
-  raster_pattern,
-  fire_raster,
-  cell_size,
-  fire_thresh,
-  write_rasters,
+  intersect_patt,
+  intersect_cols,
+  intersect_category,
+  main_int_layer,
+  main_int_category,
+  second_int_layer,
+  template_raster,
   poly_path,
   epsg
 )
@@ -29,17 +31,29 @@ calculate_taxa_habitat_host_features(
 
 \item{target_path}{Character string - The file path containing the existing maxent models}
 
+\item{output_path}{Character string - The file path to save the function output}
+
 \item{intersect_path}{Character string - The file path containing the intersecting rasters}
 
-\item{raster_pattern}{Character string - The pattern to look for of Invertebrate rasters}
+\item{intersect_patt}{Character string - The pattern for the intersect files}
 
-\item{cell_size}{Numeric          - Cell size to resample output}
+\item{intersect_cols}{Character string - List of columns to keep}
 
-\item{write_rasters}{Logical          - Save rasters (T/F)?}
+\item{intersect_category}{Character string - List of columns to keep}
+
+\item{main_int_layer}{Character string - The pattern for the intersect files}
+
+\item{main_int_category}{Character string - The pattern for the intersect files}
+
+\item{second_int_layer}{Character string - The pattern for the intersect files}
+
+\item{template_raster}{Raster::raster - template raster with study extent and resolution}
 
 \item{poly_path}{Character string - file path to feature polygon layer}
 
 \item{epsg}{Numeric - ERSP code of coord ref system to be translated into WKT format}
+
+\item{intersect_name}{Character string - File name of the feature layer to store results}
 }
 \description{
 Takes a habitat suitability layer, and intersects it with a fire suitability layer.
