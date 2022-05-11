@@ -39,31 +39,40 @@ To install, run :
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## Set environments 
-## java memory limit and temporary raster dir
-rm(list = ls())
-options(java.parameters = "-Xmx64000m")
-Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jre1.8.0_321')
 
+rm(list = ls())
+#if (!Sys.getenv("JAVA_TOOL_OPTIONS")) {
+if (all(Sys.getenv("JAVA_HOME")=="")) {
+  Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jre1.8.0_321')
+}
+if (all(Sys.getenv("JAVA_TOOL_OPTIONS")=="")) {
+  options(java.parameters = "-Xmx64G")
+}
+
+options(warn=0)
 
 ## Function to load or install packages
 ipak <- function(pkg){
   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
   if (length(new.pkg))
-    install.packages(new.pkg, dependencies = TRUE, repos="https://cran.csiro.au/")
-  sapply(pkg, require,      character.only = TRUE)
+    install.packages(new.pkg, dependencies = TRUE, repos = "https://cran.csiro.au/")
+  sapply(pkg, require, character.only = TRUE)
 }
 
 
-## Load packages 
+## Load packages
+#devtools::install_github("HMB3/nenswniche")
 library(nenswniche)
 data('sdmgen_packages')
 ipak(sdmgen_packages)
 
-## Set temporary raster dir for the terra package
-rasterOptions(tmpdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
-terraOptions(memfrac = 0.5, 
-             tempdir = 'E:/Bush_fire_analysis/nenswniche/TEMP')
+## Try and set the raster temp directory to a location not on the partition, to save space
+tempdir              <- './TEMP/'
+rasterOptions(memfrac = 0.9,
+              tmpdir  = tempdir)
+
+terraOptions(memfrac = 0.9, 
+             tempdir = tempdir)
 
 ```
 
@@ -96,6 +105,7 @@ results_dir   <- './output/reptile_maxent/results/'
 habitat_dir   <- './output/reptile_maxent/Habitat_suitability/'
 threshold_dir <- './output/reptile_maxent/Habitat_suitability/SDM_thresholds/'
 intersect_dir <- './output/reptile_maxent/Habitat_suitability/FESM_SDM_intersect/'
+sdm_dir       <- './output/reptile_maxent/Habitat_suitability/SDM_point_data/'
 
 
 ## SDM output, re-sampled to 100m
