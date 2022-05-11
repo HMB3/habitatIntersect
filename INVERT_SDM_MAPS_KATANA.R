@@ -365,6 +365,9 @@ calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.RES
                                      threshold_path     = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
                                      intersect_path     = inv_inters_dir,
                                      intersect_patt     = '_SDM_VEG_intersection.gpkg',
+                                     host_path          = plant_thresh_dir,
+                                     host_patt          = '_current_suit_not_novel_above_',
+                                     
                                      int_cols           = intersect_cols,
                                      target_path        = inv_back_dir,
                                      output_path        = inv_fire_dir,

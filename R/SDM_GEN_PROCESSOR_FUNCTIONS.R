@@ -1049,12 +1049,12 @@ combine_records_extract = function(ala_df,
   if(filter_taxo) {
     
     message('fitler taxonomy')
-    ALA.COMBO <- ALA.COMBO %>% dplyr::mutate(Match_SN_ST = str_detect(!!sym(taxa_level), searchTaxon)) %>% 
+    ALA.COMBO <- ALA.COMBO %>% dplyr::mutate(Match_SN_ST = str_detect(!!taxa_level, searchTaxon)) %>% 
       filter(Match_SN_ST == 'TRUE') %>% as.data.frame()
     
   } else {
     message('Do not filter taxonomy of searched taxa vs returned' )
-    ALA.COMBO <- ALA.COMBO %>% dplyr::mutate(Match_SN_ST = str_detect(!!sym(taxa_level), searchTaxon))
+    ALA.COMBO <- ALA.COMBO %>% dplyr::mutate(Match_SN_ST = str_detect(!!taxa_level, searchTaxon))
   }
   
   ## Don't taxo match the site data :: this needs to be kept without exclusion
@@ -2268,6 +2268,13 @@ prepare_sdm_table = function(coord_df,
     
     ## Save .rds file of the occurrence and BG points for the next session
     saveRDS(SDM.SPAT.OCC.BG, paste0(data_path, 'SDM_SPAT_OCC_BG_',  save_run, '.rds'))
+    
+    # st_write(SDM.SPAT.OCC.BG, 
+    #          dsn    = paste0(data_path, 'SDM_SPAT_OCC_BG_',  save_run, '.gpkg'), 
+    #          layer  = paste0('SDM_SPAT_OCC_BG_',  save_run),
+    #          quiet  = TRUE,
+    #          append = FALSE)
+    
     return(SDM.SPAT.OCC.BG)
     
   } else {
