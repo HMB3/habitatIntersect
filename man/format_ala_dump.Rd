@@ -4,7 +4,15 @@
 \alias{format_ala_dump}
 \title{Format ALA Records from a big data download}
 \usage{
-format_ala_dump(ALA_table, record_type, keep_cols, world_raster)
+format_ala_dump(
+  ALA_table,
+  record_type,
+  keep_cols,
+  year_filt,
+  year_lim,
+  unique_cells,
+  world_raster
+)
 }
 \arguments{
 \item{ALA_table}{Character Vector - List of taxa already downloaded}
@@ -12,6 +20,12 @@ format_ala_dump(ALA_table, record_type, keep_cols, world_raster)
 \item{record_type}{Adds a column to the data frame for the data source, EG ALA}
 
 \item{keep_cols}{The columns we want to keep - a character list created by you}
+
+\item{year_filt}{Logical - filter out records based on a year?}
+
+\item{year_lim}{Numeric - Records to remove}
+
+\item{unique_cells}{Logical - take only one record per cell?}
 
 \item{world_raster}{An Raster file of the enviro conditions used (assumed to be global)}
 }

@@ -194,8 +194,9 @@ taxa_qc <- read_excel(paste0(inv_habitat_dir, 'SDM_point_data/SDM_target_species
 
 taxa_remain <- taxa_qc %>% 
   filter(QC == "X") %>%
-  dplyr::select(Taxa) %>% 
-  .$Taxa
+  filter(Morpho != "Yes") %>%
+  dplyr::select(Binomial) %>% 
+  .$Binomial %>% c(., 'Rayieria basifer') %>% sort()
 
 
 ```
@@ -263,8 +264,8 @@ identical(names(east.climate.veg.grids.250m),
 rm(list = ls(pattern = 'aus_'))
 rm(list = ls(pattern = 'east_'))
 
-aus_annual_precip            <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip_WGS84.tif')
-aus_annual_precip_alb        <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
+aus_annual_precip       <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip_WGS84.tif')
+aus_annual_precip_alb   <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
 
 
 ## Should be 1km*1km, It should havle a value of 1 for land, and NA for the ocean
@@ -296,13 +297,12 @@ data('ALA_keep')
 Insects_ALA <- readRDS('./data/ALA/Insects/INVERTS_2022_0303.rds')
 
 
-ALA.LAND.INV.SPP    <- format_ala_dump(ALA_table         = Insects_ALA,
-                                       record_type       = "ALA",
-                                       keep_cols         = ALA_keep,
-                                       world_raster      = aus_annual_precip)
-
-
-SDM.SPAT.OCC.BG.GDA <- saveRDS(ALA.LAND.INV.SPP, paste0(inv_results_dir, 'ALA_LAND_INV_SPP.rds'))
+ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = Insects_ALA,
+                                    record_type   = "ALA",
+                                    keep_cols     = ALA_keep,
+                                    year_filt     = FALSE,
+                                    unique_cells  = FALSE,
+                                    world_raster  = aus_annual_precip)
 
 
 ALA.LAND.INV.GENUS <- ALA.LAND.INV.SPP %>% dplyr::select(-searchTaxon) %>% 
@@ -310,18 +310,69 @@ ALA.LAND.INV.GENUS <- ALA.LAND.INV.SPP %>% dplyr::select(-searchTaxon) %>%
 
 
 ALA.LAND.INV.FAM   <- ALA.LAND.INV.SPP %>% dplyr::select(-searchTaxon) %>% 
-  dplyr::rename(searchTaxon = family)  %>% dplyr::s4elect(searchTaxon, everything())
+  dplyr::rename(searchTaxon = family)  %>% dplyr::select(searchTaxon, everything())
+
+
+ALA.LAND.INV.SPP.SF <- SpatialPointsDataFrame(coords      = ALA.LAND.INV.SPP %>% 
+                                                dplyr::select(lon, lat) %>% as.matrix(),
+                                              data        = ALA.LAND.INV.SPP,
+                                              proj4string = CRS("+init=epsg:4326")) %>%
+  
+  st_as_sf() %>% 
+  st_transform(., st_crs(3577))
+
+
+st_write(ALA.LAND.INV.SPP.SF, 
+         dsn   = paste0(inv_results_dir, 'ALA_INVERT_RECORDS_UPDATE.gpkg'), 
+         layer = 'ALA_ALL_TAXA', 
+         quiet = TRUE)
 
 
 ## Check a few of the taxa now
-Rayieria.basifer          <- ALA.LAND.INV.SPP %>% .[.$searchTaxon %in% 'Rayieria basifer', ]
-Epimixia.vulturna         <- ALA.LAND.INV.SPP %>% .[.$searchTaxon %in% 'Epimixia vulturna', ]
-Kirkaldyella.rugosa       <- ALA.LAND.INV.SPP %>% .[.$searchTaxon %in% 'Kirkaldyella rugosa', ]
-Parmavitrina.planilabris  <- ALA.LAND.INV.SPP %>% .[.$searchTaxon %in% 'Parmavitrina planilabris', ]
-Planorbacochlea.dandahra  <- ALA.LAND.INV.SPP %>% .[.$searchTaxon %in% 'Planorbacochlea dandahra', ]
-Diorygopyx.simpliciclunis <- ALA.LAND.INV.SPP %>% .[.$searchTaxon %in% 'Diorygopyx simpliciclunis', ]
-Diorygopyx.niger          <- ALA.LAND.INV.SPP %>% .[.$searchTaxon %in% 'Diorygopyx niger', ]
-Asteron.grayi             <- ALA.LAND.INV.SPP %>% .[.$searchTaxon %in% 'Asteron.grayi', ]
+Rayieria.basifer          <- ALA.LAND.INV.SPP.SF %>% .[.$searchTaxon %in% 'Rayieria basifer', ]
+Epimixia.vulturna         <- ALA.LAND.INV.SPP.SF %>% .[.$searchTaxon %in% 'Epimixia vulturna', ]
+Kirkaldyella.rugosa       <- ALA.LAND.INV.SPP.SF %>% .[.$searchTaxon %in% 'Kirkaldyella rugosa', ]
+Parmavitrina.planilabris  <- ALA.LAND.INV.SPP.SF %>% .[.$searchTaxon %in% 'Parmavitrina planilabris', ]
+Planorbacochlea.dandahra  <- ALA.LAND.INV.SPP.SF %>% .[.$searchTaxon %in% 'Planorbacochlea dandahra', ]
+Diorygopyx.simpliciclunis <- ALA.LAND.INV.SPP.SF %>% .[.$searchTaxon %in% 'Diorygopyx simpliciclunis', ]
+Diorygopyx.niger          <- ALA.LAND.INV.SPP.SF %>% .[.$searchTaxon %in% 'Diorygopyx niger', ]
+Asteron.grayi             <- ALA.LAND.INV.SPP.SF %>% .[.$searchTaxon %in% 'Asteron.grayi', ]
+
+
+## For all the spatially incorrect taxa, plot them to see what's happening
+for(taxa in taxa_remain) {
+  
+  ## taxa = target.insect.spp[79] 
+  if(taxa %in% unique(SDM.SPAT.OCC.BG.TARG.GDA$searchTaxon)) {
+    
+    taxa_shp <- paste0(inv_records_dir,
+                       taxa, '_SDM_points.shp')
+    
+    if(!file.exists(taxa_shp)) {
+      
+      message('Subsetting ', taxa, ' shapefile and geo-package layers')
+      taxa_occ <- SDM.SPAT.OCC.BG.TARG.GDA %>% .[.$searchTaxon %in% taxa, ]
+      
+      st_write(taxa_occ %>% st_as_sf(), 
+               paste0(inv_records_dir, taxa, '_SDM_POINTS.shp'))
+      
+      st_write(taxa_occ %>% st_as_sf(), 
+               dsn = paste0(inv_records_dir, taxa, '_SDM_POINTS.gpkg'), 
+               layer = paste0(taxa, '_SDM_points'), 
+               quiet = TRUE)
+      
+      st_write(taxa_occ %>% st_as_sf(), 
+               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA_UPDATE.gpkg'), 
+               layer = paste0(taxa, '_SDM_points'), 
+               quiet = TRUE)
+      
+    } else {
+      message(taxa, ' SDM .shp already exists')}
+    
+  } else {
+    message(taxa, ' has no data')}
+}
+
 
 
 ``` 
@@ -740,6 +791,7 @@ for(taxa in target.insect.spp) {
   } else {
     message(taxa, ' has no data')}
 }
+
 
 ``` 
 

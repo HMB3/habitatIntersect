@@ -10,6 +10,10 @@ combine_ala_records(
   records_extension,
   record_type,
   keep_cols,
+  year_filt,
+  year,
+  year_lim,
+  unique_cells,
   world_raster
 )
 }
@@ -23,6 +27,12 @@ combine_ala_records(
 \item{record_type}{Adds a column to the data frame for the data source, EG ALA}
 
 \item{keep_cols}{The columns we want to keep - a character list created by you}
+
+\item{year_filt}{Character - filter out records based on a year?}
+
+\item{year_lim}{Numeric - Records to remove}
+
+\item{unique_cells}{Logical - take only one record per cell?}
 
 \item{world_raster}{An Raster file of the enviro conditions used (assumed to be global)}
 }

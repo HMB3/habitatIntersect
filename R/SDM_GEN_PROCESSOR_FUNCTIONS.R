@@ -474,13 +474,20 @@ download_ALA_all_tribes = function (species_list,
 #' @param records_extension  Which R file type? RDS or RDA
 #' @param record_type        Adds a column to the data frame for the data source, EG ALA
 #' @param keep_cols          The columns we want to keep - a character list created by you
+#' @param year_filt          Character - filter out records based on a year?
+#' @param year_lim           Numeric - Records to remove
+#' @param unique_cells       Logical - take only one record per cell?
 #' @param world_raster       An Raster file of the enviro conditions used (assumed to be global)
 #' @export combine_ala_records
 combine_ala_records = function(taxa_list, 
                                records_path, 
                                records_extension,
                                record_type, 
-                               keep_cols, 
+                               keep_cols,
+                               year_filt,
+                               year,
+                               year_lim,
+                               unique_cells,
                                world_raster) {
   
   ## Should work outside the loop
@@ -598,71 +605,82 @@ combine_ala_records = function(taxa_list,
       filter(!is.na(lon) & !is.na(lat)) %>%
       filter(lon < 180 & lat > -90) %>%
       filter(lon < 180 & lat > -90) %>%
-      filter(year >= 1950) %>%
       filter(!is.na(year))
+    
+    if(year_filt) {
+      
+      CLEAN <- CLEAN %>% filter(year >= year_lim) 
+      
+    }
     
     ## How many records were removed by filtering?
     message(nrow(TRIM) - nrow(CLEAN), " records removed")
     message(round((nrow(CLEAN))/nrow(TRIM)*100, 2),
             " % records retained using records with valid coordinates and year")
     
-    ## Can use WORLDCIM rasters to get only records where wordlclim data is.
-    message('Removing ALA points outside raster bounds for ', length(taxa_list), ' taxa')
-    
-    ## Now get the XY centroids of the unique 1km * 1km WORLDCLIM blocks where ALA records are found
-    ## Get cell number(s) of WORLDCLIM raster from row and/or column numbers. Cell numbers start at 1 in the upper left corner,
-    ## and increase from left to right, and then from top to bottom. The last cell number equals the number of raster cell
-    world_raster_spat <- terra::rast(world_raster)
-    mat <- cbind(lon = CLEAN$lon, lat = CLEAN$lat) 
-    xy  <- terra::cellFromXY(world_raster_spat, mat) %>% 
+    if(unique_cells) {
       
-      ## get the unique raster cells
-      unique %>%
+      ## Can use WORLDCIM rasters to get only records where wordlclim data is.
+      message('Removing ALA points outside raster bounds for ', length(taxa_list), ' taxa')
       
-      ## Get coordinates of the center of raster cells for a row, column, or cell number of WORLDCLIM raster
-      xyFromCell(world_raster_spat, .) %>%
-      na.omit()
-    
-    ## For some reason, we need to convert the xy coords to a spatial points data frame, in order to avoid this error:
-    ## 'NAs introduced by coercion to integer range'
-    xy <- SpatialPointsDataFrame(coords = xy, data = as.data.frame(xy),
-                                 proj4string = CRS("+proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs"))
-    
-    ## Now extract the temperature values for the unique 1km centroids which contain ALA data
-    ## getValues is much faster than extract
-    class(xy)
-    z   = terra::extract(world_raster, xy)
-    
-    ## Then track which values of Z are on land or not
-    onland = z %>% is.na %>%  `!` # %>% xy[.,]  cells on land or not
-    
-    ## Finally, filter the cleaned ALA data to only those points on land.
-    ## This is achieved with the final [onland]
-    LAND.POINTS = filter(CLEAN, terra::cellFromXY(world_raster_spat, mat) %in%
-                           unique(terra::cellFromXY(world_raster_spat, mat))[onland])
-    
-    ## how many records were on land?
-    records.ocean = nrow(CLEAN) - nrow(LAND.POINTS)
-    nrow(LAND.POINTS)
-    length(unique(LAND.POINTS$searchTaxon))
-    
-    ## Add a source column
-    LAND.POINTS$SOURCE = record_type
-    message(round((nrow(LAND.POINTS))/nrow(CLEAN)*100, 2),
-            " % records retained using records inside raster bounds")
-    
-    ## save data
-    nrow(LAND.POINTS)
-    length(unique(LAND.POINTS$searchTaxon))
-    
-    ## get rid of some memory
-    gc()
+      ## Now get the XY centroids of the unique 1km * 1km WORLDCLIM blocks where ALA records are found
+      ## Get cell number(s) of WORLDCLIM raster from row and/or column numbers. Cell numbers start at 1 in the upper left corner,
+      ## and increase from left to right, and then from top to bottom. The last cell number equals the number of raster cell
+      world_raster_spat <- terra::rast(world_raster)
+      mat <- cbind(lon = CLEAN$lon, lat = CLEAN$lat) 
+      xy  <- terra::cellFromXY(world_raster_spat, mat) %>% 
+        
+        ## get the unique raster cells
+        unique %>%
+        
+        ## Get coordinates of the center of raster cells for a row, column, or cell number of WORLDCLIM raster
+        xyFromCell(world_raster_spat, .) %>%
+        na.omit()
+      
+      ## For some reason, we need to convert the xy coords to a spatial points data frame, in order to avoid this error:
+      ## 'NAs introduced by coercion to integer range'
+      xy <- SpatialPointsDataFrame(coords = xy, data = as.data.frame(xy),
+                                   proj4string = CRS("+proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs"))
+      
+      ## Now extract the temperature values for the unique 1km centroids which contain ALA data
+      ## getValues is much faster than extract
+      class(xy)
+      z   = terra::extract(world_raster, xy)
+      
+      ## Then track which values of Z are on land or not
+      onland = z %>% is.na %>%  `!` # %>% xy[.,]  cells on land or not
+      
+      ## Finally, filter the cleaned ALA data to only those points on land.
+      ## This is achieved with the final [onland]
+      LAND.POINTS = filter(CLEAN, terra::cellFromXY(world_raster_spat, mat) %in%
+                             unique(terra::cellFromXY(world_raster_spat, mat))[onland])
+      
+      ## how many records were on land?
+      records.ocean = nrow(CLEAN) - nrow(LAND.POINTS)
+      nrow(LAND.POINTS)
+      length(unique(LAND.POINTS$searchTaxon))
+      
+      ## Add a source column
+      LAND.POINTS$SOURCE = record_type
+      message(round((nrow(LAND.POINTS))/nrow(CLEAN)*100, 2),
+              " % records retained using records inside raster bounds")
+      
+      ## save data
+      nrow(LAND.POINTS)
+      length(unique(LAND.POINTS$searchTaxon))
+      
+      ## get rid of some memory
+      gc()
+      
+    } else {
+      return(CLEAN)
+    }
     
   } else {
     message('No ALA dat for this set of taxa, creating empty datframe to other data')
-    LAND.POINTS  = setNames(data.frame(matrix(ncol = length(keep), nrow = 0)), keep)
+    LAND.POINTS = setNames(data.frame(matrix(ncol = length(keep), nrow = 0)), keep)
+    return(LAND.POINTS)
   }
-  return(LAND.POINTS)
 }
 
 
@@ -675,11 +693,17 @@ combine_ala_records = function(taxa_list,
 #' @param ALA_table       Character Vector - List of taxa already downloaded
 #' @param record_type        Adds a column to the data frame for the data source, EG ALA
 #' @param keep_cols          The columns we want to keep - a character list created by you
+#' @param year_filt          Logical - filter out records based on a year?
+#' @param year_lim           Numeric - Records to remove
+#' @param unique_cells       Logical - take only one record per cell?
 #' @param world_raster       An Raster file of the enviro conditions used (assumed to be global)
 #' @export format_ala_dump
 format_ala_dump = function(ALA_table, 
                            record_type, 
-                           keep_cols, 
+                           keep_cols,
+                           year_filt,
+                           year_lim,
+                           unique_cells,
                            world_raster) {
   
   message ("formatting ALA data dump to niche analysis format")
@@ -752,63 +776,73 @@ format_ala_dump = function(ALA_table,
     filter(!is.na(lon) & !is.na(lat)) %>%
     filter(lon < 180 & lat > -90) %>%
     filter(lon < 180 & lat > -90) %>%
-    filter(year >= 1950) %>%
     filter(!is.na(year))
+  
+  if(year_filt) {
+    
+    CLEAN <- CLEAN %>% filter(year >= year_lim) 
+    
+  }
   
   ## How many records were removed by filtering?
   message(nrow(TRIM) - nrow(CLEAN), " records removed")
   message(round((nrow(CLEAN))/nrow(TRIM)*100, 2),
           " % records retained using records with valid coordinates and year")
   
-  ## Now get the XY centroids of the unique 1km * 1km WORLDCLIM blocks where ALA records are found
-  ## Get cell number(s) of WORLDCLIM raster from row and/or column numbers. Cell numbers start at 1 in the upper left corner,
-  ## and increase from left to right, and then from top to bottom. The last cell number equals the number of raster cell
-  world_raster_spat <- rast(world_raster)
-  mat <- cbind(lon = CLEAN$lon, lat = CLEAN$lat) 
-  xy  <- terra::cellFromXY(world_raster_spat, mat) %>% 
+  if(unique_cells) {
     
-    ## get the unique raster cells
-    unique %>%
+    ## Now get the XY centroids of the unique 1km * 1km WORLDCLIM blocks where ALA records are found
+    ## Get cell number(s) of WORLDCLIM raster from row and/or column numbers. Cell numbers start at 1 in the upper left corner,
+    ## and increase from left to right, and then from top to bottom. The last cell number equals the number of raster cell
+    world_raster_spat <- rast(world_raster)
+    mat <- cbind(lon = CLEAN$lon, lat = CLEAN$lat) 
+    xy  <- terra::cellFromXY(world_raster_spat, mat) %>% 
+      
+      ## get the unique raster cells
+      unique %>%
+      
+      ## Get coordinates of the center of raster cells for a row, column, or cell number of WORLDCLIM raster
+      xyFromCell(world_raster_spat, .) %>%
+      na.omit()
     
-    ## Get coordinates of the center of raster cells for a row, column, or cell number of WORLDCLIM raster
-    xyFromCell(world_raster_spat, .) %>%
-    na.omit()
-  
-  ## For some reason, we need to convert the xy coords to a spatial points data frame, in order to avoid this error:
-  ## 'NAs introduced by coercion to integer range'
-  xy <- SpatialPointsDataFrame(coords = xy, data = as.data.frame(xy),
-                               proj4string = CRS("+proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs"))
-  
-  ## Now extract the temperature values for the unique 1km centroids which contain ALA data
-  class(xy)
-  z   = terra::extract(world_raster, xy)
-  
-  ## Then track which values of Z are on land or not
-  onland = z %>% is.na %>%  `!` # %>% xy[.,]  cells on land or not
-  
-  ## Finally, filter the cleaned ALA data to only those points on land.
-  ## This is achieved with the final [onland]
-  LAND.POINTS = filter(CLEAN, terra::cellFromXY(world_raster_spat, mat) %in%
-                         unique(terra::cellFromXY(world_raster_spat, mat))[onland])
-  
-  ## how many records were on land?
-  records.ocean = nrow(CLEAN) - nrow(LAND.POINTS)
-  nrow(LAND.POINTS)
-  length(unique(LAND.POINTS$searchTaxon))
-  
-  ## Add a source column
-  LAND.POINTS$SOURCE = record_type
-  message(round((nrow(LAND.POINTS))/nrow(CLEAN)*100, 2),
-          " % records retained using records inside raster bounds")
-  
-  ## save data
-  nrow(LAND.POINTS)
-  length(unique(LAND.POINTS$searchTaxon))
-  
-  ## get rid of some memory
-  gc()
-  
-  return(LAND.POINTS)
+    ## For some reason, we need to convert the xy coords to a spatial points data frame, in order to avoid this error:
+    ## 'NAs introduced by coercion to integer range'
+    xy <- SpatialPointsDataFrame(coords = xy, data = as.data.frame(xy),
+                                 proj4string = CRS("+proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs"))
+    
+    ## Now extract the temperature values for the unique 1km centroids which contain ALA data
+    class(xy)
+    z   = terra::extract(world_raster, xy)
+    
+    ## Then track which values of Z are on land or not
+    onland = z %>% is.na %>%  `!` # %>% xy[.,]  cells on land or not
+    
+    ## Finally, filter the cleaned ALA data to only those points on land.
+    ## This is achieved with the final [onland]
+    LAND.POINTS = filter(CLEAN, terra::cellFromXY(world_raster_spat, mat) %in%
+                           unique(terra::cellFromXY(world_raster_spat, mat))[onland])
+    
+    ## how many records were on land?
+    records.ocean = nrow(CLEAN) - nrow(LAND.POINTS)
+    nrow(LAND.POINTS)
+    length(unique(LAND.POINTS$searchTaxon))
+    
+    ## Add a source column
+    LAND.POINTS$SOURCE = record_type
+    message(round((nrow(LAND.POINTS))/nrow(CLEAN)*100, 2),
+            " % records retained using records inside raster bounds")
+    
+    ## save data
+    nrow(LAND.POINTS)
+    length(unique(LAND.POINTS$searchTaxon))
+    
+    ## get rid of some memory
+    gc()
+    return(LAND.POINTS)
+    
+  } else {
+    return(CLEAN)
+  }
 }
 
 
