@@ -10,6 +10,7 @@ project_maxent_current_grids_mess(
   current_grids,
   create_mess,
   save_novel_poly,
+  maxent_table,
   output_path,
   poly_path,
   epsg

@@ -4,14 +4,7 @@
 \alias{habitat_threshold}
 \title{Threshold current habitat suitability rasters.}
 \usage{
-habitat_threshold(
-  taxa_list,
-  maxent_table,
-  maxent_path,
-  output_path,
-  poly_path,
-  epsg
-)
+habitat_threshold(taxa_list, maxent_table, maxent_path, poly_path, epsg)
 }
 \arguments{
 \item{taxa_list}{Character string - The taxa to run maxent predictions for}
