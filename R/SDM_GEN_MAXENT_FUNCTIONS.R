@@ -85,14 +85,11 @@ run_sdm_analysis_crop = function(taxa_list,
         message('Doing ', taxa)
         
         ## Subset the records to only the taxa being processed - in the searched taxa or returned
-        # occurrence <- subset(sdm_df, searchTaxon == taxa | !!sym(taxa_level) == taxa)
-        # occurrence <- subset(sdm_df, !!sym(taxa_level) == taxa)
         occurrence <- sdm_df %>% .[.[[taxa_level]] %in% taxa, ]
         message('Using ', nrow(occurrence), ' occ records from ', unique(occurrence$SOURCE))
         
         ## Now get the background points. These can come from any taxa, other than the modelled taxa.
         ## However, they should be limited to the same SOURCE as the occ data
-        # background <- subset(sdm_df, searchTaxon != taxa & !!sym(taxa_level) != taxa)
         background <- sdm_df %>% .[!.[[taxa_level]] %in% taxa, ]
         message('Using ', nrow(background), ' background records from ', unique(background$SOURCE))
         
@@ -238,14 +235,11 @@ run_sdm_analysis_no_crop = function(taxa_list,
         message('Doing ', taxa)
         
         ## Subset the records to only the taxa being processed - in the searched taxa or returned
-        # occurrence <- subset(sdm_df, searchTaxon == taxa | !!sym(taxa_level) == taxa)
-        # occurrence <- subset(sdm_df, !!sym(taxa_level) == taxa)
         occurrence <- sdm_df %>% .[.[[taxa_level]] %in% taxa, ]
         message('Using ', nrow(occurrence), ' occ records from ', unique(occurrence$SOURCE))
         
         ## Now get the background points. These can come from any taxa, other than the modelled taxa.
         ## However, they should be limited to the same SOURCE as the occ data
-        # background <- subset(sdm_df, searchTaxon != taxa & !!sym(taxa_level) != taxa)
         background <- sdm_df %>% .[!.[[taxa_level]] %in% taxa, ]
         message('Using ', nrow(background), ' background records from ', unique(background$SOURCE))
         
@@ -633,7 +627,7 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
         swd_occ,
         swd_bg,
         path            = bsdir,
-        taxa_column  = "searchTaxon",
+        taxa_column     = "searchTaxon",
         replicates      = replicates,  ## 5 as above
         response_curves = TRUE,
         logistic_format = TRUE,

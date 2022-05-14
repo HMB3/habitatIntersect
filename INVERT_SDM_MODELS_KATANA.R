@@ -110,6 +110,7 @@ terraOptions(memfrac = 0.9,
 # Load raster data at 280m resolution.
 # 
 # \
+
 aus.climate.veg.grids.250m <- raster::stack(
   list.files('./data/CSIRO_layers/250m/AUS/',      pattern =".tif", full.names = TRUE))
 
@@ -117,32 +118,34 @@ east.climate.veg.grids.250m  <- raster::stack(
   list.files('./data/CSIRO_layers/250m/FESM_EXT/', pattern =".tif", full.names = TRUE))
 
 
-names(aus.climate.veg.grids.250m)[1:11] <- names(east.climate.veg.grids.250m)[1:11]  <- c("Tree_canopy_peak_foliage_total",
-                                                                                          "Plant_cover_fraction_0_5m", 
-                                                                                          "Plant_cover_fraction_5_10m",  
-                                                                                          "Plant_cover_fraction_10_30m",      
-                                                                                          "Plant_cover_fraction_30m",
-                                                                                          "Total_Plant_cover_fraction",  
-                                                                                          "Tree_canopy_height_25th", 
-                                                                                          "Tree_canopy_height_50th", 
-                                                                                          "Tree_canopy_height_75th",   
-                                                                                          "Tree_canopy_height_95th",   
-                                                                                          "Tree_canopy_peak_foliage")
+names(aus.climate.veg.grids.250m)[1:11] <- 
+  names(east.climate.veg.grids.250m)[1:11] <- 
+  c("Tree_canopy_peak_foliage_total",
+    "Plant_cover_fraction_0_5m", 
+    "Plant_cover_fraction_5_10m",  
+    "Plant_cover_fraction_10_30m",      
+    "Plant_cover_fraction_30m",
+    "Total_Plant_cover_fraction",  
+    "Tree_canopy_height_25th", 
+    "Tree_canopy_height_50th", 
+    "Tree_canopy_height_75th",   
+    "Tree_canopy_height_95th",   
+    "Tree_canopy_peak_foliage")
 
 identical(names(east.climate.veg.grids.250m),
           names(aus.climate.veg.grids.250m))
 
-
-
-## Combine the grids into raster stacks
-aus_annual_precip_alb        <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
-aus_annual_precip_alb[aus_annual_precip_alb > 0] <- 1
-template_raster_250m <- aus_annual_precip_alb
-
-
 ## Now remove the individual rasters
 rm(list = ls(pattern = 'aus_'))
 rm(list = ls(pattern = 'east_'))
+
+aus_annual_precip       <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip_WGS84.tif')
+aus_annual_precip_alb   <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
+
+
+## Should be 1km*1km, It should havle a value of 1 for land, and NA for the ocean
+aus_annual_precip_alb[aus_annual_precip_alb > 0] <- 1
+template_raster_250m <- aus_annual_precip_alb
 gc()
 
 
@@ -382,6 +385,7 @@ tryCatch(
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
                                     save_novel_poly = TRUE,
+                                    maxent_table    = INVERT.MAXENT.RESULTS,
                                     output_path     = paste0(inv_thresh_dir, 'inverts_sdm_novel_combo.gpkg'),
                                     poly_path       = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
                                     epsg            = 3577),

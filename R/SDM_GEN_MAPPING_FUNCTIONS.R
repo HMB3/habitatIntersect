@@ -24,6 +24,7 @@ project_maxent_current_grids_mess = function(taxa_list,
                                              current_grids, 
                                              create_mess,
                                              save_novel_poly,
+                                             maxent_table,
                                              output_path,
                                              poly_path,
                                              epsg) {
@@ -100,7 +101,6 @@ project_maxent_current_grids_mess = function(taxa_list,
               pred.current <- rmaxent::project(
                 m, current_grids[[colnames(m@presence)]])$prediction_logistic
               raster::writeRaster(pred.current, f_current, overwrite = TRUE)
-              
               gc()
               
             } else {
@@ -108,6 +108,17 @@ project_maxent_current_grids_mess = function(taxa_list,
               pred.current = raster::raster(sprintf('%s/%s/full/%s_current.tif',
                                                     maxent_path, save_name, save_name))
             }
+            
+            ## Threshold the maxent prediction, and use that to crop the raster stack
+            thresh = m@results["X10.percentile.training.presence.Logistic.threshold",][[1]]
+            thresh_greater      = function (x) {x > thresh}
+            current_suit_thresh = thresh_greater(pred.current)
+            current_suit_thresh[current_suit_thresh == 0] <- NA
+            
+            ## Now crop the raster stack
+            message('masking raster values for ', taxa)
+            current_grids_crop <- raster::crop(current_grids, current_suit_thresh)
+            current_grids_mask <- terra::mask(current_grids_crop, current_suit_thresh)
             
             ## Report current mess map in progress
             ## Could work out how to the static mess once, before looping through scenarios
@@ -123,7 +134,7 @@ project_maxent_current_grids_mess = function(taxa_list,
               ## Create a map of novel environments for current conditions.
               ## This similarity function only uses variables (e.g. n bioclim), not features
               message('Run similarity function for current condtions for ', taxa)
-              mess_current  <- rmaxent::similarity(current_grids, swd, full = TRUE)
+              mess_current  <- rmaxent::similarity(current_grids_mask, swd, full = TRUE)
               novel_current <- mess_current$similarity_min < 0    ## All novel environments are < 0
               novel_current[novel_current==0]              <- NA  ## 0 values are NA
               
@@ -228,7 +239,7 @@ project_maxent_current_grids_mess = function(taxa_list,
                          
                          quiet  = TRUE,
                          append = FALSE)
-              
+                
                 gc()
                 
               } else {
@@ -258,7 +269,7 @@ project_maxent_current_grids_mess = function(taxa_list,
                   8, 16, units = 'in', res = 600)
               
               print(levelplot(raster::stack(empty_ras,
-                                            hs_current_not_novel, 
+                                            current_suit_thresh, 
                                             quick = TRUE), margin = FALSE,
                               
                               ## Create a colour scheme using colbrewer: 100 is to make it continuos
@@ -280,7 +291,8 @@ project_maxent_current_grids_mess = function(taxa_list,
                       ## Add the novel maps as vectors.
                       latticeExtra::layer(sp.polygons(poly), data = list(poly = poly)) +
                       latticeExtra::layer(sp.points(occ, pch = 19, cex = 0.15,
-                                                    col = c('red', 'transparent', 'transparent')[panel.number()]),
+                                                    col = c('red', 'transparent', 
+                                                            'transparent')[panel.number()]),
                                           data = list(occ = occ)))
               dev.off()
               gc()
@@ -385,7 +397,6 @@ gdal_resample <- function(rast,
 habitat_threshold = function(taxa_list,
                              maxent_table,
                              maxent_path,
-                             output_path,
                              poly_path,
                              epsg) {
   
@@ -484,17 +495,6 @@ habitat_threshold = function(taxa_list,
                      
                      quiet  = TRUE,
                      append = FALSE)
-            
-            st_write(current_thresh_poly_geom, 
-                     
-                     dsn    = file.path(getwd(), output_path), 
-                     layer  = paste0(save_name, 
-                                     '_current_suit_not_novel_above_', 
-                                     thresh),
-                     
-                     quiet  = TRUE,
-                     append = FALSE)
-            
             gc()
             
           } else {
@@ -645,16 +645,16 @@ taxa_records_habitat_features_intersect = function(analysis_df,
           ## Save the taxa * habitat intersection as a raster
           message('writing threshold png for ', taxa)
           if(save_png){
-          png(paste0(output_path, save_name, "_VEG_intersection.png"),
-              16, 10, units = 'in', res = 500)
-          
-          ##
-          plot(st_geometry(taxa_VEG_intersects_clip), 
-               main = paste0(taxa, ' Veg Intersection'), col = "red")
-          
-          # plot(taxa_df, add = TRUE, col = "red",   lwd = 1)
-          plot(poly, add = TRUE)
-          dev.off()}
+            png(paste0(output_path, save_name, "_VEG_intersection.png"),
+                16, 10, units = 'in', res = 500)
+            
+            ##
+            plot(st_geometry(taxa_VEG_intersects_clip), 
+                 main = paste0(taxa, ' Veg Intersection'), col = "red")
+            
+            # plot(taxa_df, add = TRUE, col = "red",   lwd = 1)
+            plot(poly, add = TRUE)
+            dev.off()}
           
           ## Save in two places, in the taxa folder, 
           ## and in the habitat suitability folder

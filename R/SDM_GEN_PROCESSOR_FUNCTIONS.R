@@ -743,7 +743,7 @@ format_ala_dump = function(ALA_table,
     names(ALL)[names(ALL) == 'recordID'] <- 'id'}
   
   ## Create the searchTaxon column - check how to put the data in here
-  ALL[,"searchTaxon"] = ALL[,"scientificName"]
+  ALL$searchTaxon = ALL$scientificName
   
   if(!is.character(ALL["id"])) {
     ALL["id"] <- as.character(ALL["id"])}

@@ -190,11 +190,11 @@ analysis_taxa   <- str_trim(c(target.insect.spp,
                               target.insect.families)) %>% unique()
 
 taxa_qc <- read_excel(paste0(inv_habitat_dir, 'SDM_point_data/SDM_target_species.xlsx'),
-                      sheet = 'Taxa_check')
+                      sheet = 'Invert_QA_check')
 
 taxa_remain <- taxa_qc %>% 
   filter(QC == "X") %>%
-  filter(Morpho != "Yes") %>%
+  filter(is.na(Morpho)) %>%
   dplyr::select(Binomial) %>% 
   .$Binomial %>% c(., 'Rayieria basifer') %>% sort()
 
@@ -245,17 +245,19 @@ east.climate.veg.grids.250m  <- raster::stack(
   list.files('./data/CSIRO_layers/250m/FESM_EXT/', pattern =".tif", full.names = TRUE))
 
 
-names(aus.climate.veg.grids.250m)[1:11] <- names(east.climate.veg.grids.250m)[1:11] <- c("Tree_canopy_peak_foliage_total",
-                                                                                         "Plant_cover_fraction_0_5m", 
-                                                                                         "Plant_cover_fraction_5_10m",  
-                                                                                         "Plant_cover_fraction_10_30m",      
-                                                                                         "Plant_cover_fraction_30m",
-                                                                                         "Total_Plant_cover_fraction",  
-                                                                                         "Tree_canopy_height_25th", 
-                                                                                         "Tree_canopy_height_50th", 
-                                                                                         "Tree_canopy_height_75th",   
-                                                                                         "Tree_canopy_height_95th",   
-                                                                                         "Tree_canopy_peak_foliage")
+names(aus.climate.veg.grids.250m)[1:11] <- 
+  names(east.climate.veg.grids.250m)[1:11] <- 
+  c("Tree_canopy_peak_foliage_total",
+    "Plant_cover_fraction_0_5m", 
+    "Plant_cover_fraction_5_10m",  
+    "Plant_cover_fraction_10_30m",      
+    "Plant_cover_fraction_30m",
+    "Total_Plant_cover_fraction",  
+    "Tree_canopy_height_25th", 
+    "Tree_canopy_height_50th", 
+    "Tree_canopy_height_75th",   
+    "Tree_canopy_height_95th",   
+    "Tree_canopy_peak_foliage")
 
 identical(names(east.climate.veg.grids.250m),
           names(aus.climate.veg.grids.250m))
@@ -294,7 +296,7 @@ data('ALA_keep')
 
 ## Take a data dump from the ALA of all the reptiles, 
 ## and format it to the columns names we want for the niche analyses
-Insects_ALA <- readRDS('./data/ALA/Insects/INVERTS_2022_0303.rds')
+Insects_ALA      <- readRDS('./data/ALA/Insects/INVERTS_2022_1205.rds')
 
 
 ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = Insects_ALA,
@@ -322,57 +324,55 @@ ALA.LAND.INV.SPP.SF <- SpatialPointsDataFrame(coords      = ALA.LAND.INV.SPP %>%
   st_transform(., st_crs(3577))
 
 
-st_write(ALA.LAND.INV.SPP.SF, 
-         dsn   = paste0(inv_results_dir, 'ALA_INVERT_RECORDS_UPDATE.gpkg'), 
-         layer = 'ALA_ALL_TAXA', 
-         quiet = TRUE)
+poly <- st_read('data/Spatial_data/Study_areas/AUS_2016_AUST.shp') %>% 
+  st_transform(., st_crs(3577)) %>% as_Spatial()
 
 
 ## Check a few of the taxa now
-Rayieria.basifer          <- ALA.LAND.INV.SPP.SF %>% .[.$searchTaxon %in% 'Rayieria basifer', ]
-Epimixia.vulturna         <- ALA.LAND.INV.SPP.SF %>% .[.$searchTaxon %in% 'Epimixia vulturna', ]
-Kirkaldyella.rugosa       <- ALA.LAND.INV.SPP.SF %>% .[.$searchTaxon %in% 'Kirkaldyella rugosa', ]
-Parmavitrina.planilabris  <- ALA.LAND.INV.SPP.SF %>% .[.$searchTaxon %in% 'Parmavitrina planilabris', ]
-Planorbacochlea.dandahra  <- ALA.LAND.INV.SPP.SF %>% .[.$searchTaxon %in% 'Planorbacochlea dandahra', ]
-Diorygopyx.simpliciclunis <- ALA.LAND.INV.SPP.SF %>% .[.$searchTaxon %in% 'Diorygopyx simpliciclunis', ]
-Diorygopyx.niger          <- ALA.LAND.INV.SPP.SF %>% .[.$searchTaxon %in% 'Diorygopyx niger', ]
-Asteron.grayi             <- ALA.LAND.INV.SPP.SF %>% .[.$searchTaxon %in% 'Asteron.grayi', ]
+'Rayieria basifer'            %in% ALA.LAND.INV.SPP.SF$scientificName 
+'Amphistomus cunninghamensis' %in% ALA.LAND.INV.SPP.SF$scientificName
+'Eritingis trivirgata'        %in% ALA.LAND.INV.SPP.SF$scientificName
+'Asteron grayi'               %in% ALA.LAND.INV.SPP.SF$scientificName
+
+
+Amphistomus.cunninghamensis <- ALA.LAND.INV.SPP.SF %>% 
+  filter(searchTaxon == 'Amphistomus cunninghamensis')
 
 
 ## For all the spatially incorrect taxa, plot them to see what's happening
 for(taxa in taxa_remain) {
   
   ## taxa = target.insect.spp[79] 
-  if(taxa %in% unique(SDM.SPAT.OCC.BG.TARG.GDA$searchTaxon)) {
+  if(taxa %in% unique(ALA.LAND.INV.SPP.SF$searchTaxon)) {
     
-    taxa_shp <- paste0(inv_records_dir,
-                       taxa, '_SDM_points.shp')
+    map <- paste0(inv_records_dir, taxa, '_ALA_POINTS.gpkg')
     
-    if(!file.exists(taxa_shp)) {
+    if(!file.exists(map)) {
       
-      message('Subsetting ', taxa, ' shapefile and geo-package layers')
-      taxa_occ <- SDM.SPAT.OCC.BG.TARG.GDA %>% .[.$searchTaxon %in% taxa, ]
-      
-      st_write(taxa_occ %>% st_as_sf(), 
-               paste0(inv_records_dir, taxa, '_SDM_POINTS.shp'))
+      message('Subsetting ', taxa, ' geo-package')
+      save_name <- gsub(' ', '_', taxa)
+      taxa_occ <- ALA.LAND.INV.SPP.SF %>% .[.$searchTaxon %in% taxa, ] 
       
       st_write(taxa_occ %>% st_as_sf(), 
-               dsn = paste0(inv_records_dir, taxa, '_SDM_POINTS.gpkg'), 
-               layer = paste0(taxa, '_SDM_points'), 
-               quiet = TRUE)
+               dsn    = paste0(inv_records_dir, taxa, '_ALA_POINTS.gpkg'), 
+               layer  = paste0(taxa, '_SDM_points'), 
+               quiet  = TRUE,
+               append = FALSE)
       
-      st_write(taxa_occ %>% st_as_sf(), 
-               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA_UPDATE.gpkg'), 
-               layer = paste0(taxa, '_SDM_points'), 
-               quiet = TRUE)
+      png(paste0(inv_records_dir, save_name, '_ALA_POINTS.png'),
+          11, 4, units = 'in', res = 400)
+      
+      plot(st_geometry(taxa_occ), legend = FALSE, col = 'red')
+      plot(poly, add = TRUE)
+      dev.off()
+      
       
     } else {
-      message(taxa, ' SDM .shp already exists')}
+      message(taxa, ' already checked')}
     
   } else {
     message(taxa, ' has no data')}
 }
-
 
 
 ``` 
@@ -460,6 +460,9 @@ COMBO.RASTER.SPP = combine_records_extract(ala_df           = ALA.LAND.INV.SPP,
 ## Try combing the records into a "super table"
 COMBO.RASTER.FAM.GEN.SPP <- bind_rows(COMBO.RASTER.FAM, COMBO.RASTER.GEN, COMBO.RASTER.SPP)
 
+## Now filter this to
+
+gc()
 
 ``` 
 
