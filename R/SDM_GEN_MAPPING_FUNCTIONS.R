@@ -1,4 +1,4 @@
-#########################################################################################################################
+
 ######################################  MAPPING FUNCTIONS FOR SDM ANALYSIS ---- #########################################
 #########################################################################################################################
 
@@ -50,7 +50,7 @@ project_maxent_current_grids_mess = function(taxa_list,
     maxent_predict_fun <- function(taxa) {
       
       ## Create taxa name
-      ## taxa = taxa_list[4]
+      ## taxa = taxa_list[5]
       save_name = gsub(' ', '_', taxa)
       
       ## First check if the taxa exists
@@ -64,61 +64,132 @@ project_maxent_current_grids_mess = function(taxa_list,
         if(file.exists(sprintf('%s/%s/full/maxent_fitted.rds', maxent_path, save_name))) {
           message('Then run current maxent projections for ', taxa)
           
-          ## Then, check if the taxa projection has already been run...
-          if(!file.exists(sprintf('%s/%s/full/%s_future_not_novel.tif',
-                                  maxent_path, save_name, save_name))) {
+          ## Now read in the SDM model, calibrated on current conditions
+          ## if it was run with backwards selection, just use the full model
+          if(grepl("back", maxent_path)) {
             
-            ## Now read in the SDM model, calibrated on current conditions
-            ## if it was run with backwards selection, just use the full model
-            if (grepl("back", maxent_path)) {
-              
-              message('Read in the backwards selected model')
-              m <- readRDS(sprintf('%s/%s/full/maxent_fitted.rds', maxent_path, save_name))
-              
-            } else {
-              
-              ## Otherwise, index the full model
-              message('Read in the full model')
-              m <- readRDS(sprintf('%s/%s/full/maxent_fitted.rds', maxent_path, save_name))$me_full
-            }
+            message('Read in the backwards selected model')
+            m <- readRDS(sprintf('%s/%s/full/maxent_fitted.rds', maxent_path, save_name))
             
-            ## Read in taxa with data and occurrence files
-            message('Read in the swd and occ data')
-            swd <- as.data.frame(readRDS(sprintf('%s%s/swd.rds', maxent_path, save_name)))
-            occ <- readRDS(sprintf('%s%s/%s_occ.rds', maxent_path, save_name, save_name)) 
+          } else {
             
-            ## If the current raster prediction has not been run, run it.
-            if(!file.exists(f_current) == TRUE) {
-              
-              ## Report which prediction is in progress :: m$me_full, m$me_full@presence
-              message('Running current maxent prediction for ', taxa)
-              
-              ## Set the names of the rasters to match the occ data, and subset both
-              sdm_vars             = names(m@presence)
-              current_grids        = raster::subset(current_grids, sdm_vars)
-              swd                  = swd[,sdm_vars]
-              
-              pred.current <- rmaxent::project(
-                m, current_grids[[colnames(m@presence)]])$prediction_logistic
-              raster::writeRaster(pred.current, f_current, overwrite = TRUE)
-              gc()
-              
-            } else {
-              message('Use existing prediction for ', taxa)
-              pred.current = raster::raster(sprintf('%s/%s/full/%s_current.tif',
-                                                    maxent_path, save_name, save_name))
-            }
+            ## Otherwise, index the full model
+            message('Read in the full model')
+            m <- readRDS(sprintf('%s/%s/full/maxent_fitted.rds', maxent_path, save_name))$me_full
+          }
+          
+          ## Read in taxa with data and occurrence files
+          message('Read in the swd and occ data')
+          swd <- as.data.frame(readRDS(sprintf('%s%s/swd.rds', maxent_path, save_name)))
+          occ <- readRDS(sprintf('%s%s/%s_occ.rds', maxent_path, save_name, save_name)) 
+          
+          ## If the current raster prediction has not been run, run it.
+          if(!file.exists(f_current) == TRUE) {
+            
+            ## Report which prediction is in progress :: m$me_full, m$me_full@presence
+            message('Running current maxent prediction for ', taxa)
+            
+            ## Set the names of the rasters to match the occ data, and subset both
+            sdm_vars             = names(m@presence)
+            current_grids        = raster::subset(current_grids, sdm_vars)
+            swd                  = swd[,sdm_vars]
+            
+            pred.current <- rmaxent::project(
+              m, current_grids[[colnames(m@presence)]])$prediction_logistic
+            raster::writeRaster(pred.current, f_current, overwrite = TRUE)
+            gc()
+            
+          } else {
+            message('Use existing prediction for ', taxa)
+            pred.current = raster::raster(sprintf('%s/%s/full/%s_current.tif',
+                                                  maxent_path, save_name, save_name))
+          }
+          
+          thresh_file <- sprintf('%s/%s/full/%s_%s%s.tif', maxent_path,
+                                 save_name, save_name, "current_suit_above_", thresh)
+          
+          if(!file.exists(f_current) == TRUE) {
             
             ## Threshold the maxent prediction, and use that to crop the raster stack
             thresh = m@results["X10.percentile.training.presence.Logistic.threshold",][[1]]
             thresh_greater      = function (x) {x > thresh}
             current_suit_thresh = thresh_greater(pred.current)
+            current_suit_thresh_rast <- terra::rast(current_suit_thresh)
             current_suit_thresh[current_suit_thresh == 0] <- NA
             
             ## Now crop the raster stack
             message('masking raster values for ', taxa)
             current_grids_crop <- raster::crop(current_grids, current_suit_thresh)
             current_grids_mask <- terra::mask(current_grids_crop, current_suit_thresh)
+            
+            message('Writing ', taxa, ' current', ' logistics > ', thresh)
+            
+            ## Save in two places, in the taxa folder, 
+            ## and in the habitat suitability folder
+            writeRaster(current_suit_thresh, 
+                        sprintf('%s/%s/full/%s_%s%s.tif', maxent_path,
+                                save_name, save_name, "current_suit_above_", thresh),
+                        overwrite = TRUE)
+            
+          } else {
+            message('Use existing prediction for ', taxa)
+            current_suit_thresh = raster::raster(sprintf('%s/%s/full/%s_current.tif',
+                                                         maxent_path, save_name, save_name))
+            
+            ## Now crop the raster stack
+            message('masking raster values for ', taxa)
+            current_grids_crop <- raster::crop(current_grids, current_suit_thresh)
+            current_grids_mask <- terra::mask(current_grids_crop, current_suit_thresh)
+            
+            message('Writing ', taxa, ' current', ' logistics > ', thresh)
+          }
+          
+          vals       <- terra::unique(current_suit_thresh_rast)
+          uniue_vals <- is.na(vals[[1]]) %>% unique()
+          gc()
+          
+          if(!uniue_vals) {
+            
+            message('Converting ', taxa, ' raster to repaired polygon')
+            
+            current_thresh_poly      <- terra::as.polygons(current_suit_thresh_rast) 
+            current_thresh_poly_dat  <- terra::subset(current_thresh_poly, current_thresh_poly$layer == 1)
+            current_thresh_poly_geom <- current_thresh_poly_dat %>% st_as_sf() %>% repair_geometry()
+            
+            ## Now save the thresh-holded rasters as shapefiles
+            message('Saving current threshold SDM rasters to polygons for ', taxa)
+            st_write(current_thresh_poly_geom,
+                     
+                     dsn    = sprintf('%s/%s/full/%s_%s%s.gpkg', 
+                                      maxent_path,
+                                      save_name, 
+                                      save_name, 
+                                      'current_suit_above_', 
+                                      thresh),
+                     
+                     layer  = paste0(save_name, 
+                                     '_current_suit_above_', 
+                                     thresh),
+                     
+                     quiet  = TRUE,
+                     append = FALSE)
+            gc()
+            
+          } else {
+            message('Do not save current threshold to shapefile for ', taxa, ' no cells have data')
+          }
+          
+          message('writing threshold png for ', taxa)
+          png(sprintf('%s/%s/full/%s_%s%s.png', maxent_path,
+                      save_name, save_name, "current_suit_above_", thresh),
+              16, 10, units = 'in', res = 500)
+          
+          ##
+          raster::plot(current_suit_thresh, main = paste0(taxa, ' > ', thresh), legend = FALSE)
+          raster::plot(poly, add = TRUE, legend = FALSE)
+          dev.off()
+          
+          if(create_mess) {
             
             ## Report current mess map in progress
             ## Could work out how to the static mess once, before looping through scenarios
@@ -129,7 +200,7 @@ project_maxent_current_grids_mess = function(taxa_list,
               
               ##
               message('Are the environmental variables identical? ',
-                      identical(names(swd), names(current_grids)))
+                      identical(names(swd), names(current_grids_mask)))
               
               ## Create a map of novel environments for current conditions.
               ## This similarity function only uses variables (e.g. n bioclim), not features
@@ -153,8 +224,6 @@ project_maxent_current_grids_mess = function(taxa_list,
               dir.create(MESS_dir)
               
               ## Create a PNG file of MESS maps for each maxent variable
-              ## raster_list  = unstack(mess_current$similarity) :: list of environmental rasters
-              ## raster_names = names(mess_current$similarity)   :: names of the rasters
               message('Creating mess maps of each current environmental predictor for ', taxa)
               
               ## raster_name <- raster_names[1]
@@ -164,7 +233,8 @@ project_maxent_current_grids_mess = function(taxa_list,
                 p <- levelplot(raster, margin = FALSE, scales = list(draw = FALSE),
                                at = seq(minValue(raster), maxValue(raster), len = 100),
                                colorkey = list(height = 0.6),
-                               main = gsub('_', ' ', sprintf(' Current_mess_for_%s (%s)', raster_name, save_name))) +
+                               main = gsub('_', ' ', sprintf(' Current_mess_for_%s (%s)', 
+                                                             raster_name, save_name))) +
                   
                   latticeExtra::layer(sp.polygons(poly), 
                                       data = list(poly = poly)) ## need list() for polygon
@@ -186,7 +256,8 @@ project_maxent_current_grids_mess = function(taxa_list,
             if(!file.exists(sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel"))) {
               
               message('Writing currently novel environments to file for ', taxa)
-              raster::writeRaster(novel_current, sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel"),
+              raster::writeRaster(novel_current, 
+                                  sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel"),
                                   overwrite = TRUE)
               
             } else {
@@ -250,70 +321,74 @@ project_maxent_current_grids_mess = function(taxa_list,
               message('Do not save current MESS maps to shapefile for ', taxa)
             }
             
-            ## Below, we create a dummy polygon as the first list element (which is the extent
-            ## of the raster, expanded by 10%), to plot on panel 1). 50 = approx 50 lines across the polygon
-            
-            ## Now create a panel of PNG files for maxent projections and MESS maps
-            ## All the projections and extents need to match
-            empty_ras <- raster::init(current_grids, function(x) NA)
-            
-            ## Use the 'levelplot' function to make a multipanel output:
-            ## occurrence points, current raster and future raster
-            current_mess_png = sprintf('%s/%s/full/%s_%s.png', maxent_path, save_name, save_name, "mess_panel")
-            if(!file.exists(current_mess_png)) {
-              
-              ## Create level plot of current conditions including MESS
-              message('Create current MESS panel maps for ', taxa)
-              
-              png(sprintf('%s/%s/full/%s_%s.png', maxent_path, save_name, save_name, "mess_panel"),
-                  8, 16, units = 'in', res = 600)
-              
-              print(levelplot(raster::stack(empty_ras,
-                                            current_suit_thresh, 
-                                            quick = TRUE), margin = FALSE,
-                              
-                              ## Create a colour scheme using colbrewer: 100 is to make it continuos
-                              ## Also, make it a one-directional colour scheme
-                              scales      = list(draw = FALSE,  x = list(cex = 1.8), y = list(cex = 1.8),
-                                                 xlab = list(cex = 1.8),
-                                                 ylab = list(cex = 1.8)),
-                              
-                              at = seq(0, 1, length = 100),
-                              col.regions = colorRampPalette(rev(brewer.pal(9, 'YlOrRd'))),
-                              
-                              ## Give each plot a name: the third panel is the GCM
-                              names.attr = c('HSM records', ' Current'),
-                              colorkey   = list(height = 0.5, width = 3), xlab = '', ylab = '',
-                              main       = list(gsub('_', ' ', taxa), font = 4, cex = 2)) +
-                      
-                      ## Plot the Aus shapefile with the occurrence points for reference
-                      ## Can the current layer be plotted on it's own?
-                      ## Add the novel maps as vectors.
-                      latticeExtra::layer(sp.polygons(poly), data = list(poly = poly)) +
-                      latticeExtra::layer(sp.points(occ, pch = 19, cex = 0.15,
-                                                    col = c('red', 'transparent', 
-                                                            'transparent')[panel.number()]),
-                                          data = list(occ = occ)))
-              dev.off()
-              gc()
-              
-            } else {
-              message(' Current MESS panel maps already created for ', taxa)
-            }
+          } else {
+            message('Do not run MESS maps for ', taxa)
           }
+          
+          ## Below, we create a dummy polygon as the first list element (which is the extent
+          ## of the raster, expanded by 10%), to plot on panel 1). 50 = approx 50 lines across the polygon
+          
+          ## Now create a panel of PNG files for maxent projections and MESS maps
+          ## All the projections and extents need to match
+          empty_ras <- raster::init(current_grids, function(x) NA)
+          
+          ## Use the 'levelplot' function to make a multipanel output:
+          ## occurrence points, current raster and future raster
+          current_mess_png = sprintf('%s/%s/full/%s_%s.png', 
+                                     maxent_path, save_name, save_name, "mess_panel")
+          
+          if(!file.exists(current_mess_png)) {
+            
+            ## Create level plot of current conditions including MESS
+            message('Create current MESS panel maps for ', taxa)
+            
+            png(sprintf('%s/%s/full/%s_%s.png', maxent_path, save_name, save_name, "mess_panel"),
+                8, 16, units = 'in', res = 600)
+            
+            print(levelplot(raster::stack(empty_ras,
+                                          pred.current,
+                                          current_suit_thresh, 
+                                          quick = TRUE), margin = FALSE,
+                            
+                            ## Create a colour scheme using colbrewer: 100 is to make it continuos
+                            ## Also, make it a one-directional colour scheme
+                            scales      = list(draw = FALSE,  x = list(cex = 1.8), y = list(cex = 1.8),
+                                               xlab = list(cex = 1.8),
+                                               ylab = list(cex = 1.8)),
+                            
+                            at = seq(0, 1, length = 100),
+                            col.regions = colorRampPalette(rev(brewer.pal(9, 'YlOrRd'))),
+                            
+                            ## Give each plot a name: the third panel is the GCM
+                            names.attr = c('HSM records', 'HSM', '> thresh'),
+                            colorkey   = list(height = 0.5, width = 3), xlab = '', ylab = '',
+                            main       = list(gsub('_', ' ', taxa), font = 4, cex = 2)) +
+                    
+                    ## Plot the Aus shapefile with the occurrence points for reference
+                    ## Can the current layer be plotted on it's own?
+                    ## Add the novel maps as vectors.
+                    latticeExtra::layer(sp.polygons(poly), data = list(poly = poly)) +
+                    latticeExtra::layer(sp.points(occ, pch = 19, cex = 0.15,
+                                                  col = c('red', 'transparent', 
+                                                          'transparent')[panel.number()]),
+                                        data = list(occ = occ)))
+            dev.off()
+            gc()
+            
+          } else {
+            message(' Current MESS panel maps already created for ', taxa)
+          }
+          
         } else {
           message(taxa, ' ', ' skipped - SDM not yet run')
         }
         
-      } else {
-        message(' Current MESS panel maps already created for ', taxa)
-      }
+        ## Check this is the best way to run parallel
+        lapply(taxa_list, maxent_predict_fun)})
     }
-    
-    ## Check this is the best way to run parallel
-    lapply(taxa_list, maxent_predict_fun)
-  })
-}
+  }
+} 
+
 
 
 

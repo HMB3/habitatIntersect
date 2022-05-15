@@ -181,7 +181,9 @@ data('all.insect.plant.spp')
 
 
 ## Full list of analysis taxa, 
-analysis_taxa   <- str_trim(c(target.insect.spp, target.insect.genera, target.insect.families)) %>% unique()
+analysis_taxa   <- str_trim(c(target.insect.spp, 
+                              target.insect.genera, 
+                              target.insect.families)) %>% unique()
 
 
 host_plant_taxa <- read_excel(paste0(inv_habitat_dir, '/INVERTS_FIRE_SPATIAL_DATA_LUT_SEP2021.xlsm'),
@@ -380,6 +382,7 @@ host_map_taxa   <- host_plant_taxa                       %>% gsub(" ", "_", .,)
 
 ## Project SDMs across the Study area for the invert taxa
 tryCatch(
+  
   project_maxent_current_grids_mess(taxa_list       = invert_map_spp,    
                                     maxent_path     = inv_back_dir,
                                     current_grids   = east.climate.veg.grids.250m,         
