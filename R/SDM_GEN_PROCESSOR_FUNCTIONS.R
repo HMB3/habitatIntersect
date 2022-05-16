@@ -776,8 +776,8 @@ format_ala_dump = function(ALA_table,
     ## Note that these filters are very forgiving...
     ## Unless we include the NAs, very few records are returned!
     filter(!is.na(lon) & !is.na(lat)) %>%
-    filter(lon <= 180 & lat => -90) %>%
-    filter(lon <= 180 & lat => -90) %>%
+    filter(lon <= 180 & lat >= -90) %>%
+    filter(lon <= 180 & lat >= -90) %>%
     filter(!is.na(year))
   
   if(year_filt) {
