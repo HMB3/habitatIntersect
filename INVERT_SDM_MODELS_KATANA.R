@@ -151,6 +151,7 @@ gc()
 
 
 
+
 ## 2). RUN SDM ANALYSIS =============================================================
 
 
@@ -194,8 +195,8 @@ host_plant_taxa <- read_excel(paste0(inv_habitat_dir, '/INVERTS_FIRE_SPATIAL_DAT
 
 
 ## Read in the SDM data
-SDM.SPAT.OCC.BG.GDA       <- readRDS(paste0(inv_results_dir,    'SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds'))
-SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS(paste0(plant_results_dir,  'SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds'))
+SDM.SPAT.OCC.BG.GDA       <- readRDS(paste0(inv_results_dir,   'SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds'))
+SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS(paste0(plant_results_dir, 'SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds'))
 
 
 ## Run family-level models for invertebrates.

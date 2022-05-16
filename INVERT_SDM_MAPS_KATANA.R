@@ -214,7 +214,7 @@ plant_map_taxa  <- PLANT.MAXENT.RESULTS$searchTaxon      %>% gsub(" ", "_", .,)
 
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
 ## VALUES : 1-4, burn intensity from 2019-2020 fires, originally @ 10m resolution, re-sampled to 100m
-template_raster_250m <- raster('./data/Bushfire_indices/R_outputs/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
+template_raster_250m <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
 FESM_NSW_10m         <- raster('./data/Remote_sensing/FESM/fesm_20200319_albers.tif')
 FESM_AUS_20m         <- raster('./data/Remote_sensing/FESM/NBR_Burn_severity_classed_ALB.tif')
 
@@ -267,7 +267,7 @@ taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                         raster_convert = FALSE,
                                         save_shp       = FALSE,
                                         save_png       = FALSE,
-                                        poly_path      = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                                        poly_path      = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
                                         epsg           = 3577)
 
 gc()
@@ -284,7 +284,7 @@ taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                         raster_convert = FALSE,
                                         save_shp       = FALSE,
                                         save_png       = FALSE,
-                                        poly_path      = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                                        poly_path      = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
                                         epsg           = 3577)
 
 gc()
@@ -300,7 +300,7 @@ taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                         buffer         = 5000,
                                         raster_convert = FALSE,
                                         save_shp       = FALSE,
-                                        poly_path      = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                                        poly_path      = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
                                         epsg           = 3577)
 
 gc()
@@ -380,7 +380,7 @@ calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.RES
                                      main_int_cat       = FESM_east_20m_categ,
                                      second_int_layer   = AUS_forest_RS_feat,
                                      template_raster    = template_raster_250m,
-                                     poly_path          = 'data/Spatial_data/Study_areas/AUS_2016_AUST.shp',
+                                     poly_path          = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
                                      epsg               = 3577)
 
 gc()

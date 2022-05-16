@@ -77,8 +77,6 @@ ipak(sdmgen_packages)
 main_dir             <- paste0(getwd(), "/")
 tempdir              <- './TEMP/'
 ALA_dir              <- './data/ALA/'
-INV_dir              <- './data/ALA/Insects/'
-check_dir            <- './data/ALA/Insects/check_plots/'
 out_dir              <- './output/'
 
 reptile_rs_dir         <- './output/reptile_maxent/'
@@ -232,7 +230,6 @@ nsw_reptiles %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
 bionet_sdm <- SDM.SPAT.OCC.ALL.REPTILE.BG %>% .[.$searchTaxon %in% 'Hoplocephalus bungaroides', ]
 table(bionet_sdm$SOURCE)
 plot(bionet_sdm)
-
 
 
 ## Run species-level models for all reptiles

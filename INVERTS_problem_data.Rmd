@@ -51,6 +51,7 @@ rm(list = ls())
 if (all(Sys.getenv("JAVA_HOME")=="")) {
   Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jre1.8.0_321')
 }
+
 if (all(Sys.getenv("JAVA_TOOL_OPTIONS")=="")) {
   options(java.parameters = "-Xmx64G")
 }
@@ -398,6 +399,25 @@ Next we combine occurrence files from ALA and GBIF into one table, and extracts 
 
 ## The below shold really all be one big table
 ## Where we use different columns for the analysis :: species, genus or family
+ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = Insects_ALA,
+                                    record_type   = "ALA",
+                                    keep_cols     = ALA_keep,
+                                    year_filt     = FALSE,
+                                    unique_cells  = FALSE,
+                                    world_raster  = aus_annual_precip)
+
+
+ALA.LAND.INV.GENUS <- ALA.LAND.INV.SPP %>% dplyr::select(-searchTaxon) %>% 
+  dplyr::rename(searchTaxon = genus)   %>% dplyr::select(searchTaxon, everything())
+
+
+ALA.LAND.INV.FAM   <- ALA.LAND.INV.SPP %>% dplyr::select(-searchTaxon) %>% 
+  dplyr::rename(searchTaxon = family)  %>% dplyr::select(searchTaxon, everything())
+
+
+table(ALA.LAND.INV.SPP$SOURCE);
+table(ALA.LAND.INV.GENUS$SOURCE);
+table(ALA.LAND.INV.FAM$SOURCE)
 
 
 ## Update with the full insects download from ALA ----
