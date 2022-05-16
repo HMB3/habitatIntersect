@@ -603,8 +603,8 @@ combine_ala_records = function(taxa_list,
       ## Note that these filters are very forgiving...
       ## Unless we include the NAs, very few records are returned!
       filter(!is.na(lon) & !is.na(lat)) %>%
-      filter(lon < 180 & lat > -90) %>%
-      filter(lon < 180 & lat > -90) %>%
+      filter(lon <= 180 & lat >= -90) %>%
+      filter(lon <= 180 & lat >= -90) %>%
       filter(!is.na(year))
     
     if(year_filt) {
@@ -776,8 +776,8 @@ format_ala_dump = function(ALA_table,
     ## Note that these filters are very forgiving...
     ## Unless we include the NAs, very few records are returned!
     filter(!is.na(lon) & !is.na(lat)) %>%
-    filter(lon < 180 & lat > -90) %>%
-    filter(lon < 180 & lat > -90) %>%
+    filter(lon <= 180 & lat => -90) %>%
+    filter(lon <= 180 & lat => -90) %>%
     filter(!is.na(year))
   
   if(year_filt) {
@@ -927,8 +927,8 @@ combine_gbif_records = function(taxa_list,
             dplyr::select(one_of(keep_cols)) %>% 
             
             filter(!is.na(lon) & !is.na(lat)) %>%
-            filter(lon < 180 & lat > -90) %>%
-            filter(lon < 180 & lat > -90) %>%
+            filter(lon <= 180 & lat >= -90) %>%
+            filter(lon <= 180 & lat >= -90) %>%
             filter(year >= 1950) %>%
             filter(!is.na(year))
           
