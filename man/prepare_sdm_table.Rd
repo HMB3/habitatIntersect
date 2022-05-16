@@ -17,8 +17,7 @@ prepare_sdm_table(
   background_points,
   save_data,
   data_path,
-  sp_country_prj,
-  project_path
+  sp_country_prj
 )
 }
 \arguments{
@@ -40,9 +39,9 @@ prepare_sdm_table(
 
 \item{data_path}{Character string - The file path used for saving the data frame}
 
-\item{project_path}{Paht of taxa records, with spatial outlier T/F flag for each record}
-
 \item{save_shp}{Logical - Save a shapefile of the SDM table (T/F)?}
+
+\item{project_path}{Paht of taxa records, with spatial outlier T/F flag for each record}
 }
 \description{
 'This function takes a data frame of all taxa records,
