@@ -673,12 +673,14 @@ combine_ala_records = function(taxa_list,
       gc()
       
     } else {
+      CLEAN$SOURCE = record_type
       return(CLEAN)
     }
     
   } else {
     message('No ALA dat for this set of taxa, creating empty datframe to other data')
     LAND.POINTS = setNames(data.frame(matrix(ncol = length(keep), nrow = 0)), keep)
+    LAND.POINTS$SOURCE = record_type
     return(LAND.POINTS)
   }
 }
@@ -827,6 +829,9 @@ format_ala_dump = function(ALA_table,
     nrow(LAND.POINTS)
     length(unique(LAND.POINTS$searchTaxon))
     
+    ## get rid of some memory
+    gc()
+    
     ## Add a source column
     LAND.POINTS$SOURCE = record_type
     message(round((nrow(LAND.POINTS))/nrow(CLEAN)*100, 2),
@@ -836,11 +841,14 @@ format_ala_dump = function(ALA_table,
     nrow(LAND.POINTS)
     length(unique(LAND.POINTS$searchTaxon))
     
-    ## get rid of some memory
-    gc()
     return(LAND.POINTS)
     
   } else {
+    
+    ## Add a source column
+    CLEAN$SOURCE = record_type
+
+    ## save data
     return(CLEAN)
   }
 }
@@ -1094,6 +1102,7 @@ combine_records_extract = function(ala_df,
   ## Don't taxo match the site data :: this needs to be kept without exclusion
   if(add_sites) {
     
+    message('Add site data' )
     site_df   <- site_df[site_df$searchTaxon %in% taxa_list, ]
     ALA.COMBO <- bind_rows(ALA.COMBO, site_df)
     
@@ -1104,10 +1113,13 @@ combine_records_extract = function(ala_df,
   ## CHECK TAXONOMY RETURNED BY ALA USING TAXONSTAND?
   
   ## Create points: the 'over' function seems to need geographic coordinates for this data...
-  GBIF.ALA.84   = SpatialPointsDataFrame(coords      = ALA.COMBO %>% 
-                                           dplyr::select(lon, lat) %>% as.matrix(),
-                                         data        = ALA.COMBO,
-                                         proj4string = prj)
+  GBIF.ALA.84 = SpatialPointsDataFrame(coords      = ALA.COMBO %>% 
+                                         dplyr::select(lon, lat) %>% as.matrix(),
+                                       data        = ALA.COMBO,
+                                       proj4string = prj) %>% 
+    
+    st_as_sf() %>% 
+    st_transform(., st_crs(4326))
   
   if(thin_records == TRUE) {
     
@@ -1148,7 +1160,7 @@ combine_records_extract = function(ala_df,
   ## Group rename the columns
   ## This relies on the bioclim order, it must be the same
   # setnames(COMBO.RASTER, old = names(world_raster), new = env_vars)
-  COMBO.RASTER <- COMBO.RASTER %>% dplyr::select(-lat.1, -lon.1)
+  # COMBO.RASTER <- COMBO.RASTER %>% dplyr::select(-lat.1, -lon.1)
   
   ## Change the raster values here: See http://worldclim.org/formats1 for description of the integer conversion.
   ## All worldclim temperature variables were multiplied by 10, so then divide by 10 to reverse it.
@@ -1225,10 +1237,10 @@ coord_clean_records = function(records,
   length(records$CC.OBS);length(unique(records$CC.OBS))
   records$taxa = records$searchTaxon
   
-  
   if(multi_source){
     
     ## Split the site data up from the ALA data
+    message('Subset data by source')
     ala_records  <- records %>% filter(SOURCE == occ_flag)
     site_records <- records %>% filter(SOURCE == site_flag) %>% dplyr::mutate(coord_summary = TRUE)
     
@@ -2111,8 +2123,7 @@ prepare_sdm_table = function(coord_df,
                              background_points,
                              save_data,
                              data_path,
-                             sp_country_prj,
-                             project_path) {
+                             sp_country_prj) {
   
   ## Just add clean_df to this step
   coord_df <- subset(coord_df, coord_summary == TRUE)
@@ -2303,11 +2314,11 @@ prepare_sdm_table = function(coord_df,
     ## Save .rds file of the occurrence and BG points for the next session
     saveRDS(SDM.SPAT.OCC.BG, paste0(data_path, 'SDM_SPAT_OCC_BG_',  save_run, '.rds'))
     
-    # st_write(SDM.SPAT.OCC.BG, 
-    #          dsn    = paste0(data_path, 'SDM_SPAT_OCC_BG_',  save_run, '.gpkg'), 
-    #          layer  = paste0('SDM_SPAT_OCC_BG_',  save_run),
-    #          quiet  = TRUE,
-    #          append = FALSE)
+    st_write(SDM.SPAT.OCC.BG,
+             dsn    = paste0(data_path, 'SDM_SPAT_OCC_BG_',  save_run, '.gpkg'),
+             layer  = paste0('SDM_SPAT_OCC_BG_',  save_run),
+             quiet  = TRUE,
+             append = FALSE)
     
     return(SDM.SPAT.OCC.BG)
     

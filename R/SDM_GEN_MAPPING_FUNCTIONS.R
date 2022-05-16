@@ -118,10 +118,9 @@ project_maxent_current_grids_mess = function(taxa_list,
             current_suit_thresh[current_suit_thresh == 0] <- NA
             
             ## Now crop the raster stack
-            message('masking raster values for ', taxa)
+            message('thresholding raster values for ', taxa)
             current_grids_crop <- raster::crop(current_grids, current_suit_thresh)
-            current_grids_mask <- terra::mask(current_grids_crop, current_suit_thresh)
-            
+
             message('Writing ', taxa, ' current', ' logistics > ', thresh)
             
             ## Save in two places, in the taxa folder, 
@@ -139,8 +138,6 @@ project_maxent_current_grids_mess = function(taxa_list,
             ## Now crop the raster stack
             message('masking raster values for ', taxa)
             current_grids_crop <- raster::crop(current_grids, current_suit_thresh)
-            current_grids_mask <- terra::mask(current_grids_crop, current_suit_thresh)
-            
             message('Writing ', taxa, ' current', ' logistics > ', thresh)
           }
           
@@ -197,6 +194,9 @@ project_maxent_current_grids_mess = function(taxa_list,
             
             ## If the current novel layer doesn't exist, create it
             if(!file.exists(sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel"))) {
+              
+              ## Mask out raster values for that taxa
+              current_grids_mask <- terra::mask(current_grids_crop, current_suit_thresh)
               
               ##
               message('Are the environmental variables identical? ',
@@ -324,6 +324,12 @@ project_maxent_current_grids_mess = function(taxa_list,
           } else {
             message('Do not run MESS maps for ', taxa)
           }
+          
+          message('save raster for ', taxa, ' as per mess analysis')
+          writeRaster(current_suit_thresh, 
+                      sprintf('%s/%s/full/%s_%s%s.tif', maxent_path,
+                              save_name, save_name, "current_suit_not_novel_above_", thresh),
+                      overwrite = TRUE)
           
           ## Below, we create a dummy polygon as the first list element (which is the extent
           ## of the raster, expanded by 10%), to plot on panel 1). 50 = approx 50 lines across the polygon

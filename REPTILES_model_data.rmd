@@ -81,61 +81,15 @@ INV_dir              <- './data/ALA/Insects/'
 check_dir            <- './data/ALA/Insects/check_plots/'
 out_dir              <- './output/'
 
-inv_rs_dir           <- './output/invert_maxent_raster_update/'
-inv_back_dir         <- './output/invert_maxent_raster_update/back_sel_models'
-inv_full_dir         <- './output/invert_maxent_raster_update/full_models'
-inv_results_dir      <- './output/invert_maxent_raster_update/results/'
+reptile_rs_dir         <- './output/reptile_maxent/'
+reptile_back_dir       <- './output/reptile_maxent/back_sel_models'
+reptile_full_dir       <- './output/reptile_maxent/full_models'
+reptile_results_dir    <- './output/reptile_maxent/results/'
 
-plant_rs_dir         <- './output/plant_maxent_raster_update/'
-plant_back_dir       <- './output/plant_maxent_raster_update/back_sel_models'
-plant_full_dir       <- './output/plant_maxent_raster_update/full_models'
-plant_results_dir    <- './output/plant_maxent_raster_update/results/'
-
-reptile_rs_dir         <- './output/reptile_maxent_raster_update/'
-reptile_back_dir       <- './output/reptile_maxent_raster_update/back_sel_models'
-reptile_full_dir       <- './output/reptile_maxent_raster_update/full_models'
-reptile_results_dir    <- './output/reptile_maxent_raster_update/results/'
-
-
-veg_dir              <- './data/Remote_sensing/Veg_data/Forest_cover/'
-inv_habitat_dir      <- './output/invert_maxent_raster_update/Habitat_suitability/'
-inv_inters_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/Veg_intersect/'
-inv_thresh_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
-inv_fire_dir         <- './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
-
-
-plant_habitat_dir    <- './output/plant_maxent_raster_update/Habitat_suitability/'
-plant_inters_dir     <- './output/plant_maxent_raster_update/Habitat_suitability/Veg_intersect/'
-plant_thresh_dir     <- './output/plant_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
-plant_fire_dir       <- './output/plant_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
-
-
-reptile_habitat_dir    <- './output/reptile_maxent_raster_update/Habitat_suitability/'
-reptile_inters_dir     <- './output/reptile_maxent_raster_update/Habitat_suitability/Veg_intersect/'
-reptile_thresh_dir     <- './output/reptile_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
-reptile_fire_dir       <- './output/reptile_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
-
-
-
-dir_list <- c(tempdir, ALA_dir, 
-              INV_dir, check_dir, out_dir, inv_rs_dir, inv_back_dir, inv_full_dir, inv_results_dir,
-              plant_rs_dir, plant_back_dir, plant_full_dir, plant_results_dir, veg_dir,
-              reptile_rs_dir, reptile_back_dir, reptile_full_dir, reptile_results_dir,
-              inv_habitat_dir, inv_inters_dir, inv_thresh_dir, inv_fire_dir,
-              plant_habitat_dir, plant_inters_dir, plant_thresh_dir, plant_fire_dir,
-              reptile_habitat_dir, reptile_inters_dir, reptile_thresh_dir, reptile_fire_dir)
-
-
-## Create the folders if they don't exist
-for(dir in dir_list) {
-  
-  if(!dir.exists(paste0(main_dir, dir))) {
-    message('Creating ', dir, ' directory')
-    dir.create(file.path(main_dir, dir), recursive = TRUE) 
-    
-  } else {
-    message(dir, ' directory already exists')}
-}
+reptile_habitat_dir    <- './output/reptile_maxent/Habitat_suitability/'
+reptile_inters_dir     <- './output/reptile_maxent/Habitat_suitability/Veg_intersect/'
+reptile_thresh_dir     <- './output/reptile_maxent/Habitat_suitability/SDM_thresholds/'
+reptile_fire_dir       <- './output/reptile_maxent/Habitat_suitability/FESM_SDM_intersect/'
 
 
 ## Try and set the raster temp directory to a location not on the partition, to save space
@@ -163,115 +117,78 @@ environmental conditions. There are three ways to estimate habitat suitability :
 
 \
 
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=TRUE}
+
+
+## Original taxa
+target_reptiles <- c('Phyllurus platurus',  'Eulamprus tympanum',      'Hoplocephalus bungaroides', 'Drysdalia rhodogaster', 
+                     'Amalosia lesuerii',   'Cryptophis nigrescens',   'Eulamprus heatwolei',       'Varanus varius',
+                     'Morelia spilota',     'Pseudechis porphyriacus', 'Varanus rosenbergi')
+
+## Threatened taxa
+threat_reptiles <- read_excel(paste0(ALA_dir, 'REPTILES/endangered_and_priority_reptiles.xlsx'),
+                              sheet = 'NSW_threat_reptiles')
+
+priority_reptiles <- threat_reptiles %>% 
+  dplyr::select(Wildlife_recovery_priority_tranche_2) %>% 
+  na.omit() %>% 
+  .$Wildlife_recovery_priority_tranche_2
+
+
+nsw_reptiles <- threat_reptiles %>% 
+  dplyr::select(ScientificName) %>% 
+  .$ScientificName %>% c(., target_reptiles, priority_reptiles) %>% 
+  unique() %>% sort()
+
+
+setdiff(priority_reptiles, nsw_reptiles)
+
+
+```
+
+
+
 
 # 250m Climate, Soil and terrain variables
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-## 250m Precip layers
-aus_precip_250m <- raster::stack(
-  list.files('./data/CSIRO_layers/250m/AUS/Precip',        pattern =".tif", full.names = TRUE))
+aus.climate.veg.grids.250m <- raster::stack(
+  list.files('./data/CSIRO_layers/250m/AUS/',      pattern =".tif", full.names = TRUE))
 
-east_precip_250m <- raster::stack(
-  list.files('./data/CSIRO_layers/250m/EAST_COAST/Precip', pattern =".tif", full.names = TRUE))
-
-
-## 250m temperature layers
-aus_temp_250m <- raster::stack(
-  list.files('./data/CSIRO_layers/250m/AUS/Temp',          pattern =".tif", full.names = TRUE))
-
-east_temp_250m <- raster::stack(
-  list.files('./data/CSIRO_layers/250m/EAST_COAST/Temp',   pattern =".tif", full.names = TRUE))
+east.climate.veg.grids.250m  <- raster::stack(
+  list.files('./data/CSIRO_layers/250m/FESM_EXT/', pattern =".tif", full.names = TRUE))
 
 
-## 250m Soil layers
-aus_soil_250m <- raster::stack(
-  list.files('./data/CSIRO_layers/250m/AUS/Soil',          pattern =".tif", full.names = TRUE))
+names(aus.climate.veg.grids.250m)[1:11] <- 
+  names(east.climate.veg.grids.250m)[1:11] <- 
+  c("Tree_canopy_peak_foliage_total",
+    "Plant_cover_fraction_0_5m", 
+    "Plant_cover_fraction_5_10m",  
+    "Plant_cover_fraction_10_30m",      
+    "Plant_cover_fraction_30m",
+    "Total_Plant_cover_fraction",  
+    "Tree_canopy_height_25th", 
+    "Tree_canopy_height_50th", 
+    "Tree_canopy_height_75th",   
+    "Tree_canopy_height_95th",   
+    "Tree_canopy_peak_foliage")
 
-east_soil_250m <- raster::stack(
-  list.files('./data/CSIRO_layers/250m/EAST_COAST/Soil',   pattern =".tif", full.names = TRUE))
-
-
-## 250m Geology Australia
-aus_geology_250m <- raster::stack(
-  list.files('./data/CSIRO_layers/250m/AUS/Geology',        pattern =".tif", full.names = TRUE))
-
-east_geology_250m <- raster::stack(
-  list.files('./data/CSIRO_layers/250m/EAST_COAST/Geology', pattern =".tif", full.names = TRUE))
-
-
-## 250m topo Australia
-aus_topo_250m <- raster::stack(
-  list.files('./data/CSIRO_layers/250m/AUS/Topo',           pattern =".tif", full.names = TRUE))
-
-east_topo_250m <- raster::stack(
-  list.files('./data/CSIRO_layers/250m/EAST_COAST/Topo',    pattern =".tif", full.names = TRUE))
-
-
-## 250m terrain indices Australia
-aus_terrain_250m <- raster::stack(
-  list.files('./data/CSIRO_layers/250m/AUS/Indices',        pattern =".tif", full.names = TRUE))
-
-east_terrain_250m <- raster::stack(
-  list.files('./data/CSIRO_layers/250m/EAST_COAST/Indices', pattern =".tif", full.names = TRUE))
-
-
-## Climate data for Australia, in GDA Albers projection
-aus.grids.current.250m <- stack(aus_precip_250m,
-                                aus_temp_250m,
-                                aus_soil_250m,
-                                aus_topo_250m,
-                                aus_terrain_250m,
-                                aus_geology_250m)
-
-east.grids.current.250m <- stack(east_precip_250m,
-                                 east_temp_250m,
-                                 east_soil_250m,
-                                 east_topo_250m,
-                                 east_terrain_250m,
-                                 east_geology_250m)
-
-
-## And a stack of grids for vegetation, in GDA Albers projection
-aus.veg.grids.250m <- stack(
-  
-  list.files('./data/Remote_sensing/Veg_data/height_and_cover/Aus/250m', 
-             '_250m.tif', full.names = TRUE))
-
-east.veg.grids.250m <- stack(
-  
-  list.files('./data/Remote_sensing/Veg_data/height_and_cover/Eastern_Aus/250m', 
-             '_east_coast.tif', full.names = TRUE))
-
-
-names(east.grids.current.250m) <- gsub('_EAST_COAST', '', names(east.grids.current.250m))
-names(aus.veg.grids.250m)      <- names(east.veg.grids.250m) <- c("Plant_cover_fraction_0_5m", 
-                                                                  "Plant_cover_fraction_5_10m",  
-                                                                  "Plant_cover_fraction_10_30m",      
-                                                                  "Plant_cover_fraction_30m",
-                                                                  "Total_Plant_cover_fraction",  
-                                                                  "Tree_canopy_height_25th", 
-                                                                  "Tree_canopy_height_50th", 
-                                                                  "Tree_canopy_height_75th",   
-                                                                  "Tree_canopy_height_95th",   
-                                                                  "Tree_canopy_peak_foliage",
-                                                                  "Tree_canopy_peak_foliage_total",
-                                                                  "mrvbf")
-
-
-## Combine the grids into raster stacks
-aus.climate.veg.grids.250m   <- stack(aus.grids.current.250m, aus.veg.grids.250m)
-east.climate.veg.grids.250m  <- stack(east.grids.current.250m, east.veg.grids.250m)
-
-## Should be 280m*280m, It should havle a value of 1 for land, and NA for the ocean
-template_raster_250m         <- raster('./data/CSIRO_layers/250m/template_250m_raster.tif')
-
+identical(names(east.climate.veg.grids.250m),
+          names(aus.climate.veg.grids.250m))
 
 ## Now remove the individual rasters
 rm(list = ls(pattern = 'aus_'))
 rm(list = ls(pattern = 'east_'))
-gc()
 
+aus_annual_precip       <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip_WGS84.tif')
+aus_annual_precip_alb   <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
+
+
+## Should be 1km*1km, It should havle a value of 1 for land, and NA for the ocean
+aus_annual_precip_alb[aus_annual_precip_alb > 0] <- 1
+template_raster_250m <- aus_annual_precip_alb
+gc()
 
 ``` 
 
@@ -300,10 +217,14 @@ SDM.SPAT.OCC.ALL.REPTILE.BG <- readRDS(paste0(reptile_results_dir, 'SDM_SPAT_OCC
 
 
 ## Are the control taxa present? And the extra records?
-'Pseudechis porphyriacus'   %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
-'Hoplocephalus bungaroides' %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
-'Drysdalia rhodogaster'     %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
+'Pseudechis porphyriacus'        %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
+'Hoplocephalus bungaroides'      %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
+'Drysdalia rhodogaster'          %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
+'Ctenotus pantherinus ocellifer'    %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
+'Cyclodomorphus melanops elongatus' %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
+'Egernia roomi'                     %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
 
+nsw_reptiles %in% SDM.SPAT.OCC.ALL.REPTILE.BG$searchTaxon
 
 ## To Do :
 ## 1). Ryan has checked the taxonomy
@@ -313,17 +234,12 @@ table(bionet_sdm$SOURCE)
 plot(bionet_sdm)
 
 
-target_reptiles  <- c('Phyllurus platurus',  'Eulamprus tympanum',      'Hoplocephalus bungaroides', 'Drysdalia rhodogaster', 
-                      'Amalosia lesuerii',   'Cryptophis nigrescens',   'Eulamprus heatwolei',       'Varanus varius',
-                      'Morelia spilota',     'Pseudechis porphyriacus', 'Varanus rosenbergi')
-
-
 
 ## Run species-level models for all reptiles
-run_sdm_analysis_no_crop(taxa_list               = target_reptiles[-3],
+run_sdm_analysis_no_crop(taxa_list               = nsw_reptiles[-35],
                          taxa_level              = 'species',
-                         maxent_dir              = 'output/reptile_maxent_raster_update/full_models',     
-                         bs_dir                  = 'output/reptile_maxent_raster_update/back_sel_models',
+                         maxent_dir              = reptile_back_dir,     
+                         bs_dir                  = reptile_back_dir,
                          sdm_df                  = SDM.SPAT.OCC.ALL.REPTILE.BG,
                          sdm_predictors          = names(aus.climate.veg.grids.250m),
                          
@@ -346,7 +262,7 @@ gc()
 
 
 ## Run species-level models for all Hoplocephalus bungaroides
-run_sdm_analysis_no_crop(taxa_list               = target_reptiles[3],
+run_sdm_analysis_no_crop(taxa_list               = nsw_reptiles[35],
                          taxa_level              = 'species',
                          maxent_dir              = 'output/reptile_maxent_raster_update/full_models',     
                          bs_dir                  = 'output/reptile_maxent_raster_update/back_sel_models',

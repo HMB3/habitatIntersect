@@ -315,6 +315,12 @@ ALA.LAND.INV.FAM   <- ALA.LAND.INV.SPP %>% dplyr::select(-searchTaxon) %>%
   dplyr::rename(searchTaxon = family)  %>% dplyr::select(searchTaxon, everything())
 
 
+'Rayieria basifer'            %in% ALA.LAND.INV.SPP$searchTaxon
+'Amphistomus cunninghamensis' %in% ALA.LAND.INV.SPP$searchTaxon
+'Eritingis trivirgata'        %in% ALA.LAND.INV.SPP$searchTaxon
+'Asteron grayi'               %in% ALA.LAND.INV.SPP$scientificName
+
+
 ALA.LAND.INV.SPP.SF <- SpatialPointsDataFrame(coords      = ALA.LAND.INV.SPP %>% 
                                                 dplyr::select(lon, lat) %>% as.matrix(),
                                               data        = ALA.LAND.INV.SPP,
@@ -329,9 +335,9 @@ poly <- st_read('data/Spatial_data/Study_areas/AUS_2016_AUST.shp') %>%
 
 
 ## Check a few of the taxa now
-'Rayieria basifer'            %in% ALA.LAND.INV.SPP.SF$scientificName 
-'Amphistomus cunninghamensis' %in% ALA.LAND.INV.SPP.SF$scientificName
-'Eritingis trivirgata'        %in% ALA.LAND.INV.SPP.SF$scientificName
+'Rayieria basifer'            %in% ALA.LAND.INV.SPP.SF$searchTaxon
+'Amphistomus cunninghamensis' %in% ALA.LAND.INV.SPP.SF$searchTaxon
+'Eritingis trivirgata'        %in% ALA.LAND.INV.SPP.SF$searchTaxon
 'Asteron grayi'               %in% ALA.LAND.INV.SPP.SF$scientificName
 
 
@@ -398,7 +404,7 @@ Next we combine occurrence files from ALA and GBIF into one table, and extracts 
 ## Combine GBIF and ALA data, and extract environmental values
 ## Some of the site records will be removed here, if they are outside the raster bounds.
 ## This seems strange, but maybe they are right on the coast
-COMBO.RASTER.FAM = combine_records_extract(ala_df           = ALA.LAND.INV.FAM,
+COMBO.RASTER.FAM = combine_records_extract(ala_df           = ALA.LAND.INV.SPP,
                                            add_sites        = TRUE,
                                            filter_taxo      = FALSE,
                                            
@@ -415,6 +421,7 @@ COMBO.RASTER.FAM = combine_records_extract(ala_df           = ALA.LAND.INV.FAM,
                                            save_data        = FALSE,
                                            save_run         = "TARGET_INSECT_FAMILIES",
                                            data_path        = "./output/results/")
+gc()
 
 
 COMBO.RASTER.GEN = combine_records_extract(ala_df           = ALA.LAND.INV.GENUS,
@@ -435,6 +442,7 @@ COMBO.RASTER.GEN = combine_records_extract(ala_df           = ALA.LAND.INV.GENUS
                                            save_data        = FALSE,
                                            save_run         = "TARGET_INSECT_GENERA",
                                            data_path        = "./output/results/")
+gc()
 
 
 COMBO.RASTER.SPP = combine_records_extract(ala_df           = ALA.LAND.INV.SPP,
@@ -455,13 +463,11 @@ COMBO.RASTER.SPP = combine_records_extract(ala_df           = ALA.LAND.INV.SPP,
                                            save_data        = FALSE,
                                            save_run         = "TARGET_INSECT_SPECIES",
                                            data_path        = "./output/results/")
+gc()
 
 
-## Try combing the records into a "super table"
+## Try combing the records into a "super table"...does that make sense?
 COMBO.RASTER.FAM.GEN.SPP <- bind_rows(COMBO.RASTER.FAM, COMBO.RASTER.GEN, COMBO.RASTER.SPP)
-
-## Now filter this to
-
 gc()
 
 ``` 
@@ -502,23 +508,7 @@ COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.FAM,
                                   save_run   = "TARGET_INSECT_SPECIES",
                                   data_path  = "./output/results/")
 
-``` 
 
-\
-
-The next cleaning function takes a data frame of all taxa records, flags records as 
-spatial outliers (T/F for each record in the df), and saves images of the checks for each. 
-Manual cleaning of spatial outliers is very tedious, but automated cleaning makes mistakes, 
-so checking is handy. This function uses the CoordinateCleaner package 
-https://cran.r-project.org/web/packages/CoordinateCleaner/index.html. It assumes that the 
-input dfs are those returned by the coord_clean_records function.
-
-\
-
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
-
-## Flag spatial outliers
-## This one doesn't quite work - it doesn't loop over the figures :
 SPATIAL.CLEAN = check_spatial_outliers(occ_df       = COORD.CLEAN,
                                        land_shp     = LAND,
                                        site_records = TRUE, 
@@ -531,22 +521,6 @@ SPATIAL.CLEAN = check_spatial_outliers(occ_df       = COORD.CLEAN,
                                        spatial_mult = 10,
                                        prj          = CRS("+init=epsg:4326"))
 
-``` 
-
-\
-
-The next cleaning function takes a data frame of all taxa records, estimates the geographic 
-and environmental ranges for each taxa, and creates a table of all taxa ranges. 
-It uses the AOO.computing function in the ConR package: https://cran.r-project.org/web/packages/ConR/index.html
-It assumes that the input df is that returned by the check_spatial_outliers function.
-
-\
-
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
-
-## Estimate climate niches using taxa records
-## Make this calculate niches for the target list
-## This should be stored in a database
 GLOB.NICHE.ALL = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxon %in% analysis_taxa, ],
                                  prj          = CRS("+init=epsg:4326"),
                                  country_shp  = AUS,
@@ -556,30 +530,16 @@ GLOB.NICHE.ALL = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxo
                                  env_vars     = names(aus.climate.veg.grids.250m),
                                  cell_size    = 2,
                                  save_data    = TRUE,
-                                 save_run     = "ALL_TARGET_INSECT_TAXA_UPDATE",
+                                 save_run     = "ALL_INSECT_FAMILIES_UPDATE",
                                  data_path    = inv_results_dir)
 
-``` 
 
-\
-
-We can also plot the environmental ranges of each taxa. This function 
-takes a data frame of all taxa records, and plots histograms and convex hulls for 
-each taxa in global environmental space. It assumes that the input df is that 
-prepared by the check_spatial_outliers function
-
-\
-
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
-
-## Plot taxa ranges using histograms and convex hulls for rainfall and temperature distributions
 plot_range_histograms(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxon %in% analysis_taxa, ],
                       taxa_list    = analysis_taxa,
                       range_path   = './data/ALA/Check_Plots/Inverts/')
 
 ``` 
 
-\
 
 
 # STEP 5 :: Prepare SDM table
@@ -622,12 +582,11 @@ SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD.CLEAN,
                                                                'SPAT_OUT',
                                                                names(aus.climate.veg.grids.250m)),
                                          
-                                         save_run          = "ALL_TARGET_INSECT_TAXA_UPDATE",
+                                         save_run          = "ALL_INSECT_FAMILIES_UPDATE",
                                          read_background   = FALSE,
                                          sp_country_prj    = sp_epsg3577,
                                          save_data         = TRUE,
-                                         data_path         = paste0(inv_results_dir),
-                                         project_path      = 'G:/GITHUB/North_east_NSW_fire_recovery')
+                                         data_path         = inv_results_dir)
 
 
 ## Check the taxonomic levels
