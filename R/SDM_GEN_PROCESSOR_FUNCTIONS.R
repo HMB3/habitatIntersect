@@ -765,7 +765,7 @@ format_ala_dump = function(ALA_table,
   ## Clear the garbage
   gc()
   
-  ## What names get returned?
+  ## What names get returned
   TRIM <- ALL
   (sum(is.na(TRIM$scientificName)) + nrow(subset(TRIM, scientificName == "")))/nrow(TRIM)*100
   
