@@ -108,7 +108,7 @@ project_maxent_current_grids_mess = function(taxa_list,
           thresh_file <- sprintf('%s/%s/full/%s_%s%s.tif', maxent_path,
                                  save_name, save_name, "current_suit_above_", thresh)
           
-          if(!file.exists(f_current) == TRUE) {
+          if(!file.exists(thresh_file) == TRUE) {
             
             ## Threshold the maxent prediction, and use that to crop the raster stack
             thresh = m@results["X10.percentile.training.presence.Logistic.threshold",][[1]]
@@ -334,60 +334,56 @@ project_maxent_current_grids_mess = function(taxa_list,
           
           ## Use the 'levelplot' function to make a multipanel output:
           ## occurrence points, current raster and future raster
-          current_mess_png = sprintf('%s/%s/full/%s_%s.png', 
-                                     maxent_path, save_name, save_name, "mess_panel")
           
-          if(!file.exists(current_mess_png)) {
-            
-            ## Create level plot of current conditions including MESS
-            message('Create current MESS panel maps for ', taxa)
-            
-            png(sprintf('%s/%s/full/%s_%s.png', maxent_path, save_name, save_name, "mess_panel"),
-                8, 16, units = 'in', res = 600)
-            
-            print(levelplot(raster::stack(empty_ras,
-                                          pred.current,
-                                          current_suit_thresh, 
-                                          quick = TRUE), margin = FALSE,
-                            
-                            ## Create a colour scheme using colbrewer: 100 is to make it continuos
-                            ## Also, make it a one-directional colour scheme
-                            scales      = list(draw = FALSE,  x = list(cex = 1.8), y = list(cex = 1.8),
-                                               xlab = list(cex = 1.8),
-                                               ylab = list(cex = 1.8)),
-                            
-                            at = seq(0, 1, length = 100),
-                            col.regions = colorRampPalette(rev(brewer.pal(9, 'YlOrRd'))),
-                            
-                            ## Give each plot a name: the third panel is the GCM
-                            names.attr = c('HSM records', 'HSM', '> thresh'),
-                            colorkey   = list(height = 0.5, width = 3), xlab = '', ylab = '',
-                            main       = list(gsub('_', ' ', taxa), font = 4, cex = 2)) +
-                    
-                    ## Plot the Aus shapefile with the occurrence points for reference
-                    ## Can the current layer be plotted on it's own?
-                    ## Add the novel maps as vectors.
-                    latticeExtra::layer(sp.polygons(poly), data = list(poly = poly)) +
-                    latticeExtra::layer(sp.points(occ, pch = 19, cex = 0.15,
-                                                  col = c('red', 'transparent', 
-                                                          'transparent')[panel.number()]),
-                                        data = list(occ = occ)))
-            dev.off()
-            gc()
-            
-          } else {
-            message(' Current MESS panel maps already created for ', taxa)
-          }
+          ## Create level plot of current conditions including MESS
+          message('Create current MESS panel maps for ', taxa)
+          
+          png(sprintf('%s/%s/full/%s_%s.png', maxent_path, save_name, save_name, "mess_panel"),
+              8, 16, units = 'in', res = 600)
+          
+          print(levelplot(raster::stack(empty_ras,
+                                        pred.current,
+                                        current_suit_thresh, 
+                                        quick = TRUE), margin = FALSE,
+                          
+                          ## Create a colour scheme using colbrewer: 100 is to make it continuos
+                          ## Also, make it a one-directional colour scheme
+                          scales      = list(draw = FALSE,  x = list(cex = 1.8), y = list(cex = 1.8),
+                                             xlab = list(cex = 1.8),
+                                             ylab = list(cex = 1.8)),
+                          
+                          at = seq(0, 1, length = 100),
+                          col.regions = colorRampPalette(rev(brewer.pal(9, 'YlOrRd'))),
+                          
+                          ## Give each plot a name: the third panel is the GCM
+                          names.attr = c('HSM records', 'HSM', '> thresh'),
+                          colorkey   = list(height = 0.5, width = 3), xlab = '', ylab = '',
+                          main       = list(gsub('_', ' ', taxa), font = 4, cex = 2)) +
+                  
+                  ## Plot the Aus shapefile with the occurrence points for reference
+                  ## Can the current layer be plotted on it's own?
+                  ## Add the novel maps as vectors.
+                  latticeExtra::layer(sp.polygons(poly), data = list(poly = poly)) +
+                  latticeExtra::layer(sp.points(occ, pch = 19, cex = 0.15,
+                                                col = c('red', 'transparent', 
+                                                        'transparent')[panel.number()]),
+                                      data = list(occ = occ)))
+          dev.off()
+          gc()
           
         } else {
-          message(taxa, ' ', ' skipped - SDM not yet run')
+          message(taxa, ' skipped - SDM not yet run')
         }
-        
-        ## Check this is the best way to run parallel
-        lapply(taxa_list, maxent_predict_fun)})
+      } else {
+        message(taxa, ' skipped, Current MESS panel maps already created')
+      }
     }
-  }
-} 
+    
+    ## Check this is the best way to run parallel
+    lapply(taxa_list, maxent_predict_fun)
+  })
+}
+
 
 
 
