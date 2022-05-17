@@ -219,7 +219,7 @@ run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.families),
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         poly_path               = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
+                         poly_path               = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                          epsg                    = 3577)
 
 
@@ -246,7 +246,7 @@ run_sdm_analysis_no_crop(taxa_list               = rev(sort(target.insect.genera
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         poly_path               = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
+                         poly_path               = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                          epsg                    = 3577)
 
 
@@ -273,7 +273,7 @@ run_sdm_analysis_no_crop(taxa_list               = target.insect.spp,
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         poly_path               = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
+                         poly_path               = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                          epsg                    = 3577)
 
 gc()
@@ -299,7 +299,7 @@ run_sdm_analysis_no_crop(taxa_list               = sort(host_plant_taxa),
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         poly_path               = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
+                         poly_path               = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                          epsg                    = 3577)
 
 
@@ -391,7 +391,7 @@ tryCatch(
                                     save_novel_poly = TRUE,
                                     maxent_table    = INVERT.MAXENT.RESULTS,
                                     output_path     = paste0(inv_thresh_dir, 'inverts_sdm_novel_combo.gpkg'),
-                                    poly_path       = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
+                                    poly_path       = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                                     epsg            = 3577),
   
   ## If the species fails, write a fail message to file
@@ -413,7 +413,7 @@ tryCatch(
                                     create_mess     = FALSE,
                                     save_novel_poly = FALSE,
                                     output_path     = paste0(plant_thresh_dir, 'plants_sdm_novel_combo.gpkg'),
-                                    poly_path       = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
+                                    poly_path       = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                                     epsg            = 3577),
   
   ## If the species fails, write a fail message to file
@@ -436,7 +436,7 @@ tryCatch(
                                     create_mess     = TRUE,
                                     save_novel_poly = TRUE,
                                     output_path     = paste0(inv_thresh_dir, 'inverts_sdm_novel_combo.gpkg'),
-                                    poly_path       = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
+                                    poly_path       = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                                     epsg            = 3577),
   
   ## If the species fails, write a fail message to file
@@ -471,7 +471,7 @@ habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)
                   maxent_table  = INVERT.MAXENT.RESULTS,
                   maxent_path   = inv_back_dir,
                   output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
-                  poly_path     = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
+                  poly_path     = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                   epsg          = 3577)
 
 gc()
@@ -482,7 +482,7 @@ habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTa
                   maxent_table  = INVERT.MAXENT.SPP.RESULTS,
                   maxent_path   = inv_back_dir,
                   output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
-                  poly_path     = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
+                  poly_path     = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                   epsg          = 3577)
 
 
@@ -491,7 +491,7 @@ habitat_threshold(taxa_list     = sort(unique(PLANT.MAXENT.RESULTS$searchTaxon))
                   maxent_table  = PLANT.MAXENT.RESULTS,
                   maxent_path   = inv_back_dir,
                   output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
-                  poly_path     = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
+                  poly_path     = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                   epsg          = 3577)
 
 

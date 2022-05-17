@@ -252,7 +252,7 @@ run_sdm_analysis_no_crop(taxa_list               = nsw_reptiles[-35],
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         poly_path               = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
+                         poly_path               = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                          epsg                    = 3577)
 
 gc()
@@ -278,7 +278,7 @@ run_sdm_analysis_no_crop(taxa_list               = nsw_reptiles[35],
                          features                = 'lpq',
                          replicates              = 5,
                          responsecurves          = TRUE,
-                         poly_path               = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
+                         poly_path               = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                          epsg                    = 3577)
 
 
@@ -303,16 +303,10 @@ across Australia ().
 
 ## Create a table of maxent results
 ## This function aggregates the results for models that ran successfully
-results_dir   <- './output/reptile_maxent_raster_update/results/'
-habitat_dir   <- './output/reptile_maxent_raster_update/Habitat_suitability/'
-threshold_dir <- './output/reptile_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
-intersect_dir <- './output/reptile_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
-
-
-REPTILES.MAXENT.RESULTS <- compile_sdm_results(taxa_list    = target_reptiles,
-                                               results_dir  = 'output/reptile_maxent_raster_update/back_sel_models',
-                                               data_path    = "./output/reptile_maxent_raster_update/Habitat_suitability/",
-                                               sdm_path     = "./output/reptile_maxent_raster_update/back_sel_models/",
+REPTILES.MAXENT.RESULTS <- compile_sdm_results(taxa_list    = nsw_reptiles,
+                                               results_dir  = reptile_back_dir,
+                                               data_path    = reptile_habitat_dir,
+                                               sdm_path     = reptile_back_dir,
                                                save_data    = TRUE,
                                                save_run     = "REPTILES_target_reptiles")
 
@@ -320,7 +314,6 @@ REPTILES.MAXENT.RESULTS <- compile_sdm_results(taxa_list    = target_reptiles,
 ## Get map_taxa from the maxent results table above, change the species column,
 ## then create a list of logistic thresholds
 reptiles_map_taxa <- REPTILES.MAXENT.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
-
 gc()
 
 ``` 
@@ -345,7 +338,7 @@ tryCatch(
                                     create_mess     = TRUE,
                                     save_novel_poly = TRUE,
                                     output_path     = paste0(threshold_dir, 'reptiles_sdm_novel_combo.gpkg'),
-                                    poly_path       = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
+                                    poly_path       = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                                     epsg            = 3577),
   
   ## If the species fails, write a fail message to file.
@@ -389,7 +382,7 @@ habitat_threshold(taxa_list     = sort(unique(REPTILES.MAXENT.RESULTS$searchTaxo
                   maxent_table  = REPTILES.MAXENT.RESULTS,
                   maxent_path   = './output/reptile_maxent_raster_update/back_sel_models/',
                   output_path   = paste0(threshold_folders, 'reptiles_sdm_thresholds_combo.gpkg'),
-                  poly_path     = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
+                  poly_path     = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                   epsg          = 3577)
 
 gc()
