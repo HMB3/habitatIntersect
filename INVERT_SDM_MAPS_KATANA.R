@@ -53,29 +53,17 @@ plant_back_dir       <- './output/plant_maxent_raster_update/back_sel_models/'
 plant_full_dir       <- './output/plant_maxent_raster_update/full_models/'
 plant_results_dir    <- './output/plant_maxent_raster_update/results/'
 
-reptile_rs_dir         <- './output/reptile_maxent_raster_update/'
-reptile_back_dir       <- './output/reptile_maxent_raster_update/back_sel_models/'
-reptile_full_dir       <- './output/reptile_maxent_raster_update/full_models/'
-reptile_results_dir    <- './output/reptile_maxent_raster_update/results/'
-
-
 veg_dir              <- './data/Remote_sensing/Veg_data/Forest_cover/'
 inv_habitat_dir      <- './output/invert_maxent_raster_update/Habitat_suitability/'
 inv_inters_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_Veg_intersect/'
 inv_thresh_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
 inv_fire_dir         <- './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
 
-
 plant_habitat_dir    <- './output/plant_maxent_raster_update/Habitat_suitability/'
 plant_inters_dir     <- './output/plant_maxent_raster_update/Habitat_suitability/Veg_intersect/'
 plant_thresh_dir     <- './output/plant_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
 plant_fire_dir       <- './output/plant_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
 
-
-reptile_habitat_dir    <- './output/reptile_maxent_raster_update/Habitat_suitability/'
-reptile_inters_dir     <- './output/reptile_maxent_raster_update/Habitat_suitability/Veg_intersect/'
-reptile_thresh_dir     <- './output/reptile_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
-reptile_fire_dir       <- './output/reptile_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
 
 
 
@@ -193,23 +181,7 @@ plant_map_taxa  <- PLANT.MAXENT.RESULTS$searchTaxon      %>% gsub(" ", "_", .,)
 
 
 ## SDM output, re-sampled to 100m
-# study_sdm_binary <- stack(
-#   list.files(inv_thresh_dir,
-#              'current_suit_not_novel_above', full.names = TRUE)) %>%
-#   
-#   .[grep(".gpkg", .)] %>% gsub('.gpkg', '', .)
-# 
-# 
-# sdm_threshold_features <- list.files(path       = inv_thresh_dir,
-#                                      pattern    = '_current_suit_not_novel_above_',
-#                                      recursive  = FALSE,
-#                                      full.names = FALSE) %>%
-# 
-#   .[grep(".tif", .)] %>% gsub('.tif', '', .)
-# 
-# sdm_threshold_list        <- sdm_threshold_features %>% as.list()
-# names(sdm_threshold_list) <- sdm_threshold_features
-# gc()
+# write_csv(INVERT.MAXENT.RESULTS, paste0(inv_results_dir, 'INVERT_TAXA_MAXENT_RESULTS.csv'))
 
 
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm

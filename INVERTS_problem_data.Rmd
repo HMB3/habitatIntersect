@@ -541,22 +541,23 @@ SPATIAL.CLEAN = check_spatial_outliers(occ_df       = COORD.CLEAN,
                                        spatial_mult = 10,
                                        prj          = CRS("+init=epsg:4326"))
 
-GLOB.NICHE.ALL = calc_1km_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxon %in% analysis_taxa, ],
-                                 prj          = CRS("+init=epsg:4326"),
-                                 country_shp  = AUS,
-                                 world_shp    = LAND,
-                                 kop_shp      = Koppen_shp,
-                                 taxa_list    = analysis_taxa,
-                                 env_vars     = names(aus.climate.veg.grids.250m),
-                                 cell_size    = 2,
-                                 save_data    = TRUE,
-                                 save_run     = "ALL_INSECT_FAMILIES_UPDATE",
-                                 data_path    = inv_results_dir)
+
+GLOB.NICHE.ALL = calc_enviro_niches(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxon %in% target.insect.families, ],
+                                    prj          = CRS("+init=epsg:4326"),
+                                    country_shp  = AUS,
+                                    world_shp    = LAND,
+                                    kop_shp      = Koppen_shp,
+                                    taxa_list    = analysis_taxa,
+                                    env_vars     = names(aus.climate.veg.grids.250m),
+                                    cell_size    = 2,
+                                    save_data    = TRUE,
+                                    save_run     = "ALL_INSECT_FAMILIES_ALA_PBI",
+                                    data_path    = inv_results_dir)
 
 
-plot_range_histograms(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxon %in% analysis_taxa, ],
-                      taxa_list    = analysis_taxa,
-                      range_path   = './data/ALA/Check_Plots/Inverts/')
+plot_range_histograms(coord_df     = SPATIAL.CLEAN %>% .[.$searchTaxon %in% target.insect.families, ],
+                      taxa_list    = target.insect.genera,
+                      range_path   = check_dir)
 
 ``` 
 
@@ -581,7 +582,7 @@ sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0
 
 ## Combine occ data with the bg data 
 SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD.CLEAN,
-                                         taxa_list         = analysis_taxa,
+                                         taxa_list         = target.insect.families,
                                          
                                          site_flag         = 'SITE',
                                          occ_flag          = 'ALA',
@@ -602,7 +603,7 @@ SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD.CLEAN,
                                                                'SPAT_OUT',
                                                                names(aus.climate.veg.grids.250m)),
                                          
-                                         save_run          = "ALL_INSECT_FAMILIES_UPDATE",
+                                         save_run          = "FAMILIES_ALA_PBI",
                                          read_background   = FALSE,
                                          sp_country_prj    = sp_epsg3577,
                                          save_data         = TRUE,
@@ -621,13 +622,13 @@ SDM.SPAT.OCC.BG.TARG.INV <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysi
 
 
 st_write(SDM.SPAT.OCC.BG.TARG.INV %>% st_as_sf(), 
-         dsn = file.path(getwd(), 'output/invert_maxent_raster_update/results/SDM_INVERT_TAXA.gpkg'), 
+         dsn = file.path(getwd(), 'output/invert_maxent_raster_update/results/SDM_INVERT_TAXA_UPDATE.gpkg'), 
          layer = 'SDM_TARGET_INVERT_TAXA', 
          quiet = TRUE)
 
 
 st_write(SDM.SPAT.OCC.BG.GDA %>% st_as_sf(), 
-         dsn = file.path(getwd(), 'output/invert_maxent_raster_update/results/SDM_INVERT_TAXA.gpkg'), 
+         dsn = file.path(getwd(), 'output/invert_maxent_raster_update/results/SDM_INVERT_TAXA_UPDATE.gpkg'), 
          layer = 'SDM_ALL_INVERT_TAXA', 
          quiet = TRUE)
 

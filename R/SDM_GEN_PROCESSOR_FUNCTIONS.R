@@ -847,7 +847,7 @@ format_ala_dump = function(ALA_table,
     
     ## Add a source column
     CLEAN$SOURCE = record_type
-
+    
     ## save data
     return(CLEAN)
   }
@@ -1584,18 +1584,18 @@ check_spatial_outliers = function(occ_df,
 #' @param save_data          Logical - do you want to save the data frame?
 #' @param data_path          Character string - The file path used for saving the data frame
 #' @export calc_1km_niches
-calc_1km_niches = function(coord_df,
-                           prj,
-                           country_shp,
-                           world_shp,
-                           kop_shp,
-                           #ibra_shp,
-                           taxa_list,
-                           env_vars,
-                           cell_size,
-                           save_run,
-                           data_path,
-                           save_data) {
+calc_enviro_niches = function(coord_df,
+                              prj,
+                              country_shp,
+                              world_shp,
+                              kop_shp,
+                              #ibra_shp,
+                              taxa_list,
+                              env_vars,
+                              cell_size,
+                              save_run,
+                              data_path,
+                              save_data) {
   
   ## Create a spatial points object
   message('Estimating global niches for ', length(taxa_list), ' taxa across ',
@@ -1916,177 +1916,196 @@ plot_range_histograms = function(coord_df,
       filter(searchTaxon == spp) %>%
       dplyr::mutate(RANGE = ifelse(SOURCE != "INVENTORY", "NATURAL", "site"))
     
-    ## Start PNG device
-    message('Writing global convex hulls for ', spp)
-    png(sprintf("%s%s_%s", range_path, spp, "1km_convex_hull.png"), 16, 10, units = 'in', res = 500)
-    
-    ## Create convex hull and plot
-    find_hull <- function(DF) DF[chull(DF$Annual_mean_temp, DF$Annual_precip), ]
-    hulls     <- ddply(DF, "SOURCE", find_hull)
-    plot      <- ggplot(data = DF, aes(x = Annual_mean_temp,
-                                       y = Annual_precip, colour = SOURCE, fill = SOURCE)) +
-      geom_point() +
-      geom_polygon(data = hulls, alpha = 0.5) +
-      labs(x = "Annual_mean_temp", y = "Annual_precip") +
+    convex_hull <- sprintf("%s%s_%s", range_path, spp, "1km_convex_hull.png")
+    if(!file.exists(convex_hull)) {
       
-      theme(axis.title.x     = element_text(colour = "black", size = 35),
-            axis.text.x      = element_text(size = 20),
-            
-            axis.title.y     = element_text(colour = "black", size = 35),
-            axis.text.y      = element_text(size = 20),
-            
-            panel.background = element_blank(),
-            panel.border     = element_rect(colour = "black", fill = NA, size = 1.5),
-            plot.title       = element_text(size   = 40, face = "bold"),
-            legend.text      = element_text(size   = 20),
-            legend.title     = element_text(size   = 20),
-            legend.key.size  = unit(1.5, "cm")) +
+      ## Start PNG device
+      message('Writing global convex hulls for ', spp)
+      png(convex_hull, 16, 10, units = 'in', res = 500)
       
-      ggtitle(paste0("Convex Hull for ", spp))
-    print(plot)
-    
-    ## close device
-    dev.off()
-    
-    ## Check if file exists
-    message('Writing global temp histograms for ', spp)
-    png(sprintf("%s%s_%s", range_path, spp, "temp_niche_histograms_1km_records.png"),
-        16, 10, units = 'in', res = 500)
-    
-    ## Use the 'SOURCE' column to create a histogram for each source.
-    temp.hist <- ggplot(coord_spp, aes(x = Annual_mean_temp, group = RANGE, fill = RANGE)) +
+      ## Create convex hull and plot
+      find_hull <- function(DF) DF[chull(DF$Annual_mean_temp, DF$Annual_precip), ]
+      hulls     <- ddply(DF, "SOURCE", find_hull)
+      plot      <- ggplot(data = DF, aes(x = Annual_mean_temp,
+                                         y = Annual_precip, colour = SOURCE, fill = SOURCE)) +
+        geom_point() +
+        geom_polygon(data = hulls, alpha = 0.5) +
+        labs(x = "Annual_mean_temp", y = "Annual_precip") +
+        
+        theme(axis.title.x     = element_text(colour = "black", size = 35),
+              axis.text.x      = element_text(size = 20),
+              
+              axis.title.y     = element_text(colour = "black", size = 35),
+              axis.text.y      = element_text(size = 20),
+              
+              panel.background = element_blank(),
+              panel.border     = element_rect(colour = "black", fill = NA, size = 1.5),
+              plot.title       = element_text(size   = 40, face = "bold"),
+              legend.text      = element_text(size   = 20),
+              legend.title     = element_text(size   = 20),
+              legend.key.size  = unit(1.5, "cm")) +
+        
+        ggtitle(paste0("Convex Hull for ", spp))
+      print(plot)
       
-      geom_density(aes(x = Annual_mean_temp, y = ..scaled.., fill = RANGE),
-                   color = 'black', alpha = 1) +
-      
-      ## Change the colors
-      scale_fill_manual(values = c('NATURAL' = 'coral2',
-                                   'Mayor'   = 'gainsboro'), na.value = "grey") +
-      
-      ggtitle(paste0("Worldclim temp niches for ", spp)) +
-      
-      ## Add themes
-      theme(axis.title.x     = element_text(colour = "black", size = 35),
-            axis.text.x      = element_text(size = 25),
-            
-            axis.title.y     = element_text(colour = "black", size = 35),
-            axis.text.y      = element_text(size = 25),
-            
-            panel.background = element_blank(),
-            panel.border     = element_rect(colour = "black", fill = NA, size = 3),
-            plot.title       = element_text(size   = 40, face = "bold"),
-            legend.text      = element_text(size   = 20),
-            legend.title     = element_text(size   = 20),
-            legend.key.size  = unit(1.5, "cm"))
+      ## close device
+      dev.off()
+    }
     
-    ## Print the plot and close the device
-    print(temp.hist + ggtitle(paste0("Worldclim temp niches for ", spp)))
-    dev.off()
-    
-    ## Check if file exists
-    png(sprintf("%s%s_%s", range_path, spp, "temp_niche_boxplots_1km_records.png"),
-        10, 14, units = 'in', res = 500)
-    
-    ## Use the 'SOURCE' column to create a histogram for each source.
-    temp.box = ggboxplot(coord_spp,
-                         x    = 'RANGE',
-                         y    = 'Annual_mean_temp',
-                         fill = 'RANGE',
-                         palette = c('coral2', 'gainsboro'), size = 0.6) +
+    temp_hist <- sprintf("%s%s_%s", range_path, spp, "temp_niche_histograms_1km_records.png")
+    if(!file.exists(temp_hist)) {
       
-      ## Use the classic theme
-      theme_classic() +
-      labs(y = 'Annual Mean Temp (°C)',
-           x = '') +
+      ## Check if file exists
+      message('Writing global temp histograms for ', spp)
+      png(temp_hist,
+          16, 10, units = 'in', res = 500)
       
-      ## Add themes
-      theme(axis.title.x     = element_text(colour = 'black', size = 25),
-            axis.text.x      = element_blank(),
-            
-            axis.title.y     = element_text(colour = 'black', size = 35),
-            axis.text.y      = element_text(size = 25),
-            
-            panel.border     = element_rect(colour = 'black', fill = NA, size = 1.2),
-            plot.title       = element_text(size   = 25, face = 'bold'),
-            legend.text      = element_text(size   = 20),
-            legend.title     = element_blank(),
-            legend.key.size  = unit(1.5, 'cm'))
-    
-    ## Print the plot and close the device
-    print(temp.box + ggtitle(paste0("Worldclim temp niches for ", spp)))
-    dev.off()
-    
-    
-    ## Check if file exists
-    message('Writing global rain histograms for ', spp)
-    png(sprintf("%s%s_%s", range_path, spp, "rain_niche_histograms_1km_records.png"),
-        16, 10, units = 'in', res = 500)
-    
-    ## Use the 'SOURCE' column to create a histogram for each source.
-    rain.hist = ggplot(coord_spp, aes(x = Annual_precip, group = RANGE, fill = RANGE)) +
+      ## Use the 'SOURCE' column to create a histogram for each source.
+      temp.hist <- ggplot(coord_spp, aes(x = Annual_mean_temp, group = RANGE, fill = RANGE)) +
+        
+        geom_density(aes(x = Annual_mean_temp, y = ..scaled.., fill = RANGE),
+                     color = 'black', alpha = 1) +
+        
+        ## Change the colors
+        scale_fill_manual(values = c('NATURAL' = 'coral2',
+                                     'Mayor'   = 'gainsboro'), na.value = "grey") +
+        
+        ggtitle(paste0("Worldclim temp niches for ", spp)) +
+        
+        ## Add themes
+        theme(axis.title.x     = element_text(colour = "black", size = 35),
+              axis.text.x      = element_text(size = 25),
+              
+              axis.title.y     = element_text(colour = "black", size = 35),
+              axis.text.y      = element_text(size = 25),
+              
+              panel.background = element_blank(),
+              panel.border     = element_rect(colour = "black", fill = NA, size = 3),
+              plot.title       = element_text(size   = 40, face = "bold"),
+              legend.text      = element_text(size   = 20),
+              legend.title     = element_text(size   = 20),
+              legend.key.size  = unit(1.5, "cm"))
       
-      # geom_histogram(position = "identity", alpha = 0.8, binwidth = 15,
-      #                aes(y =..density..))  +
-      geom_density(aes(x = Annual_precip, y = ..scaled.., fill = RANGE),
-                   color = 'black', alpha = 0.8) +
-      
-      ## Change the colors
-      scale_fill_manual(values = c('NATURAL' = 'coral2',
-                                   'site'   = 'gainsboro'), na.value = "grey") +
-      
-      ggtitle(paste0("Worldclim rain niches for ", spp)) +
-      
-      ## Add themes
-      theme(axis.title.x     = element_text(colour = "black", size = 35),
-            axis.text.x      = element_text(size = 25),
-            
-            axis.title.y     = element_text(colour = "black", size = 35),
-            axis.text.y      = element_text(size = 25),
-            
-            panel.background = element_blank(),
-            panel.border     = element_rect(colour = "black", fill = NA, size = 3),
-            plot.title       = element_text(size   = 40, face = "bold"),
-            legend.text      = element_text(size   = 20),
-            legend.title     = element_text(size   = 20),
-            legend.key.size  = unit(1.5, "cm"))
+      ## Print the plot and close the device
+      print(temp.hist + ggtitle(paste0("Worldclim temp niches for ", spp)))
+      dev.off()
+    }
     
-    ## Print the plot and close the device
-    print(rain.hist + ggtitle(paste0("Worldclim rain niches for ", spp)))
-    dev.off()
-    
-    ## Check if file exists
-    message('Writing global rain boxplots for ', spp)
-    png(sprintf("%s%s_%s", range_path, spp, "rain_niche_boxplots_1km_records.png"),
-        10, 14, units = 'in', res = 500)
-    
-    ## Use the 'SOURCE' column to create a histogram for each source.
-    rain.box = ggboxplot(coord_spp,
-                         x    = 'RANGE',
-                         y    = 'Annual_precip',
-                         fill = 'RANGE',
-                         palette = c('coral2', 'gainsboro'), size = 0.6) +
+    temp_box <- sprintf("%s%s_%s", range_path, spp, "temp_niche_boxplots_1km_records.png")
+    if(!file.exists(temp_hist)) {
       
-      ## Use the classic theme
-      theme_classic() +
-      labs(y = 'Annual Precipitation (mm)',
-           x = '') +
+      ## Check if file exists
+      png(temp_box,
+          10, 14, units = 'in', res = 500)
       
-      ## Add themes
-      theme(axis.title.x     = element_text(colour = 'black', size = 25),
-            axis.text.x      = element_blank(),
-            
-            axis.title.y     = element_text(colour = 'black', size = 35),
-            axis.text.y      = element_text(size = 25),
-            
-            panel.border     = element_rect(colour = 'black', fill = NA, size = 1.2),
-            plot.title       = element_text(size   = 25, face = 'bold'),
-            legend.text      = element_text(size   = 20),
-            legend.title     = element_blank(),
-            legend.key.size  = unit(1.5, 'cm'))
+      ## Use the 'SOURCE' column to create a histogram for each source.
+      temp.box = ggboxplot(coord_spp,
+                           x    = 'RANGE',
+                           y    = 'Annual_mean_temp',
+                           fill = 'RANGE',
+                           palette = c('coral2', 'gainsboro'), size = 0.6) +
+        
+        ## Use the classic theme
+        theme_classic() +
+        labs(y = 'Annual Mean Temp (°C)',
+             x = '') +
+        
+        ## Add themes
+        theme(axis.title.x     = element_text(colour = 'black', size = 25),
+              axis.text.x      = element_blank(),
+              
+              axis.title.y     = element_text(colour = 'black', size = 35),
+              axis.text.y      = element_text(size = 25),
+              
+              panel.border     = element_rect(colour = 'black', fill = NA, size = 1.2),
+              plot.title       = element_text(size   = 25, face = 'bold'),
+              legend.text      = element_text(size   = 20),
+              legend.title     = element_blank(),
+              legend.key.size  = unit(1.5, 'cm'))
+      
+      ## Print the plot and close the device
+      print(temp.box + ggtitle(paste0("Worldclim temp niches for ", spp)))
+      dev.off()
+    }
     
-    ## Print the plot and close the device
-    print(rain.box + ggtitle(paste0("Worldclim rain niches for ", spp)))
-    dev.off()
+    rain_hist <- sprintf("%s%s_%s", range_path, spp, "rain_niche_histograms_1km_records.png")
+    if(!file.exists(rain_hist)) {
+      
+      ## Check if file exists
+      message('Writing global rain histograms for ', spp)
+      png(rain_hist,
+          16, 10, units = 'in', res = 500)
+      
+      ## Use the 'SOURCE' column to create a histogram for each source.
+      rain.hist = ggplot(coord_spp, aes(x = Annual_precip, group = RANGE, fill = RANGE)) +
+        
+        # geom_histogram(position = "identity", alpha = 0.8, binwidth = 15,
+        #                aes(y =..density..))  +
+        geom_density(aes(x = Annual_precip, y = ..scaled.., fill = RANGE),
+                     color = 'black', alpha = 0.8) +
+        
+        ## Change the colors
+        scale_fill_manual(values = c('NATURAL' = 'coral2',
+                                     'site'   = 'gainsboro'), na.value = "grey") +
+        
+        ggtitle(paste0("Worldclim rain niches for ", spp)) +
+        
+        ## Add themes
+        theme(axis.title.x     = element_text(colour = "black", size = 35),
+              axis.text.x      = element_text(size = 25),
+              
+              axis.title.y     = element_text(colour = "black", size = 35),
+              axis.text.y      = element_text(size = 25),
+              
+              panel.background = element_blank(),
+              panel.border     = element_rect(colour = "black", fill = NA, size = 3),
+              plot.title       = element_text(size   = 40, face = "bold"),
+              legend.text      = element_text(size   = 20),
+              legend.title     = element_text(size   = 20),
+              legend.key.size  = unit(1.5, "cm"))
+      
+      ## Print the plot and close the device
+      print(rain.hist + ggtitle(paste0("Worldclim rain niches for ", spp)))
+      dev.off()
+    }
+    
+    rain_box <- sprintf("%s%s_%s", range_path, spp, "rain_niche_boxplots_1km_records.png")
+    if(!file.exists(rain_box)) {
+      
+      ## Check if file exists
+      message('Writing global rain boxplots for ', spp)
+      png(sprintf("%s%s_%s", range_path, spp, "rain_niche_boxplots_1km_records.png"),
+          10, 14, units = 'in', res = 500)
+      
+      ## Use the 'SOURCE' column to create a histogram for each source.
+      rain.box = ggboxplot(coord_spp,
+                           x    = 'RANGE',
+                           y    = 'Annual_precip',
+                           fill = 'RANGE',
+                           palette = c('coral2', 'gainsboro'), size = 0.6) +
+        
+        ## Use the classic theme
+        theme_classic() +
+        labs(y = 'Annual Precipitation (mm)',
+             x = '') +
+        
+        ## Add themes
+        theme(axis.title.x     = element_text(colour = 'black', size = 25),
+              axis.text.x      = element_blank(),
+              
+              axis.title.y     = element_text(colour = 'black', size = 35),
+              axis.text.y      = element_text(size = 25),
+              
+              panel.border     = element_rect(colour = 'black', fill = NA, size = 1.2),
+              plot.title       = element_text(size   = 25, face = 'bold'),
+              legend.text      = element_text(size   = 20),
+              legend.title     = element_blank(),
+              legend.key.size  = unit(1.5, 'cm'))
+      
+      ## Print the plot and close the device
+      print(rain.box + ggtitle(paste0("Worldclim rain niches for ", spp)))
+      dev.off()
+    }
   }
 }
 
