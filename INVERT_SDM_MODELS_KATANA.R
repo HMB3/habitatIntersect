@@ -188,7 +188,7 @@ analysis_taxa   <- str_trim(c(target.insect.spp,
 
 
 host_plant_taxa <- read_excel(paste0(inv_habitat_dir, '/INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
-                              sheet = 'INV_TAXA_ASSOC') %>% 
+                              sheet = 'INV_TAXA_HSM_RATINGS') %>% 
   filter(Target_taxon == "Yes") %>%
   dplyr::select(searchTaxon, Host_Plant_taxon) %>% 
   .$Host_Plant_taxon
