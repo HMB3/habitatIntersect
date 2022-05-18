@@ -1583,7 +1583,7 @@ check_spatial_outliers = function(occ_df,
 #' @param save_run           Character string - run name to append to the data frame, useful for multiple runs.
 #' @param save_data          Logical - do you want to save the data frame?
 #' @param data_path          Character string - The file path used for saving the data frame
-#' @export calc_1km_niches
+#' @export calc_enviro_niches
 calc_enviro_niches = function(coord_df,
                               prj,
                               country_shp,
