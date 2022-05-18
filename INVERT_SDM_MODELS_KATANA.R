@@ -187,7 +187,7 @@ analysis_taxa   <- str_trim(c(target.insect.spp,
                               target.insect.families)) %>% unique()
 
 
-host_plant_taxa <- read_excel(paste0(inv_habitat_dir, '/INVERTS_FIRE_SPATIAL_DATA_LUT_SEP2021.xlsm'),
+host_plant_taxa <- read_excel(paste0(inv_habitat_dir, '/INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
                               sheet = 'INV_TAXA_ASSOC') %>% 
   filter(Target_taxon == "Yes") %>%
   dplyr::select(searchTaxon, Host_Plant_taxon) %>% 
