@@ -70,10 +70,8 @@ plant_fire_dir       <- './output/plant_maxent_raster_update/Habitat_suitability
 dir_list <- c(tempdir, ALA_dir, 
               INV_dir, check_dir, out_dir, inv_rs_dir, inv_back_dir, inv_full_dir, inv_results_dir,
               plant_rs_dir, plant_back_dir, plant_full_dir, plant_results_dir, veg_dir,
-              reptile_rs_dir, reptile_back_dir, reptile_full_dir, reptile_results_dir,
               inv_habitat_dir, inv_inters_dir, inv_thresh_dir, inv_fire_dir,
-              plant_habitat_dir, plant_inters_dir, plant_thresh_dir, plant_fire_dir,
-              reptile_habitat_dir, reptile_inters_dir, reptile_thresh_dir, reptile_fire_dir)
+              plant_habitat_dir, plant_inters_dir, plant_thresh_dir, plant_fire_dir)
 
 
 ## Create the folders if they don't exist
@@ -181,7 +179,7 @@ plant_map_taxa  <- PLANT.MAXENT.RESULTS$searchTaxon      %>% gsub(" ", "_", .,)
 
 
 ## SDM output, re-sampled to 100m
-# write_csv(INVERT.MAXENT.RESULTS, paste0(inv_results_dir, 'INVERT_TAXA_MAXENT_RESULTS.csv'))
+# write_csv(INVERT.MAXENT.RESULTS, paste0(inv_results_dir, 'INVERT_TAXA_MAXENT_RESULTS_ALA_PBI.csv'))
 
 
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
@@ -197,13 +195,15 @@ FESM_east_20m_categ  <- readRDS('./data/Remote_sensing/FESM/NBR_Burn_severity_cl
 
 
 ## Read in the SDM data, to intersect with the Veg layers
-AUS_forest_RS_ras   <- raster(paste0(veg_dir,  'alpsbk_aust_y2009_sf1a2_forest.tif'))
-AUS_forest_RS_feat  <- readRDS(paste0(veg_dir, 'Aus_forest_cover_east_coast_classes_split.rds')) %>% st_as_sf()
-
+AUS_forest_RS_ras        <- raster(paste0(veg_dir,  'alpsbk_aust_y2009_sf1a2_forest.tif'))
+AUS_forest_RS_feat       <- readRDS(paste0(veg_dir, 'Aus_forest_cover_east_coast_classes_split.rds')) %>% st_as_sf()
+AUS_forest_RS_feat_class <- st_read(paste0(veg_dir,'Aus_forest_cover_east_coast_classes.shp')) %>% 
+  st_transform(., st_crs(3577)) %>% as_Spatial()
 
 ## Read in the reptile points
 SDM.SPAT.OCC.BG.GDA <- readRDS(paste0(inv_results_dir, 'SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds'))
-intersect_cols      <- c("searchTaxon", "species", "genus", "family", "SOURCE", "gridcode", "Vegetation") 
+intersect_cols      <- c("searchTaxon", "species", "genus", "family", "SOURCE", "gridcode", "Vegetation")
+million_metres      <- 1000000
 
 
 ## Check projections and resolutions
@@ -279,6 +279,19 @@ gc()
 
 
 
+## Now also intersect the whole SDM layer with the Veg layer, creating a cross-tab of habitat
+SDM.SPAT.OCC.BG.GDA.TARG.INV <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysis_taxa, ]
+
+
+sdm_veg_int <- st_intersection(SDM.SPAT.OCC.BG.GDA.TARG.INV %>% st_as_sf(), AUS_forest_RS_feat) %>%
+  
+  ## Calculate the area of suitable habitat in each Veg class
+  mutate(Area_km2 = st_area(geom)/million_metres,
+         Area_km2 = drop_units(Area_km2))
+gc()
+
+
+
 
 
 ## 3). ESTIMATE % BURNT FOR EACH TAXA =============================================================
@@ -297,8 +310,8 @@ gc()
 
 ## Add Host Plants to the Maxent LUT 
 ## Read in the host plant species
-host_plants <- read_excel(paste0(inv_habitat_dir, '/INVERTS_FIRE_SPATIAL_DATA_LUT_SEP2021.xlsm'),
-                          sheet = 'INV_TAXA_ASSOC') %>% filter(Target_taxon == "Yes") %>%
+host_plants <- read_excel(paste0(inv_habitat_dir, '/INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
+                          sheet = 'INV_TAXA_HSM_RATINGS') %>% filter(Target_taxon == "Yes") %>%
   dplyr::select(searchTaxon, Host_Plant_taxon)
 
 
@@ -307,15 +320,15 @@ PLANT.RESULTS.HOSTS <- PLANT.MAXENT.RESULTS %>%
   rename(Host_Plant_taxon = "searchTaxon") %>% 
   left_join(., host_plants, by = "Host_Plant_taxon") %>% 
   dplyr::select(searchTaxon, Host_Plant_taxon, everything()) #%>% 
-  
-  # mutate(host_dir = gsub(' ', '_', Host_Plant_taxon)) %>%
-  # mutate(host_dir = ifelse(!is.na(Host_Plant_taxon),  paste0(plant_back_dir, '/', host_dir, '/full/'), NA))
+
+# mutate(host_dir = gsub(' ', '_', Host_Plant_taxon)) %>%
+# mutate(host_dir = ifelse(!is.na(Host_Plant_taxon),  paste0(plant_back_dir, '/', host_dir, '/full/'), NA))
 
 INVERT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>% 
   
   left_join(., host_plants, by = "searchTaxon") %>% 
   mutate(host_dir = gsub(' ', '_', Host_Plant_taxon)) #%>% 
-  # mutate(host_dir = ifelse(!is.na(Host_Plant_taxon),  paste0(host_back_dir, host_dir, '/full/'), NA))
+# mutate(host_dir = ifelse(!is.na(Host_Plant_taxon),  paste0(host_back_dir, host_dir, '/full/'), NA))
 
 
 # For each Invertebrate species, calculate the % of suitable habitat that was burnt by the

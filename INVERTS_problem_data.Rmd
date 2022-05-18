@@ -598,7 +598,7 @@ COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.FAM.GEN.SPP,
 
 ## Combine occ data with the bg data 
 SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD.CLEAN,
-                                         taxa_list         = target.insect.families,
+                                         taxa_list         = analysis_taxa,
                                          
                                          site_flag         = 'SITE',
                                          occ_flag          = 'ALA',
@@ -675,19 +675,19 @@ SDM.SPAT.OCC.BG.TARG.SPP <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% target.
 
 st_write(SDM.SPAT.OCC.BG.TARG.FAM %>% st_as_sf(), 
          dsn   = file.path(getwd(), 
-                           paste0(inv_results_dir, 'SDM_INVERT_TAXA_UPDATE.gpkg')), 
+                           paste0(inv_results_dir, 'SDM_ALL_INVERT_TAXA_ALA_PBI.gpkg')), 
          layer = 'SDM_TARGET_INVERT_FAMILIES', 
          quiet = TRUE)
 
 
 st_write(SDM.SPAT.OCC.BG.TARG.GEN %>% st_as_sf(), 
-         dsn   = file.path(getwd(), paste0(inv_results_dir, 'SDM_INVERT_TAXA_UPDATE.gpkg')), 
+         dsn   = file.path(getwd(), paste0(inv_results_dir, 'SDM_ALL_INVERT_GENERA_ALA_PBI.gpkg')), 
          layer = 'SDM_TARGET_INVERT_GENERA', 
          quiet = TRUE)
 
 
 st_write(SDM.SPAT.OCC.BG.TARG.SPP %>% st_as_sf(), 
-         dsn   = file.path(getwd(), paste0(inv_results_dir, 'SDM_INVERT_TAXA_UPDATE.gpkg')), 
+         dsn   = file.path(getwd(), paste0(inv_results_dir, 'SDM_ALL_INVERT_SPECIES_ALA_PBI.gpkg')), 
          layer = 'SDM_TARGET_INVERT_SPECIES', 
          quiet = TRUE)
 
@@ -699,7 +699,7 @@ for(taxa in target.insect.families) {
   if(taxa %in% unique(SDM.SPAT.OCC.BG.TARG.GDA$searchTaxon)) {
     
     taxa_shp <- paste0(inv_records_dir,
-                       taxa, '_SDM_points.shp')
+                       taxa, '_SDM_ALA_PBI_points.shp')
     
     if(!file.exists(taxa_shp)) {
       
@@ -707,10 +707,10 @@ for(taxa in target.insect.families) {
       taxa_occ <- SDM.SPAT.OCC.BG.TARG.GDA %>% .[.$searchTaxon %in% taxa, ]
       
       st_write(taxa_occ %>% st_as_sf(), 
-               paste0(inv_records_dir, taxa, '_SDM_POINTS.shp'))
+               paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_POINTS.shp'))
       
       st_write(taxa_occ %>% st_as_sf(), 
-               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA_UPDATE.gpkg'), 
+               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA_ALA_PBI.gpkg'), 
                layer = paste0(taxa, '_SDM_points'), 
                quiet = TRUE)
       
@@ -730,7 +730,7 @@ for(taxa in target.insect.genera) {
   if(taxa %in% unique(SDM.SPAT.OCC.BG.TARG.GDA$searchTaxon)) {
     
     taxa_shp <- paste0(inv_records_dir,
-                       taxa, '_SDM_points.shp')
+                       taxa, '_SDM_ALA_PBI_points.shp')
     
     if(!file.exists(taxa_shp)) {
       
@@ -738,10 +738,10 @@ for(taxa in target.insect.genera) {
       taxa_occ <- SDM.SPAT.OCC.BG.TARG.GDA %>% .[.$searchTaxon %in% taxa, ]
       
       st_write(taxa_occ %>% st_as_sf(), 
-               paste0(inv_records_dir, taxa, '_SDM_POINTS.shp'))
+               paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_points.shp'))
       
       st_write(taxa_occ %>% st_as_sf(), 
-               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA_UPDATE.gpkg'), 
+               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA__ALA_PBI.gpkg'), 
                layer = paste0(taxa, '_SDM_points'), 
                quiet = TRUE)
       
@@ -763,7 +763,7 @@ for(taxa in target.insect.spp) {
   if(taxa %in% unique(SDM.SPAT.OCC.BG.TARG.GDA$searchTaxon)) {
     
     taxa_shp <- paste0(inv_records_dir,
-                       taxa, '_SDM_points.shp')
+                       taxa, '_SDM_ALA_PBI_points.shp')
     
     if(!file.exists(taxa_shp)) {
       
@@ -771,15 +771,15 @@ for(taxa in target.insect.spp) {
       taxa_occ <- SDM.SPAT.OCC.BG.TARG.GDA %>% .[.$searchTaxon %in% taxa, ]
       
       st_write(taxa_occ %>% st_as_sf(), 
-               paste0(inv_records_dir, taxa, '_SDM_POINTS.shp'))
+               paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_points.shp'))
       
       st_write(taxa_occ %>% st_as_sf(), 
-               dsn = paste0(inv_records_dir, taxa, '_SDM_POINTS.gpkg'), 
+               dsn = paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_points.gpkg'), 
                layer = paste0(taxa, '_SDM_points'), 
                quiet = TRUE)
       
       st_write(taxa_occ %>% st_as_sf(), 
-               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA_UPDATE.gpkg'), 
+               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA_ALA_PBI.gpkg'), 
                layer = paste0(taxa, '_SDM_points'), 
                quiet = TRUE)
       
