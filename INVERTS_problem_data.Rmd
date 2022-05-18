@@ -580,6 +580,18 @@ coord_clean_records function.
 sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 
 
+COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.FAM.GEN.SPP,
+                                  site_flag  = 'SITE',
+                                  occ_flag   = 'ALA',
+                                  multi_source = TRUE,
+                                  
+                                  capitals   = 10000,  
+                                  centroids  = 5000,   
+                                  save_data  = FALSE,
+                                  save_run   = "TARGET_INSECT_SPECIES",
+                                  data_path  = "./output/results/")
+
+
 ## Combine occ data with the bg data 
 SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD.CLEAN,
                                          taxa_list         = target.insect.families,
@@ -603,7 +615,7 @@ SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD.CLEAN,
                                                                'SPAT_OUT',
                                                                names(aus.climate.veg.grids.250m)),
                                          
-                                         save_run          = "FAMILIES_ALA_PBI",
+                                         save_run          = "ALL_INVERTS_ALA_PBI",
                                          read_background   = FALSE,
                                          sp_country_prj    = sp_epsg3577,
                                          save_data         = TRUE,
@@ -622,16 +634,15 @@ SDM.SPAT.OCC.BG.TARG.INV <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysi
 
 
 st_write(SDM.SPAT.OCC.BG.TARG.INV %>% st_as_sf(), 
-         dsn = file.path(getwd(), 'output/invert_maxent_raster_update/results/SDM_INVERT_TAXA_UPDATE.gpkg'), 
+         dsn = file.path(getwd(), 'output/invert_maxent_raster_update/results/SDM_INVERT_ALL_TAXA_ALA_PBI.gpkg'), 
          layer = 'SDM_TARGET_INVERT_TAXA', 
          quiet = TRUE)
 
 
-st_write(SDM.SPAT.OCC.BG.GDA %>% st_as_sf(), 
-         dsn = file.path(getwd(), 'output/invert_maxent_raster_update/results/SDM_INVERT_TAXA_UPDATE.gpkg'), 
-         layer = 'SDM_ALL_INVERT_TAXA', 
-         quiet = TRUE)
-
+# st_write(SDM.SPAT.OCC.BG.GDA %>% st_as_sf(), 
+#          dsn = file.path(getwd(), 'output/invert_maxent_raster_update/results/SDM_INVERT_ALL_TAXA_ALA_PBI.gpkg'), 
+#          layer = 'SDM_ALL_INVERT_TAXA', 
+#          quiet = TRUE)
 
 ``` 
 

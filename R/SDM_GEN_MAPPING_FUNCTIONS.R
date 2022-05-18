@@ -50,7 +50,7 @@ project_maxent_current_grids_mess = function(taxa_list,
     maxent_predict_fun <- function(taxa) {
       
       ## Create taxa name
-      ## taxa = taxa_list[5]
+      ## taxa = taxa_list[18]
       save_name = gsub(' ', '_', taxa)
       
       ## First check if the taxa exists
@@ -105,13 +105,13 @@ project_maxent_current_grids_mess = function(taxa_list,
                                                   maxent_path, save_name, save_name))
           }
           
+          thresh      <- m@results["X10.percentile.training.presence.Logistic.threshold",][[1]]
           thresh_file <- sprintf('%s/%s/full/%s_%s%s.tif', maxent_path,
                                  save_name, save_name, "current_suit_above_", thresh)
           
           if(!file.exists(thresh_file) == TRUE) {
             
             ## Threshold the maxent prediction, and use that to crop the raster stack
-            thresh = m@results["X10.percentile.training.presence.Logistic.threshold",][[1]]
             thresh_greater      = function (x) {x > thresh}
             current_suit_thresh = thresh_greater(pred.current)
             current_suit_thresh_rast <- terra::rast(current_suit_thresh)

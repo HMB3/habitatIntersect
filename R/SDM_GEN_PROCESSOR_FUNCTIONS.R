@@ -2333,11 +2333,11 @@ prepare_sdm_table = function(coord_df,
     ## Save .rds file of the occurrence and BG points for the next session
     saveRDS(SDM.SPAT.OCC.BG, paste0(data_path, 'SDM_SPAT_OCC_BG_',  save_run, '.rds'))
     
-    st_write(SDM.SPAT.OCC.BG,
-             dsn    = paste0(data_path, 'SDM_SPAT_OCC_BG_',  save_run, '.gpkg'),
-             layer  = paste0('SDM_SPAT_OCC_BG_',  save_run),
-             quiet  = TRUE,
-             append = FALSE)
+    # st_write(SDM.SPAT.OCC.BG,
+    #          dsn    = paste0(data_path, 'SDM_SPAT_OCC_BG_',  save_run, '.gpkg'),
+    #          layer  = paste0('SDM_SPAT_OCC_BG_',  save_run),
+    #          quiet  = TRUE,
+    #          append = FALSE)
     
     return(SDM.SPAT.OCC.BG)
     

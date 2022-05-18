@@ -80,8 +80,8 @@ ALA_dir              <- './data/ALA/'
 out_dir              <- './output/'
 
 reptile_rs_dir         <- './output/reptile_maxent/'
-reptile_back_dir       <- './output/reptile_maxent/back_sel_models'
-reptile_full_dir       <- './output/reptile_maxent/full_models'
+reptile_back_dir       <- './output/reptile_maxent/back_sel_models/'
+reptile_full_dir       <- './output/reptile_maxent/full_models/'
 reptile_results_dir    <- './output/reptile_maxent/results/'
 
 reptile_habitat_dir    <- './output/reptile_maxent/Habitat_suitability/'
@@ -333,11 +333,11 @@ package https://github.com/johnbaums/rmaxent. It assumes that the maxent models 
 tryCatch(
   
   project_maxent_current_grids_mess(taxa_list       = rev(reptiles_map_taxa),    
-                                    maxent_path     = './output/reptile_maxent_raster_update/back_sel_models/',
+                                    maxent_path     = reptile_back_dir,
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
                                     save_novel_poly = TRUE,
-                                    output_path     = paste0(threshold_dir, 'reptiles_sdm_novel_combo.gpkg'),
+                                    output_path     = paste0(reptile_thresh_dir, 'reptiles_sdm_novel_combo.gpkg'),
                                     poly_path       = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                                     epsg            = 3577),
   
