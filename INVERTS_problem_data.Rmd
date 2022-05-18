@@ -274,7 +274,6 @@ aus_annual_precip_alb   <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_pre
 ## Should be 1km*1km, It should havle a value of 1 for land, and NA for the ocean
 aus_annual_precip_alb[aus_annual_precip_alb > 0] <- 1
 template_raster_250m <- aus_annual_precip_alb
-
 gc()
 
 ```
@@ -396,15 +395,18 @@ Next we combine occurrence files from ALA and GBIF into one table, and extracts 
 
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
-
 ## The below shold really all be one big table
 ## Where we use different columns for the analysis :: species, genus or family
+Insects_ALA      <- readRDS('./data/ALA/Insects/INVERTS_2022_1205.rds')
+
 ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = Insects_ALA,
                                     record_type   = "ALA",
                                     keep_cols     = ALA_keep,
                                     year_filt     = FALSE,
                                     unique_cells  = FALSE,
                                     world_raster  = aus_annual_precip)
+
+rm(Insects_ALA)
 
 
 ALA.LAND.INV.GENUS <- ALA.LAND.INV.SPP %>% dplyr::select(-searchTaxon) %>% 
@@ -415,16 +417,11 @@ ALA.LAND.INV.FAM   <- ALA.LAND.INV.SPP %>% dplyr::select(-searchTaxon) %>%
   dplyr::rename(searchTaxon = family)  %>% dplyr::select(searchTaxon, everything())
 
 
-table(ALA.LAND.INV.SPP$SOURCE);
-table(ALA.LAND.INV.GENUS$SOURCE);
-table(ALA.LAND.INV.FAM$SOURCE)
-
-
 ## Update with the full insects download from ALA ----
 ## Combine GBIF and ALA data, and extract environmental values
 ## Some of the site records will be removed here, if they are outside the raster bounds.
 ## This seems strange, but maybe they are right on the coast
-COMBO.RASTER.FAM = combine_records_extract(ala_df           = ALA.LAND.INV.SPP,
+COMBO.RASTER.FAM = combine_records_extract(ala_df           = ALA.LAND.INV.FAM,
                                            add_sites        = TRUE,
                                            filter_taxo      = FALSE,
                                            
@@ -489,6 +486,13 @@ gc()
 ## Try combing the records into a "super table"...does that make sense?
 COMBO.RASTER.FAM.GEN.SPP <- bind_rows(COMBO.RASTER.FAM, COMBO.RASTER.GEN, COMBO.RASTER.SPP)
 gc()
+
+rm(COMBO.RASTER.FAM)
+rm(COMBO.RASTER.GEN)
+rm(COMBO.RASTER.SPP)
+rm(ALA.LAND.INV.SPP)
+rm(ALA.LAND.INV.GENUS)
+rm(ALA.LAND.INV.FAM)
 
 ``` 
 
