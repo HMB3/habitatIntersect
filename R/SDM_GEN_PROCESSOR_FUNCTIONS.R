@@ -1080,10 +1080,7 @@ combine_records_extract = function(ala_df,
                                    save_run) {
   
   ## Get just the Common columns
-  ALA.COMBO = ala_df
-  
-  message('Processing ' , length(unique(ALA.COMBO$searchTaxon)), ' searched taxa')
-  length(unique(ALA.COMBO$scientificName))
+  message('Processing ' , length(unique(ala_df$searchTaxon)), ' searched taxa')
   
   ## Now filter the records to those where the searched and returned taxa match
   ## More matching is in : 4_ALA_GBIF_TAXO_COMBINE.R from Green Cities
@@ -1091,61 +1088,61 @@ combine_records_extract = function(ala_df,
   if(filter_taxo) {
     
     message('fitler taxonomy')
-    ALA.COMBO <- ALA.COMBO %>% dplyr::mutate(Match_SN_ST = str_detect(!!taxa_level, searchTaxon)) %>% 
+    ala_df <- ala_df %>% dplyr::mutate(Match_SN_ST = str_detect(!!taxa_level, searchTaxon)) %>% 
       filter(Match_SN_ST == 'TRUE') %>% as.data.frame()
     
   } else {
     message('Do not filter taxonomy of searched taxa vs returned' )
-    ALA.COMBO <- ALA.COMBO %>% dplyr::mutate(Match_SN_ST = str_detect(!!taxa_level, searchTaxon))
+    ala_df <- ala_df %>% dplyr::mutate(Match_SN_ST = str_detect(!!taxa_level, searchTaxon))
   }
-  
-  ## Don't taxo match the site data :: this needs to be kept without exclusion
-  if(add_sites) {
-    
-    message('Add site data' )
-    site_df   <- site_df[site_df$searchTaxon %in% taxa_list, ]
-    ALA.COMBO <- bind_rows(ALA.COMBO, site_df)
-    
-  } else {
-    message('Do not add site data' )
-  }
-  
-  ## CHECK TAXONOMY RETURNED BY ALA USING TAXONSTAND?
   
   ## Create points: the 'over' function seems to need geographic coordinates for this data...
-  GBIF.ALA.84 = SpatialPointsDataFrame(coords      = ALA.COMBO %>% 
-                                         dplyr::select(lon, lat) %>% as.matrix(),
-                                       data        = ALA.COMBO,
-                                       proj4string = prj) %>% 
+  RECORDS.84 = SpatialPointsDataFrame(coords      = ala_df %>% 
+                                        dplyr::select(lon, lat) %>% as.matrix(),
+                                      data        = ala_df,
+                                      proj4string = prj) %>% 
     
     st_as_sf() %>% 
     st_transform(., st_crs(4326))
   
+  ## Don't taxo match the site data :: this needs to be kept without exclusion
+  if(add_sites) {
+    
+    RECORDS.COMBO.84 <- dplyr::bind_rows(list(RECORDS.84, 
+                                              site_df))
+    
+  } else {
+    message('Do not add site data')
+    RECORDS.COMBO.84 <- RECORDS.84
+  }
+  
+  # coords <- st_coordinates(RECORDS.84)
+  
   if(thin_records == TRUE) {
     
     ## The length needs to be the same
-    length(unique(GBIF.ALA.84$searchTaxon))
-    GBIF.ALA.84 <- split(GBIF.ALA.84, GBIF.ALA.84$searchTaxon)
-    occurrence_cells_all  <- lapply(GBIF.ALA.84, function(x) cellFromXY(template_raster, x))
+    length(unique(RECORDS.COMBO.84$searchTaxon))
+    RECORDS.COMBO.84 <- split(RECORDS.COMBO.84, RECORDS.COMBO.84$searchTaxon)
+    occurrence_cells_all  <- lapply(RECORDS.COMBO.84, function(x) cellFromXY(template_raster, x))
     
     ## Check with a message, but could check with a fail
     message('Split prodcues ', length(occurrence_cells_all), ' data frames for ', length(taxa_list), ' taxa')
     
     ## Now get just one record within each 1*1km cell.
-    GBIF.ALA.84.THIN <- mapply(function(x, cells) {
+    RECORDS.COMBO.84.THIN <- mapply(function(x, cells) {
       x[!duplicated(cells), ]
-    }, GBIF.ALA.84, occurrence_cells_all, SIMPLIFY = FALSE) %>% do.call(rbind, .)
+    }, RECORDS.COMBO.84, occurrence_cells_all, SIMPLIFY = FALSE) %>% do.call(rbind, .)
     
     ## Check to see we have 19 variables + the taxa for the standard predictors, and 19 for all predictors
-    message(round(nrow(GBIF.ALA.84.THIN)/nrow(GBIF.ALA.84)*100, 2), " % records retained at 1km resolution")
+    message(round(nrow(RECORDS.COMBO.84.THIN)/nrow(RECORDS.COMBO.84)*100, 2), " % records retained at 1km resolution")
     
     ## Create points: the 'over' function seems to need geographic coordinates for this data...
-    COMBO.POINTS   = GBIF.ALA.84.THIN[c("lon", "lat")]
+    COMBO.POINTS   = RECORDS.COMBO.84.THIN[c("lon", "lat")]
     
   } else {
     message('dont thin the records out' )
-    COMBO.POINTS     = GBIF.ALA.84[c("lon", "lat")]
-    GBIF.ALA.84.THIN = GBIF.ALA.84
+    COMBO.POINTS     = RECORDS.COMBO.84[c("lon", "lat")]
+    RECORDS.COMBO.84.THIN = RECORDS.COMBO.84
   }
   
   ## Bioclim variables
@@ -1155,12 +1152,7 @@ combine_records_extract = function(ala_df,
   
   ## Extract the raster values
   COMBO.RASTER <- terra::extract(world_raster, COMBO.POINTS) %>%
-    cbind(as.data.frame(GBIF.ALA.84.THIN), .)
-  
-  ## Group rename the columns
-  ## This relies on the bioclim order, it must be the same
-  # setnames(COMBO.RASTER, old = names(world_raster), new = env_vars)
-  # COMBO.RASTER <- COMBO.RASTER %>% dplyr::select(-lat.1, -lon.1)
+    cbind(as.data.frame(RECORDS.COMBO.84.THIN), .)
   
   ## Change the raster values here: See http://worldclim.org/formats1 for description of the integer conversion.
   ## All worldclim temperature variables were multiplied by 10, so then divide by 10 to reverse it.
@@ -2134,7 +2126,6 @@ prepare_sdm_table = function(coord_df,
                              site_flag,
                              occ_flag,
                              site_records,
-                             
                              BG_points,
                              sdm_table_vars,
                              save_run,
@@ -2182,12 +2173,6 @@ prepare_sdm_table = function(coord_df,
   SDM.DATA.ALL$SPOUT.OBS <- paste0(SDM.DATA.ALL$SPOUT.OBS, "_SPOUT_", SDM.DATA.ALL$searchTaxon)
   SDM.DATA.ALL$SPOUT.OBS <- gsub(" ",     "_",  SDM.DATA.ALL$SPOUT.OBS, perl = TRUE)
   length(SDM.DATA.ALL$SPOUT.OBS);length(unique(SDM.DATA.ALL$SPOUT.OBS))
-  
-  ## Check dimensions
-  dim(SDM.DATA.ALL)
-  length(unique(SDM.DATA.ALL$searchTaxon))
-  length(unique(SDM.DATA.ALL$SPOUT.OBS))
-  unique(SDM.DATA.ALL$SOURCE)
   
   
   ## Create a tibble to supply to coordinate cleaner

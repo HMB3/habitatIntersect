@@ -131,7 +131,6 @@ rasterOptions(memfrac = 0.9,
 terraOptions(memfrac = 0.9, 
              tempdir = tempdir) 
 
-
 ```
 
 \
@@ -299,7 +298,8 @@ data('ALA_keep')
 Insects_ALA      <- readRDS('./data/ALA/Insects/INVERTS_2022_1205.rds')
 
 
-ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = Insects_ALA,
+
+ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = head(Insects_ALA, 1000),
                                     record_type   = "ALA",
                                     keep_cols     = ALA_keep,
                                     year_filt     = FALSE,
@@ -399,6 +399,7 @@ Next we combine occurrence files from ALA and GBIF into one table, and extracts 
 ## Where we use different columns for the analysis :: species, genus or family
 Insects_ALA      <- readRDS('./data/ALA/Insects/INVERTS_2022_1205.rds')
 
+
 ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = Insects_ALA,
                                     record_type   = "ALA",
                                     keep_cols     = ALA_keep,
@@ -415,6 +416,40 @@ ALA.LAND.INV.GENUS <- ALA.LAND.INV.SPP %>% dplyr::select(-searchTaxon) %>%
 
 ALA.LAND.INV.FAM   <- ALA.LAND.INV.SPP %>% dplyr::select(-searchTaxon) %>% 
   dplyr::rename(searchTaxon = family)  %>% dplyr::select(searchTaxon, everything())
+
+
+
+## Prepare site data 
+## Combine all the site data into one table
+all_insect_site_df_species <- PBI_AUS %>%
+  
+  ## Remove the NA coordinates, and add a 'SOURCE' column
+  completeFun(., c('lat', 'lon')) %>% 
+  filter(lon < 180 & lat > -90)   %>% 
+  mutate(SOURCE = 'SITE')
+
+
+## Create a SPDF for the SITE Data
+all_insect_site_df_species_sf <- SpatialPointsDataFrame(coords      = all_insect_site_df_species %>% 
+                                                          dplyr::select(lon, lat) %>% as.matrix(),
+                                                        data        = all_insect_site_df_species,
+                                                        proj4string = CRS("+init=epsg:4326")) %>%
+  
+  st_as_sf() %>% 
+  st_transform(., st_crs(4326))
+
+
+## Genera
+all_insect_site_df_genera <- all_insect_site_df_species_sf %>%
+  dplyr::select(-searchTaxon) %>% 
+  dplyr::rename(searchTaxon = genus) %>% dplyr::select(searchTaxon, everything())
+
+
+## Families
+all_insect_site_df_families <- all_insect_site_df_species_sf %>%
+  dplyr::select(-searchTaxon)  %>% 
+  dplyr::rename(searchTaxon = family) %>% dplyr::select(searchTaxon, everything())
+
 
 
 ## Update with the full insects download from ALA ----
@@ -493,6 +528,20 @@ rm(COMBO.RASTER.SPP)
 rm(ALA.LAND.INV.SPP)
 rm(ALA.LAND.INV.GENUS)
 rm(ALA.LAND.INV.FAM)
+
+
+COMBO_RASTER_FAM_GEN_SPP_sf <- SpatialPointsDataFrame(coords      = COMBO.RASTER.FAM.GEN.SPP %>% 
+                                                        dplyr::select(lon, lat) %>% as.matrix(),
+                                                      data        = all_insect_site_df_species,
+                                                      proj4string = CRS("+init=epsg:4326")) %>%
+  
+  st_as_sf() %>% 
+  st_transform(., st_crs(4326))
+
+
+st_write(all_insect_site_df_species_sf, 
+         dsn   = paste0(inv_records_dir, 'ALL_PBI_TAXA_POINTS.gpkg'), 
+         quiet = TRUE)
 
 ``` 
 
@@ -584,7 +633,7 @@ coord_clean_records function.
 sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 
 
-COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.FAM.GEN.SPP,
+COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.FAM,
                                   site_flag  = 'SITE',
                                   occ_flag   = 'ALA',
                                   multi_source = TRUE,
@@ -619,7 +668,7 @@ SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD.CLEAN,
                                                                'SPAT_OUT',
                                                                names(aus.climate.veg.grids.250m)),
                                          
-                                         save_run          = "ALL_INVERTS_ALA_PBI",
+                                         save_run          = "TEST_INVERTS_ALA_PBI",
                                          read_background   = FALSE,
                                          sp_country_prj    = sp_epsg3577,
                                          save_data         = TRUE,
@@ -638,7 +687,7 @@ SDM.SPAT.OCC.BG.TARG.INV <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysi
 
 
 st_write(SDM.SPAT.OCC.BG.TARG.INV %>% st_as_sf(), 
-         dsn = file.path(getwd(), 'output/invert_maxent_raster_update/results/SDM_INVERT_ALL_TAXA_ALA_PBI.gpkg'), 
+         dsn = file.path(inv_results_dir, 'SDM_INVERT_TEST_ALA_PBI.gpkg'), 
          layer = 'SDM_TARGET_INVERT_TAXA', 
          quiet = TRUE)
 
