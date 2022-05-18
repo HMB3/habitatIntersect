@@ -198,7 +198,7 @@ FESM_east_20m_categ  <- readRDS('./data/Remote_sensing/FESM/NBR_Burn_severity_cl
 AUS_forest_RS_ras        <- raster(paste0(veg_dir,  'alpsbk_aust_y2009_sf1a2_forest.tif'))
 AUS_forest_RS_feat       <- readRDS(paste0(veg_dir, 'Aus_forest_cover_east_coast_classes_split.rds')) %>% st_as_sf()
 AUS_forest_RS_feat_class <- st_read(paste0(veg_dir,'Aus_forest_cover_east_coast_classes.shp')) %>% 
-  st_transform(., st_crs(3577)) %>% as_Spatial()
+  st_transform(., st_crs(3577)) %>% st_as_sf()
 
 ## Read in the reptile points
 SDM.SPAT.OCC.BG.GDA <- readRDS(paste0(inv_results_dir, 'SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds'))
@@ -280,15 +280,20 @@ gc()
 
 
 ## Now also intersect the whole SDM layer with the Veg layer, creating a cross-tab of habitat
-SDM.SPAT.OCC.BG.GDA.TARG.INV <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysis_taxa, ]
+SDM.SPAT.OCC.BG.GDA.TARG.INV <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysis_taxa, ] %>% st_as_sf() %>%  
+  dplyr::select(searchTaxon, lon, lat) %>% 
+    st_transform(., st_crs(3577)) %>% st_as_sf()
 
 
-sdm_veg_int <- st_intersection(SDM.SPAT.OCC.BG.GDA.TARG.INV %>% st_as_sf(), AUS_forest_RS_feat) %>%
+sdm_veg_int <- st_intersection(SDM.SPAT.OCC.BG.GDA.TARG.INV, AUS_forest_RS_feat_class) %>%
   
   ## Calculate the area of suitable habitat in each Veg class
   mutate(Area_km2 = st_area(geom)/million_metres,
          Area_km2 = drop_units(Area_km2))
 gc()
+
+
+## Save as a geopackage and table : spp, genus, family
 
 
 
