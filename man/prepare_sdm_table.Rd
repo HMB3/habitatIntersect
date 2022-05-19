@@ -17,11 +17,12 @@ prepare_sdm_table(
   background_points,
   save_data,
   data_path,
-  sp_country_prj
+  country_epsg,
+  world_epsg
 )
 }
 \arguments{
-\item{coord_df}{Data.frame. DF of all taxa records returned by the coord_clean_records function}
+\item{coord_df}{SF object. Spatial DF of all taxa records returned by the coord_clean_records function}
 
 \item{taxa_list}{Character string - the taxa analysed}
 
@@ -39,9 +40,13 @@ prepare_sdm_table(
 
 \item{data_path}{Character string - The file path used for saving the data frame}
 
+\item{country_epsg}{Numeric - The national projected CRS system to use (metres)}
+
+\item{world_epsg}{Character string - The global geographic CRS to use (decimal degrees)}
+
 \item{save_shp}{Logical - Save a shapefile of the SDM table (T/F)?}
 
-\item{project_path}{Paht of taxa records, with spatial outlier T/F flag for each record}
+\item{project_path}{Path of taxa records, with spatial outlier T/F flag for each record}
 }
 \description{
 'This function takes a data frame of all taxa records,
