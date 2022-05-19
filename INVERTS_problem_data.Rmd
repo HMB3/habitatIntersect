@@ -295,15 +295,22 @@ Next we combine occurrence files from ALA and GBIF into one table, and extracts 
 
 ## The below shold really all be one big table
 ## Where we use different columns for the analysis :: species, genus or family
-Insects_ALA      <- readRDS('./data/ALA/Insects/INVERTS_2022_1205.rds')
+Insects_ALA_1 <- read_csv('./data/ALA/Insects/records-2022-05-12.csv')
+Insects_ALA_2 <- read_csv('./data/ALA/Insects/records-2022-05-12_part2.csv')
 
-ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = head(Insects_ALA, 10000),
+Insects_ALA <- Insects_ALA_1 %>% dplyr::select(-eventTime, -identificationID, -taxonID) %>%
+  bind_rows(., dplyr::select(Insects_ALA_2, -eventTime, -identificationID, -taxonID))
+
+
+ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = Insects_ALA,
                                     record_type   = "ALA",
                                     keep_cols     = ALA_keep,
                                     year_filt     = FALSE,
                                     unique_cells  = FALSE,
                                     world_raster  = aus_annual_precip)
+
 rm(Insects_ALA)
+
 
 
 ALA_LAND_INV_SPP_sf <- SpatialPointsDataFrame(coords      = ALA.LAND.INV.SPP %>% 
@@ -315,7 +322,7 @@ ALA_LAND_INV_SPP_sf <- SpatialPointsDataFrame(coords      = ALA.LAND.INV.SPP %>%
   st_transform(., st_crs(4326))
 
 
-ALA.LAND.INV.GEN <- ALA.LAND.INV.SPP   %>% dplyr::select(-searchTaxon) %>% 
+ALA.LAND.INV.GEN <- ALA.LAND.INV.SPP %>% dplyr::select(-searchTaxon) %>% 
   dplyr::rename(searchTaxon = genus)   %>% dplyr::select(searchTaxon, everything())
 
 
@@ -330,7 +337,7 @@ all_insect_pbi <- PBI_AUS %>%
   ## Remove the NA coordinates, and add a 'SOURCE' column
   completeFun(., c('lat', 'lon')) %>% 
   filter(lon < 180 & lat > -90)   %>% 
-  mutate(SOURCE = 'PBI')
+  mutate(SOURCE = 'SITE')
 
 
 ## Create a SPDF for the SITE Data
@@ -346,18 +353,28 @@ all_insect_pbi_sf <- SpatialPointsDataFrame(coords      = all_insect_pbi %>%
 COMBO.RASTER.PBI.SPP <- combine_records_extract(records_df       = all_insect_pbi_sf,
                                                 add_sites        = FALSE,
                                                 filter_taxo      = FALSE,
+                                                
                                                 site_df          = NA,
                                                 thin_records     = FALSE,
                                                 template_raster  = template_raster_250m,
                                                 world_raster     = aus.climate.veg.grids.250m,
                                                 epsg             = 4326,
-                                                taxa_list        = target.insect.families,
+                                                taxa_list        = analysis_taxa,
                                                 taxa_level       = 'family',   
                                                 
                                                 ## This might need to change too
                                                 raster_divide    = FALSE,
                                                 save_data        = FALSE,
                                                 save_run         = FALSE)
+
+
+COMBO_RASTER_PBI_SPP_sf <- SpatialPointsDataFrame(coords      = COMBO.RASTER.PBI.SPP %>% 
+                                                    dplyr::select(lon, lat) %>% as.matrix(),
+                                                  data        = COMBO.RASTER.PBI.SPP,
+                                                  proj4string = CRS("+init=epsg:4326")) %>%
+  
+  st_as_sf() %>% 
+  st_transform(., st_crs(4326))
 
 ## Genera
 COMBO.RASTER.PBI.GEN <- COMBO.RASTER.PBI.SPP %>%
@@ -369,7 +386,6 @@ COMBO.RASTER.PBI.GEN <- COMBO.RASTER.PBI.SPP %>%
 COMBO.RASTER.PBI.FAM <- COMBO.RASTER.PBI.SPP %>%
   dplyr::select(-searchTaxon)  %>% 
   dplyr::rename(searchTaxon = family) %>% dplyr::select(searchTaxon, everything())
-
 
 ``` 
 
@@ -415,12 +431,10 @@ COMBO.RASTER.ALA.FAM   <- COMBO.RASTER.ALA.SPP %>% dplyr::select(-searchTaxon) %
 
 
 ## Now bind the site data to each
-# COMBO.RASTER.SPP.ALA.PBI  <- bind_rows(COMBO.RASTER.ALA.SPP, COMBO.RASTER.PBI.SPP)
-# COMBO.RASTER.GEN.ALA.PBI  <- bind_rows(COMBO.RASTER.ALA.GEN, COMBO.RASTER.PBI.GEN)
-# COMBO.RASTER.FAM.ALA.PBI  <- bind_rows(COMBO.RASTER.ALA.FAM, COMBO.RASTER.PBI.FAM)
-COMBO.SPP.GEN.FAM.ALA.PBI <- bind_rows(COMBO.RASTER.SPP.ALA.PBI, 
-                                       COMBO.RASTER.GEN.ALA.PBI,
-                                       COMBO.RASTER.FAM.ALA.PBI)
+COMBO.RASTER.SPP.ALA.PBI  <- bind_rows(COMBO.RASTER.ALA.SPP, COMBO.RASTER.PBI.SPP)
+COMBO.RASTER.GEN.ALA.PBI  <- bind_rows(COMBO.RASTER.ALA.GEN, COMBO.RASTER.PBI.GEN)
+COMBO.RASTER.FAM.ALA.PBI  <- bind_rows(COMBO.RASTER.ALA.FAM, COMBO.RASTER.PBI.FAM)
+COMBO.SPP.GEN.FAM.ALA.PBI <- bind_rows(COMBO.RASTER.SPP.ALA.PBI, COMBO.RASTER.GEN.ALA.PBI )
 
 gc()
 
@@ -432,9 +446,6 @@ COMBO_RASTER_ALA_SPP_sf <- SpatialPointsDataFrame(coords      = COMBO.RASTER.SPP
   
   st_as_sf() %>% 
   st_transform(., st_crs(4326))
-
-
-COMBO_RASTER_ALA_SPP_sf <- COMBO_RASTER_ALA_SPP_sf %>% .[.$searchTaxon %in% analysis_taxa, ]
 
 
 COMBO_RASTER_ALA_GEN_sf <- SpatialPointsDataFrame(coords      = COMBO.RASTER.GEN.ALA.PBI %>% 
@@ -455,46 +466,31 @@ COMBO_RASTER_ALA_FAM_sf <- SpatialPointsDataFrame(coords      = COMBO.RASTER.ALA
   st_transform(., st_crs(4326))
 
 
-COMBO_RASTER_ALA_TAXA_sf <- SpatialPointsDataFrame(coords      = COMBO.SPP.GEN.FAM.ALA.PBI %>% 
-                                                     dplyr::select(lon, lat) %>% as.matrix(),
-                                                   data        = COMBO.SPP.GEN.FAM.ALA.PBI,
-                                                   proj4string = CRS("+init=epsg:4326")) %>%
-  
-  st_as_sf() %>% 
-  st_transform(., st_crs(4326))
 
-
-COMBO_RASTER_ALA_TAXA_sf <- COMBO_RASTER_ALA_TAXA_sf %>% .[.$searchTaxon %in% analysis_taxa, ]
-
-
-st_write(COMBO_RASTER_ALA_TAXA_sf, 
-         dsn    = paste0(inv_records_dir, 'TEST_ALA_TAXA_POINTS.gpkg'), 
+st_write(COMBO_RASTER_ALA_SPP_sf, 
+         dsn    = paste0(inv_records_dir, 'TEST_ALA_SPP_POINTS.gpkg'), 
          quiet  = TRUE, 
          append = FALSE)
 
 
-st_write(COMBO_RASTER_ALA_SPP_sf,
-         dsn    = paste0(inv_records_dir, 'TEST_ALA_SPP_POINTS.gpkg'),
-         quiet  = TRUE,
+st_write(COMBO_RASTER_ALA_GEN_sf, 
+         dsn    = paste0(inv_records_dir, 'TEST_ALA_GEN_POINTS.gpkg'), 
+         quiet  = TRUE, 
          append = FALSE)
 
 
-st_write(COMBO_RASTER_ALA_GEN_sf,
-         dsn    = paste0(inv_records_dir, 'TEST_ALA_GEN_POINTS.gpkg'),
-         quiet  = TRUE,
+st_write(COMBO_RASTER_ALA_FAM_sf, 
+         dsn    = paste0(inv_records_dir, 'TEST_ALA_FAM_POINTS.gpkg'), 
+         quiet  = TRUE, 
          append = FALSE)
 
 
-st_write(COMBO_RASTER_ALA_FAM_sf,
-         dsn    = paste0(inv_records_dir, 'TEST_ALA_FAM_POINTS.gpkg'),
-         quiet  = TRUE,
-         append = FALSE)
-
-
-rm(COMBO.RASTER.ALA.SPP)
-rm(COMBO.RASTER.ALA.GEN)
-rm(COMBO.RASTER.ALA.FAM)
-
+rm(COMBO.RASTER.FAM)
+rm(COMBO.RASTER.GEN)
+rm(COMBO.RASTER.SPP)
+rm(ALA.LAND.INV.SPP)
+rm(ALA.LAND.INV.GEN)
+rm(ALA.LAND.INV.FAM)
 
 
 ```
@@ -524,7 +520,7 @@ records data.frame is that returned by the combine_records_extract function abov
 ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
 
 ## Flag records as institutional or spatial outliers
-COORD.CLEAN = coord_clean_records(records    = COMBO.SPP.GEN.FAM.ALA.PBI,
+COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.FAM,
                                   site_flag  = 'SITE',
                                   occ_flag   = 'ALA',
                                   multi_source = TRUE,
@@ -587,7 +583,7 @@ coord_clean_records function.
 sp_epsg3577  <- "+proj=aea +lat_0=0 +lon_0=132 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 
 
-COORD.CLEAN = coord_clean_records(records    = COMBO.SPP.GEN.FAM.ALA.PBI,
+COORD.CLEAN = coord_clean_records(records    = COMBO.RASTER.FAM,
                                   site_flag  = 'SITE',
                                   occ_flag   = 'ALA',
                                   multi_source = TRUE,
@@ -599,23 +595,8 @@ COORD.CLEAN = coord_clean_records(records    = COMBO.SPP.GEN.FAM.ALA.PBI,
                                   data_path  = "./output/results/")
 
 
-COORD_CLEAN_sf <- SpatialPointsDataFrame(coords = COORD.CLEAN %>% 
-                                           dplyr::select(lon, lat) %>% as.matrix(),
-                                         data        = COORD.CLEAN,
-                                         proj4string = CRS("+init=epsg:4326")) %>%
-  
-  st_as_sf() %>% 
-  st_transform(., st_crs(4326))
-
-
-st_write(COORD_CLEAN_sf, 
-         dsn    = paste0(inv_records_dir, 'TEST_CLEAN_TAXA_POINTS.gpkg'), 
-         quiet  = TRUE, 
-         append = FALSE)
-
-
 ## Combine occ data with the bg data 
-SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD_CLEAN_sf,
+SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD.CLEAN,
                                          taxa_list         = analysis_taxa,
                                          
                                          site_flag         = 'SITE',
@@ -639,15 +620,14 @@ SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD_CLEAN_sf,
                                          
                                          save_run          = "TEST_INVERTS_ALA_PBI",
                                          read_background   = FALSE,
-                                         world_epsg        = "+init=epsg:4326",
-                                         country_epsg      = 3577,
+                                         sp_country_prj    = sp_epsg3577,
                                          save_data         = TRUE,
                                          data_path         = inv_results_dir)
 
 
 ## Check the taxonomic levels
-sum(is.na(SDM.SPAT.OCC.BG.GDA$searchTaxon));sum(is.na(SDM.SPAT.OCC.BG.GDA$species));
-sum(is.na(SDM.SPAT.OCC.BG.GDA$genus));sum(is.na(SDM.SPAT.OCC.BG.GDA$family))
+sum(is.na(SDM.SPAT.OCC.BG.GDA@data$searchTaxon));sum(is.na(SDM.SPAT.OCC.BG.GDA@data$species));
+sum(is.na(SDM.SPAT.OCC.BG.GDA@data$genus));sum(is.na(SDM.SPAT.OCC.BG.GDA@data$family))
 
 
 ## Create subset of target reptiles
@@ -656,11 +636,10 @@ sum(is.na(SDM.SPAT.OCC.BG.GDA$genus));sum(is.na(SDM.SPAT.OCC.BG.GDA$family))
 SDM.SPAT.OCC.BG.TARG.INV <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysis_taxa, ]
 
 
-st_write(SDM.SPAT.OCC.BG.TARG.INV, 
-         dsn     = file.path(inv_results_dir, 'SDM_INVERT_TEST_ALA_PBI.gpkg'), 
-         layer   = 'SDM_TARGET_INVERT_TAXA', 
-         quiet   = TRUE,
-         append  = FALSE)
+st_write(SDM.SPAT.OCC.BG.TARG.INV %>% st_as_sf(), 
+         dsn = file.path(inv_results_dir, 'SDM_INVERT_TEST_ALA_PBI.gpkg'), 
+         layer = 'SDM_TARGET_INVERT_TAXA', 
+         quiet = TRUE)
 
 
 # st_write(SDM.SPAT.OCC.BG.GDA %>% st_as_sf(), 
