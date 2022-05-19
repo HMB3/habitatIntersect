@@ -1046,7 +1046,7 @@ combine_gbif_records = function(taxa_list,
 #' @title Extract environmental records for occurrence data.
 #' @description This function combines occurrence files from ALA and GBIF into one table, and extracts enviro values.
 #' It assumes that both files come from the previous GBIF/ALA combine function.
-#' @param ala_df             Data frame of ALA records
+#' @param records_df             Data frame of ALA records
 #' @param site_df            Data frame of site records (only used if you have site data, e.g. I-naturalist)
 #' @param taxa_list          List of taxa analyzed, used to cut the dataframe down
 #' @param taxa_level         What taxonomic level to analyze at?
@@ -1061,7 +1061,7 @@ combine_gbif_records = function(taxa_list,
 #' @param data_path          The file path used for saving the data frame
 #' @param save_run           A run name to append to the data frame (e.g. bat taxa, etc.). Useful for multiple runs.
 #' @export
-combine_records_extract = function(ala_df,
+combine_records_extract = function(records_df,
                                    add_sites,
                                    site_df,
                                    add_site,
@@ -1071,7 +1071,7 @@ combine_records_extract = function(ala_df,
                                    template_raster,
                                    thin_records,
                                    world_raster,
-                                   prj,
+                                   epsg,
                                    complete_var,
                                    raster_divide,
                                    env_variables,
@@ -1080,7 +1080,7 @@ combine_records_extract = function(ala_df,
                                    save_run) {
   
   ## Get just the Common columns
-  message('Processing ' , length(unique(ala_df$searchTaxon)), ' searched taxa')
+  message('Processing ' , length(unique(records_df$searchTaxon)), ' searched taxa')
   
   ## Now filter the records to those where the searched and returned taxa match
   ## More matching is in : 4_ALA_GBIF_TAXO_COMBINE.R from Green Cities
@@ -1088,22 +1088,17 @@ combine_records_extract = function(ala_df,
   if(filter_taxo) {
     
     message('fitler taxonomy')
-    ala_df <- ala_df %>% dplyr::mutate(Match_SN_ST = str_detect(!!taxa_level, searchTaxon)) %>% 
+    records_df <- records_df %>% dplyr::mutate(Match_SN_ST = str_detect(!!taxa_level, searchTaxon)) %>% 
       filter(Match_SN_ST == 'TRUE') %>% as.data.frame()
     
   } else {
     message('Do not filter taxonomy of searched taxa vs returned' )
-    ala_df <- ala_df %>% dplyr::mutate(Match_SN_ST = str_detect(!!taxa_level, searchTaxon))
+    # records_df <- records_df %>% dplyr::mutate(Match_SN_ST = str_detect(!!taxa_level, searchTaxon))
   }
   
-  ## Create points: the 'over' function seems to need geographic coordinates for this data...
-  RECORDS.84 = SpatialPointsDataFrame(coords      = ala_df %>% 
-                                        dplyr::select(lon, lat) %>% as.matrix(),
-                                      data        = ala_df,
-                                      proj4string = prj) %>% 
-    
-    st_as_sf() %>% 
-    st_transform(., st_crs(4326))
+  ## Make sure the projection matches
+  RECORDS.84 = records_df %>% 
+    st_transform(., st_crs(epsg))
   
   ## Don't taxo match the site data :: this needs to be kept without exclusion
   if(add_sites) {
@@ -1179,7 +1174,7 @@ combine_records_extract = function(ala_df,
           ' taxa processed of ', length(taxa_list), ' original taxa')
   
   ## What percentage of records are retained?
-  message(round(nrow(COMBO.RASTER.CONVERT)/nrow(ALA.COMBO)*100, 2),
+  message(round(nrow(COMBO.RASTER.CONVERT)/nrow(records_df)*100, 2),
           " % records retained after raster extraction")
   
   ## save data

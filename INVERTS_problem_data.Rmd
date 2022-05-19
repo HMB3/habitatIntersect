@@ -147,7 +147,7 @@ environmental conditions.
 
 \
 
-# STEP 1 :: Download taxa occurrence data
+# STEP 1 :: Get spp lists
 
 \
 
@@ -410,6 +410,16 @@ ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = Insects_ALA,
 rm(Insects_ALA)
 
 
+
+ALA_LAND_INV_SPP_sf <- SpatialPointsDataFrame(coords      = head(ALA.LAND.INV.SPP, 1000) %>% 
+                                                dplyr::select(lon, lat) %>% as.matrix(),
+                                              data        = head(ALA.LAND.INV.SPP, 1000),
+                                              proj4string = CRS("+init=epsg:4326")) %>%
+  
+  st_as_sf() %>% 
+  st_transform(., st_crs(4326))
+
+
 ALA.LAND.INV.GENUS <- ALA.LAND.INV.SPP %>% dplyr::select(-searchTaxon) %>% 
   dplyr::rename(searchTaxon = genus)   %>% dplyr::select(searchTaxon, everything())
 
@@ -439,16 +449,51 @@ all_insect_site_df_species_sf <- SpatialPointsDataFrame(coords      = all_insect
   st_transform(., st_crs(4326))
 
 
+COMBO.RASTER.PBI.SPP = combine_records_extract(records_df       = all_insect_site_df_species_sf,
+                                               add_sites        = FALSE,
+                                               filter_taxo      = FALSE,
+                                               
+                                               site_df          = NA,
+                                               thin_records     = FALSE,
+                                               template_raster  = template_raster_250m,
+                                               world_raster     = aus.climate.veg.grids.250m,
+                                               epsg             = 4326,
+                                               taxa_list        = target.insect.families,
+                                               taxa_level       = 'family',   
+                                               
+                                               ## This might need to change too
+                                               raster_divide    = FALSE,
+                                               save_data        = FALSE,
+                                               save_run         = FALSE)
+
+
+COMBO_RASTER_PBI_SPP_sf <- SpatialPointsDataFrame(coords      = COMBO.RASTER.PBI %>% 
+                                                    dplyr::select(lon, lat) %>% as.matrix(),
+                                                  data        = COMBO.RASTER.PBI,
+                                                  proj4string = CRS("+init=epsg:4326")) %>%
+  
+  st_as_sf() %>% 
+  st_transform(., st_crs(4326))
+
+st_write(COMBO_RASTER_PBI_SPP_sf, 
+         dsn    = paste0(inv_records_dir, 'TEST_PBI_TAXA_POINTS.gpkg'), 
+         quiet  = TRUE, 
+         append = FALSE)
+
+
+
 ## Genera
-all_insect_site_df_genera <- all_insect_site_df_species_sf %>%
+COMBO.RASTER.PBI.GEN <- COMBO_RASTER_PBI_SPP_sf %>%
   dplyr::select(-searchTaxon) %>% 
   dplyr::rename(searchTaxon = genus) %>% dplyr::select(searchTaxon, everything())
 
 
-## Families
-all_insect_site_df_families <- all_insect_site_df_species_sf %>%
+## Familie
+COMBO.RASTER.PBI.FAM <- COMBO_RASTER_PBI_SPP_sf  %>%
   dplyr::select(-searchTaxon)  %>% 
   dplyr::rename(searchTaxon = family) %>% dplyr::select(searchTaxon, everything())
+
+
 
 
 
@@ -456,15 +501,15 @@ all_insect_site_df_families <- all_insect_site_df_species_sf %>%
 ## Combine GBIF and ALA data, and extract environmental values
 ## Some of the site records will be removed here, if they are outside the raster bounds.
 ## This seems strange, but maybe they are right on the coast
-COMBO.RASTER.FAM = combine_records_extract(ala_df           = ALA.LAND.INV.FAM,
-                                           add_sites        = TRUE,
+COMBO.RASTER.FAM = combine_records_extract(records_df       = ALA_LAND_INV_SPP_sf,
+                                           add_sites        = FALSE,
                                            filter_taxo      = FALSE,
                                            
-                                           site_df          = all_insect_site_df_families,
+                                           site_df          = NA,
                                            thin_records     = FALSE,
                                            template_raster  = template_raster_250m,
                                            world_raster     = aus.climate.veg.grids.250m,
-                                           prj              = CRS("+init=epsg:4326"),
+                                           epsg             = 4326,
                                            taxa_list        = target.insect.families,
                                            taxa_level       = 'family',   
                                            
@@ -522,6 +567,21 @@ gc()
 COMBO.RASTER.FAM.GEN.SPP <- bind_rows(COMBO.RASTER.FAM, COMBO.RASTER.GEN, COMBO.RASTER.SPP)
 gc()
 
+
+COMBO_RASTER_ALA_SPP_sf <- SpatialPointsDataFrame(coords      = COMBO.RASTER.FAM %>% 
+                                                    dplyr::select(lon, lat) %>% as.matrix(),
+                                                  data        = COMBO.RASTER.FAM,
+                                                  proj4string = CRS("+init=epsg:4326")) %>%
+  
+  st_as_sf() %>% 
+  st_transform(., st_crs(4326))
+
+st_write(COMBO_RASTER_ALA_SPP_sf, 
+         dsn    = paste0(inv_records_dir, 'TEST_ALA_TAXA_POINTS.gpkg'), 
+         quiet  = TRUE, 
+         append = FALSE)
+
+
 rm(COMBO.RASTER.FAM)
 rm(COMBO.RASTER.GEN)
 rm(COMBO.RASTER.SPP)
@@ -530,18 +590,7 @@ rm(ALA.LAND.INV.GENUS)
 rm(ALA.LAND.INV.FAM)
 
 
-COMBO_RASTER_FAM_GEN_SPP_sf <- SpatialPointsDataFrame(coords      = COMBO.RASTER.FAM.GEN.SPP %>% 
-                                                        dplyr::select(lon, lat) %>% as.matrix(),
-                                                      data        = all_insect_site_df_species,
-                                                      proj4string = CRS("+init=epsg:4326")) %>%
-  
-  st_as_sf() %>% 
-  st_transform(., st_crs(4326))
 
-
-st_write(all_insect_site_df_species_sf, 
-         dsn   = paste0(inv_records_dir, 'ALL_PBI_TAXA_POINTS.gpkg'), 
-         quiet = TRUE)
 
 ``` 
 
