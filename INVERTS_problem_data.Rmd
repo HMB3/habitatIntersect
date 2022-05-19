@@ -280,114 +280,12 @@ gc()
 
 \
 
-Next we filter the records to those taken after 1950, and those inside the raster boundaries 
-(i.e. taxa records in the ocean according to the raster boundaries will be excluded).
-
-\
-
-```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE}
-
-## Combine ALA data, and filter to records on land taken > 1950
-## The climate data is the worldclim version 2.0
-## Also, add a switch for the 1km filter - we don't want to do this anymore, too few records
-data('ALA_keep')
-
-
-## Take a data dump from the ALA of all the reptiles, 
-## and format it to the columns names we want for the niche analyses
-Insects_ALA      <- readRDS('./data/ALA/Insects/INVERTS_2022_1205.rds')
-
-
-
-ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = head(Insects_ALA, 1000),
-                                    record_type   = "ALA",
-                                    keep_cols     = ALA_keep,
-                                    year_filt     = FALSE,
-                                    unique_cells  = FALSE,
-                                    world_raster  = aus_annual_precip)
-
-
-ALA.LAND.INV.GENUS <- ALA.LAND.INV.SPP %>% dplyr::select(-searchTaxon) %>% 
-  dplyr::rename(searchTaxon = genus)   %>% dplyr::select(searchTaxon, everything())
-
-
-ALA.LAND.INV.FAM   <- ALA.LAND.INV.SPP %>% dplyr::select(-searchTaxon) %>% 
-  dplyr::rename(searchTaxon = family)  %>% dplyr::select(searchTaxon, everything())
-
-
-'Rayieria basifer'            %in% ALA.LAND.INV.SPP$searchTaxon
-'Amphistomus cunninghamensis' %in% ALA.LAND.INV.SPP$searchTaxon
-'Eritingis trivirgata'        %in% ALA.LAND.INV.SPP$searchTaxon
-'Asteron grayi'               %in% ALA.LAND.INV.SPP$scientificName
-
-
-ALA.LAND.INV.SPP.SF <- SpatialPointsDataFrame(coords      = ALA.LAND.INV.SPP %>% 
-                                                dplyr::select(lon, lat) %>% as.matrix(),
-                                              data        = ALA.LAND.INV.SPP,
-                                              proj4string = CRS("+init=epsg:4326")) %>%
-  
-  st_as_sf() %>% 
-  st_transform(., st_crs(3577))
-
-
-poly <- st_read('data/Spatial_data/Study_areas/AUS_2016_AUST.shp') %>% 
-  st_transform(., st_crs(3577)) %>% as_Spatial()
-
-
-## Check a few of the taxa now
-'Rayieria basifer'            %in% ALA.LAND.INV.SPP.SF$searchTaxon
-'Amphistomus cunninghamensis' %in% ALA.LAND.INV.SPP.SF$searchTaxon
-'Eritingis trivirgata'        %in% ALA.LAND.INV.SPP.SF$searchTaxon
-'Asteron grayi'               %in% ALA.LAND.INV.SPP.SF$scientificName
-
-
-Amphistomus.cunninghamensis <- ALA.LAND.INV.SPP.SF %>% 
-  filter(searchTaxon == 'Amphistomus cunninghamensis')
-
-
-## For all the spatially incorrect taxa, plot them to see what's happening
-for(taxa in taxa_remain) {
-  
-  ## taxa = target.insect.spp[79] 
-  if(taxa %in% unique(ALA.LAND.INV.SPP.SF$searchTaxon)) {
-    
-    map <- paste0(inv_records_dir, taxa, '_ALA_POINTS.gpkg')
-    
-    if(!file.exists(map)) {
-      
-      message('Subsetting ', taxa, ' geo-package')
-      save_name <- gsub(' ', '_', taxa)
-      taxa_occ <- ALA.LAND.INV.SPP.SF %>% .[.$searchTaxon %in% taxa, ] 
-      
-      st_write(taxa_occ %>% st_as_sf(), 
-               dsn    = paste0(inv_records_dir, taxa, '_ALA_POINTS.gpkg'), 
-               layer  = paste0(taxa, '_SDM_points'), 
-               quiet  = TRUE,
-               append = FALSE)
-      
-      png(paste0(inv_records_dir, save_name, '_ALA_POINTS.png'),
-          11, 4, units = 'in', res = 400)
-      
-      plot(st_geometry(taxa_occ), legend = FALSE, col = 'red')
-      plot(poly, add = TRUE)
-      dev.off()
-      
-      
-    } else {
-      message(taxa, ' already checked')}
-    
-  } else {
-    message(taxa, ' has no data')}
-}
-
-
-``` 
-
-\
 
 # STEP 3 :: extract environmental values
 
 \
+
+# Site data
 
 Next we combine occurrence files from ALA and GBIF into one table, and extracts environmental values. It assumes that both files come from the combine_ala_records and combine_gbif_records functions. Note that the order of the raster names in 'world_raster' must match the order of names in the character vector 'env_variables'. In this case, it's simply the biolclim variables (i.e. bio1-bio19)
 
@@ -399,8 +297,7 @@ Next we combine occurrence files from ALA and GBIF into one table, and extracts 
 ## Where we use different columns for the analysis :: species, genus or family
 Insects_ALA      <- readRDS('./data/ALA/Insects/INVERTS_2022_1205.rds')
 
-
-ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = Insects_ALA,
+ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = head(Insects_ALA, 10000),
                                     record_type   = "ALA",
                                     keep_cols     = ALA_keep,
                                     year_filt     = FALSE,
@@ -411,9 +308,9 @@ rm(Insects_ALA)
 
 
 
-ALA_LAND_INV_SPP_sf <- SpatialPointsDataFrame(coords      = head(ALA.LAND.INV.SPP, 1000) %>% 
+ALA_LAND_INV_SPP_sf <- SpatialPointsDataFrame(coords      = ALA.LAND.INV.SPP %>% 
                                                 dplyr::select(lon, lat) %>% as.matrix(),
-                                              data        = head(ALA.LAND.INV.SPP, 1000),
+                                              data        = ALA.LAND.INV.SPP,
                                               proj4string = CRS("+init=epsg:4326")) %>%
   
   st_as_sf() %>% 
@@ -428,10 +325,9 @@ ALA.LAND.INV.FAM   <- ALA.LAND.INV.SPP %>% dplyr::select(-searchTaxon) %>%
   dplyr::rename(searchTaxon = family)  %>% dplyr::select(searchTaxon, everything())
 
 
-
 ## Prepare site data 
 ## Combine all the site data into one table
-all_insect_site_df_species <- PBI_AUS %>%
+all_insect_pbi <- PBI_AUS %>%
   
   ## Remove the NA coordinates, and add a 'SOURCE' column
   completeFun(., c('lat', 'lon')) %>% 
@@ -440,31 +336,31 @@ all_insect_site_df_species <- PBI_AUS %>%
 
 
 ## Create a SPDF for the SITE Data
-all_insect_site_df_species_sf <- SpatialPointsDataFrame(coords      = all_insect_site_df_species %>% 
-                                                          dplyr::select(lon, lat) %>% as.matrix(),
-                                                        data        = all_insect_site_df_species,
-                                                        proj4string = CRS("+init=epsg:4326")) %>%
+all_insect_pbi_sf <- SpatialPointsDataFrame(coords      = all_insect_pbi %>% 
+                                              dplyr::select(lon, lat) %>% as.matrix(),
+                                            data        = all_insect_site_df_species,
+                                            proj4string = CRS("+init=epsg:4326")) %>%
   
   st_as_sf() %>% 
   st_transform(., st_crs(4326))
 
 
-COMBO.RASTER.PBI.SPP = combine_records_extract(records_df       = all_insect_site_df_species_sf,
-                                               add_sites        = FALSE,
-                                               filter_taxo      = FALSE,
-                                               
-                                               site_df          = NA,
-                                               thin_records     = FALSE,
-                                               template_raster  = template_raster_250m,
-                                               world_raster     = aus.climate.veg.grids.250m,
-                                               epsg             = 4326,
-                                               taxa_list        = target.insect.families,
-                                               taxa_level       = 'family',   
-                                               
-                                               ## This might need to change too
-                                               raster_divide    = FALSE,
-                                               save_data        = FALSE,
-                                               save_run         = FALSE)
+COMBO.RASTER.PBI.SPP <- combine_records_extract(records_df       = all_insect_pbi_sf,
+                                                add_sites        = FALSE,
+                                                filter_taxo      = FALSE,
+                                                
+                                                site_df          = NA,
+                                                thin_records     = FALSE,
+                                                template_raster  = template_raster_250m,
+                                                world_raster     = aus.climate.veg.grids.250m,
+                                                epsg             = 4326,
+                                                taxa_list        = target.insect.families,
+                                                taxa_level       = 'family',   
+                                                
+                                                ## This might need to change too
+                                                raster_divide    = FALSE,
+                                                save_data        = FALSE,
+                                                save_run         = FALSE)
 
 
 COMBO_RASTER_PBI_SPP_sf <- SpatialPointsDataFrame(coords      = COMBO.RASTER.PBI %>% 
@@ -483,88 +379,65 @@ st_write(COMBO_RASTER_PBI_SPP_sf,
 
 
 ## Genera
-COMBO.RASTER.PBI.GEN <- COMBO_RASTER_PBI_SPP_sf %>%
+COMBO.RASTER.PBI.GEN <- COMBO.RASTER.PBI.SPP %>%
   dplyr::select(-searchTaxon) %>% 
   dplyr::rename(searchTaxon = genus) %>% dplyr::select(searchTaxon, everything())
 
 
-## Familie
-COMBO.RASTER.PBI.FAM <- COMBO_RASTER_PBI_SPP_sf  %>%
+## Families
+COMBO.RASTER.PBI.FAM <- COMBO.RASTER.PBI.SPP %>%
   dplyr::select(-searchTaxon)  %>% 
   dplyr::rename(searchTaxon = family) %>% dplyr::select(searchTaxon, everything())
 
+``` 
 
+\
 
+# Records data
+
+\
+
+```{r message=TRUE, echo=TRUE, warning=FALSE, eval=TRUE}
 
 
 ## Update with the full insects download from ALA ----
 ## Combine GBIF and ALA data, and extract environmental values
 ## Some of the site records will be removed here, if they are outside the raster bounds.
 ## This seems strange, but maybe they are right on the coast
-COMBO.RASTER.FAM = combine_records_extract(records_df       = ALA_LAND_INV_SPP_sf,
-                                           add_sites        = FALSE,
-                                           filter_taxo      = FALSE,
-                                           
-                                           site_df          = NA,
-                                           thin_records     = FALSE,
-                                           template_raster  = template_raster_250m,
-                                           world_raster     = aus.climate.veg.grids.250m,
-                                           epsg             = 4326,
-                                           taxa_list        = target.insect.families,
-                                           taxa_level       = 'family',   
-                                           
-                                           ## This might need to change too
-                                           raster_divide    = FALSE,
-                                           save_data        = FALSE,
-                                           save_run         = "TARGET_INSECT_FAMILIES",
-                                           data_path        = "./output/results/")
+COMBO.RASTER.ALA.SPP = combine_records_extract(ala_df           = ALA_LAND_INV_SPP_sf,
+                                               add_sites        = TRUE,
+                                               filter_taxo      = FALSE,
+                                               
+                                               site_df          = FALSE,
+                                               thin_records     = FALSE,
+                                               template_raster  = template_raster_250m,
+                                               world_raster     = aus.climate.veg.grids.250m,
+                                               epsg             = 4326,
+                                               taxa_list        = target.insect.spp,
+                                               taxa_level       = 'species', 
+                                               
+                                               ## These two will need to change.
+                                               ## Specify them in the code
+                                               raster_divide    = FALSE,
+                                               save_data        = FALSE,
+                                               save_run         = "TARGET_INSECT_SPECIES",
+                                               data_path        = "./output/results/")
 gc()
 
 
-COMBO.RASTER.GEN = combine_records_extract(ala_df           = ALA.LAND.INV.GENUS,
-                                           add_sites        = TRUE,
-                                           filter_taxo      = FALSE,
-                                           
-                                           site_df          = all_insect_site_df_genera,
-                                           thin_records     = FALSE,
-                                           template_raster  = template_raster_250m,
-                                           world_raster     = aus.climate.veg.grids.250m,
-                                           prj              = CRS("+init=epsg:4326"),
-                                           taxa_list        = target.insect.genera,
-                                           taxa_level       = 'genus', 
-                                           
-                                           ## These two will need to change.
-                                           ## Specify them in the code
-                                           raster_divide    = FALSE,
-                                           save_data        = FALSE,
-                                           save_run         = "TARGET_INSECT_GENERA",
-                                           data_path        = "./output/results/")
-gc()
+
+COMBO.RASTER.ALA.SPP.GENUS <- COMBO.RASTER.ALA.SPP %>% dplyr::select(-searchTaxon) %>% 
+  dplyr::rename(searchTaxon = genus)   %>% dplyr::select(searchTaxon, everything())
 
 
-COMBO.RASTER.SPP = combine_records_extract(ala_df           = ALA.LAND.INV.SPP,
-                                           add_sites        = TRUE,
-                                           filter_taxo      = FALSE,
-                                           
-                                           site_df          = all_insect_site_df_species,
-                                           thin_records     = FALSE,
-                                           template_raster  = template_raster_250m,
-                                           world_raster     = aus.climate.veg.grids.250m,
-                                           prj              = CRS("+init=epsg:4326"),
-                                           taxa_list        = target.insect.spp,
-                                           taxa_level       = 'species', 
-                                           
-                                           ## These two will need to change.
-                                           ## Specify them in the code
-                                           raster_divide    = FALSE,
-                                           save_data        = FALSE,
-                                           save_run         = "TARGET_INSECT_SPECIES",
-                                           data_path        = "./output/results/")
-gc()
+COMBO.RASTER..ALA.SPP.FAM   <- COMBO.RASTER.ALA.SPP %>% dplyr::select(-searchTaxon) %>% 
+  dplyr::rename(searchTaxon = family)  %>% dplyr::select(searchTaxon, everything())
 
 
-## Try combing the records into a "super table"...does that make sense?
-COMBO.RASTER.FAM.GEN.SPP <- bind_rows(COMBO.RASTER.FAM, COMBO.RASTER.GEN, COMBO.RASTER.SPP)
+## Now bind the site data to each
+COMBO.RASTER.SPP.ALA.PBI <- bind_rows(COMBO.RASTER.ALA.SPP, COMBO.RASTER.PBI.SPP)
+COMBO.RASTER.SPP.ALA.GEN <- bind_rows(COMBO.RASTER.ALA.GEN, COMBO.RASTER.PBI.SPP)
+
 gc()
 
 
@@ -582,6 +455,59 @@ st_write(COMBO_RASTER_ALA_SPP_sf,
          append = FALSE)
 
 
+# 
+# COMBO.RASTER.FAM = combine_records_extract(records_df       = ALA_LAND_INV_SPP_sf,
+#                                            add_sites        = FALSE,
+#                                            filter_taxo      = FALSE,
+#                                            
+#                                            site_df          = NA,
+#                                            thin_records     = FALSE,
+#                                            template_raster  = template_raster_250m,
+#                                            world_raster     = aus.climate.veg.grids.250m,
+#                                            epsg             = 4326,
+#                                            taxa_list        = target.insect.families,
+#                                            taxa_level       = 'family',   
+#                                            
+#                                            ## This might need to change too
+#                                            raster_divide    = FALSE,
+#                                            save_data        = FALSE,
+#                                            save_run         = "TARGET_INSECT_FAMILIES",
+#                                            data_path        = "./output/results/")
+# gc()
+# 
+# 
+# COMBO.RASTER.GEN = combine_records_extract(ala_df           = ALA.LAND.INV.GENUS,
+#                                            add_sites        = TRUE,
+#                                            filter_taxo      = FALSE,
+#                                            
+#                                            site_df          = all_insect_site_df_genera,
+#                                            thin_records     = FALSE,
+#                                            template_raster  = template_raster_250m,
+#                                            world_raster     = aus.climate.veg.grids.250m,
+#                                            prj              = CRS("+init=epsg:4326"),
+#                                            taxa_list        = target.insect.genera,
+#                                            taxa_level       = 'genus', 
+#                                            
+#                                            ## These two will need to change.
+#                                            ## Specify them in the code
+#                                            raster_divide    = FALSE,
+#                                            save_data        = FALSE,
+#                                            save_run         = "TARGET_INSECT_GENERA",
+#                                            data_path        = "./output/results/")
+# gc()
+# 
+# 
+# 
+# 
+# 
+# ## Try combing the records into a "super table"...does that make sense?
+# COMBO.RASTER.FAM.GEN.SPP <- bind_rows(COMBO.RASTER.FAM, COMBO.RASTER.GEN, COMBO.RASTER.SPP)
+# gc()
+
+
+
+
+
 rm(COMBO.RASTER.FAM)
 rm(COMBO.RASTER.GEN)
 rm(COMBO.RASTER.SPP)
@@ -590,11 +516,9 @@ rm(ALA.LAND.INV.GENUS)
 rm(ALA.LAND.INV.FAM)
 
 
+```
 
 
-``` 
-
-\
 
 # STEP 4 :: Automated cleanin' of outlier records
 

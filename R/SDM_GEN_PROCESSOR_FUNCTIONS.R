@@ -1053,8 +1053,7 @@ combine_gbif_records = function(taxa_list,
 #' @param thin_records       Do you want to thin the records out? If so, it will be 1 record per 1km*1km grid cell
 #' @param template_raster    A global R Raster used to thin records to 1 record per 1km grid cell
 #' @param world_raster       An global R Raster of the enviro conditions used to extract values for all records
-#' @param prj                The projection system used. Currently, needs to be WGS84
-#' @param biocl_vars         The variables used - eg the standard bioclim names (https://www.worldclim.org/).
+#' @param epsg                The projection system used. Currently, needs to be WGS84
 #' @param env_vars           The actual variable names (e.g. bio1 = rainfall, etc.) Only needed for worldlcim
 #' @param worldclim_divide    Are you using worldclim stored as long intergers? If so, divide by 10.
 #' @param save_data          Do you want to save the data frame?
