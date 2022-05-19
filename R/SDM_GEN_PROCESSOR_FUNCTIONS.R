@@ -2103,8 +2103,8 @@ plot_range_histograms = function(coord_df,
 #' @description  'This function takes a data frame of all taxa records,
 #' And prepares a table in the 'taxa with data' (swd) format for modelling uses the Maxent algorithm.
 #' It assumes that the input df is that returned by the coord_clean_records function'
-#' @param coord_df           Data.frame. DF of all taxa records returned by the coord_clean_records function
-#' @param taxa_list       Character string - the taxa analysed
+#' @param coord_df           SF object. Spatial DF of all taxa records returned by the coord_clean_records function
+#' @param taxa_list          Character string - the taxa analysed
 #' @param BG_points          Logical - Do we want to include a dataframe of background points? Otherwise, BG points taken from taxa not modelled
 #' @param sdm_table_vars     Character string - The enviro vars to be included in taxa models
 #' @param save_run           Character string - append a run name to the output (e.g. 'bat_taxa')
@@ -2113,7 +2113,9 @@ plot_range_histograms = function(coord_df,
 #' @param background_points  Data.frame. DF of extra taxa records 
 #' @param save_data          Logical - do you want to save the data frame?
 #' @param data_path          Character string - The file path used for saving the data frame
-#' @param project_path       Paht of taxa records, with spatial outlier T/F flag for each record
+#' @param project_path       Path of taxa records, with spatial outlier T/F flag for each record
+#' @param world_epsg         Character string - The global geographic CRS to use (decimal degrees)
+#' @param country_epsg       Numeric - The national projected CRS system to use (metres)
 #' @export prepare_sdm_table
 prepare_sdm_table = function(coord_df,
                              taxa_list,
@@ -2127,10 +2129,11 @@ prepare_sdm_table = function(coord_df,
                              background_points,
                              save_data,
                              data_path,
-                             sp_country_prj) {
+                             country_epsg,
+                             world_epsg) {
   
   ## Just add clean_df to this step
-  coord_df <- subset(coord_df, coord_summary == TRUE)
+  coord_df <- filter(coord_df, coord_summary == TRUE)
   
   ## Create a table with all the variables needed for SDM analysis
   message('Preparing SDM table for ', length(unique(coord_df$searchTaxon)),
@@ -2144,20 +2147,13 @@ prepare_sdm_table = function(coord_df,
     dplyr::select(one_of(sdm_table_vars))
   
   ## Split the table into ALA and site data 
-  COMBO.RASTER.ALA  <- COMBO.RASTER.ALL %>% subset(SOURCE == occ_flag)
-  COMBO.RASTER.SITE <- COMBO.RASTER.ALL %>% subset(SOURCE == site_flag) %>% dplyr::mutate(SPAT_OUT = TRUE)
+  COMBO.RASTER.ALA  <- COMBO.RASTER.ALL %>% filter(SOURCE == occ_flag)
+  COMBO.RASTER.SITE <- COMBO.RASTER.ALL %>% filter(SOURCE == site_flag) %>% dplyr::mutate(SPAT_OUT = TRUE)
   
   ## Create a spatial points object, and change to a projected system to calculate distance more accurately
   ## This is the mollweide projection used for the SDMs
-  coordinates(COMBO.RASTER.ALA) <- ~lon+lat
-  proj4string(COMBO.RASTER.ALA) <- '+init=epsg:4326'
-  COMBO.RASTER.ALA              <- spTransform(COMBO.RASTER.ALA, CRS(sp_country_prj))
-  
-  ## Don't filter the data again to be 1 record per 1km, that has already happened
-  SDM.DATA.ALL <- COMBO.RASTER.ALA
-  
-  ## TRY CLEANING FILTERED DATA FOR SPATIAL OUTLIERS
-  ## The cc_outl function has been tweaked and sped up.
+  SDM.DATA.ALL <- COMBO.RASTER.ALA %>%
+    st_transform(., st_crs(country_epsg))
   
   ## Create a unique identifier for spatial cleaning.
   ## This is used for automated cleaning of the records, and also saving shapefiles
@@ -2168,10 +2164,10 @@ prepare_sdm_table = function(coord_df,
   SDM.DATA.ALL$SPOUT.OBS <- gsub(" ",     "_",  SDM.DATA.ALL$SPOUT.OBS, perl = TRUE)
   length(SDM.DATA.ALL$SPOUT.OBS);length(unique(SDM.DATA.ALL$SPOUT.OBS))
   
-  
   ## Create a tibble to supply to coordinate cleaner
   SDM.COORDS  <- SDM.DATA.ALL %>%
-    spTransform(., CRS("+init=epsg:4326")) %>%
+    
+    st_transform(., st_crs(world_epsg)) %>%
     as.data.frame() %>%
     dplyr::select(searchTaxon, lon, lat, SPOUT.OBS, SOURCE) %>%
     dplyr::rename(species          = searchTaxon,
@@ -2234,7 +2230,7 @@ prepare_sdm_table = function(coord_df,
   gc()
   
   ## How many taxa are flagged as spatial outliers?
-  print(table(SPAT.OUT$SPAT_OUT, exclude = NULL))
+  message(table(SPAT.OUT$SPAT_OUT, exclude = NULL), ' flagged as outliers')
   
   ## FILTER DATA TO REMOVE SPATIAL OUTLIERS
   ## Join data :: Best to use the 'OBS' column here
@@ -2264,7 +2260,7 @@ prepare_sdm_table = function(coord_df,
   length(unique(SDM.SPAT.ALL$searchTaxon))
   
   ## What percentage of records are retained?
-  message(round(nrow(SDM.SPAT.ALL)/nrow(SPAT.FLAG)*100, 5),
+  message(round(nrow(SDM.SPAT.ALL)/nrow(SPAT.FLAG)*100, 2),
           " % records retained after spatial outlier detection")
   
   if(site_records) {
@@ -2273,20 +2269,23 @@ prepare_sdm_table = function(coord_df,
     message('Combine the Spatially cleaned data with the site data')
     SPAT.TRUE <- SpatialPointsDataFrame(coords      = SDM.SPAT.ALL[c("lon", "lat")],
                                         data        = SDM.SPAT.ALL,
-                                        proj4string = CRS(sp_country_prj))
+                                        proj4string = CRS(world_epsg)) %>% 
+      st_as_sf() %>%
+      st_transform(., st_crs(country_epsg))
     
-    SPAT.SITE <- SpatialPointsDataFrame(coords      = COMBO.RASTER.SITE[c("lon", "lat")],
-                                        data        = COMBO.RASTER.SITE,
-                                        proj4string = CRS(sp_country_prj))
+    SPAT.SITE <- COMBO.RASTER.SITE %>% 
+      st_transform(., st_crs(country_epsg))
     
-    SPAT.TRUE <- SPAT.TRUE %>% rbind(., SPAT.SITE)
+    SPAT.TRUE.COMBO <- SPAT.TRUE %>% rbind(., SPAT.SITE)
     message('Cleaned ', paste0(unique(SPAT.TRUE$SOURCE), sep = ' '), ' records')
     
   } else {
     message('Dont add site data' )
-    SPAT.TRUE <- SpatialPointsDataFrame(coords      = SDM.SPAT.ALL[c("lon", "lat")],
-                                        data        = SDM.SPAT.ALL,
-                                        proj4string = CRS(sp_country_prj))
+    SPAT.TRUE.COMBO <- SpatialPointsDataFrame(coords      = SDM.SPAT.ALL[c("lon", "lat")],
+                                              data        = SDM.SPAT.ALL,
+                                              proj4string = CRS(world_epsg)) %>% 
+      st_as_sf() %>%
+      st_transform(., st_crs(country_epsg))
   }
   
   ## CREATE BACKGROUND POINTS AND VARIBALE NAMES
@@ -2299,11 +2298,11 @@ prepare_sdm_table = function(coord_df,
     
     ## The BG points step needs to be ironed out.
     ## For some analysis, we need to do other taxa (e.g. animals)
-    SDM.SPAT.OCC.BG <- rbind(SPAT.TRUE, background)
+    SDM.SPAT.OCC.BG <- rbind(SPAT.TRUE.COMBO, background)
     
   } else {
     message('Dont read in Background data, creating it in this run')
-    SDM.SPAT.OCC.BG = SPAT.TRUE
+    SDM.SPAT.OCC.BG = SPAT.TRUE.COMBO
   }
   
   ## save data
