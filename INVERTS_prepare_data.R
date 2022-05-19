@@ -213,14 +213,6 @@ ALA_LAND_INV_SPP_sf <- SpatialPointsDataFrame(coords      = ALA.LAND.INV.SPP %>%
   st_transform(., st_crs(4326))
 
 
-ALA.LAND.INV.GEN <- ALA.LAND.INV.SPP %>% dplyr::select(-searchTaxon) %>% 
-  dplyr::rename(searchTaxon = genus) %>% dplyr::select(searchTaxon, everything())
-
-
-ALA.LAND.INV.FAM   <- ALA.LAND.INV.SPP %>% dplyr::select(-searchTaxon) %>% 
-  dplyr::rename(searchTaxon = family)  %>% dplyr::select(searchTaxon, everything())
-
-
 ## Prepare site data 
 ## Combine all the site data into one table
 all_insect_pbi <- PBI_AUS %>%
@@ -304,40 +296,11 @@ COMBO.RASTER.ALA.SPP = combine_records_extract(records_df       = ALA_LAND_INV_S
 gc()
 
 
-
-# COMBO.RASTER.ALA.GEN <- COMBO.RASTER.ALA.SPP %>% dplyr::select(-searchTaxon) %>% 
-#   dplyr::rename(searchTaxon = genus)   %>% dplyr::select(searchTaxon, everything())
-# 
-# 
-# COMBO.RASTER.ALA.FAM   <- COMBO.RASTER.ALA.SPP %>% dplyr::select(-searchTaxon) %>% 
-#   dplyr::rename(searchTaxon = family)  %>% dplyr::select(searchTaxon, everything())
-
-
 ## Now bind the site data to each
-COMBO.SPP.GEN.FAM.ALA.PBI <- bind_rows(COMBO.RASTER.SPP.ALA.PBI, COMBO.RASTER.GEN.ALA.PBI )
+COMBO.SPP.GEN.FAM.ALA.PBI <- bind_rows(COMBO.RASTER.PBI.SPP, 
+                                       COMBO.RASTER.PBI.GEN,
+                                       COMBO.RASTER.PBI.FAM)
 gc()
-
-
-# COMBO_RASTER_ALA_TAXA_sf <- SpatialPointsDataFrame(coords      = COMBO.SPP.GEN.FAM.ALA.PBI %>% 
-#                                                      dplyr::select(lon, lat) %>% as.matrix(),
-#                                                    data        = COMBO.SPP.GEN.FAM.ALA.PBI,
-#                                                    proj4string = CRS("+init=epsg:4326")) %>%
-#   
-#   st_as_sf() %>% 
-#   st_transform(., st_crs(4326))
-# 
-# 
-# st_write(COMBO_RASTER_ALA_TAXA_sf, 
-#          dsn    = paste0(inv_records_dir, 'ALL_ALA_TAXA_POINTS.gpkg'), 
-#          quiet  = TRUE, 
-#          append = FALSE)
-
-
-rm(ALA.LAND.INV.SPP)
-rm(ALA.LAND.INV.GEN)
-rm(ALA.LAND.INV.FAM)
-
-
 
 
 
