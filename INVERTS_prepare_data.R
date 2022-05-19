@@ -305,35 +305,32 @@ gc()
 
 
 
-COMBO.RASTER.ALA.GEN <- COMBO.RASTER.ALA.SPP %>% dplyr::select(-searchTaxon) %>% 
-  dplyr::rename(searchTaxon = genus)   %>% dplyr::select(searchTaxon, everything())
-
-
-COMBO.RASTER.ALA.FAM   <- COMBO.RASTER.ALA.SPP %>% dplyr::select(-searchTaxon) %>% 
-  dplyr::rename(searchTaxon = family)  %>% dplyr::select(searchTaxon, everything())
+# COMBO.RASTER.ALA.GEN <- COMBO.RASTER.ALA.SPP %>% dplyr::select(-searchTaxon) %>% 
+#   dplyr::rename(searchTaxon = genus)   %>% dplyr::select(searchTaxon, everything())
+# 
+# 
+# COMBO.RASTER.ALA.FAM   <- COMBO.RASTER.ALA.SPP %>% dplyr::select(-searchTaxon) %>% 
+#   dplyr::rename(searchTaxon = family)  %>% dplyr::select(searchTaxon, everything())
 
 
 ## Now bind the site data to each
-# COMBO.RASTER.SPP.ALA.PBI  <- bind_rows(COMBO.RASTER.ALA.SPP, COMBO.RASTER.PBI.SPP)
-# COMBO.RASTER.GEN.ALA.PBI  <- bind_rows(COMBO.RASTER.ALA.GEN, COMBO.RASTER.PBI.GEN)
-# COMBO.RASTER.FAM.ALA.PBI  <- bind_rows(COMBO.RASTER.ALA.FAM, COMBO.RASTER.PBI.FAM)
 COMBO.SPP.GEN.FAM.ALA.PBI <- bind_rows(COMBO.RASTER.SPP.ALA.PBI, COMBO.RASTER.GEN.ALA.PBI )
 gc()
 
 
-COMBO_RASTER_ALA_TAXA_sf <- SpatialPointsDataFrame(coords      = COMBO.SPP.GEN.FAM.ALA.PBI %>% 
-                                                     dplyr::select(lon, lat) %>% as.matrix(),
-                                                   data        = COMBO.SPP.GEN.FAM.ALA.PBI,
-                                                   proj4string = CRS("+init=epsg:4326")) %>%
-  
-  st_as_sf() %>% 
-  st_transform(., st_crs(4326))
-
-
-st_write(COMBO_RASTER_ALA_TAXA_sf, 
-         dsn    = paste0(inv_records_dir, 'ALL_ALA_TAXA_POINTS.gpkg'), 
-         quiet  = TRUE, 
-         append = FALSE)
+# COMBO_RASTER_ALA_TAXA_sf <- SpatialPointsDataFrame(coords      = COMBO.SPP.GEN.FAM.ALA.PBI %>% 
+#                                                      dplyr::select(lon, lat) %>% as.matrix(),
+#                                                    data        = COMBO.SPP.GEN.FAM.ALA.PBI,
+#                                                    proj4string = CRS("+init=epsg:4326")) %>%
+#   
+#   st_as_sf() %>% 
+#   st_transform(., st_crs(4326))
+# 
+# 
+# st_write(COMBO_RASTER_ALA_TAXA_sf, 
+#          dsn    = paste0(inv_records_dir, 'ALL_ALA_TAXA_POINTS.gpkg'), 
+#          quiet  = TRUE, 
+#          append = FALSE)
 
 
 rm(ALA.LAND.INV.SPP)
@@ -418,6 +415,10 @@ st_write(SDM.SPAT.OCC.BG.TARG.INV %>% st_as_sf(),
 
 
 
+message('data preparation code successfuly run')
 
 
 
+
+
+## END =============================================================
