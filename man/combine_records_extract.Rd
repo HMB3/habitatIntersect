@@ -5,7 +5,7 @@
 \title{Extract environmental records for occurrence data.}
 \usage{
 combine_records_extract(
-  ala_df,
+  records_df,
   add_sites,
   site_df,
   add_site,
@@ -15,7 +15,7 @@ combine_records_extract(
   template_raster,
   thin_records,
   world_raster,
-  prj,
+  epsg,
   complete_var,
   raster_divide,
   env_variables,
@@ -25,7 +25,7 @@ combine_records_extract(
 )
 }
 \arguments{
-\item{ala_df}{Data frame of ALA records}
+\item{records_df}{Data frame of ALA records}
 
 \item{site_df}{Data frame of site records (only used if you have site data, e.g. I-naturalist)}
 
@@ -39,15 +39,13 @@ combine_records_extract(
 
 \item{world_raster}{An global R Raster of the enviro conditions used to extract values for all records}
 
-\item{prj}{The projection system used. Currently, needs to be WGS84}
+\item{epsg}{The projection system used. Currently, needs to be WGS84}
 
 \item{save_data}{Do you want to save the data frame?}
 
 \item{data_path}{The file path used for saving the data frame}
 
 \item{save_run}{A run name to append to the data frame (e.g. bat taxa, etc.). Useful for multiple runs.}
-
-\item{biocl_vars}{The variables used - eg the standard bioclim names (https://www.worldclim.org/).}
 
 \item{env_vars}{The actual variable names (e.g. bio1 = rainfall, etc.) Only needed for worldlcim}
 
