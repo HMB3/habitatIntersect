@@ -181,7 +181,7 @@ data('target.host.plants')
 data('all.insect.plant.spp')
 
 
-## Full list of analysis taxa, 
+## Full list of analysis taxa -
 analysis_taxa   <- str_trim(c(target.insect.spp, 
                               target.insect.genera, 
                               target.insect.families)) %>% unique()
