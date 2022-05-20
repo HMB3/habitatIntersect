@@ -195,8 +195,18 @@ host_plant_taxa <- read_excel(paste0(inv_habitat_dir, '/INVERTS_FIRE_SPATIAL_DAT
 
 
 ## Read in the SDM data
-SDM.SPAT.OCC.BG.GDA       <- readRDS(paste0(inv_results_dir,   'SDM_SPAT_OCC_BG_ALL_INVERT_TAXA_ALA_PBI.rds'))
-SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS(paste0(plant_results_dir, 'SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds'))
+SDM.SPAT.OCC.BG.GDA       <- readRDS(paste0(inv_results_dir,   
+                                            'SDM_SPAT_OCC_BG_ALL_INVERT_TAXA_ALA_PBI.rds')) %>% as_Spatial()
+
+SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS(paste0(plant_results_dir, 
+                                            'SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds'))
+
+
+## What is the breakdown of spp?
+table(target.insect.spp      %in% SDM.SPAT.OCC.BG.GDA$searchTaxon)
+table(target.insect.genera   %in% SDM.SPAT.OCC.BG.GDA$searchTaxon)
+table(target.insect.families %in% SDM.SPAT.OCC.BG.GDA$searchTaxon)
+'Graycassis_bruxner'         %in% SDM.SPAT.OCC.BG.GDA$searchTaxon
 
 
 ## Run family-level models for invertebrates.
@@ -204,7 +214,7 @@ run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.families),
                          taxa_level              = 'family',
                          maxent_dir              = inv_back_dir,
                          bs_dir                  = inv_back_dir,
-                         sdm_df                  = SDM.SPAT.OCC.BG.GDA,
+                         sdm_df                  = SDM.SPAT.OCC.BG.GDA %>% as_Spatial(),
                          sdm_predictors          = names(aus.climate.veg.grids.250m),
                          
                          backwards_sel           = TRUE,
