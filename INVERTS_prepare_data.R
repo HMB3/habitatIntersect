@@ -99,6 +99,8 @@ terraOptions(memfrac = 0.9,
 
 
 
+
+
 # STEP 1 :: Get spp lists ----
 
 
@@ -134,6 +136,8 @@ taxa_remain <- taxa_qc %>%
   filter(is.na(Morpho)) %>%
   dplyr::select(Binomial) %>% 
   .$Binomial %>% c(., 'Rayieria basifer') %>% sort()
+
+
 
 
 
@@ -177,6 +181,8 @@ aus_annual_precip_alb   <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_pre
 aus_annual_precip_alb[aus_annual_precip_alb > 0] <- 1
 template_raster_250m <- aus_annual_precip_alb
 gc()
+
+
 
 
 
@@ -271,6 +277,19 @@ COMBO.RASTER.PBI.FAM <- COMBO.RASTER.PBI.SPP %>%
   dplyr::rename(searchTaxon = family) %>% dplyr::select(searchTaxon, everything())
 
 
+COMBO.SPP.GEN.FAM.PBI <- bind_rows(COMBO.RASTER.PBI.SPP,
+                                   COMBO.RASTER.PBI.GEN,
+                                   COMBO.RASTER.PBI.FAM)
+
+rm(COMBO.RASTER.PBI.SPP)
+rm(COMBO.RASTER.PBI.GEN)
+rm(COMBO.RASTER.PBI.FAM)
+gc()
+
+
+
+
+
 # Records data
 
 ## Update with the full insects download from ALA ----
@@ -296,15 +315,41 @@ COMBO.RASTER.ALA.SPP = combine_records_extract(records_df       = ALA_LAND_INV_S
 gc()
 
 
-## Now bind the site data to each
-COMBO.SPP.GEN.FAM.ALA.PBI <- bind_rows(COMBO.RASTER.PBI.SPP, 
-                                       COMBO.RASTER.PBI.GEN,
-                                       COMBO.RASTER.PBI.FAM)
+
+## Genera
+COMBO.RASTER.ALA.GEN <- COMBO.RASTER.ALA.SPP %>%
+  dplyr::select(-searchTaxon) %>% 
+  dplyr::rename(searchTaxon = genus) %>% dplyr::select(searchTaxon, everything())
+
+
+## Families
+COMBO.RASTER.ALA.FAM <- COMBO.RASTER.ALA.SPP %>%
+  dplyr::select(-searchTaxon)  %>% 
+  dplyr::rename(searchTaxon = family) %>% dplyr::select(searchTaxon, everything())
+
+
+## Now bind the ALA data together
+COMBO.SPP.GEN.FAM.ALA <- bind_rows(COMBO.RASTER.ALA.SPP,
+                                   COMBO.RASTER.ALA.GEN,
+                                   COMBO.RASTER.ALA.FAM)
+
+rm(COMBO.RASTER.ALA.SPP)
+rm(COMBO.RASTER.ALA.GEN)
+rm(COMBO.RASTER.ALA.FAM)
 gc()
 
 
+## Now bind the ALA and PBI tables together
+COMBO.SPP.GEN.FAM.ALA.PBI <- bind_rows(COMBO.SPP.GEN.FAM.ALA, COMBO.SPP.GEN.FAM.PBI)
 
-# STEP 5 :: Prepare SDM table ----
+rm(COMBO.SPP.GEN.FAM.ALA)
+rm(COMBO.SPP.GEN.FAM.PBI)
+
+
+
+
+
+# STEP 4 :: Prepare SDM table ----
 
 
 ## 
@@ -352,7 +397,7 @@ SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD_CLEAN_sf,
                                                                'SPAT_OUT',
                                                                names(aus.climate.veg.grids.250m)),
                                          
-                                         save_run          = "TEST_INVERTS_ALA_PBI",
+                                         save_run          = "ALL_INVERT_SPP_ALA_PBI",
                                          read_background   = FALSE,
                                          country_epsg      = 3577,
                                          world_epsg        = "+init=epsg:4326",
@@ -372,13 +417,14 @@ SDM.SPAT.OCC.BG.TARG.INV <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysi
 
 
 st_write(SDM.SPAT.OCC.BG.TARG.INV %>% st_as_sf(), 
-         dsn = file.path(inv_results_dir, 'SDM_INVERT_TEST_ALA_PBI.gpkg'), 
+         dsn = file.path(inv_results_dir, 'SDM_TARGET_INVERT_TAXA_ALA_PBI.gpkg'), 
          layer = 'SDM_TARGET_INVERT_TAXA', 
          quiet = TRUE)
 
+gc();gc()
 
 
-message('data preparation code successfuly run')
+message('sdm data preparation code successfuly run')
 
 
 

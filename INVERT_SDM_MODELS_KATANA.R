@@ -48,10 +48,10 @@ INV_dir              <- './data/ALA/Insects/'
 check_dir            <- './data/ALA/Insects/check_plots/'
 out_dir              <- './output/'
 
-inv_rs_dir           <- './output/invert_maxent_raster_update/'
-inv_back_dir         <- './output/invert_maxent_raster_update/back_sel_models/'
-inv_full_dir         <- './output/invert_maxent_raster_update/full_models/'
-inv_results_dir      <- './output/invert_maxent_raster_update/results/'
+inv_rs_dir           <- './output/invert_maxent_pbi_ala/'
+inv_back_dir         <- './output/invert_maxent_pbi_ala/back_sel_models/'
+inv_full_dir         <- './output/invert_maxent_pbi_ala/full_models/'
+inv_results_dir      <- './output/invert_maxent_pbi_ala/results/'
 
 plant_rs_dir         <- './output/plant_maxent_raster_update/'
 plant_back_dir       <- './output/plant_maxent_raster_update/back_sel_models/'
@@ -59,9 +59,9 @@ plant_full_dir       <- './output/plant_maxent_raster_update/full_models/'
 plant_results_dir    <- './output/plant_maxent_raster_update/results/'
 
 veg_dir              <- './data/Remote_sensing/Veg_data/Forest_cover/'
-inv_habitat_dir      <- './output/invert_maxent_raster_update/Habitat_suitability/'
-inv_inters_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_Veg_intersect/'
-inv_thresh_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
+inv_habitat_dir      <- './output/invert_maxent_pbi_ala/Habitat_suitability/'
+inv_inters_dir       <- './output/invert_maxent_pbi_ala/Habitat_suitability/SDM_Veg_intersect/'
+inv_thresh_dir       <- './output/invert_maxent_pbi_ala/Habitat_suitability/SDM_thresholds/'
 inv_fire_dir         <- './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
 
 plant_habitat_dir    <- './output/plant_maxent_raster_update/Habitat_suitability/'
@@ -195,7 +195,7 @@ host_plant_taxa <- read_excel(paste0(inv_habitat_dir, '/INVERTS_FIRE_SPATIAL_DAT
 
 
 ## Read in the SDM data
-SDM.SPAT.OCC.BG.GDA       <- readRDS(paste0(inv_results_dir,   'SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds'))
+SDM.SPAT.OCC.BG.GDA       <- readRDS(paste0(inv_results_dir,   'SDM_SPAT_OCC_BG_ALL_INVERT_TAXA_ALA_PBI.rds'))
 SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS(paste0(plant_results_dir, 'SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds'))
 
 
