@@ -48,10 +48,10 @@ INV_dir              <- './data/ALA/Insects/'
 check_dir            <- './data/ALA/Insects/check_plots/'
 out_dir              <- './output/'
 
-inv_rs_dir           <- './output/invert_maxent_raster_update/'
-inv_back_dir         <- './output/invert_maxent_raster_update/back_sel_models/'
-inv_full_dir         <- './output/invert_maxent_raster_update/full_models/'
-inv_results_dir      <- './output/invert_maxent_raster_update/results/'
+inv_rs_dir           <- './output/invert_maxent_pbi_ala/'
+inv_back_dir         <- './output/invert_maxent_pbi_ala/back_sel_models/'
+inv_full_dir         <- './output/invert_maxent_pbi_ala/full_models/'
+inv_results_dir      <- './output/invert_maxent_pbi_ala/results/'
 
 plant_rs_dir         <- './output/plant_maxent_raster_update/'
 plant_back_dir       <- './output/plant_maxent_raster_update/back_sel_models/'
@@ -59,11 +59,11 @@ plant_full_dir       <- './output/plant_maxent_raster_update/full_models/'
 plant_results_dir    <- './output/plant_maxent_raster_update/results/'
 
 veg_dir              <- './data/Remote_sensing/Veg_data/Forest_cover/'
-inv_habitat_dir      <- './output/invert_maxent_raster_update/Habitat_suitability/'
-inv_records_dir      <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_point_data/'
-inv_inters_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_Veg_intersect/'
-inv_thresh_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
-inv_fire_dir         <- './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
+inv_habitat_dir      <- './output/invert_maxent_pbi_ala/Habitat_suitability/'
+inv_records_dir      <- './output/invert_maxent_pbi_ala/Habitat_suitability/SDM_point_data/'
+inv_inters_dir       <- './output/invert_maxent_pbi_ala/Habitat_suitability/SDM_Veg_intersect/'
+inv_thresh_dir       <- './output/invert_maxent_pbi_ala/Habitat_suitability/SDM_thresholds/'
+inv_fire_dir         <- './output/invert_maxent_pbi_ala/Habitat_suitability/FESM_SDM_intersect/'
 
 plant_habitat_dir    <- './output/plant_maxent_raster_update/Habitat_suitability/'
 plant_inters_dir     <- './output/plant_maxent_raster_update/Habitat_suitability/Veg_intersect/'
@@ -310,8 +310,8 @@ COMBO.RASTER.ALA.SPP = combine_records_extract(records_df       = ALA_LAND_INV_S
                                                
                                                ## This might need to change too
                                                raster_divide    = FALSE,
-                                               save_data        = FALSE,
-                                               save_run         = FALSE)
+                                               save_data        = TRUE,
+                                               save_run         = 'ALL_INV_SPP_ALA')
 gc()
 
 
@@ -352,26 +352,40 @@ rm(COMBO.SPP.GEN.FAM.PBI)
 # STEP 4 :: Prepare SDM table ----
 
 
-## 
-COORD.CLEAN = coord_clean_records(records      = COMBO.SPP.GEN.FAM.ALA.PBI,
-                                  site_flag    = 'SITE',
-                                  occ_flag     = 'ALA',
-                                  multi_source = TRUE,
-                                  
-                                  capitals     = 10000,  
-                                  centroids    = 5000,   
-                                  save_data    = FALSE,
-                                  save_run     = "TARGET_INSECT_SPECIES",
-                                  data_path    = "./output/results/")
-
-
-COORD_CLEAN_sf <- SpatialPointsDataFrame(coords      = COORD.CLEAN %>% 
-                                           dplyr::select(lon, lat) %>% as.matrix(),
-                                         data        = COORD.CLEAN,
-                                         proj4string = CRS("+init=epsg:4326")) %>%
+##
+if(coord_clean) {
   
-  st_as_sf() %>% 
-  st_transform(., st_crs(4326))
+  message('clean coordinates')
+  COORD.CLEAN = coord_clean_records(records      = COMBO.SPP.GEN.FAM.ALA.PBI,
+                                    site_flag    = 'SITE',
+                                    occ_flag     = 'ALA',
+                                    multi_source = TRUE,
+                                    
+                                    capitals     = 10000,  
+                                    centroids    = 5000,   
+                                    save_data    = FALSE,
+                                    save_run     = "TARGET_INSECT_SPECIES",
+                                    data_path    = "./output/results/")
+  
+  
+  COORD_CLEAN_sf <- SpatialPointsDataFrame(coords      = COORD.CLEAN %>% 
+                                             dplyr::select(lon, lat) %>% as.matrix(),
+                                           data        = COORD.CLEAN,
+                                           proj4string = CRS("+init=epsg:4326")) %>%
+    
+    st_as_sf() %>% 
+    st_transform(., st_crs(4326))
+  
+} else {
+  message('do not clean coordinates')
+  COORD_CLEAN_sf <- SpatialPointsDataFrame(coords      = COMBO.SPP.GEN.FAM.ALA.PBI %>% 
+                                             dplyr::select(lon, lat) %>% as.matrix(),
+                                           data        = COMBO.SPP.GEN.FAM.ALA.PBI,
+                                           proj4string = CRS("+init=epsg:4326")) %>%
+    
+    st_as_sf() %>% 
+    st_transform(., st_crs(4326))
+}
 
 
 ## Combine occ data with the bg data 
@@ -381,6 +395,7 @@ SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD_CLEAN_sf,
                                          site_flag         = 'SITE',
                                          occ_flag          = 'ALA',
                                          site_records      = TRUE,
+                                         spat_flag         = 
                                          
                                          sdm_table_vars    = c('searchTaxon', 
                                                                'species',  
@@ -412,7 +427,7 @@ sum(is.na(SDM.SPAT.OCC.BG.GDA$genus));sum(is.na(SDM.SPAT.OCC.BG.GDA$family))
 
 ## Create subset of target reptiles
 ## Save each taxa as an individual shapefile
-# SDM.SPAT.OCC.BG.GDA = readRDS('./output/invert_maxent_raster_update/results/SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds')
+# SDM.SPAT.OCC.BG.GDA = readRDS('./output/invert_maxent_pbi_ala/results/SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds')
 SDM.SPAT.OCC.BG.TARG.INV <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysis_taxa, ]
 
 

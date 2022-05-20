@@ -2112,6 +2112,8 @@ plot_range_histograms = function(coord_df,
 #' @param read_background    Logical - Read in an additional dataframe of background points (T/F)?
 #' @param background_points  Data.frame. DF of extra taxa records 
 #' @param save_data          Logical - do you want to save the data frame?
+#' @param site_records       Logical - do you want to add sites to the table?
+#' @param spat_out_remove    Logical - do you want to save the data frame?
 #' @param data_path          Character string - The file path used for saving the data frame
 #' @param project_path       Path of taxa records, with spatial outlier T/F flag for each record
 #' @param world_epsg         Character string - The global geographic CRS to use (decimal degrees)
@@ -2122,6 +2124,7 @@ prepare_sdm_table = function(coord_df,
                              site_flag,
                              occ_flag,
                              site_records,
+                             spat_out_remove,
                              BG_points,
                              sdm_table_vars,
                              save_run,
@@ -2150,6 +2153,7 @@ prepare_sdm_table = function(coord_df,
   COMBO.RASTER.ALA  <- COMBO.RASTER.ALL %>% filter(SOURCE == occ_flag)
   COMBO.RASTER.SITE <- COMBO.RASTER.ALL %>% filter(SOURCE == site_flag) %>% dplyr::mutate(SPAT_OUT = TRUE)
   
+  
   ## Create a spatial points object, and change to a projected system to calculate distance more accurately
   ## This is the mollweide projection used for the SDMs
   SDM.DATA.ALL <- COMBO.RASTER.ALA %>%
@@ -2164,104 +2168,117 @@ prepare_sdm_table = function(coord_df,
   SDM.DATA.ALL$SPOUT.OBS <- gsub(" ",     "_",  SDM.DATA.ALL$SPOUT.OBS, perl = TRUE)
   length(SDM.DATA.ALL$SPOUT.OBS);length(unique(SDM.DATA.ALL$SPOUT.OBS))
   
-  ## Create a tibble to supply to coordinate cleaner
-  SDM.COORDS  <- SDM.DATA.ALL %>%
+  if(spat_out_remove) {
     
-    st_transform(., st_crs(world_epsg)) %>%
-    as.data.frame() %>%
-    dplyr::select(searchTaxon, lon, lat, SPOUT.OBS, SOURCE) %>%
-    dplyr::rename(species          = searchTaxon,
-                  decimallongitude = lon,
-                  decimallatitude  = lat) %>%
-    timetk::tk_tbl()
-  
-  ## Check
-  message(identical(SDM.COORDS$index, SDM.COORDS$SPOUT.OBS))
-  length(unique(SDM.COORDS$species))
-  
-  ## Check how many records each species has
-  COMBO.LUT <- SDM.COORDS %>%
-    as.data.frame() %>%
-    dplyr::select(species) %>%
-    table() %>%
-    as.data.frame()
-  COMBO.LUT <- setDT(COMBO.LUT, keep.rownames = FALSE)[]
-  names(COMBO.LUT) = c("species", "FREQUENCY")
-  COMBO.LUT = COMBO.LUT[with(COMBO.LUT, rev(order(FREQUENCY))), ]
-  
-  ## Watch out here - this sorting could cause problems for the order of
-  ## the data frame once it's stitched back together
-  LUT.100K = as.character(subset(COMBO.LUT, FREQUENCY < 100000)$species)
-  LUT.100K = trimws(LUT.100K [order(LUT.100K)])
-  length(LUT.100K)
-  
-  ## Create a data frame of species name and spatial outlier
-  SPAT.OUT <- LUT.100K  %>%
+    ## Create a tibble to supply to coordinate cleaner
+    SDM.COORDS  <- SDM.DATA.ALL %>%
+      
+      st_transform(., st_crs(world_epsg)) %>%
+      as.data.frame() %>%
+      dplyr::select(searchTaxon, lon, lat, SPOUT.OBS, SOURCE) %>%
+      dplyr::rename(species          = searchTaxon,
+                    decimallongitude = lon,
+                    decimallatitude  = lat) %>%
+      timetk::tk_tbl()
     
-    ## pipe the list of species into lapply
-    lapply(function(x) {
-      
-      ## Create the species df by subsetting by species
-      ## x = LUT.100K[1]
-      f <- subset(SDM.COORDS, species == x)
-      
-      ## Run the spatial outlier detection
-      message("Running spatial outlier detection for ", nrow(f), " records for ", x)
-      sp.flag <- cc_outl(f,
-                         lon     = "decimallongitude",
-                         lat     = "decimallatitude",
-                         species = "species",
-                         method  = "quantile",
-                         mltpl   = 10,
-                         value   = "flagged",
-                         verbose = TRUE)
-      
-      ## Now add attached column for taxa, and the flag for each record
-      d = cbind(searchTaxon = x,
-                SPAT_OUT = sp.flag, f)[c("searchTaxon", "SPAT_OUT", "SPOUT.OBS")]
-      
-      ## Remember to explicitly return the df at the end of loop, so we can bind
-      return(d)
-      
-    }) %>%
+    ## Check
+    message(identical(SDM.COORDS$index, SDM.COORDS$SPOUT.OBS))
+    length(unique(SDM.COORDS$species))
     
-    ## Finally, bind all the rows together
-    bind_rows
-  gc()
-  
-  ## How many taxa are flagged as spatial outliers?
-  message(table(SPAT.OUT$SPAT_OUT, exclude = NULL), ' flagged as outliers')
-  
-  ## FILTER DATA TO REMOVE SPATIAL OUTLIERS
-  ## Join data :: Best to use the 'OBS' column here
-  message('Is the number records identical before joining?',
-          identical(nrow(SDM.COORDS), nrow(SPAT.OUT)))
-  
-  message('Is the order of records identical after joining?',
-          identical(SDM.COORDS$species, SPAT.OUT$searchTaxon))
-  
-  ## This explicit join is required. Check the taxa have been analyzed in exactly the same order
-  SPAT.FLAG <- left_join(as.data.frame(SDM.DATA.ALL), SPAT.OUT,
-                         by = c("SPOUT.OBS", "searchTaxon"), match = "first")
-  
-  message('Is the order or records identical after joining?',
-          identical(SDM.DATA.ALL$searchTaxon, SPAT.FLAG$searchTaxon))
-  
-  ## Check the join is working
-  message('Checking spatial flags for ', length(unique(SPAT.FLAG$searchTaxon)),
-          ' taxa in the set ', "'", save_run, "'")
-  
-  message(table(SPAT.FLAG$SPAT_OUT, exclude = NULL))
-  
-  ## Just get the records that were not spatial outliers.
-  SDM.SPAT.ALL <- subset(SPAT.FLAG, SPAT_OUT == TRUE) %>% dplyr::select(-SPOUT.OBS)
-  unique(SDM.SPAT.ALL$SPAT_OUT)
-  unique(SDM.SPAT.ALL$SOURCE)
-  length(unique(SDM.SPAT.ALL$searchTaxon))
-  
-  ## What percentage of records are retained?
-  message(round(nrow(SDM.SPAT.ALL)/nrow(SPAT.FLAG)*100, 2),
-          " % records retained after spatial outlier detection")
+    ## Check how many records each species has
+    COMBO.LUT <- SDM.COORDS %>%
+      as.data.frame() %>%
+      dplyr::select(species) %>%
+      table() %>%
+      as.data.frame()
+    COMBO.LUT <- setDT(COMBO.LUT, keep.rownames = FALSE)[]
+    names(COMBO.LUT) = c("species", "FREQUENCY")
+    COMBO.LUT = COMBO.LUT[with(COMBO.LUT, rev(order(FREQUENCY))), ]
+    
+    ## Watch out here - this sorting could cause problems for the order of
+    ## the data frame once it's stitched back together
+    LUT.100K = as.character(subset(COMBO.LUT, FREQUENCY < 100000)$species)
+    LUT.100K = trimws(LUT.100K [order(LUT.100K)])
+    length(LUT.100K)
+    
+    ## Create a data frame of species name and spatial outlier
+    SPAT.OUT <- LUT.100K  %>%
+      
+      ## pipe the list of species into lapply
+      lapply(function(x) {
+        
+        ## Create the species df by subsetting by species
+        ## x = LUT.100K[1]
+        f <- subset(SDM.COORDS, species == x)
+        
+        ## Run the spatial outlier detection
+        message("Running spatial outlier detection for ", nrow(f), " records for ", x)
+        sp.flag <- cc_outl(f,
+                           lon     = "decimallongitude",
+                           lat     = "decimallatitude",
+                           species = "species",
+                           method  = "quantile",
+                           mltpl   = 10,
+                           value   = "flagged",
+                           verbose = TRUE)
+        
+        ## Now add attached column for taxa, and the flag for each record
+        d = cbind(searchTaxon = x,
+                  SPAT_OUT = sp.flag, f)[c("searchTaxon", "SPAT_OUT", "SPOUT.OBS")]
+        
+        ## Remember to explicitly return the df at the end of loop, so we can bind
+        return(d)
+        
+      }) %>%
+      
+      ## Finally, bind all the rows together
+      bind_rows
+    gc()
+    
+    ## How many taxa are flagged as spatial outliers?
+    message(table(SPAT.OUT$SPAT_OUT, exclude = NULL), ' flagged as outliers')
+    
+    ## FILTER DATA TO REMOVE SPATIAL OUTLIERS
+    ## Join data :: Best to use the 'OBS' column here
+    message('Is the number records identical before joining?',
+            identical(nrow(SDM.COORDS), nrow(SPAT.OUT)))
+    
+    message('Is the order of records identical after joining?',
+            identical(SDM.COORDS$species, SPAT.OUT$searchTaxon))
+    
+    ## This explicit join is required. Check the taxa have been analyzed in exactly the same order
+    SPAT.FLAG <- left_join(as.data.frame(SDM.DATA.ALL), SPAT.OUT,
+                           by = c("SPOUT.OBS", "searchTaxon"), match = "first")
+    
+    message('Is the order or records identical after joining?',
+            identical(SDM.DATA.ALL$searchTaxon, SPAT.FLAG$searchTaxon))
+    
+    ## Check the join is working
+    message('Checking spatial flags for ', length(unique(SPAT.FLAG$searchTaxon)),
+            ' taxa in the set ', "'", save_run, "'")
+    
+    message(table(SPAT.FLAG$SPAT_OUT, exclude = NULL))
+    
+    ## Just get the records that were not spatial outliers.
+    SDM.SPAT.ALL <- subset(SPAT.FLAG, SPAT_OUT == TRUE) %>% dplyr::select(-SPOUT.OBS)
+    unique(SDM.SPAT.ALL$SPAT_OUT)
+    unique(SDM.SPAT.ALL$SOURCE)
+    length(unique(SDM.SPAT.ALL$searchTaxon))
+    
+    ## What percentage of records are retained?
+    message(round(nrow(SDM.SPAT.ALL)/nrow(SPAT.FLAG)*100, 2),
+            " % records retained after spatial outlier detection")
+    
+  } else {
+    message('Do not remove spatial outliers')
+    SDM.SPAT.ALL          <- SDM.DATA.ALL
+    SDM.DATA.ALL$SPAT_OUT <- TRUE
+    SPAT.TRUE.COMBO <- SpatialPointsDataFrame(coords      = SDM.SPAT.ALL[c("lon", "lat")],
+                                              data        = SDM.SPAT.ALL,
+                                              proj4string = CRS(world_epsg)) %>% 
+      st_as_sf() %>%
+      st_transform(., st_crs(country_epsg))
+  }
   
   if(site_records) {
     
