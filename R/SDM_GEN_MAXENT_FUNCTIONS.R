@@ -212,7 +212,7 @@ run_sdm_analysis_no_crop = function(taxa_list,
     st_transform(., st_crs(epsg))
   
   ## Loop over all the taxa
-  ## taxa <- taxa_list[2]
+  ## taxa <- sort(taxa_list)[1]
   lapply(taxa_list, function(taxa){
     
     ## Skip the taxa if the directory already exists, before the loop
@@ -242,7 +242,6 @@ run_sdm_analysis_no_crop = function(taxa_list,
         ## However, they should be limited to the same SOURCE as the occ data
         background <- sdm_df %>% .[!.[[taxa_level]] %in% taxa, ]
         message('Using ', nrow(background), ' background records from ', unique(background$SOURCE))
-        
         gc()
         
         ## Finally fit the models using FIT_MAXENT_TARG_BG. Also use tryCatch to skip any exceptions
@@ -989,8 +988,11 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
   
   ## Get unique cell numbers for taxa occurrences
   template_raster_spat <- terra::rast(template_raster)
-  occ_mat              <- cbind(lon = occ$lon, lat = occ$lat) 
-  cells                <- terra::cellFromXY(template_raster_spat, occ_mat)
+  occ_sf               <- occ %>% st_as_sf()
+  occ_coord            <- st_coordinates(occ_sf)
+  # occ_mat              <- cbind(lon = occ$lon, lat = occ$lat) 
+  cells                <- terra::cellFromXY(template_raster, occ_coord)
+  
   
   ## Clean out duplicate cells and NAs (including points outside extent of predictor data)
   ## Note this will get rid of a lot of duplicate records not filtered out by GBIF columns, etc.
@@ -999,28 +1001,35 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
   cells     <- cells[not_dupes]
   message(nrow(occ), ' occurrence records (unique cells).')
   
+  
   ## Skip taxa that have less than a minimum number of records: eg 20 taxa
   if(nrow(occ) > min_n) {
+    
+    message('get background records')
+    bg_sf                <- bg %>% st_as_sf()
+    bg_coord             <- st_coordinates(bg_sf)
     
     ## Subset the background records to the 200km buffered polygon
     message(taxa, ' creating background cells')
     system.time(o <- over(bg, buffer))
+    
     bg        <- bg[which(!is.na(o)), ]
-    bg_mat    <- cbind(lon = bg$lon, lat = bg$lat) 
-    bg_cells  <- terra::cellFromXY(template_raster_spat, bg_mat)
+    bg_cells  <- terra::cellFromXY(template_raster_spat, bg_coord)
     
     ## Clean out duplicates and NAs (including points outside extent of predictor data)
     bg_not_dupes       <- which(!duplicated(bg_cells) & !is.na(bg_cells))
     bg_unique          <- bg[bg_not_dupes, ]
     bg_cells_unique    <- bg_cells[bg_not_dupes]
-    bg_mat_unique      <- cbind(lon = bg_unique$lon, lat = bg_unique$lat) 
     
-    ## Find which of these cells fall within the Koppen-Geiger zones that the taxa occupies
-    ## Crop the Kopppen raster to the extent of the occurrences, and snap it.
+    bg_unique_sf       <- bg %>% st_as_sf()
+    bg_unique_coord    <- st_coordinates(bg_unique_sf)
+    # bg_mat_unique      <- cbind(lon = bg_unique$lon, lat = bg_unique$lat) 
+    
+    ## Don't use which to get unique cells, that has already been done
     message(taxa, ' Do not intersect background cells with Koppen zones')
     message('country poly is a ', class(poly))
-    i                   <- terra::cellFromXY(template_raster_spat, bg_mat_unique)
-    bg_crop             <- bg_unique[which(i %in% bg_cells_unique), ]
+    # i                   <- terra::cellFromXY(template_raster, bg_unique_coord)
+    # bg_crop             <- bg_unique[which(i %in% bg_cells_unique), ]
     
     ## Now save an image of the background points
     ## This is useful to quality control the models
@@ -1031,28 +1040,26 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
         16, 10, units = 'in', res = 300)
     
     raster::plot(st_geometry(poly), 
-                 legend = FALSE,
                  main   = paste0('Occurence SDM records for ', taxa))
     
     raster::plot(buffer,  add = TRUE, col = "red")
     raster::plot(occ, add = TRUE, col = "blue")
-    
     dev.off()
     
     gc()
     
     ## Reduce background sample, if it's larger than max_bg_size
-    if (nrow(bg_crop) > max_bg_size) {
+    if (nrow(bg_unique) > max_bg_size) {
       
-      message(nrow(bg_crop), ' target taxa background records for ', taxa,
-              ', reduced to random ', max_bg_size, ' using random points from :: ', unique(bg_crop$SOURCE))
-      bg.samp <- bg_crop[sample(nrow(bg_crop), max_bg_size), ]
+      message(nrow(bg_unique), ' target taxa background records for ', taxa,
+              ', reduced to random ', max_bg_size, ' using random points from :: ', unique(bg_unique$SOURCE))
+      bg.samp <- bg_unique[sample(nrow(bg_unique), max_bg_size), ]
       
     } else {
       ## If the bg points are smaller that the max_bg_size, just get all the points
-      message(nrow(bg_crop), ' target taxa background records for ', taxa,
-              ' using all points from :: ', unique(bg$SOURCE))
-      bg.samp <- bg_crop
+      message(nrow(bg_unique), ' target taxa background records for ', taxa,
+              ' using all points from :: ', unique(bg_unique$SOURCE))
+      bg.samp <- bg_unique
     }
     
     ## Now save the buffer, the occ and bg points as shapefiles
