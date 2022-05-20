@@ -990,7 +990,6 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
   template_raster_spat <- terra::rast(template_raster)
   occ_sf               <- occ %>% st_as_sf()
   occ_coord            <- st_coordinates(occ_sf)
-  # occ_mat              <- cbind(lon = occ$lon, lat = occ$lat) 
   cells                <- terra::cellFromXY(template_raster, occ_coord)
   
   
@@ -1020,23 +1019,16 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     bg_not_dupes       <- which(!duplicated(bg_cells) & !is.na(bg_cells))
     bg_unique          <- bg[bg_not_dupes, ]
     bg_cells_unique    <- bg_cells[bg_not_dupes]
-<<<<<<< HEAD
-=======
-    
+
     bg_unique_sf       <- bg %>% st_as_sf()
     bg_unique_coord    <- st_coordinates(bg_unique_sf)
-    # bg_mat_unique      <- cbind(lon = bg_unique$lon, lat = bg_unique$lat) 
->>>>>>> 9edc466515e7d575737b7adcd290550e0bfb3be6
-    
+
     bg_unique_sf       <- bg %>% st_as_sf()
     bg_unique_coord    <- st_coordinates(bg_unique_sf)
-    # bg_mat_unique      <- cbind(lon = bg_unique$lon, lat = bg_unique$lat) 
     
     ## Don't use which to get unique cells, that has already been done
     message(taxa, ' Do not intersect background cells with Koppen zones')
     message('country poly is a ', class(poly))
-    # i                   <- terra::cellFromXY(template_raster, bg_unique_coord)
-    # bg_crop             <- bg_unique[which(i %in% bg_cells_unique), ]
     
     ## Now save an image of the background points
     ## This is useful to quality control the models
