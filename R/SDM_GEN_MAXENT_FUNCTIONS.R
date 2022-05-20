@@ -1020,6 +1020,13 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     bg_not_dupes       <- which(!duplicated(bg_cells) & !is.na(bg_cells))
     bg_unique          <- bg[bg_not_dupes, ]
     bg_cells_unique    <- bg_cells[bg_not_dupes]
+<<<<<<< HEAD
+=======
+    
+    bg_unique_sf       <- bg %>% st_as_sf()
+    bg_unique_coord    <- st_coordinates(bg_unique_sf)
+    # bg_mat_unique      <- cbind(lon = bg_unique$lon, lat = bg_unique$lat) 
+>>>>>>> 9edc466515e7d575737b7adcd290550e0bfb3be6
     
     bg_unique_sf       <- bg %>% st_as_sf()
     bg_unique_coord    <- st_coordinates(bg_unique_sf)
