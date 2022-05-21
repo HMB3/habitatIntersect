@@ -99,7 +99,7 @@ terraOptions(memfrac = 0.9,
 
 
 coord_clean <- FALSE
-save_name   <- 'TEST_INVERT_SPP_ALA_PBI'
+save_name   <- 'ALL_INVERT_TAXA_ALA_PBI'
 
 
 # STEP 1 :: Get spp lists ----
@@ -199,7 +199,7 @@ Insects_ALA <- Insects_ALA_1 %>% dplyr::select(-eventTime, -identificationID, -t
   bind_rows(., dplyr::select(Insects_ALA_2, -eventTime, -identificationID, -taxonID))
 
 
-ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = head(Insects_ALA, 100000),
+ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = head(Insects_ALA, 1000),
                                     record_type   = "ALA",
                                     keep_cols     = ALA_keep,
                                     year_filt     = FALSE,
@@ -283,11 +283,11 @@ COMBO.RASTER.PBI.FAM <- COMBO.RASTER.PBI.SPP %>%
 COMBO.SPP.GEN.FAM.PBI <- bind_rows(COMBO.RASTER.PBI.SPP,
                                    COMBO.RASTER.PBI.GEN,
                                    COMBO.RASTER.PBI.FAM)
-# 
-# rm(COMBO.RASTER.PBI.SPP)
-# rm(COMBO.RASTER.PBI.GEN)
-# rm(COMBO.RASTER.PBI.FAM)
-# gc()
+
+rm(COMBO.RASTER.PBI.SPP)
+rm(COMBO.RASTER.PBI.GEN)
+rm(COMBO.RASTER.PBI.FAM)
+gc()
 
 
 
@@ -337,18 +337,18 @@ COMBO.SPP.GEN.FAM.ALA <- bind_rows(COMBO.RASTER.ALA.SPP,
                                    COMBO.RASTER.ALA.GEN,
                                    COMBO.RASTER.ALA.FAM)
 
-# rm(COMBO.RASTER.ALA.SPP)
-# rm(COMBO.RASTER.ALA.GEN)
-# rm(COMBO.RASTER.ALA.FAM)
+rm(COMBO.RASTER.ALA.SPP)
+rm(COMBO.RASTER.ALA.GEN)
+rm(COMBO.RASTER.ALA.FAM)
 gc()
 
 
 ## Now bind the ALA and PBI tables together
 COMBO.SPP.GEN.FAM.ALA.PBI <- bind_rows(COMBO.SPP.GEN.FAM.ALA, COMBO.SPP.GEN.FAM.PBI)
 
-# rm(COMBO.SPP.GEN.FAM.ALA)
-# rm(COMBO.SPP.GEN.FAM.PBI)
-
+rm(COMBO.SPP.GEN.FAM.ALA)
+rm(COMBO.SPP.GEN.FAM.PBI)
+gc()
 
 
 
@@ -436,7 +436,7 @@ st_write(SDM.SPAT.OCC.BG.TARG.INV %>% st_as_sf(),
          layer = 'SDM_TARGET_INVERT_TAXA', 
          quiet = TRUE)
 
-gc();gc()
+gc()
 
 
 message('sdm data preparation code successfuly run')

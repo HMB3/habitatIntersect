@@ -2112,7 +2112,7 @@ plot_range_histograms = function(coord_df,
 #' @param read_background    Logical - Read in an additional dataframe of background points (T/F)?
 #' @param background_points  Data.frame. DF of extra taxa records 
 #' @param save_data          Logical - do you want to save the data frame?
-#' @param site_split       Logical - do you want to add sites to the table?
+#' @param site_split         Logical - do you want to add sites to the table?
 #' @param spat_out_remove    Logical - do you want to save the data frame?
 #' @param data_path          Character string - The file path used for saving the data frame
 #' @param project_path       Path of taxa records, with spatial outlier T/F flag for each record
@@ -2134,7 +2134,7 @@ prepare_sdm_table = function(coord_df,
                              country_epsg,
                              world_epsg) {
   
-  ## Just add clean_df to this step
+  ## Just add clean_df to this step.
   coord_df <- filter(coord_df, coord_summary == TRUE)
   
   ## Create a table with all the variables needed for SDM analysis
