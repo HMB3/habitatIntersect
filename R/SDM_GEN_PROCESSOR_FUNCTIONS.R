@@ -2270,8 +2270,8 @@ prepare_sdm_table = function(coord_df,
     
   } else {
     message('Do not remove spatial outliers')
-    SDM.SPAT.ALL          <- SDM.DATA.ALL
-    SDM.SPAT.ALL$SPAT_OUT <- TRUE
+    SDM.DATA.ALL$SPAT_OUT <- TRUE
+    SDM.SPAT.ALL          <- SDM.DATA.ALL %>% as_Spatial()
   }
   
   if(site_split) {
@@ -2287,22 +2287,12 @@ prepare_sdm_table = function(coord_df,
     SPAT.SITE <- COMBO.RASTER.SITE %>% 
       st_transform(., st_crs(country_epsg))
     
-    SPAT.TRUE.COMBO <- SPAT.TRUE %>% rbind(., SPAT.SITE)
+    SPAT.TRUE.COMBO <- SPAT.TRUE %>% rbind(., SPAT.SITE) %>% as_Spatial()
     message('Cleaned ', paste0(unique(SPAT.TRUE$SOURCE), sep = ' '), ' records')
     
   } else {
-    message('Dont add site data' )
-    if(!"sf" %in% class(SDM.SPAT.ALL)) {
-      SPAT.TRUE.COMBO <- SpatialPointsDataFrame(coords      = SDM.SPAT.ALL[c("lon", "lat")],
-                                                data        = SDM.SPAT.ALL,
-                                                proj4string = CRS(world_epsg)) %>% 
-        st_as_sf() %>%
-        st_transform(., st_crs(country_epsg))
-      
-    } else {
-      message('Do not remove spatial outliers')
-      SPAT.TRUE.COMBO <- SDM.SPAT.ALL
-    }
+    message('Do not add site data')
+    SPAT.TRUE.COMBO <- SDM.SPAT.ALL
   } 
   
   ## CREATE BACKGROUND POINTS AND VARIBALE NAMES
@@ -2315,7 +2305,7 @@ prepare_sdm_table = function(coord_df,
     
     ## The BG points step needs to be ironed out.
     ## For some analysis, we need to do other taxa (e.g. animals)
-    SDM.SPAT.OCC.BG <- rbind(SPAT.TRUE.COMBO, background)
+    SDM.SPAT.OCC.BG <- rbind(SPAT.TRUE.COMBO, background) %>% as_Spatial()
     
   } else {
     message('Dont read in Background data, creating it in this run')

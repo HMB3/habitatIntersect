@@ -425,11 +425,6 @@ SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD_CLEAN_sf,
                                          data_path         = inv_results_dir)
 
 
-## Check the taxonomic levels
-sum(is.na(SDM.SPAT.OCC.BG.GDA$searchTaxon));sum(is.na(SDM.SPAT.OCC.BG.GDA$species));
-sum(is.na(SDM.SPAT.OCC.BG.GDA$genus));sum(is.na(SDM.SPAT.OCC.BG.GDA$family))
-
-
 ## Create subset of target reptiles
 ## Save each taxa as an individual shapefile
 # SDM.SPAT.OCC.BG.GDA = readRDS('./output/invert_maxent_pbi_ala/results/SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds')
