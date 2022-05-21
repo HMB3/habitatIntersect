@@ -199,7 +199,7 @@ Insects_ALA <- Insects_ALA_1 %>% dplyr::select(-eventTime, -identificationID, -t
   bind_rows(., dplyr::select(Insects_ALA_2, -eventTime, -identificationID, -taxonID))
 
 
-ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = head(Insects_ALA, 5000),
+ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = head(Insects_ALA, 100000),
                                     record_type   = "ALA",
                                     keep_cols     = ALA_keep,
                                     year_filt     = FALSE,
@@ -382,6 +382,7 @@ if(coord_clean) {
   
 } else {
   message('do not clean coordinates')
+  COMBO.SPP.GEN.FAM.ALA.PBI$coord_summary <- TRUE
   COORD_CLEAN_sf <- SpatialPointsDataFrame(coords      = COMBO.SPP.GEN.FAM.ALA.PBI %>% 
                                              dplyr::select(lon, lat) %>% as.matrix(),
                                            data        = COMBO.SPP.GEN.FAM.ALA.PBI,
@@ -398,8 +399,8 @@ SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD_CLEAN_sf,
                                          
                                          site_flag         = 'SITE',
                                          occ_flag          = 'ALA',
-                                         site_records      = TRUE,
                                          spat_out_remove   = FALSE,
+                                         site_split        = FALSE,
                                          
                                          sdm_table_vars    = c('searchTaxon', 
                                                                'species',  

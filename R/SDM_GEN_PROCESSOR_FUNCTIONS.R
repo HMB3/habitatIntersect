@@ -2112,7 +2112,7 @@ plot_range_histograms = function(coord_df,
 #' @param read_background    Logical - Read in an additional dataframe of background points (T/F)?
 #' @param background_points  Data.frame. DF of extra taxa records 
 #' @param save_data          Logical - do you want to save the data frame?
-#' @param site_records       Logical - do you want to add sites to the table?
+#' @param site_split       Logical - do you want to add sites to the table?
 #' @param spat_out_remove    Logical - do you want to save the data frame?
 #' @param data_path          Character string - The file path used for saving the data frame
 #' @param project_path       Path of taxa records, with spatial outlier T/F flag for each record
@@ -2123,7 +2123,7 @@ prepare_sdm_table = function(coord_df,
                              taxa_list,
                              site_flag,
                              occ_flag,
-                             site_records,
+                             site_split,
                              spat_out_remove,
                              sdm_table_vars,
                              save_run,
@@ -2271,15 +2271,10 @@ prepare_sdm_table = function(coord_df,
   } else {
     message('Do not remove spatial outliers')
     SDM.SPAT.ALL          <- SDM.DATA.ALL
-    SDM.DATA.ALL$SPAT_OUT <- TRUE
-    SPAT.TRUE.COMBO <- SpatialPointsDataFrame(coords      = SDM.SPAT.ALL[c("lon", "lat")],
-                                              data        = SDM.SPAT.ALL,
-                                              proj4string = CRS(world_epsg)) %>% 
-      st_as_sf() %>%
-      st_transform(., st_crs(country_epsg))
+    SDM.SPAT.ALL$SPAT_OUT <- TRUE
   }
   
-  if(site_records) {
+  if(site_split) {
     
     ## Need to convert to SPDF
     message('Combine the Spatially cleaned data with the site data')
@@ -2297,12 +2292,18 @@ prepare_sdm_table = function(coord_df,
     
   } else {
     message('Dont add site data' )
-    SPAT.TRUE.COMBO <- SpatialPointsDataFrame(coords      = SDM.SPAT.ALL[c("lon", "lat")],
-                                              data        = SDM.SPAT.ALL,
-                                              proj4string = CRS(world_epsg)) %>% 
-      st_as_sf() %>%
-      st_transform(., st_crs(country_epsg))
-  }
+    if(!"sf" %in% class(SDM.SPAT.ALL)) {
+      SPAT.TRUE.COMBO <- SpatialPointsDataFrame(coords      = SDM.SPAT.ALL[c("lon", "lat")],
+                                                data        = SDM.SPAT.ALL,
+                                                proj4string = CRS(world_epsg)) %>% 
+        st_as_sf() %>%
+        st_transform(., st_crs(country_epsg))
+      
+    } else {
+      message('Do not remove spatial outliers')
+      SPAT.TRUE.COMBO <- SDM.SPAT.ALL
+    }
+  } 
   
   ## CREATE BACKGROUND POINTS AND VARIBALE NAMES
   ## Use one data frame for all taxa analysis,
