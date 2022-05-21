@@ -199,7 +199,7 @@ Insects_ALA <- Insects_ALA_1 %>% dplyr::select(-eventTime, -identificationID, -t
   bind_rows(., dplyr::select(Insects_ALA_2, -eventTime, -identificationID, -taxonID))
 
 
-ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = head(Insects_ALA, 1000),
+ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = Insects_ALA,
                                     record_type   = "ALA",
                                     keep_cols     = ALA_keep,
                                     year_filt     = FALSE,
