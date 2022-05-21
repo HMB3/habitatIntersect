@@ -10,7 +10,7 @@ prepare_sdm_table(
   site_flag,
   occ_flag,
   site_records,
-  BG_points,
+  spat_out_remove,
   sdm_table_vars,
   save_run,
   read_background,
@@ -26,7 +26,9 @@ prepare_sdm_table(
 
 \item{taxa_list}{Character string - the taxa analysed}
 
-\item{BG_points}{Logical - Do we want to include a dataframe of background points? Otherwise, BG points taken from taxa not modelled}
+\item{site_records}{Logical - do you want to add sites to the table?}
+
+\item{spat_out_remove}{Logical - do you want to save the data frame?}
 
 \item{sdm_table_vars}{Character string - The enviro vars to be included in taxa models}
 
@@ -43,6 +45,8 @@ prepare_sdm_table(
 \item{country_epsg}{Numeric - The national projected CRS system to use (metres)}
 
 \item{world_epsg}{Character string - The global geographic CRS to use (decimal degrees)}
+
+\item{BG_points}{Logical - Do we want to include a dataframe of background points? Otherwise, BG points taken from taxa not modelled}
 
 \item{save_shp}{Logical - Save a shapefile of the SDM table (T/F)?}
 

@@ -98,7 +98,8 @@ terraOptions(memfrac = 0.9,
              tempdir = tempdir) 
 
 
-
+coord_clean <- FALSE
+save_name   <- 'TEST_INVERT_SPP_ALA_PBI'
 
 
 # STEP 1 :: Get spp lists ----
@@ -152,7 +153,8 @@ east.climate.veg.grids.250m  <- raster::stack(
   list.files('./data/CSIRO_layers/250m/FESM_EXT/', pattern =".tif", full.names = TRUE))
 
 
-names(aus.climate.veg.grids.250m)[1:11] <- 
+names(aus.climate.veg.grids.250m)[1:11] <-
+  
   names(east.climate.veg.grids.250m)[1:11] <- 
   c("Tree_canopy_peak_foliage_total",
     "Plant_cover_fraction_0_5m", 
@@ -197,7 +199,7 @@ Insects_ALA <- Insects_ALA_1 %>% dplyr::select(-eventTime, -identificationID, -t
   bind_rows(., dplyr::select(Insects_ALA_2, -eventTime, -identificationID, -taxonID))
 
 
-ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = Insects_ALA,
+ALA.LAND.INV.SPP <- format_ala_dump(ALA_table     = head(Insects_ALA, 5000),
                                     record_type   = "ALA",
                                     keep_cols     = ALA_keep,
                                     year_filt     = FALSE,
@@ -254,7 +256,8 @@ COMBO.RASTER.PBI.SPP <- combine_records_extract(records_df       = all_insect_pb
                                                 ## This might need to change too
                                                 raster_divide    = FALSE,
                                                 save_data        = FALSE,
-                                                save_run         = FALSE)
+                                                data_path        = inv_results_dir,
+                                                save_run         = 'ALL_INV_SPP_PBI')
 
 
 COMBO_RASTER_PBI_SPP_sf <- SpatialPointsDataFrame(coords      = COMBO.RASTER.PBI.SPP %>% 
@@ -280,11 +283,11 @@ COMBO.RASTER.PBI.FAM <- COMBO.RASTER.PBI.SPP %>%
 COMBO.SPP.GEN.FAM.PBI <- bind_rows(COMBO.RASTER.PBI.SPP,
                                    COMBO.RASTER.PBI.GEN,
                                    COMBO.RASTER.PBI.FAM)
-
-rm(COMBO.RASTER.PBI.SPP)
-rm(COMBO.RASTER.PBI.GEN)
-rm(COMBO.RASTER.PBI.FAM)
-gc()
+# 
+# rm(COMBO.RASTER.PBI.SPP)
+# rm(COMBO.RASTER.PBI.GEN)
+# rm(COMBO.RASTER.PBI.FAM)
+# gc()
 
 
 
@@ -310,7 +313,8 @@ COMBO.RASTER.ALA.SPP = combine_records_extract(records_df       = ALA_LAND_INV_S
                                                
                                                ## This might need to change too
                                                raster_divide    = FALSE,
-                                               save_data        = TRUE,
+                                               save_data        = FALSE,
+                                               data_path        = inv_rs_dir,
                                                save_run         = 'ALL_INV_SPP_ALA')
 gc()
 
@@ -333,17 +337,17 @@ COMBO.SPP.GEN.FAM.ALA <- bind_rows(COMBO.RASTER.ALA.SPP,
                                    COMBO.RASTER.ALA.GEN,
                                    COMBO.RASTER.ALA.FAM)
 
-rm(COMBO.RASTER.ALA.SPP)
-rm(COMBO.RASTER.ALA.GEN)
-rm(COMBO.RASTER.ALA.FAM)
+# rm(COMBO.RASTER.ALA.SPP)
+# rm(COMBO.RASTER.ALA.GEN)
+# rm(COMBO.RASTER.ALA.FAM)
 gc()
 
 
 ## Now bind the ALA and PBI tables together
 COMBO.SPP.GEN.FAM.ALA.PBI <- bind_rows(COMBO.SPP.GEN.FAM.ALA, COMBO.SPP.GEN.FAM.PBI)
 
-rm(COMBO.SPP.GEN.FAM.ALA)
-rm(COMBO.SPP.GEN.FAM.PBI)
+# rm(COMBO.SPP.GEN.FAM.ALA)
+# rm(COMBO.SPP.GEN.FAM.PBI)
 
 
 
@@ -395,7 +399,7 @@ SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD_CLEAN_sf,
                                          site_flag         = 'SITE',
                                          occ_flag          = 'ALA',
                                          site_records      = TRUE,
-                                         spat_flag         = 
+                                         spat_out_remove   = FALSE,
                                          
                                          sdm_table_vars    = c('searchTaxon', 
                                                                'species',  
@@ -412,7 +416,7 @@ SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD_CLEAN_sf,
                                                                'SPAT_OUT',
                                                                names(aus.climate.veg.grids.250m)),
                                          
-                                         save_run          = "ALL_INVERT_SPP_ALA_PBI",
+                                         save_run          = save_name,
                                          read_background   = FALSE,
                                          country_epsg      = 3577,
                                          world_epsg        = "+init=epsg:4326",
@@ -432,7 +436,7 @@ SDM.SPAT.OCC.BG.TARG.INV <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysi
 
 
 st_write(SDM.SPAT.OCC.BG.TARG.INV %>% st_as_sf(), 
-         dsn = file.path(inv_results_dir, 'SDM_TARGET_INVERT_TAXA_ALA_PBI.gpkg'), 
+         dsn   = paste0(inv_results_dir, save_name, '.gpkg'), 
          layer = 'SDM_TARGET_INVERT_TAXA', 
          quiet = TRUE)
 
