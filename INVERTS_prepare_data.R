@@ -470,12 +470,33 @@ message('sdm data preparation code successfuly run')
 
 
 
-# STEP 5 :: Prepare SDM table ----
+# STEP 5 :: Check data ----
 
 
 ## Check the species data - 34 target species are in the final data
 ## These then drop out due to cross-validation, etc. 
-unique(SDM.SPAT.OCC.BG.GDA$searchTaxon) %in% target.insect.spp      %>% table()
+SDM.SPAT.OCC.BG.GDA <- readRDS(paste0(inv_results_dir,   
+                                      'SDM_SPAT_OCC_BG_ALL_INVERT_TAXA_ALA_PBI.rds'))
+
+SDM.SPAT.OCC.BG.GDA.SF <- SDM.SPAT.OCC.BG.GDA %>% st_as_sf()
+
+sdm_coords_df          <- st_coordinates(SDM.SPAT.OCC.BG.GDA.SF) %>% as.data.frame()
+names(sdm_coords_mat)  <- c('lon', 'lat')
+
+sdm_coords_sf <- 
+  SpatialPointsDataFrame(coords      = sdm_coords_mat %>% 
+                            dplyr::select(lon, lat) %>% as.matrix(),
+                          data        = sdm_coords_mat,
+                          proj4string = CRS("+init=epsg:3577")) %>%
+  
+  st_as_sf() %>% 
+  st_transform(., st_crs(3577))
+
+
+SDM.SPAT.OCC.BG.GDA.SF$lat <- 
+  
+  
+  unique(SDM.SPAT.OCC.BG.GDA$searchTaxon) %in% target.insect.spp      %>% table()
 unique(SDM.SPAT.OCC.BG.GDA$searchTaxon) %in% target.insect.genera   %>% table()
 unique(SDM.SPAT.OCC.BG.GDA$searchTaxon) %in% target.insect.families %>% table()
 
