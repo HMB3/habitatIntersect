@@ -1013,7 +1013,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     system.time(o <- over(bg, buffer))
     
     bg        <- bg[which(!is.na(o)), ]
-    bg_cells  <- terra::cellFromXY(template_raster_spat, bg_coord)
+    bg_cells  <- terra::cellFromXY(template_raster, bg_coord)
     
     ## Clean out duplicates and NAs (including points outside extent of predictor data)
     bg_not_dupes       <- which(!duplicated(bg_cells) & !is.na(bg_cells))
@@ -1038,7 +1038,6 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     raster::plot(buffer,  add = TRUE, col = "red")
     raster::plot(occ, add = TRUE, col = "blue")
     dev.off()
-    
     gc()
     
     ## Reduce background sample, if it's larger than max_bg_size
@@ -1135,7 +1134,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
       swd_bg$lon  <- NULL
       swd_bg$lat  <- NULL
       
-      ## Need to create a taxa column here
+      ## Need to create a taxa column here.
       swd_occ$searchTaxon <- taxa
       swd_bg$searchTaxon  <- taxa
       

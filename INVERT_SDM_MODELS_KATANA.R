@@ -264,7 +264,7 @@ gc()
 
 
 ## Run species-level models for invertebrates
-run_sdm_analysis_no_crop(taxa_list               = target.insect.spp,
+run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.spp),
                          taxa_level              = 'species',
                          maxent_dir              = inv_back_dir,     
                          bs_dir                  = inv_back_dir,

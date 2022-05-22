@@ -268,6 +268,7 @@ COMBO_RASTER_PBI_SPP_sf <- SpatialPointsDataFrame(coords      = COMBO.RASTER.PBI
   st_as_sf() %>% 
   st_transform(., st_crs(4326))
 
+
 ## Genera
 COMBO.RASTER.PBI.GEN <- COMBO.RASTER.PBI.SPP %>%
   dplyr::select(-searchTaxon) %>% 
@@ -428,7 +429,8 @@ SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD_CLEAN_sf,
 ## Create subset of target reptiles
 ## Save each taxa as an individual shapefile
 # SDM.SPAT.OCC.BG.GDA = readRDS('./output/invert_maxent_pbi_ala/results/SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds')
-SDM.SPAT.OCC.BG.TARG.INV <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysis_taxa, ]
+SDM.SPAT.OCC.BG.TARG.INV    <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysis_taxa, ]
+SDM.SPAT.OCC.BG.TARG.INV.SF <- SDM.SPAT.OCC.BG.TARG.INV %>% st_as_sf()
 
 
 st_write(SDM.SPAT.OCC.BG.TARG.INV %>% st_as_sf(), 
@@ -445,4 +447,24 @@ message('sdm data preparation code successfuly run')
 
 
 
+# STEP 5 :: Prepare SDM table ----
+
+
+## Check the species data - 34 target species are in the final data
+## These then drop out due to cross-validation, etc. 
+unique(SDM.SPAT.OCC.BG.GDA$searchTaxon) %in% target.insect.spp      %>% table()
+unique(SDM.SPAT.OCC.BG.GDA$searchTaxon) %in% target.insect.genera   %>% table()
+unique(SDM.SPAT.OCC.BG.GDA$searchTaxon) %in% target.insect.families %>% table()
+
+
+
+## What do the species data look like?
+View(SDM.SPAT.OCC.BG.TARG.INV.SF)
+
+
+
 ## END =============================================================
+
+
+
+
