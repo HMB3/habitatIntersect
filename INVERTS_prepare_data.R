@@ -354,6 +354,29 @@ gc()
 
 
 
+
+# Prepare niches ----
+
+
+##
+GLOB.NICHE.ALL = calc_enviro_niches(coord_df     = COMBO.SPP.GEN.FAM.ALA.PBI %>% .[.$searchTaxon %in% analysis_taxa, ],
+                                    prj          = CRS("+init=epsg:4326"),
+                                    country_shp  = AUS,
+                                    world_shp    = LAND,
+                                    kop_shp      = Koppen_shp,
+                                    taxa_list    = analysis_taxa,
+                                    env_vars     = names(aus.climate.veg.grids.250m),
+                                    cell_size    = 2,
+                                    save_data    = TRUE,
+                                    save_run     = save_name,
+                                    data_path    = inv_results_dir)
+
+
+plot_range_histograms(coord_df     = COMBO.SPP.GEN.FAM.ALA.PBI %>% .[.$searchTaxon %in% analysis_taxa, ],
+                      taxa_list    = target.insect.genera,
+                      range_path   = check_dir)
+
+
 # STEP 4 :: Prepare SDM table ----
 
 

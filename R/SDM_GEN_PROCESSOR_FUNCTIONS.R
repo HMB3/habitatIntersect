@@ -1767,7 +1767,8 @@ calc_enviro_niches = function(coord_df,
     ## save .rds file for the next session
     message('Writing 1km resolution niche and raster data for ',
             length(taxa_list), ' taxa in the set ', "'", save_run, "'")
-    saveRDS(GLOB.NICHE, paste0(data_path, 'GLOBAL_NICHES_',  save_run, '.rds'))
+    saveRDS(GLOB.NICHE, paste0(data_path, 'GLOBAL_NICHES_',    save_run, '.rds'))
+    write_csv(GLOB.NICHE, paste0(data_path, 'GLOBAL_NICHES_',  save_run, '.csv'))
     return(GLOB.NICHE)
     
   } else {
