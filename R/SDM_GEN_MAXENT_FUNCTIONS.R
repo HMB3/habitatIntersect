@@ -1005,8 +1005,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
   if(nrow(occ) > min_n) {
     
     message('get background records')
-    bg_sf                <- bg %>% st_as_sf()
-    bg_coord             <- st_coordinates(bg_sf)
+    bg_coord             <- c()
     
     ## Subset the background records to the 200km buffered polygon
     message(taxa, ' creating background cells')
