@@ -246,29 +246,22 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
   if(nrow(occ_cells) > min_n) {
     
     message('get distinct background records')
-    # bg_coord             <- cbind(X = bg$X, Y = bg$Y) %>% as.matrix()
     bg_buffer   <- bg[buffer, ] %>% st_as_sf()
+    
+    if(nrow(bg_buffer) > 100000) {
+      sample_row <- nrow(bg_buffer)/100000
+      bg_buffer     <- bg_buffer[seq(1, nrow(bg_buffer), sample_row), ]
+    }
   
     bgX         <- raster_extent[1] + floor((bg_buffer$X - raster_extent[1]) / cell_size ) * cell_size  + cell_size /2
     bgY         <- raster_extent[2] + floor((bg_buffer$Y - raster_extent[2]) / cell_size ) * cell_size  + cell_size /2
     bg_buffer$X <- bgX
     bg_buffer$Y <- bgY
-    bg_cells    <- bg_buffer %>% dplyr::distinct(., X, Y, .keep_all = TRUE)
-    
-    
+    bg_cells    <- bg_buffer[!duplicated(bg_buffer, by = c("X", "Y")), names(bg_buffer), with = FALSE]
+
     ## Subset the background records to the 200km buffered polygon
     message(taxa, ' creating background cells')
-    # system.time(o <- over(bg, buffer))
-    # 
-    # bg        <- bg[which(!is.na(o)), ]
-    # bg_cells  <- raster::xyFromCell(template_raster, bg_coord)
 
-    
-    ## Clean out duplicates and NAs (including points outside extent of predictor data)
-    # bg_not_dupes       <- which(!duplicated(bg_cells) & !is.na(bg_cells))
-    # bg_unique          <- bg[bg_not_dupes, ]
-    # bg_cells_unique    <- bg_cells[bg_not_dupes]
-    
     ## Don't use which to get unique cells, that has already been done
     message(taxa, ' Do not intersect background cells with Koppen zones')
     message('country poly is a ', class(poly))
@@ -284,23 +277,23 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     raster::plot(st_geometry(poly), 
                  main   = paste0('Occurence SDM records for ', taxa))
     
-    raster::plot(buffer,                  add = TRUE, col = "red")
-    raster::plot(st_geometry(occ_unique), add = TRUE, col = "blue")
+    raster::plot(buffer,                 add = TRUE, col = "red")
+    raster::plot(st_geometry(occ_cells), add = TRUE, col = "blue")
     dev.off()
     gc()
     
     ## Reduce background sample, if it's larger than max_bg_size
-    if (nrow(bg_unique) > max_bg_size) {
+    if (nrow(bg_cells) > max_bg_size) {
       
-      message(nrow(bg_unique), ' target taxa background records for ', taxa,
-              ', reduced to random ', max_bg_size, ' using random points from :: ', unique(bg_unique$SOURCE))
-      bg.samp <- bg_unique[sample(nrow(bg_unique), max_bg_size), ]
+      message(nrow(bg_cells), ' target taxa background records for ', taxa,
+              ', reduced to random ', max_bg_size, ' using random points from :: ', unique(bg_cells$SOURCE))
+      bg.samp <- bg_cells[sample(nrow(bg_cells), max_bg_size), ]
       
     } else {
       ## If the bg points are smaller that the max_bg_size, just get all the points
-      message(nrow(bg_unique), ' target taxa background records for ', taxa,
-              ' using all points from :: ', unique(bg_unique$SOURCE))
-      bg.samp <- bg_unique
+      message(nrow(bg_cells), ' target taxa background records for ', taxa,
+              ', using all points from :: ', unique(bg_cells$SOURCE))
+      bg.samp <- bg_cells
     }
     
     ## Now save the buffer, the occ and bg points as shapefiles
@@ -321,7 +314,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
                  quiet  = TRUE, 
                  append = FALSE)
         
-        st_write(occ_unique,       
+        st_write(occ_cells,       
                  dsn    = paste0(outdir_sp, '/', save_name, '_maxent_points.gpkg'), 
                  layer  = paste0(save_name, '_occurrence'), 
                  quiet  = TRUE, 
@@ -330,21 +323,21 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     }
     
     ## Also save the background and occurrence points as .rds files.
-    saveRDS(bg.samp,    file.path(outdir_sp, paste0(save_name, '_bg.rds')))
-    saveRDS(occ_unique, file.path(outdir_sp, paste0(save_name, '_occ.rds')))
+    saveRDS(bg.samp,   file.path(outdir_sp, paste0(save_name, '_bg.rds')))
+    saveRDS(occ_cells, file.path(outdir_sp, paste0(save_name, '_occ.rds')))
     
     ## SWD = taxa with data. Now sample the environmental
     ## variables used in the model at all the occ and bg points
-    swd_occ    <- occ_unique[, sdm_predictors]
+    swd_occ    <- occ_cells[, sdm_predictors]
     swd_occ_sp <- as_Spatial(swd_occ)
     saveRDS(swd_occ, file.path(outdir_sp, paste0(save_name,'_occ_swd.rds')))
     
     swd_bg     <- bg.samp[, sdm_predictors]
-    saveRDS(swd_bg_df, file.path(outdir_sp, paste0(save_name, '_bg_swd.rds')))
+    saveRDS(swd_bg, file.path(outdir_sp, paste0(save_name, '_bg_swd.rds')))
     gc()
     
     ## Now combine the occurrence and background data
-    swd <- st_join(swd_occ, swd_bg_sf) #as.data.frame(rbind(swd_occ@data, swd_bg@data))
+    swd <- st_join(swd_occ, swd_bg) #as.data.frame(rbind(swd_occ@data, swd_bg@data))
     saveRDS(swd, file.path(outdir_sp, 'swd.rds'))
     pa  <- rep(1:0, c(nrow(swd_occ), nrow(swd_bg)))
     
@@ -354,10 +347,8 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     
     ## This sets threshold and hinge features to "off"
     if(length(off) > 0) {
-      
       off <- c(l = 'linear=false',    p = 'product=false', q = 'quadratic=false',
                t = 'threshold=false', h = 'hinge=false')[off]
-      
     }
     
     off <- unname(off)
@@ -376,7 +367,12 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
       
       ## Need to create a taxa column here.
       swd_occ_df$searchTaxon <- taxa
-      swd_bg_sp$searchTaxon  <- taxa
+      swd_bg_df$searchTaxon  <- taxa
+      
+      ## Make sure the colnames match
+      common_cols <- intersect(names(swd_occ_df), names(swd_bg_df))
+      swd_occ_df  <- dplyr::select(swd_occ_df, all_of(common_cols))
+      swd_bg_df   <- dplyr::select(swd_bg_df,  all_of(common_cols))
       
       ## Run simplify rmaxent::simplify
       
@@ -393,8 +389,8 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
       ## This is needed to run the mapping step over either the full or BS folder
       m <- local_simplify(
         
-        swd_occ_sp,
-        swd_bg_sp,
+        swd_occ_df,
+        swd_bg_df,
         path            = bsdir,
         taxa_column     = "searchTaxon",
         replicates      = replicates,  ## 5 as above
@@ -405,11 +401,6 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
         k_thr           = k_thr,
         features        = features,    ## LPQ as above
         quiet           = FALSE)
-      
-      ## Save the bg, occ and swd files into the backwards selection folder too
-      saveRDS(bg.samp,  file.path(bsdir_sp, paste0(save_name, '_bg.rds')))
-      saveRDS(occ,      file.path(bsdir_sp, paste0(save_name, '_occ.rds')))
-      saveRDS(swd,      file.path(bsdir_sp, paste0('swd.rds')))
       
       ## Read the model in, because it's tricky to index
       bs.model <- readRDS(sprintf('%s/%s/full/maxent_fitted.rds', bsdir,  save_name))
