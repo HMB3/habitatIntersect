@@ -219,46 +219,55 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
   
   ## Create a buffer of xkm around the occurrence points
   ## So the spatial data change has caused this problem
+  message('get distinct occurrence records')
   buffer <- aggregate(gBuffer(occ, width = background_buffer_width, byid = TRUE))
   
   ## Get unique cell numbers for taxa occurrences
   template_raster_spat <- terra::rast(template_raster)
   occ_sf               <- occ %>% st_as_sf()
-  occ_coord            <- cbind(X = occ$X, Y = occ$Y) %>% as.matrix()
+  raster_extent        <- raster::extent(template_raster)
+  cell_size            <- xres(template_raster)
+  
   # cells_coords         <- raster::xyFromCell(template_raster, occ_coord)
   # cells_distinct       <- cells_coords %>% as.data.frame %>% distinct()
   # distinct_cells       <- dplyr::distinct(as.data.frame(cells)) %>% na.omit()
   
-  # newx = floor (x / cellsize) * cellsize + 0.5 * cellsize
-  # newy = floor (y / cellsize) * cellsize + 0.5 * cellsize
+  # xcoord_snapped_to_cell = xmin + floor ((Xcoord - xmin) / cellsize) * cellsize + cellsize/2
+  # ycoord_snapped_to_cell = ymin + floor ((Ycoord - ymin) / cellsize) * cellsize + cellsize/2
   
+  occX      <- raster_extent[1] + floor((occ_sf$X - raster_extent[1]) / cell_size ) * cell_size  + cell_size /2
+  occY      <- raster_extent[2] + floor((occ_sf$Y - raster_extent[2]) / cell_size ) * cell_size  + cell_size /2
+  occ_sf$X  <- occX
+  occ_sf$Y  <- occY
+  occ_cells <- occ_sf %>% dplyr::distinct(., X, Y, .keep_all = TRUE)
   
-  ## Clean out duplicate cells and NAs (including points outside extent of predictor data)
-  ## Note this will get rid of a lot of duplicate records not filtered out by GBIF columns, etc.
-  # not_dupes  <- which(!duplicated(cells) & !is.na(cells))
-  occ_unique <- occ_sf[not_dupes, ]
-  cells      <- cells[not_dupes]
-  message(nrow(occ_unique), ' occurrence records (unique cells).')
-  
-  
+  message(nrow(occ_cells), ' occurrence records (unique cells).')
   ## Skip taxa that have less than a minimum number of records: eg 20 taxa
-  if(nrow(occ_unique) > min_n) {
+  if(nrow(occ_cells) > min_n) {
     
-    message('get background records')
-    bg_coord             <- cbind(X = bg$X, Y = bg$Y) %>% as.matrix()
+    message('get distinct background records')
+    # bg_coord             <- cbind(X = bg$X, Y = bg$Y) %>% as.matrix()
+    bg_buffer   <- bg[buffer, ] %>% st_as_sf()
+  
+    bgX         <- raster_extent[1] + floor((bg_buffer$X - raster_extent[1]) / cell_size ) * cell_size  + cell_size /2
+    bgY         <- raster_extent[2] + floor((bg_buffer$Y - raster_extent[2]) / cell_size ) * cell_size  + cell_size /2
+    bg_buffer$X <- bgX
+    bg_buffer$Y <- bgY
+    bg_cells    <- bg_buffer %>% dplyr::distinct(., X, Y, .keep_all = TRUE)
+    
     
     ## Subset the background records to the 200km buffered polygon
     message(taxa, ' creating background cells')
-    system.time(o <- over(bg, buffer))
-    
-    bg        <- bg[which(!is.na(o)), ]
-    bg_cells  <- raster::xyFromCell(template_raster, bg_coord)
+    # system.time(o <- over(bg, buffer))
+    # 
+    # bg        <- bg[which(!is.na(o)), ]
+    # bg_cells  <- raster::xyFromCell(template_raster, bg_coord)
 
     
     ## Clean out duplicates and NAs (including points outside extent of predictor data)
-    bg_not_dupes       <- which(!duplicated(bg_cells) & !is.na(bg_cells))
-    bg_unique          <- bg[bg_not_dupes, ]
-    bg_cells_unique    <- bg_cells[bg_not_dupes]
+    # bg_not_dupes       <- which(!duplicated(bg_cells) & !is.na(bg_cells))
+    # bg_unique          <- bg[bg_not_dupes, ]
+    # bg_cells_unique    <- bg_cells[bg_not_dupes]
     
     ## Don't use which to get unique cells, that has already been done
     message(taxa, ' Do not intersect background cells with Koppen zones')
