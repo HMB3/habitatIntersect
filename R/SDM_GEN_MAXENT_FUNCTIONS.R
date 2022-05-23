@@ -6,6 +6,442 @@
 
 
 
+
+#' @title Run SDM analyses for 'species with data' format.
+#' 
+#' @description This function takes a data frame of all taxa records,
+#' and runs a specialised maxent analysis for each taxa.
+#' It uses the dismo package https://github.com/johnbaums/rmaxent
+#' @param taxa_list          Character string - the taxa to run maxent models for
+#' @param taxa_level         Character string - the taxnomic level to run maxent models for
+#' @param sdm_df             SpatialPointsDataFrame. Spdf of all taxa records returned by the 'prepare_sdm_table' function
+#' @param sdm_predictors     Character string - Vector of enviro conditions that you want to include
+#' @param maxent_dir         Character string - The file path used for saving the maxent output
+#' @param bs_dir             Character string - The file path used for saving the backwards selection maxent output
+#' @param backwards_sel      Logical - Run backwards selection using the maxent models (T/F)?
+#' @param template_raster    RasterLayer - Empty raster with analysis extent (global), res (1km) and projection (Mollweide, EPSG 54009)
+#' @param cor_thr            Numeric - The max allowable pairwise correlation between predictor variables
+#' @param pct_thr            Numeric - The min allowable percent variable contribution
+#' @param k_thr              Numeric - The min number of variables to be kept in the model
+#' @param min_n              Numeric - The min number of records for running maxent
+#' @param max_bg_size        Numeric - The max number of background points to keep
+#' @param background_buffer_width Numeric - The max distance (km) from occ points that BG points should be selected?
+#' @param feat_save           Logical - Save features of the occ and bg data (T/F)?
+#' @param features           Character string - Which features should be used? (e.g. linear, product, quadratic 'lpq')
+#' @param replicates         Numeric - The number of replicates to use
+#' @param responsecurves     Logical - Save response curves of the maxent models (T/F)?
+#' @param poly_path          Character string - file path to feature polygon layer
+#' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
+#' @export run_sdm_analysis_no_crop
+run_sdm_analysis_no_crop = function(taxa_list,
+                                    taxa_level,
+                                    sdm_df,
+                                    sdm_predictors,
+                                    maxent_dir,
+                                    bs_dir,
+                                    backwards_sel,
+                                    template_raster,
+                                    cor_thr,
+                                    pct_thr,
+                                    k_thr,
+                                    min_n,
+                                    max_bg_size,
+                                    background_buffer_width,
+                                    features,
+                                    feat_save,
+                                    replicates,
+                                    responsecurves,
+                                    poly_path,
+                                    epsg) {
+  
+  
+  ## Convert to SF object for selection - inefficient
+  message('Preparing spatial data for SDMs')
+  
+  poly <- st_read(poly_path) %>% 
+    st_transform(., st_crs(epsg))
+  
+  ## Loop over all the taxa
+  ## taxa <- sort(taxa_list)[1]
+  lapply(taxa_list, function(taxa){
+    
+    ## Skip the taxa if the directory already exists, before the loop
+    # outdir <- maxent_dir
+    
+    ## Could also check the folder size, so folders with no contents aren't skipped eg
+    ## && sum(file.info(dir_name)$size) < 1000 (EG 1MB)
+    dir_name = file.path(maxent_dir, gsub(' ', '_', taxa))
+    
+    if(!dir.exists(dir_name)) {
+      message('Maxent not yet run for ', taxa, ' - running')
+      
+      ## Create the directory for the taxa in progress,
+      ## so other parallel runs don't run the same taxa
+      dir.create(dir_name)
+      file.create(file.path(dir_name, "in_progress.txt"))
+      
+      ## Print the taxa being processed to screen
+      if(taxa %in% sdm_df[[taxa_level]]) {
+        message('Doing ', taxa)
+        
+        ## Subset the records to only the taxa being processed - in the searched taxa or returned
+        occurrence <- sdm_df %>% .[.[[taxa_level]] %in% taxa, ]
+        message('Using ', nrow(occurrence), ' occ records from ', unique(occurrence$SOURCE))
+        
+        ## Now get the background points. These can come from any taxa, other than the modelled taxa.
+        ## However, they should be limited to the same SOURCE as the occ data
+        background <- sdm_df %>% .[!.[[taxa_level]] %in% taxa, ]
+        message('Using ', nrow(background), ' background records from ', unique(background$SOURCE))
+        gc()
+        
+        ## Finally fit the models using FIT_MAXENT_TARG_BG. Also use tryCatch to skip any exceptions
+        tryCatch(
+          fit_maxent_targ_bg_back_sel_no_crop(occ                     = occurrence,
+                                              bg                      = background,
+                                              sdm_predictors          = sdm_predictors,
+                                              taxa                    = taxa,
+                                              outdir                  = maxent_dir,
+                                              bsdir                   = bs_dir,
+                                              backwards_sel           = backwards_sel,
+                                              cor_thr                 = cor_thr,
+                                              pct_thr                 = pct_thr,
+                                              k_thr                   = k_thr,
+                                              
+                                              template_raster         = template_raster,
+                                              min_n                   = min_n,
+                                              max_bg_size             = max_bg_size,
+                                              background_buffer_width = background_buffer_width,
+                                              features                = features,
+                                              feat_save               = feat_save,
+                                              replicates              = replicates,
+                                              responsecurves          = responsecurves,
+                                              poly                    = poly),
+          
+          
+          ## Save error message
+          error = function(cond) {
+            
+            ## How to put the message into the file?
+            file.create(file.path(dir_name, "sdm_failed.txt"))
+            message(taxa, ' failed')
+            cat(cond$message, file = file.path(dir_name, "sdm_failed.txt"))
+            warning(taxa, ': ', cond$message)
+            
+          })
+        
+      } else {
+        message(taxa, ' skipped - no data.') ## This condition ignores taxa which have no data...
+        file.create(file.path(dir_name, "completed.txt"))
+      }
+      
+      ## now add a file to the dir to denote that it has completed
+      file.create(file.path(dir_name, "completed.txt"))
+      
+    } else {
+      message(taxa, ' sdm already exists, skipped') ## This condition ignores taxa which have no data...
+    }
+    
+  })
+}
+
+
+
+
+#' @title Maxent Backwards selection for 'species with data' format, without biogeographic cropping. 
+#' @description 
+#' This function takes a data frame of all taxa records,
+#' and runs a specialised maxent analysis for each taxa.
+#' It uses the rmaxent package https://github.com/johnbaums/rmaxent
+#' It assumes that the input df is that returned by the prepare_sdm_table function
+#' 
+#' @param occ                SpatialPointsDataFrame - Spdf of all taxa records returned by the 'prepare_sdm_table' function
+#' @param bg                 SpatialPointsDataFrame - Spdf of of candidate background points
+#' @param sdm_predictors     Character string - Vector of enviro conditions that you want to include
+#' @param outdir             Character string - The file path used for saving the maxent output
+#' @param bsdir              Character string - The file path used for saving the backwards selection maxent output
+#' @param backwards_sel      Logical - Run backwards selection using the maxent models (T/F)?
+#' @param template_raster    RasterLayer -  Empty raster with analysis extent (global), res (1km) and projection (Mollweide, EPSG 54009)
+#' @param template_raster    RasterLayer -  Empty raster with analysis extent (global), res (1km) and projection (Mollweide, EPSG 54009)
+#' @param cor_thr            Numeric - The max allowable pairwise correlation between predictor variables
+#' @param pct_thr            Numeric - The min allowable percent variable contribution
+#' @param k_thr              Numeric - The min number of variables to be kept in the model
+#' @param min_n              Numeric - The min number of records for running maxent
+#' @param max_bg_size        Numeric - The max number of background points to keep
+#' @param feat_save          Logical - Save shapefiles of the occ and bg data (T/F)?
+#' @param features           Character string - Which features should be used? (e.g. linear, product, quadratic 'lpq')
+#' @param replicates         Numeric - The number of replicates to use
+#' @param responsecurves     Logical - Save response curves of the maxent models (T/F)?
+#' @param poly                Character string - path to shapefile
+#' @param rep_args           RasterLayer of global koppen zones, in Mollweide54009 projection
+#' @param full_args          Dataframe of global koppen zones, with columns : GRIDCODE, Koppen
+#' @export fit_maxent_targ_bg_back_sel_no_crop 
+fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
+                                                bg,
+                                                sdm_predictors,
+                                                taxa,
+                                                outdir,
+                                                bsdir,
+                                                cor_thr,
+                                                pct_thr,
+                                                k_thr,
+                                                backwards_sel,
+                                                template_raster,
+                                                min_n,
+                                                max_bg_size,
+                                                background_buffer_width,
+                                                shapefiles,
+                                                features,
+                                                feat_save,
+                                                replicates,
+                                                responsecurves,
+                                                poly) {
+  
+  ## First, stop if the outdir file exists:
+  outdir_sp <- file.path(outdir, gsub(' ', '_', taxa))
+  bsdir_sp  <- file.path(bsdir,  gsub(' ', '_', taxa))
+  
+  if(!file.exists(bsdir_sp)) stop('outdir does not exist :(', call. = FALSE)
+  
+  ## If the file doesn't exist, split out the features
+  if(!file.exists(outdir_sp)) dir.create(outdir_sp)
+  features <- unlist(strsplit(features, ''))
+  
+  ## Make sure user features are allowed: don't run the model if the
+  ## features have been incorrectly specified in the main argument
+  ## l: linear
+  ## p: product
+  ## q: quadratic
+  ## h: hinge       ## disabled for this analysis
+  ## t: threshold   ## disabled for this analysis
+  if(length(setdiff(features, c('l', 'p', 'q', 'h', 't'))) > 1)
+    stop("features must be a vector of one or more of ',
+         'l', 'p', 'q', 'h', and 't'.")
+  
+  ## Create a buffer of xkm around the occurrence points
+  ## So the spatial data change has caused this problem
+  buffer <- aggregate(gBuffer(occ, width = background_buffer_width, byid = TRUE))
+  
+  ## Get unique cell numbers for taxa occurrences
+  template_raster_spat <- terra::rast(template_raster)
+  occ_sf               <- occ %>% st_as_sf()
+  occ_coord            <- cbind(X = occ$X, Y = occ$Y) %>% as.matrix()
+  # cells_coords         <- raster::xyFromCell(template_raster, occ_coord)
+  # cells_distinct       <- cells_coords %>% as.data.frame %>% distinct()
+  # distinct_cells       <- dplyr::distinct(as.data.frame(cells)) %>% na.omit()
+  
+  # newx = floor (x / cellsize) * cellsize + 0.5 * cellsize
+  # newy = floor (y / cellsize) * cellsize + 0.5 * cellsize
+  
+  
+  ## Clean out duplicate cells and NAs (including points outside extent of predictor data)
+  ## Note this will get rid of a lot of duplicate records not filtered out by GBIF columns, etc.
+  # not_dupes  <- which(!duplicated(cells) & !is.na(cells))
+  occ_unique <- occ_sf[not_dupes, ]
+  cells      <- cells[not_dupes]
+  message(nrow(occ_unique), ' occurrence records (unique cells).')
+  
+  
+  ## Skip taxa that have less than a minimum number of records: eg 20 taxa
+  if(nrow(occ_unique) > min_n) {
+    
+    message('get background records')
+    bg_coord             <- cbind(X = bg$X, Y = bg$Y) %>% as.matrix()
+    
+    ## Subset the background records to the 200km buffered polygon
+    message(taxa, ' creating background cells')
+    system.time(o <- over(bg, buffer))
+    
+    bg        <- bg[which(!is.na(o)), ]
+    bg_cells  <- raster::xyFromCell(template_raster, bg_coord)
+
+    
+    ## Clean out duplicates and NAs (including points outside extent of predictor data)
+    bg_not_dupes       <- which(!duplicated(bg_cells) & !is.na(bg_cells))
+    bg_unique          <- bg[bg_not_dupes, ]
+    bg_cells_unique    <- bg_cells[bg_not_dupes]
+    
+    ## Don't use which to get unique cells, that has already been done
+    message(taxa, ' Do not intersect background cells with Koppen zones')
+    message('country poly is a ', class(poly))
+    
+    ## Now save an image of the background points
+    ## This is useful to quality control the models
+    save_name = gsub(' ', '_', taxa)
+    
+    ## Then save the occurrence points
+    png(sprintf('%s/%s/%s_%s.png', outdir, save_name, save_name, "buffer_occ"),
+        16, 10, units = 'in', res = 300)
+    
+    raster::plot(st_geometry(poly), 
+                 main   = paste0('Occurence SDM records for ', taxa))
+    
+    raster::plot(buffer,                  add = TRUE, col = "red")
+    raster::plot(st_geometry(occ_unique), add = TRUE, col = "blue")
+    dev.off()
+    gc()
+    
+    ## Reduce background sample, if it's larger than max_bg_size
+    if (nrow(bg_unique) > max_bg_size) {
+      
+      message(nrow(bg_unique), ' target taxa background records for ', taxa,
+              ', reduced to random ', max_bg_size, ' using random points from :: ', unique(bg_unique$SOURCE))
+      bg.samp <- bg_unique[sample(nrow(bg_unique), max_bg_size), ]
+      
+    } else {
+      ## If the bg points are smaller that the max_bg_size, just get all the points
+      message(nrow(bg_unique), ' target taxa background records for ', taxa,
+              ' using all points from :: ', unique(bg_unique$SOURCE))
+      bg.samp <- bg_unique
+    }
+    
+    ## Now save the buffer, the occ and bg points as shapefiles
+    if(feat_save) {
+      
+      suppressWarnings({
+        message(taxa, ' writing occ and bg geopackages')
+        
+        st_write(buffer %>% st_as_sf(), 
+                 dsn    = paste0(outdir_sp, '/', save_name, '_maxent_points.gpkg'), 
+                 layer  = paste0(save_name, '_buffer'), 
+                 quiet  = TRUE, 
+                 append = FALSE)
+        
+        st_write(bg.samp %>% st_as_sf(),   
+                 dsn    = paste0(outdir_sp, '/', save_name, '_maxent_points.gpkg'), 
+                 layer  = paste0(save_name, '_samples'), 
+                 quiet  = TRUE, 
+                 append = FALSE)
+        
+        st_write(occ_unique,       
+                 dsn    = paste0(outdir_sp, '/', save_name, '_maxent_points.gpkg'), 
+                 layer  = paste0(save_name, '_occurrence'), 
+                 quiet  = TRUE, 
+                 append = FALSE)
+      })
+    }
+    
+    ## Also save the background and occurrence points as .rds files.
+    saveRDS(bg.samp,    file.path(outdir_sp, paste0(save_name, '_bg.rds')))
+    saveRDS(occ_unique, file.path(outdir_sp, paste0(save_name, '_occ.rds')))
+    
+    ## SWD = taxa with data. Now sample the environmental
+    ## variables used in the model at all the occ and bg points
+    swd_occ    <- occ_unique[, sdm_predictors]
+    swd_occ_sp <- as_Spatial(swd_occ)
+    saveRDS(swd_occ, file.path(outdir_sp, paste0(save_name,'_occ_swd.rds')))
+    
+    swd_bg     <- bg.samp[, sdm_predictors]
+    saveRDS(swd_bg_df, file.path(outdir_sp, paste0(save_name, '_bg_swd.rds')))
+    gc()
+    
+    ## Now combine the occurrence and background data
+    swd <- st_join(swd_occ, swd_bg_sf) #as.data.frame(rbind(swd_occ@data, swd_bg@data))
+    saveRDS(swd, file.path(outdir_sp, 'swd.rds'))
+    pa  <- rep(1:0, c(nrow(swd_occ), nrow(swd_bg)))
+    
+    ## Now, set the features to be used by maxent ::
+    ## Linear, product and quadratic
+    off <- setdiff(c('l', 'p', 'q', 't', 'h'), features)
+    
+    ## This sets threshold and hinge features to "off"
+    if(length(off) > 0) {
+      
+      off <- c(l = 'linear=false',    p = 'product=false', q = 'quadratic=false',
+               t = 'threshold=false', h = 'hinge=false')[off]
+      
+    }
+    
+    off <- unname(off)
+    gc()
+    
+    if (backwards_sel) {
+      
+      ## Coerce the "taxa with data" (SWD) files to regular data.frames
+      ## This is needed to use the simplify function
+      swd_occ_df     <- as.data.frame(swd_occ_sp)
+      swd_occ_df$lon <- NULL
+      swd_occ_df$lat <- NULL
+      swd_bg_df      <- as.data.frame(swd_bg)
+      swd_bg_df$lon  <- NULL
+      swd_bg_df$lat  <- NULL
+      
+      ## Need to create a taxa column here.
+      swd_occ_df$searchTaxon <- taxa
+      swd_bg_sp$searchTaxon  <- taxa
+      
+      ## Run simplify rmaxent::simplify
+      
+      # Given a candidate set of predictor variables, this function identifies
+      # a subset that meets specified multicollinearity criteria. Subsequently,
+      # backward stepwise variable selection (VIF) is used to iteratively drop
+      # the variable that contributes least to the model, until the contribution
+      # of each variable meets a specified minimum, or until a predetermined
+      # minimum number of predictors remains. It returns a model object for the
+      # full model, rather than a list of models as does the previous function
+      
+      ## Using a modified versionof rmaxent::simplify, so that the name of the
+      ## maxent model object "maxent_fitted.rds" is the same in both models.
+      ## This is needed to run the mapping step over either the full or BS folder
+      m <- local_simplify(
+        
+        swd_occ_sp,
+        swd_bg_sp,
+        path            = bsdir,
+        taxa_column     = "searchTaxon",
+        replicates      = replicates,  ## 5 as above
+        response_curves = TRUE,
+        logistic_format = TRUE,
+        cor_thr         = cor_thr,
+        pct_thr         = pct_thr,
+        k_thr           = k_thr,
+        features        = features,    ## LPQ as above
+        quiet           = FALSE)
+      
+      ## Save the bg, occ and swd files into the backwards selection folder too
+      saveRDS(bg.samp,  file.path(bsdir_sp, paste0(save_name, '_bg.rds')))
+      saveRDS(occ,      file.path(bsdir_sp, paste0(save_name, '_occ.rds')))
+      saveRDS(swd,      file.path(bsdir_sp, paste0('swd.rds')))
+      
+      ## Read the model in, because it's tricky to index
+      bs.model <- readRDS(sprintf('%s/%s/full/maxent_fitted.rds', bsdir,  save_name))
+      identical(length(bs.model@presence$Annual_mean_temp), nrow(occ))
+      
+      ## Save the chart corrleation file too for the training data set
+      par(mar   = c(3, 3, 5, 3),
+          oma   = c(1.5, 1.5, 1.5, 1.5))
+      
+      png(sprintf('%s/%s/full/%s_%s.png', bsdir,
+                  save_name, save_name, "bs_predictor_correlation"),
+          3236, 2000, units = 'px', res = 300)
+      
+      ## set margins
+      par(mar   = c(3, 3, 5, 3),
+          oma   = c(1.5, 1.5, 1.5, 1.5))
+      
+      ## Add detail to the response plot
+      chart.Correlation(bs.model@presence,
+                        histogram = TRUE, pch = 19,
+                        title = paste0('Reduced variable correlations for ', save_name))
+      
+      dev.off()
+      gc()
+      
+    } else {
+      message("Don't run backwards selection")
+    }
+    
+  } else {
+    message('Fewer occurrence records than the number of cross-validation ',
+            'replicates for taxa ', taxa,
+            ' Model not fit for this taxa')
+  }
+}
+
+
+
+
+
+
 #' @title Run SDM analyses for 'species with data' format, with bio-geographic cropping.
 #' 
 #' @description This function takes a data frame of all taxa records,
@@ -154,145 +590,6 @@ run_sdm_analysis_crop = function(taxa_list,
 }
 
 
-
-
-
-#' @title Run SDM analyses for 'species with data' format.
-#' 
-#' @description This function takes a data frame of all taxa records,
-#' and runs a specialised maxent analysis for each taxa.
-#' It uses the dismo package https://github.com/johnbaums/rmaxent
-#' @param taxa_list          Character string - the taxa to run maxent models for
-#' @param taxa_level         Character string - the taxnomic level to run maxent models for
-#' @param sdm_df             SpatialPointsDataFrame. Spdf of all taxa records returned by the 'prepare_sdm_table' function
-#' @param sdm_predictors     Character string - Vector of enviro conditions that you want to include
-#' @param maxent_dir         Character string - The file path used for saving the maxent output
-#' @param bs_dir             Character string - The file path used for saving the backwards selection maxent output
-#' @param backwards_sel      Logical - Run backwards selection using the maxent models (T/F)?
-#' @param template_raster    RasterLayer - Empty raster with analysis extent (global), res (1km) and projection (Mollweide, EPSG 54009)
-#' @param cor_thr            Numeric - The max allowable pairwise correlation between predictor variables
-#' @param pct_thr            Numeric - The min allowable percent variable contribution
-#' @param k_thr              Numeric - The min number of variables to be kept in the model
-#' @param min_n              Numeric - The min number of records for running maxent
-#' @param max_bg_size        Numeric - The max number of background points to keep
-#' @param background_buffer_width Numeric - The max distance (km) from occ points that BG points should be selected?
-#' @param shapefiles         Logical - Save shapefiles of the occ and bg data (T/F)?
-#' @param features           Character string - Which features should be used? (e.g. linear, product, quadratic 'lpq')
-#' @param replicates         Numeric - The number of replicates to use
-#' @param responsecurves     Logical - Save response curves of the maxent models (T/F)?
-#' @param poly_path          Character string - file path to feature polygon layer
-#' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
-#' @export run_sdm_analysis_no_crop
-run_sdm_analysis_no_crop = function(taxa_list,
-                                    taxa_level,
-                                    sdm_df,
-                                    sdm_predictors,
-                                    maxent_dir,
-                                    bs_dir,
-                                    backwards_sel,
-                                    template_raster,
-                                    cor_thr,
-                                    pct_thr,
-                                    k_thr,
-                                    min_n,
-                                    max_bg_size,
-                                    background_buffer_width,
-                                    shapefiles,
-                                    features,
-                                    replicates,
-                                    responsecurves,
-                                    poly_path,
-                                    epsg) {
-  
-  
-  ## Convert to SF object for selection - inefficient
-  message('Preparing spatial data for SDMs')
-  
-  poly <- st_read(poly_path) %>% 
-    st_transform(., st_crs(epsg))
-  
-  ## Loop over all the taxa
-  ## taxa <- sort(taxa_list)[1]
-  lapply(taxa_list, function(taxa){
-    
-    ## Skip the taxa if the directory already exists, before the loop
-    # outdir <- maxent_dir
-    
-    ## Could also check the folder size, so folders with no contents aren't skipped eg
-    ## && sum(file.info(dir_name)$size) < 1000 (EG 1MB)
-    dir_name = file.path(maxent_dir, gsub(' ', '_', taxa))
-    
-    if(!dir.exists(dir_name)) {
-      message('Maxent not yet run for ', taxa, ' - running')
-      
-      ## Create the directory for the taxa in progress,
-      ## so other parallel runs don't run the same taxa
-      dir.create(dir_name)
-      file.create(file.path(dir_name, "in_progress.txt"))
-      
-      ## Print the taxa being processed to screen
-      if(taxa %in% sdm_df[[taxa_level]]) {
-        message('Doing ', taxa)
-        
-        ## Subset the records to only the taxa being processed - in the searched taxa or returned
-        occurrence <- sdm_df %>% .[.[[taxa_level]] %in% taxa, ]
-        message('Using ', nrow(occurrence), ' occ records from ', unique(occurrence$SOURCE))
-        
-        ## Now get the background points. These can come from any taxa, other than the modelled taxa.
-        ## However, they should be limited to the same SOURCE as the occ data
-        background <- sdm_df %>% .[!.[[taxa_level]] %in% taxa, ]
-        message('Using ', nrow(background), ' background records from ', unique(background$SOURCE))
-        gc()
-        
-        ## Finally fit the models using FIT_MAXENT_TARG_BG. Also use tryCatch to skip any exceptions
-        tryCatch(
-          fit_maxent_targ_bg_back_sel_no_crop(occ                     = occurrence,
-                                              bg                      = background,
-                                              sdm_predictors          = sdm_predictors,
-                                              taxa                    = taxa,
-                                              outdir                  = maxent_dir,
-                                              bsdir                   = bs_dir,
-                                              backwards_sel           = backwards_sel,
-                                              cor_thr                 = cor_thr,
-                                              pct_thr                 = pct_thr,
-                                              k_thr                   = k_thr,
-                                              
-                                              template_raster         = template_raster,
-                                              min_n                   = min_n,
-                                              max_bg_size             = max_bg_size,
-                                              background_buffer_width = background_buffer_width,
-                                              shapefiles              = shapefiles,
-                                              features                = features,
-                                              replicates              = replicates,
-                                              responsecurves          = responsecurves,
-                                              poly                    = poly),
-          
-          
-          ## Save error message
-          error = function(cond) {
-            
-            ## How to put the message into the file?
-            file.create(file.path(dir_name, "sdm_failed.txt"))
-            message(taxa, ' failed')
-            cat(cond$message, file = file.path(dir_name, "sdm_failed.txt"))
-            warning(taxa, ': ', cond$message)
-            
-          })
-        
-      } else {
-        message(taxa, ' skipped - no data.') ## This condition ignores taxa which have no data...
-        file.create(file.path(dir_name, "completed.txt"))
-      }
-      
-      ## now add a file to the dir to denote that it has completed
-      file.create(file.path(dir_name, "completed.txt"))
-      
-    } else {
-      message(taxa, ' sdm already exists, skipped') ## This condition ignores taxa which have no data...
-    }
-    
-  })
-}
 
 
 
@@ -708,23 +1005,23 @@ fit_maxent_targ_bg_back_sel_crop <- function(occ,
 #' @param full_args          Dataframe of global koppen zones, with columns : GRIDCODE, Koppen
 #' @export fit_maxent_targ_bg_back_sel_no_crop 
 fit_maxent_targ_bg_full_no_crop <- function(occ,
-                                                bg,
-                                                sdm_predictors,
-                                                taxa,
-                                                outdir,
-                                                bsdir,
-                                                cor_thr,
-                                                pct_thr,
-                                                k_thr,
-                                                template_raster,
-                                                min_n,
-                                                max_bg_size,
-                                                background_buffer_width,
-                                                shapefiles,
-                                                features,
-                                                replicates,
-                                                responsecurves,
-                                                poly) {
+                                            bg,
+                                            sdm_predictors,
+                                            taxa,
+                                            outdir,
+                                            bsdir,
+                                            cor_thr,
+                                            pct_thr,
+                                            k_thr,
+                                            template_raster,
+                                            min_n,
+                                            max_bg_size,
+                                            background_buffer_width,
+                                            shapefiles,
+                                            features,
+                                            replicates,
+                                            responsecurves,
+                                            poly) {
   
   ## First, stop if the outdir file exists,
   if(!file.exists(outdir)) stop('outdir does not exist :(', call. = FALSE)
@@ -903,300 +1200,6 @@ fit_maxent_targ_bg_full_no_crop <- function(occ,
     ## Remove Koppen from the end
     saveRDS(list(me_xval = me_xval, me_full = me_full, swd = swd, pa = pa),
             file.path(outdir_sp, 'full', 'maxent_fitted.rds'))
-        
-  } else {
-    message('Fewer occurrence records than the number of cross-validation ',
-            'replicates for taxa ', taxa,
-            ' Model not fit for this taxa')
-  }
-}
-
-
-
-#' @title Maxent Backwards selection for 'species with data' format, without biogeographic cropping. 
-#' @description 
-#' This function takes a data frame of all taxa records,
-#' and runs a specialised maxent analysis for each taxa.
-#' It uses the rmaxent package https://github.com/johnbaums/rmaxent
-#' It assumes that the input df is that returned by the prepare_sdm_table function
-#' 
-#' @param occ                SpatialPointsDataFrame - Spdf of all taxa records returned by the 'prepare_sdm_table' function
-#' @param bg                 SpatialPointsDataFrame - Spdf of of candidate background points
-#' @param sdm_predictors     Character string - Vector of enviro conditions that you want to include
-#' @param outdir             Character string - The file path used for saving the maxent output
-#' @param bsdir              Character string - The file path used for saving the backwards selection maxent output
-#' @param backwards_sel      Logical - Run backwards selection using the maxent models (T/F)?
-#' @param template_raster    RasterLayer -  Empty raster with analysis extent (global), res (1km) and projection (Mollweide, EPSG 54009)
-#' @param template_raster    RasterLayer -  Empty raster with analysis extent (global), res (1km) and projection (Mollweide, EPSG 54009)
-#' @param cor_thr            Numeric - The max allowable pairwise correlation between predictor variables
-#' @param pct_thr            Numeric - The min allowable percent variable contribution
-#' @param k_thr              Numeric - The min number of variables to be kept in the model
-#' @param min_n              Numeric - The min number of records for running maxent
-#' @param max_bg_size        Numeric - The max number of background points to keep
-#' @param shapefiles         Logical - Save shapefiles of the occ and bg data (T/F)?
-#' @param features           Character string - Which features should be used? (e.g. linear, product, quadratic 'lpq')
-#' @param replicates         Numeric - The number of replicates to use
-#' @param responsecurves     Logical - Save response curves of the maxent models (T/F)?
-#' @param poly                Character string - path to shapefile
-#' @param rep_args           RasterLayer of global koppen zones, in Mollweide54009 projection
-#' @param full_args          Dataframe of global koppen zones, with columns : GRIDCODE, Koppen
-#' @export fit_maxent_targ_bg_back_sel_no_crop 
-fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
-                                                bg,
-                                                sdm_predictors,
-                                                taxa,
-                                                outdir,
-                                                bsdir,
-                                                cor_thr,
-                                                pct_thr,
-                                                k_thr,
-                                                backwards_sel,
-                                                template_raster,
-                                                min_n,
-                                                max_bg_size,
-                                                background_buffer_width,
-                                                shapefiles,
-                                                features,
-                                                replicates,
-                                                responsecurves,
-                                                poly) {
-  
-  ## First, stop if the outdir file exists:
-  outdir_sp <- file.path(outdir, gsub(' ', '_', taxa))
-  bsdir_sp  <- file.path(bsdir,  gsub(' ', '_', taxa))
-  
-  if(!file.exists(bsdir_sp)) stop('outdir does not exist :(', call. = FALSE)
-  
-  ## If the file doesn't exist, split out the features
-  if(!file.exists(outdir_sp)) dir.create(outdir_sp)
-  features <- unlist(strsplit(features, ''))
-  
-  ## Make sure user features are allowed: don't run the model if the
-  ## features have been incorrectly specified in the main argument
-  ## l: linear
-  ## p: product
-  ## q: quadratic
-  ## h: hinge       ## disabled for this analysis
-  ## t: threshold   ## disabled for this analysis
-  if(length(setdiff(features, c('l', 'p', 'q', 'h', 't'))) > 1)
-    stop("features must be a vector of one or more of ',
-         'l', 'p', 'q', 'h', and 't'.")
-  
-  ## Create a buffer of xkm around the occurrence points
-  ## So the spatial data change has caused this problem
-  buffer <- aggregate(gBuffer(occ, width = background_buffer_width, byid = TRUE))
-  
-  ## Get unique cell numbers for taxa occurrences
-  template_raster_spat <- terra::rast(template_raster)
-  occ_sf               <- occ %>% st_as_sf()
-  occ_coord            <- st_coordinates(occ_sf)
-  cells                <- terra::cellFromXY(template_raster, occ_coord)
-  
-  
-  ## Clean out duplicate cells and NAs (including points outside extent of predictor data)
-  ## Note this will get rid of a lot of duplicate records not filtered out by GBIF columns, etc.
-  not_dupes <- which(!duplicated(cells) & !is.na(cells))
-  occ       <- occ[not_dupes, ]
-  cells     <- cells[not_dupes]
-  message(nrow(occ), ' occurrence records (unique cells).')
-  
-  
-  ## Skip taxa that have less than a minimum number of records: eg 20 taxa
-  if(nrow(occ) > min_n) {
-    
-    message('get background records')
-    bg_coord             <- c()
-    
-    ## Subset the background records to the 200km buffered polygon
-    message(taxa, ' creating background cells')
-    system.time(o <- over(bg, buffer))
-    
-    bg        <- bg[which(!is.na(o)), ]
-    bg_cells  <- terra::cellFromXY(template_raster, bg_coord)
-    
-    ## Clean out duplicates and NAs (including points outside extent of predictor data)
-    bg_not_dupes       <- which(!duplicated(bg_cells) & !is.na(bg_cells))
-    bg_unique          <- bg[bg_not_dupes, ]
-    bg_cells_unique    <- bg_cells[bg_not_dupes]
-
-    ## Don't use which to get unique cells, that has already been done
-    message(taxa, ' Do not intersect background cells with Koppen zones')
-    message('country poly is a ', class(poly))
-    
-    ## Now save an image of the background points
-    ## This is useful to quality control the models
-    save_name = gsub(' ', '_', taxa)
-    
-    ## Then save the occurrence points
-    png(sprintf('%s/%s/%s_%s.png', outdir, save_name, save_name, "buffer_occ"),
-        16, 10, units = 'in', res = 300)
-    
-    raster::plot(st_geometry(poly), 
-                 main   = paste0('Occurence SDM records for ', taxa))
-    
-    raster::plot(buffer,  add = TRUE, col = "red")
-    raster::plot(occ, add = TRUE, col = "blue")
-    dev.off()
-    gc()
-    
-    ## Reduce background sample, if it's larger than max_bg_size
-    if (nrow(bg_unique) > max_bg_size) {
-      
-      message(nrow(bg_unique), ' target taxa background records for ', taxa,
-              ', reduced to random ', max_bg_size, ' using random points from :: ', unique(bg_unique$SOURCE))
-      bg.samp <- bg_unique[sample(nrow(bg_unique), max_bg_size), ]
-      
-    } else {
-      ## If the bg points are smaller that the max_bg_size, just get all the points
-      message(nrow(bg_unique), ' target taxa background records for ', taxa,
-              ' using all points from :: ', unique(bg_unique$SOURCE))
-      bg.samp <- bg_unique
-    }
-    
-    ## Now save the buffer, the occ and bg points as shapefiles
-    if(shapefiles) {
-      
-      suppressWarnings({
-        
-        message(taxa, ' writing occ and bg geopackages')
-        
-        st_write(buffer %>% st_as_sf(), 
-                 dsn    = paste0(outdir_sp, '/', save_name, '_maxent_points.gpkg'), 
-                 layer  = paste0(save_name, '_buffer'), 
-                 quiet  = TRUE, 
-                 append = FALSE)
-        
-        st_write(bg.samp %>% st_as_sf(),   
-                 dsn    = paste0(outdir_sp, '/', save_name, '_maxent_points.gpkg'), 
-                 layer  = paste0(save_name, '_samples'), 
-                 quiet  = TRUE, 
-                 append = FALSE)
-        
-        st_write(occ %>% st_as_sf(),       
-                 dsn    = paste0(outdir_sp, '/', save_name, '_maxent_points.gpkg'), 
-                 layer  = paste0(save_name, '_occurrence'), 
-                 quiet  = TRUE, 
-                 append = FALSE)
-        
-      })
-      
-    }
-    
-    ## Also save the background and occurrence points as .rds files.
-    saveRDS(bg.samp,  file.path(outdir_sp, paste0(save_name, '_bg.rds')))
-    saveRDS(occ,      file.path(outdir_sp, paste0(save_name, '_occ.rds')))
-    
-    ## SWD = taxa with data. Now sample the environmental
-    ## variables used in the model at all the occ and bg points
-    swd_occ <- occ[, sdm_predictors]
-    saveRDS(swd_occ, file.path(outdir_sp, paste0(save_name,'_occ_swd.rds')))
-    
-    swd_bg <- bg.samp[, sdm_predictors]
-    saveRDS(swd_bg, file.path(outdir_sp, paste0(save_name, '_bg_swd.rds')))
-    
-    ## Save the SWD tables as shapefiles
-    if(shapefiles) {
-      writeOGR(swd_occ, outdir_sp,  paste0(save_name, '_occ_swd'), 'ESRI Shapefile', overwrite_layer = TRUE)
-      writeOGR(swd_bg,  outdir_sp,  paste0(save_name, '_bg_swd'),  'ESRI Shapefile', overwrite_layer = TRUE)
-    }
-    
-    gc()
-    
-    ## Now combine the occurrence and background data
-    swd <- as.data.frame(rbind(swd_occ@data, swd_bg@data))
-    saveRDS(swd, file.path(outdir_sp, 'swd.rds'))
-    pa  <- rep(1:0, c(nrow(swd_occ), nrow(swd_bg)))
-    
-    ## Now, set the features to be used by maxent ::
-    ## Linear, product and quadratic
-    off <- setdiff(c('l', 'p', 'q', 't', 'h'), features)
-    
-    ## This sets threshold and hinge features to "off"
-    if(length(off) > 0) {
-      
-      off <- c(l = 'linear=false',    p = 'product=false', q = 'quadratic=false',
-               t = 'threshold=false', h = 'hinge=false')[off]
-      
-    }
-    
-    off <- unname(off)
-    gc()
-    
-    if (backwards_sel) {
-      
-      ## Coerce the "taxa with data" (SWD) files to regular data.frames
-      ## This is needed to use the simplify function
-      swd_occ     <- as.data.frame(swd_occ)
-      swd_occ$lon <- NULL
-      swd_occ$lat <- NULL
-      swd_bg      <- as.data.frame(swd_bg)
-      swd_bg$lon  <- NULL
-      swd_bg$lat  <- NULL
-      
-      ## Need to create a taxa column here.
-      swd_occ$searchTaxon <- taxa
-      swd_bg$searchTaxon  <- taxa
-      
-      ## Run simplify rmaxent::simplify
-      
-      # Given a candidate set of predictor variables, this function identifies
-      # a subset that meets specified multicollinearity criteria. Subsequently,
-      # backward stepwise variable selection (VIF) is used to iteratively drop
-      # the variable that contributes least to the model, until the contribution
-      # of each variable meets a specified minimum, or until a predetermined
-      # minimum number of predictors remains. It returns a model object for the
-      # full model, rather than a list of models as does the previous function
-      
-      ## Using a modified versionof rmaxent::simplify, so that the name of the
-      ## maxent model object "maxent_fitted.rds" is the same in both models.
-      ## This is needed to run the mapping step over either the full or BS folder
-      m <- local_simplify(
-        
-        swd_occ,
-        swd_bg,
-        path            = bsdir,
-        taxa_column     = "searchTaxon",
-        replicates      = replicates,  ## 5 as above
-        response_curves = TRUE,
-        logistic_format = TRUE,
-        cor_thr         = cor_thr,
-        pct_thr         = pct_thr,
-        k_thr           = k_thr,
-        features        = features,    ## LPQ as above
-        quiet           = FALSE)
-      
-      ## Save the bg, occ and swd files into the backwards selection folder too
-      saveRDS(bg.samp,  file.path(bsdir_sp, paste0(save_name, '_bg.rds')))
-      saveRDS(occ,      file.path(bsdir_sp, paste0(save_name, '_occ.rds')))
-      saveRDS(swd,      file.path(bsdir_sp, paste0('swd.rds')))
-      
-      ## Read the model in, because it's tricky to index
-      bs.model <- readRDS(sprintf('%s/%s/full/maxent_fitted.rds', bsdir,  save_name))
-      identical(length(bs.model@presence$Annual_mean_temp), nrow(occ))
-      
-      ## Save the chart corrleation file too for the training data set
-      par(mar   = c(3, 3, 5, 3),
-          oma   = c(1.5, 1.5, 1.5, 1.5))
-      
-      png(sprintf('%s/%s/full/%s_%s.png', bsdir,
-                  save_name, save_name, "bs_predictor_correlation"),
-          3236, 2000, units = 'px', res = 300)
-      
-      ## set margins
-      par(mar   = c(3, 3, 5, 3),
-          oma   = c(1.5, 1.5, 1.5, 1.5))
-      
-      ## Add detail to the response plot
-      chart.Correlation(bs.model@presence,
-                        histogram = TRUE, pch = 19,
-                        title = paste0('Reduced variable correlations for ', save_name))
-      
-      dev.off()
-      gc()
-      
-    } else {
-      message("Don't run backwards selection")
-    }
     
   } else {
     message('Fewer occurrence records than the number of cross-validation ',
@@ -1204,9 +1207,6 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
             ' Model not fit for this taxa')
   }
 }
-
-
-
 
 
 
