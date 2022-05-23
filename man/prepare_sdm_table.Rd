@@ -9,7 +9,7 @@ prepare_sdm_table(
   taxa_list,
   site_flag,
   occ_flag,
-  site_records,
+  site_split,
   spat_out_remove,
   sdm_table_vars,
   save_run,
@@ -26,7 +26,7 @@ prepare_sdm_table(
 
 \item{taxa_list}{Character string - the taxa analysed}
 
-\item{site_records}{Logical - do you want to add sites to the table?}
+\item{site_split}{Logical - do you want to add sites to the table?}
 
 \item{spat_out_remove}{Logical - do you want to save the data frame?}
 

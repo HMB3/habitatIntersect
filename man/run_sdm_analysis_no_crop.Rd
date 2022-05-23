@@ -19,8 +19,8 @@ run_sdm_analysis_no_crop(
   min_n,
   max_bg_size,
   background_buffer_width,
-  shapefiles,
   features,
+  feat_save,
   replicates,
   responsecurves,
   poly_path,
@@ -56,9 +56,9 @@ run_sdm_analysis_no_crop(
 
 \item{background_buffer_width}{Numeric - The max distance (km) from occ points that BG points should be selected?}
 
-\item{shapefiles}{Logical - Save shapefiles of the occ and bg data (T/F)?}
-
 \item{features}{Character string - Which features should be used? (e.g. linear, product, quadratic 'lpq')}
+
+\item{feat_save}{Logical - Save features of the occ and bg data (T/F)?}
 
 \item{replicates}{Numeric - The number of replicates to use}
 

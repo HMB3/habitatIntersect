@@ -21,6 +21,7 @@ fit_maxent_targ_bg_back_sel_no_crop(
   background_buffer_width,
   shapefiles,
   features,
+  feat_save,
   replicates,
   responsecurves,
   poly
@@ -51,9 +52,9 @@ fit_maxent_targ_bg_back_sel_no_crop(
 
 \item{max_bg_size}{Numeric - The max number of background points to keep}
 
-\item{shapefiles}{Logical - Save shapefiles of the occ and bg data (T/F)?}
-
 \item{features}{Character string - Which features should be used? (e.g. linear, product, quadratic 'lpq')}
+
+\item{feat_save}{Logical - Save shapefiles of the occ and bg data (T/F)?}
 
 \item{replicates}{Numeric - The number of replicates to use}
 
