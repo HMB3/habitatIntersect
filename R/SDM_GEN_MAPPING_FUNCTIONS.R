@@ -31,7 +31,7 @@ project_maxent_current_grids_mess = function(taxa_list,
   
   
   ## Create feature polygon for plotting
-
+  poly <- st_read(poly_path) %>% 
     st_transform(., st_crs(epsg)) %>% as_Spatial()
   
   ## Rename the raster grids
@@ -1241,14 +1241,13 @@ calculate_taxa_habitat_host_rasters = function(taxa_list,
 #' @param host_maxent_table  data frame - table of maxent results for host taxa
 #' @param target_path        Character string - The file path containing the existing maxent models
 #' @param output_path        Character string - The file path to save the function output
+#' @param host_path          Character string - The file path to save the function output
 #' @param intersect_path     Character string - The file path containing the intersecting rasters
 #' @param intersect_patt     Character string - The pattern for the intersect files
-#' @param intersect_name     Character string - File name of the feature layer to store results
-#' @param intersect_cols     Character string - List of columns to keep
-#' @param intersect_category Character string - List of columns to keep
+#' @param int_cols           Character string - List of intersect columns
+#' @param thresh_patt        Character string - The pattern for the threshold files
 #' @param main_int_layer     Character string - The pattern for the intersect files
 #' @param main_int_category  Character string - The pattern for the intersect files
-#' @param second_int_layer   Character string - The pattern for the intersect files
 #' @param template_raster    Raster::raster - template raster with study extent and resolution
 #' @param poly_path          Character string - file path to feature polygon layer
 #' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
@@ -1259,12 +1258,12 @@ calculate_taxa_habitat_host_features = function(taxa_list,
                                                 target_path,
                                                 output_path,
                                                 intersect_path,
+                                                host_path,
                                                 intersect_patt,
-                                                intersect_cols,
-                                                intersect_category,
+                                                thresh_patt,
+                                                int_cols,
                                                 main_int_layer,
-                                                main_int_category,
-                                                second_int_layer,
+                                                main_int_cat,
                                                 template_raster, 
                                                 poly_path,
                                                 epsg) {
@@ -2163,34 +2162,6 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             sdm_fire_int_area_km2  <- drop_units(sdm_fire_int_areas_m2) %>% sum() 
             percent_burnt_overall  <- sdm_fire_int_area_km2/sdm_area_km2 * 100 %>% round(.)
             gc()
-            
-            if(intersect_category) {
-              
-              ## This takes ages...any way we can speed it up?  
-              message('Intersecting SDM with categorical Fire layers for ', taxa)
-              sdm_fire_cat_int       <- st_intersection(sdm_plus_veg_sub, main_int_cat)  
-              sdm_fire_cat_areas     <- st_area(sdm_fire_cat_int)/million_metres
-              sdm_fire_cat_areas_km2 <- drop_units(sdm_fire_cat_areas)
-              sdm_fire_cat_area_km2  <- drop_units(sdm_fire_cat_areas) %>% sum()
-              gc()
-              
-              ## create sf attributes for each intersecting polygon
-              sdm_fire_cat_int_att <- sdm_fire_cat_int %>% st_cast(., "POLYGON") %>%
-                
-                mutate(Habitat       = 1,
-                       Taxa          = taxa,
-                       Fire          = 'Burnt',
-                       Area_Poly_km2 = st_area(x)/million_metres,
-                       Area_Poly_km2 = drop_units(Area_Poly_km2))
-              
-              ## Calculate total areas separately
-              sdm_fire_cat_int_areas_m2  <- st_area(sdm_fire_cat_int)/million_metres
-              sdm_fire_cat_int_areas_km2 <- drop_units(sdm_fire_cat_int_areas_m2)
-              sdm_fire_cat_int_area_km2  <- drop_units(sdm_fire_cat_int_areas_m2) %>% sum() 
-              percent_burnt_cat_overall  <- sdm_fire_cat_int_area_km2/sdm_area_km2 * 100 %>% round(.)
-              gc()
-              
-            }
             
             ## calc % burnt within forest
             message('Intersecting SDM + Fire layer with Forest layer for ', taxa)

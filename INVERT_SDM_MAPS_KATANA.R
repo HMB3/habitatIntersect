@@ -178,9 +178,6 @@ invert_map_spp  <- INVERT.MAXENT.SPP.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
 plant_map_taxa  <- PLANT.MAXENT.RESULTS$searchTaxon      %>% gsub(" ", "_", .,)
 
 
-## SDM output, re-sampled to 100m
-# write_csv(INVERT.MAXENT.RESULTS, paste0(inv_results_dir, 'INVERT_TAXA_MAXENT_RESULTS_ALA_PBI.csv'))
-
 
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
 ## VALUES : 1-4, burn intensity from 2019-2020 fires, originally @ 10m resolution, re-sampled to 100m
@@ -239,7 +236,7 @@ taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                         raster_convert = FALSE,
                                         save_shp       = FALSE,
                                         save_png       = FALSE,
-                                        poly_path      = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
+                                        poly_path      = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                                         epsg           = 3577)
 
 gc()
@@ -256,7 +253,7 @@ taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                         raster_convert = FALSE,
                                         save_shp       = FALSE,
                                         save_png       = FALSE,
-                                        poly_path      = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
+                                        poly_path      = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                                         epsg           = 3577)
 
 gc()
@@ -272,7 +269,7 @@ taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
                                         buffer         = 5000,
                                         raster_convert = FALSE,
                                         save_shp       = FALSE,
-                                        poly_path      = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
+                                        poly_path      = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                                         epsg           = 3577)
 
 gc()
@@ -280,17 +277,17 @@ gc()
 
 
 ## Now also intersect the whole SDM layer with the Veg layer, creating a cross-tab of habitat
-SDM.SPAT.OCC.BG.GDA.TARG.INV <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysis_taxa, ] %>% st_as_sf() %>%  
-  dplyr::select(searchTaxon, lon, lat) %>% 
-    st_transform(., st_crs(3577)) %>% st_as_sf()
-
-
-sdm_veg_int <- st_intersection(SDM.SPAT.OCC.BG.GDA.TARG.INV, AUS_forest_RS_feat_class) %>%
-  
-  ## Calculate the area of suitable habitat in each Veg class
-  mutate(Area_km2 = st_area(geom)/million_metres,
-         Area_km2 = drop_units(Area_km2))
-gc()
+# SDM.SPAT.OCC.BG.GDA.TARG.INV <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysis_taxa, ] %>% st_as_sf() %>%  
+#   dplyr::select(searchTaxon, lon, lat) %>% 
+#     st_transform(., st_crs(3577)) %>% st_as_sf()
+# 
+# 
+# sdm_veg_int <- st_intersection(SDM.SPAT.OCC.BG.GDA.TARG.INV, AUS_forest_RS_feat_class) %>%
+#   
+#   ## Calculate the area of suitable habitat in each Veg class
+#   mutate(Area_km2 = st_area(geom)/million_metres,
+#          Area_km2 = drop_units(Area_km2))
+# gc()
 
 
 ## Save as a geopackage and table : spp, genus, family
@@ -352,25 +349,20 @@ calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.RES
                                      targ_maxent_table  = INVERT.RESULTS.HOSTS,
                                      host_maxent_table  = PLANT.RESULTS.HOSTS,
                                      
-                                     threshold_path     = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
+                                     target_path        = inv_back_dir,
+                                     output_path        = inv_fire_dir,
                                      intersect_path     = inv_inters_dir,
                                      intersect_patt     = '_SDM_VEG_intersection.gpkg',
                                      host_path          = plant_thresh_dir,
-                                     host_patt          = '_current_suit_not_novel_above_',
+                                     thresh_patt        = '_current_suit_not_novel_above_',
                                      
                                      int_cols           = intersect_cols,
-                                     target_path        = inv_back_dir,
-                                     output_path        = inv_fire_dir,
-                                     intersect_name     = 'sdm_intersect_fire_combo.gpkg',
-                                     intersect_cols     = intersect_cols,
                                      intersect_category = FALSE,
-                                     
-                                     # layer_list         = sdm_threshold_list,
+                                    
                                      main_int_layer     = FESM_east_20m_binary,
                                      main_int_cat       = FESM_east_20m_categ,
-                                     second_int_layer   = AUS_forest_RS_feat,
                                      template_raster    = template_raster_250m,
-                                     poly_path          = 'data/Feature_layers/Study_areas/AUS_2016_AUST.shp',
+                                     poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                                      epsg               = 3577)
 
 gc()
