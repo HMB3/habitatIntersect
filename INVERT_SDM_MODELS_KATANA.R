@@ -196,7 +196,7 @@ host_plant_taxa <- read_excel(paste0(inv_habitat_dir, '/INVERTS_FIRE_SPATIAL_DAT
 
 ## Read in the SDM data
 SDM.SPAT.OCC.BG.GDA       <- readRDS(paste0(inv_results_dir,   
-                                            'SDM_SPAT_OCC_BG_ALL_INVERT_TAXA_ALA_PBI_.rds'))
+                                            'SDM_SPAT_OCC_BG_ALL_INVERT_TAXA_ALA_PBI.rds'))
 
 SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS(paste0(plant_results_dir, 
                                             'SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds'))
@@ -333,10 +333,10 @@ run_sdm_analysis_no_crop(taxa_list               = sort(host_plant_taxa),
 ## This function aggregates the results for models that ran successfully
 INVERT.MAXENT.RESULTS     <- compile_sdm_results(taxa_list    = analysis_taxa,
                                                  results_dir  = inv_back_dir,
-                                                 data_path    = inv_habitat_dir,
+                                                 data_path    = inv_results_dir,
                                                  sdm_path     = inv_back_dir,
-                                                 save_data    = FALSE,
-                                                 save_run     = "INVERT_ANALYSIS_TAXA")
+                                                 save_data    = TRUE,
+                                                 save_run     = "INVERT_ALL_TAXA_ALA_PBI")
 
 
 INVERT.MAXENT.FAM.RESULTS <- compile_sdm_results(taxa_list    = target.insect.families,
@@ -477,32 +477,32 @@ tryCatch(
 
 
 ## Threshold the invertebrate SDM models to be either 0 or 1
-habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)),
-                  maxent_table  = INVERT.MAXENT.RESULTS,
-                  maxent_path   = inv_back_dir,
-                  output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
-                  poly_path     = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-                  epsg          = 3577)
-
-gc()
+# habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)),
+#                   maxent_table  = INVERT.MAXENT.RESULTS,
+#                   maxent_path   = inv_back_dir,
+#                   output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
+#                   poly_path     = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
+#                   epsg          = 3577)
+# 
+# gc()
 
 
 ## Threshold the invertebrate SDM models to be either 0 or 1 
-habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTaxon)),
-                  maxent_table  = INVERT.MAXENT.SPP.RESULTS,
-                  maxent_path   = inv_back_dir,
-                  output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
-                  poly_path     = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-                  epsg          = 3577)
+# habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTaxon)),
+#                   maxent_table  = INVERT.MAXENT.SPP.RESULTS,
+#                   maxent_path   = inv_back_dir,
+#                   output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
+#                   poly_path     = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
+#                   epsg          = 3577)
 
 
 ## Threshold the invertebrate SDM models to be either 0 or 1
-habitat_threshold(taxa_list     = sort(unique(PLANT.MAXENT.RESULTS$searchTaxon)),
-                  maxent_table  = PLANT.MAXENT.RESULTS,
-                  maxent_path   = inv_back_dir,
-                  output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
-                  poly_path     = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-                  epsg          = 3577)
+# habitat_threshold(taxa_list     = sort(unique(PLANT.MAXENT.RESULTS$searchTaxon)),
+#                   maxent_table  = PLANT.MAXENT.RESULTS,
+#                   maxent_path   = inv_back_dir,
+#                   output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
+#                   poly_path     = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
+#                   epsg          = 3577)
 
 
 ## Now copy the thresh-holded SDM rasters to stand alone folder (i.e. all taxa in one folder)

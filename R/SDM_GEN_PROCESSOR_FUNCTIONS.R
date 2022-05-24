@@ -2323,7 +2323,8 @@ prepare_sdm_table = function(coord_df,
   if(save_data) {
     
     ## Save .rds file of the occurrence and BG points for the next session
-    saveRDS(SDM.SPAT.OCC.BG, paste0(data_path, 'SDM_SPAT_OCC_BG_',  save_run, '.rds'))
+    saveRDS(SDM.SPAT.OCC.BG,   paste0(data_path, 'SDM_SPAT_OCC_BG_',  save_run, '.rds'))
+    write_csv(SDM.SPAT.OCC.BG, paste0(data_path, 'SDM_SPAT_OCC_BG_',  save_run, '.csv'))
     
     # st_write(SDM.SPAT.OCC.BG,
     #          dsn    = paste0(data_path, 'SDM_SPAT_OCC_BG_',  save_run, '.gpkg'),

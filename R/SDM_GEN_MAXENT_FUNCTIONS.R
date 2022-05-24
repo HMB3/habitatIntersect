@@ -1588,7 +1588,7 @@ compile_sdm_results = function(taxa_list,
   if(save_data == TRUE) {
     
     ## If saving, save
-    saveRDS(MAXENT.RESULTS, paste0(data_path, 'MAXENT_RESULTS_', save_run, '.rds'))
+    saveRDS(MAXENT.RESULTS,   paste0(data_path, 'MAXENT_RESULTS_', save_run, '.rds'))
     write_csv(MAXENT.RESULTS, paste0(data_path, 'MAXENT_RESULTS_', save_run, '.csv'))
     return(MAXENT.RESULTS)
     
