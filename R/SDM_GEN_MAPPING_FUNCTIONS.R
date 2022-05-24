@@ -102,6 +102,11 @@ project_maxent_current_grids_mess = function(taxa_list,
             message('Use existing prediction for ', taxa)
             pred.current = raster::raster(sprintf('%s/%s/full/%s_current.tif',
                                                   maxent_path, save_name, save_name))
+            
+            ## Set the names of the rasters to match the occ data, and subset both
+            sdm_vars        = names(m@presence)
+            current_grids   = raster::subset(current_grids, sdm_vars)
+            swd_vars        = swd %>% dplyr::select(one_of(sdm_vars))
           }
           
           thresh      <- m@results["X10.percentile.training.presence.Logistic.threshold",][[1]]
@@ -200,12 +205,12 @@ project_maxent_current_grids_mess = function(taxa_list,
               
               ##
               message('Are the environmental variables identical? ',
-                      identical(names(swd), names(current_grids_mask)))
+                      identical(names(swd_vars), names(current_grids_mask)))
               
               ## Create a map of novel environments for current conditions.
               ## This similarity function only uses variables (e.g. n bioclim), not features
               message('Run similarity function for current condtions for ', taxa)
-              mess_current  <- rmaxent::similarity(current_grids_mask, swd, full = TRUE)
+              mess_current  <- rmaxent::similarity(current_grids_mask, swd_vars, full = TRUE)
               novel_current <- mess_current$similarity_min < 0    ## All novel environments are < 0
               novel_current[novel_current==0]              <- NA  ## 0 values are NA
               
