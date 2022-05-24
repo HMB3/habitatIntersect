@@ -31,7 +31,7 @@ project_maxent_current_grids_mess = function(taxa_list,
   
   
   ## Create feature polygon for plotting
-  poly <- st_read(poly_path) %>% 
+
     st_transform(., st_crs(epsg)) %>% as_Spatial()
   
   ## Rename the raster grids
@@ -50,7 +50,7 @@ project_maxent_current_grids_mess = function(taxa_list,
     maxent_predict_fun <- function(taxa) {
       
       ## Create taxa name
-      ## taxa = taxa_list[18]
+      ## taxa = taxa_list[1]
       save_name = gsub(' ', '_', taxa)
       
       ## First check if the taxa exists
@@ -80,7 +80,7 @@ project_maxent_current_grids_mess = function(taxa_list,
           
           ## Read in taxa with data and occurrence files
           message('Read in the swd and occ data')
-          swd <- as.data.frame(readRDS(sprintf('%s%s/swd.rds', maxent_path, save_name)))
+          swd <- as.data.frame(readRDS(sprintf('%s%s/%s_occ_swd.rds', maxent_path, save_name, save_name)))
           occ <- readRDS(sprintf('%s%s/%s_occ.rds', maxent_path, save_name, save_name)) 
           
           ## If the current raster prediction has not been run, run it.
