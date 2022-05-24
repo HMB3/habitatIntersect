@@ -345,7 +345,6 @@ INVERT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>%
 ## Calculate Insect habitat - fails after this species?
 ## Code is stalling before or after :: Naranjakotta - it should be the taxa either side of that...
 calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.RESULTS$searchTaxon),
-                                     taxa_level         = 'species',
                                      targ_maxent_table  = INVERT.RESULTS.HOSTS,
                                      host_maxent_table  = PLANT.RESULTS.HOSTS,
                                      
@@ -357,10 +356,7 @@ calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.RES
                                      thresh_patt        = '_current_suit_not_novel_above_',
                                      
                                      int_cols           = intersect_cols,
-                                     intersect_category = FALSE,
-                                    
                                      main_int_layer     = FESM_east_20m_binary,
-                                     main_int_cat       = FESM_east_20m_categ,
                                      template_raster    = template_raster_250m,
                                      poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                                      epsg               = 3577)
