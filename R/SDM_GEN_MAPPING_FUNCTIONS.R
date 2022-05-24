@@ -79,8 +79,9 @@ project_maxent_current_grids_mess = function(taxa_list,
           
           ## Read in taxa with data and occurrence files
           message('Read in the swd and occ data')
-          swd <- as.data.frame(readRDS(sprintf('%s%s/%s_occ_swd.rds', maxent_path, save_name, save_name)))
-          occ <- readRDS(sprintf('%s%s/%s_occ.rds', maxent_path, save_name, save_name)) 
+          swd    <- as.data.frame(readRDS(sprintf('%s%s/%s_occ_swd.rds', maxent_path, save_name, save_name)))
+          occ    <- readRDS(sprintf('%s%s/%s_occ.rds', maxent_path, save_name, save_name))
+          occ_sp <- as_Spatial(occ)
           
           ## If the current raster prediction has not been run, run it.
           if(!file.exists(f_current) == TRUE) {
@@ -375,10 +376,10 @@ project_maxent_current_grids_mess = function(taxa_list,
                   ## Can the current layer be plotted on it's own?
                   ## Add the novel maps as vectors.
                   latticeExtra::layer(sp.polygons(poly), data = list(poly = poly)) +
-                  latticeExtra::layer(sp.points(occ, pch = 19, cex = 0.15,
+                  latticeExtra::layer(sp.points(occ_sp, pch = 19, cex = 0.15,
                                                 col = c('red', 'transparent', 
                                                         'transparent')[panel.number()]),
-                                      data = list(occ = occ)))
+                                      data = list(occ_sp = occ_sp)))
           dev.off()
           gc()
           
