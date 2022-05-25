@@ -141,6 +141,7 @@ project_maxent_current_grids_mess = function(taxa_list,
             message('Use existing prediction for ', taxa)
             current_suit_thresh = raster::raster(sprintf('%s/%s/full/%s_%s%s.tif', maxent_path,
                                                          save_name, save_name, "current_suit_above_", thresh))
+            current_suit_thresh_rast <- terra::rast(current_suit_thresh)
             
             ## Now crop the raster stack
             message('masking raster values for ', taxa)
@@ -157,8 +158,7 @@ project_maxent_current_grids_mess = function(taxa_list,
             message('Converting ', taxa, ' raster to repaired polygon')
             
             current_thresh_poly      <- terra::as.polygons(current_suit_thresh_rast) 
-            current_thresh_poly_dat  <- terra::subset(current_thresh_poly, current_thresh_poly$layer == 1)
-            current_thresh_poly_geom <- current_thresh_poly_dat %>% st_as_sf() %>% repair_geometry()
+            current_thresh_poly_geom <- current_thresh_poly %>% st_as_sf() %>% repair_geometry()
             
             ## Now save the thresh-holded rasters as shapefiles
             message('Saving current threshold SDM rasters to polygons for ', taxa)
@@ -271,6 +271,7 @@ project_maxent_current_grids_mess = function(taxa_list,
             ## is.na(novel_current) is a binary layer showing
             ## not novel [=1] vs novel [=0],
             ## so multiplying this with hs_current will mask out novel
+            thresh_greater             <- function (x) {x > thresh}
             hs_current_not_novel       <- pred.current * is.na(novel_current)
             hs_current_not_novel_above <- thresh_greater(hs_current_not_novel)
             hs_current_not_novel_above[hs_current_not_novel_above == 0] <- NA
@@ -338,8 +339,7 @@ project_maxent_current_grids_mess = function(taxa_list,
           
           ## Now save the cells that are above the threshold, and also not novel...
           current_mess_poly      <- terra::as.polygons(hs_current_not_novel_above_ras) 
-          current_mess_poly_dat  <- terra::subset(current_mess_poly, current_mess_poly$layer == 1)
-          current_mess_poly_geom <- current_mess_poly_dat %>% st_as_sf() %>% repair_geometry()
+          current_mess_poly_geom <- current_mess_poly %>% st_as_sf() %>% repair_geometry()
           
           ## Now save the thresh-holded rasters as shapefiles
           message('Saving current threshold SDM rasters to polygons for ', taxa)
