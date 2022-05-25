@@ -52,7 +52,7 @@ project_maxent_current_grids_mess = function(taxa_list,
     maxent_predict_fun <- function(taxa) {
       
       ## Create taxa name
-      ## taxa = taxa_list[2]
+      ## taxa = taxa_list[5]
       save_name = gsub(' ', '_', taxa)
       
       ## First check if the taxa exists
@@ -138,9 +138,9 @@ project_maxent_current_grids_mess = function(taxa_list,
                         overwrite = TRUE)
             
           } else {
-            message('Use existing prediction for ', taxa)
-            current_suit_thresh = raster::raster(sprintf('%s/%s/full/%s_%s%s.tif', maxent_path,
-                                                         save_name, save_name, "current_suit_above_", thresh))
+            message('Use existing threshold for ', taxa)
+            current_suit_thresh     <- raster::raster(sprintf('%s/%s/full/%s_%s%s.tif', maxent_path,
+                                                              save_name, save_name, "current_suit_above_", thresh))
             current_suit_thresh_rast <- terra::rast(current_suit_thresh)
             
             ## Now crop the raster stack
@@ -149,11 +149,14 @@ project_maxent_current_grids_mess = function(taxa_list,
             message('Writing ', taxa, ' current', ' logistics > ', thresh)
           }
           
-          vals       <- terra::unique(current_suit_thresh_rast)
-          uniue_vals <- is.na(vals[[1]]) %>% unique()
-          gc()
+          current_suit_feat <- sprintf('%s/%s/full/%s_%s%s.gpkg', 
+                                       maxent_path,
+                                       save_name, 
+                                       save_name, 
+                                       'current_suit_above_', 
+                                       thresh)
           
-          if(!uniue_vals) {
+          if(!file.exists(current_suit_feat)) {
             
             message('Converting ', taxa, ' raster to repaired polygon')
             
@@ -180,7 +183,7 @@ project_maxent_current_grids_mess = function(taxa_list,
             gc()
             
           } else {
-            message('Do not save current threshold to shapefile for ', taxa, ' no cells have data')
+            message('Current threshold to shapefile for ', taxa, ' already saved')
           }
           
           message('writing threshold png for ', taxa)
@@ -195,14 +198,14 @@ project_maxent_current_grids_mess = function(taxa_list,
           
           if(create_mess) {
             
-            if(!dir.exists(MESS_dir)) {
-              message('Creating MESS directory for ', taxa)
-              dir.create(MESS_dir) }
-            
             ## Report current mess map in progress
             ## Could work out how to the static mess once, before looping through scenarios
             MESS_dir   = sprintf('%s%s/full/%s', maxent_path, save_name, 'MESS_output')
-            novel_file = sprintf('%s/%s%s.tif',  MESS_dir,    save_name, "_current_novel")
+            novel_file = sprintf('%s%s/full/%s%s.tif', maxent_path, save_name, save_name, "_current_novel")
+            
+            if(!dir.exists(MESS_dir)) {
+              message('Creating MESS directory for ', taxa)
+              dir.create(MESS_dir) }
             
             ## If the current novel layer doesn't exist, create it
             if(!file.exists(novel_file)) {
@@ -223,9 +226,7 @@ project_maxent_current_grids_mess = function(taxa_list,
               novel_current[novel_current==0]              <- NA  ## 0 values are NA
               
               raster::writeRaster(novel_current, 
-                                  sprintf('%s%s/full/%s%s.tif', maxent_path, 
-                                          save_name, save_name, "_current_novel"),
-                                  
+                                  novel_file,
                                   overwrite = TRUE)
               gc()
               
@@ -292,7 +293,6 @@ project_maxent_current_grids_mess = function(taxa_list,
             gc()
             
             ## Create the MESS path and save shapefiles
-            MESS_shp_path <- sprintf('%s%s/full/%s', maxent_path, save_name, 'MESS_output')
             if(save_novel_poly) {
               
               ## Create shape files 
