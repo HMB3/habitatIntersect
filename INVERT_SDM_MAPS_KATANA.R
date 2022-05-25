@@ -5,19 +5,23 @@
 
 # \
 # 
-# Load the packages ::
-# 
-# 
-# \
-# 
-# To install, run :
+# This code prepares all the data and code needed for the analysis of inverts habitat after the 2019-2020 fires ::
+#   
+#   
+#   \
 
 
 ## Set env
 rm(list = ls())
-options(java.parameters = "-Xmx64000m")
-Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jre1.8.0_321')
+#if (!Sys.getenv("JAVA_TOOL_OPTIONS")) {
+if (all(Sys.getenv("JAVA_HOME")=="")) {
+  Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jre1.8.0_321')
+}
+if (all(Sys.getenv("JAVA_TOOL_OPTIONS")=="")) {
+  options(java.parameters = "-Xmx64G")
+}
 
+options(warn=0)
 
 ## Function to load or install packages
 ipak <- function(pkg){
@@ -43,10 +47,10 @@ INV_dir              <- './data/ALA/Insects/'
 check_dir            <- './data/ALA/Insects/check_plots/'
 out_dir              <- './output/'
 
-inv_rs_dir           <- './output/invert_maxent_raster_update/'
-inv_back_dir         <- './output/invert_maxent_raster_update/back_sel_models/'
-inv_full_dir         <- './output/invert_maxent_raster_update/full_models/'
-inv_results_dir      <- './output/invert_maxent_raster_update/results/'
+inv_rs_dir           <- './output/invert_maxent_pbi_ala/'
+inv_back_dir         <- './output/invert_maxent_pbi_ala/back_sel_models/'
+inv_full_dir         <- './output/invert_maxent_pbi_ala/full_models/'
+inv_results_dir      <- './output/invert_maxent_pbi_ala/results/'
 
 plant_rs_dir         <- './output/plant_maxent_raster_update/'
 plant_back_dir       <- './output/plant_maxent_raster_update/back_sel_models/'
@@ -54,9 +58,9 @@ plant_full_dir       <- './output/plant_maxent_raster_update/full_models/'
 plant_results_dir    <- './output/plant_maxent_raster_update/results/'
 
 veg_dir              <- './data/Remote_sensing/Veg_data/Forest_cover/'
-inv_habitat_dir      <- './output/invert_maxent_raster_update/Habitat_suitability/'
-inv_inters_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_Veg_intersect/'
-inv_thresh_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
+inv_habitat_dir      <- './output/invert_maxent_pbi_ala/Habitat_suitability/'
+inv_inters_dir       <- './output/invert_maxent_pbi_ala/Habitat_suitability/SDM_Veg_intersect/'
+inv_thresh_dir       <- './output/invert_maxent_pbi_ala/Habitat_suitability/SDM_thresholds/'
 inv_fire_dir         <- './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
 
 plant_habitat_dir    <- './output/plant_maxent_raster_update/Habitat_suitability/'
@@ -74,7 +78,7 @@ dir_list <- c(tempdir, ALA_dir,
               plant_habitat_dir, plant_inters_dir, plant_thresh_dir, plant_fire_dir)
 
 
-## Create the folders if they don't exist
+## Create the folders if they don't exist.
 for(dir in dir_list) {
   
   if(!dir.exists(paste0(main_dir, dir))) {
@@ -87,8 +91,10 @@ for(dir in dir_list) {
 
 
 ## Try and set the raster temp directory to a location not on the partition, to save space
-rasterOptions(tmpdir = tempdir)
-terraOptions(memfrac = 0.5, 
+rasterOptions(memfrac = 0.9,
+              tmpdir  = tempdir)
+
+terraOptions(memfrac = 0.9, 
              tempdir = tempdir) 
 
 
@@ -102,7 +108,6 @@ terraOptions(memfrac = 0.5,
 # Load the vegetation rasters at 280m.
 # 
 # \
-
 
 
 ## get target taxa

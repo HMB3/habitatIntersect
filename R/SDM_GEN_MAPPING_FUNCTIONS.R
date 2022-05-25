@@ -223,7 +223,9 @@ project_maxent_current_grids_mess = function(taxa_list,
               novel_current[novel_current==0]              <- NA  ## 0 values are NA
               
               raster::writeRaster(novel_current, 
-                                  sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel"),
+                                  sprintf('%s%s/full/%s%s.tif', maxent_path, 
+                                          save_name, save_name, "_current_novel"),
+                                  
                                   overwrite = TRUE)
               gc()
               
@@ -237,31 +239,31 @@ project_maxent_current_grids_mess = function(taxa_list,
               
               ## Write out the current mess maps -
               ## create a new folder for the mess output - we are going to print it to the maps
-
-                ## Create a PNG file of MESS maps for each maxent variable
-                message('Creating mess maps of each current environmental predictor for ', taxa)
+              
+              ## Create a PNG file of MESS maps for each maxent variable
+              message('Creating mess maps of each current environmental predictor for ', taxa)
+              
+              ## raster_name <- raster_names[1]
+              mapply(function(raster, raster_name) {
                 
-                ## raster_name <- raster_names[1]
-                mapply(function(raster, raster_name) {
+                ## Create a level plot of MESS output for each predictor variable, for each taxon
+                p <- levelplot(raster, margin = FALSE, scales = list(draw = FALSE),
+                               at = seq(minValue(raster), maxValue(raster), len = 100),
+                               colorkey = list(height = 0.6),
+                               main = gsub('_', ' ', sprintf(' Current_mess_for_%s (%s)', 
+                                                             raster_name, save_name))) +
                   
-                  ## Create a level plot of MESS output for each predictor variable, for each taxon
-                  p <- levelplot(raster, margin = FALSE, scales = list(draw = FALSE),
-                                 at = seq(minValue(raster), maxValue(raster), len = 100),
-                                 colorkey = list(height = 0.6),
-                                 main = gsub('_', ' ', sprintf(' Current_mess_for_%s (%s)', 
-                                                               raster_name, save_name))) +
-                    
-                    latticeExtra::layer(sp.polygons(poly), 
-                                        data = list(poly = poly)) ## need list() for polygon
-                  
-                  p <- diverge0(p, 'RdBu')
-                  f <- sprintf('%s/%s%s%s.png', MESS_dir, save_name, "_current_mess_", raster_name)
-                  
-                  png(f, 8, 8, units = 'in', res = 300, type = 'cairo')
-                  print(p)
-                  dev.off()
-                  
-                }, unstack(mess_current$similarity), names(mess_current$similarity))
+                  latticeExtra::layer(sp.polygons(poly), 
+                                      data = list(poly = poly)) ## need list() for polygon
+                
+                p <- diverge0(p, 'RdBu')
+                f <- sprintf('%s/%s%s%s.png', MESS_dir, save_name, "_current_mess_", raster_name)
+                
+                png(f, 8, 8, units = 'in', res = 300, type = 'cairo')
+                print(p)
+                dev.off()
+                
+              }, unstack(mess_current$similarity), names(mess_current$similarity))
             }
             
             ## Now mask out novel environments
@@ -308,7 +310,9 @@ project_maxent_current_grids_mess = function(taxa_list,
                 message('Saving current MESS maps to polygons for ', taxa)
                 st_write(current_thresh_poly %>% st_as_sf(),
                          
-                         dsn    = sprintf('%s/%s%s.gpkg', MESS_dir, save_name, "_current_novel_poly"),
+                         dsn    = sprintf('%s%s/full/%s%s.gpkg', maxent_path, 
+                                          save_name, save_name, "_current_novel_poly"),
+                         
                          layer  = paste0(save_name, "_current_novel_polygon"),
                          
                          quiet  = TRUE,
