@@ -15,6 +15,7 @@
 #' @param current_grids      Character string - Vector of current enviro conditions that you want to include
 #' @param save_novel_poly    Character string - Save the novel areas as polygons?
 #' @param create_mess        Logical - Create mess maps of the predictions (T/F)?
+#' @param mess_layers        Logical - Save mess maps of the each layer as .png (T/F)?
 #' @param poly_path          Character string - file path to feature polygon layer.
 #' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
 #' @details It uses the rmaxent package https://github.com/johnbaums/rmaxent
@@ -23,6 +24,7 @@ project_maxent_current_grids_mess = function(taxa_list,
                                              maxent_path,   
                                              current_grids, 
                                              create_mess,
+                                             mess_layers,
                                              save_novel_poly,
                                              maxent_table,
                                              output_path,
@@ -50,7 +52,7 @@ project_maxent_current_grids_mess = function(taxa_list,
     maxent_predict_fun <- function(taxa) {
       
       ## Create taxa name
-      ## taxa = taxa_list[1]
+      ## taxa = taxa_list[2]
       save_name = gsub(' ', '_', taxa)
       
       ## First check if the taxa exists
@@ -114,7 +116,7 @@ project_maxent_current_grids_mess = function(taxa_list,
           thresh_file <- sprintf('%s/%s/full/%s_%s%s.tif', maxent_path,
                                  save_name, save_name, "current_suit_above_", thresh)
           
-          if(!file.exists(thresh_file) == TRUE) {
+          if(!file.exists(thresh_file)) {
             
             ## Threshold the maxent prediction, and use that to crop the raster stack
             thresh_greater      = function (x) {x > thresh}
@@ -125,7 +127,7 @@ project_maxent_current_grids_mess = function(taxa_list,
             ## Now crop the raster stack
             message('thresholding raster values for ', taxa)
             current_grids_crop <- raster::crop(current_grids, current_suit_thresh)
-
+            
             message('Writing ', taxa, ' current', ' logistics > ', thresh)
             
             ## Save in two places, in the taxa folder, 
@@ -187,18 +189,19 @@ project_maxent_current_grids_mess = function(taxa_list,
               16, 10, units = 'in', res = 500)
           
           ##
-          raster::plot(current_suit_thresh, main = paste0(taxa, ' > ', thresh), legend = FALSE)
-          raster::plot(poly, add = TRUE, legend = FALSE)
+          raster::plot(current_suit_thresh, main = paste0(taxa, ' > ', thresh))
+          raster::plot(poly, add = TRUE)
           dev.off()
           
           if(create_mess) {
             
             ## Report current mess map in progress
             ## Could work out how to the static mess once, before looping through scenarios
-            MESS_dir = sprintf('%s%s/full/%s', maxent_path, save_name, 'MESS_output')
+            MESS_dir   = sprintf('%s%s/full/%s', maxent_path, save_name, 'MESS_output')
+            novel_file = sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel")
             
             ## If the current novel layer doesn't exist, create it
-            if(!file.exists(sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel"))) {
+            if(!file.exists(novel_file)) {
               
               ## Mask out raster values for that taxa
               message('mask out all the current grids ')
@@ -215,59 +218,53 @@ project_maxent_current_grids_mess = function(taxa_list,
               novel_current <- mess_current$similarity_min < 0    ## All novel environments are < 0
               novel_current[novel_current==0]              <- NA  ## 0 values are NA
               
+              raster::writeRaster(novel_current, 
+                                  sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel"),
+                                  overwrite = TRUE)
               gc()
               
             } else {
               ## Otherwise, read in the current novel layer
               message(taxa, ' Current similarity analysis already run')
-              novel_current = raster::raster(sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel"))
+              novel_current = raster::raster(novel_file)
             }
             
-            ## Write out the current mess maps -
-            ## create a new folder for the mess output - we are going to print it to the maps
-            if(!dir.exists(MESS_dir)) {
-              message('Creating MESS directory for ', taxa)
-              dir.create(MESS_dir)
+            if(mess_layers) {
               
-              ## Create a PNG file of MESS maps for each maxent variable
-              message('Creating mess maps of each current environmental predictor for ', taxa)
-              
-              ## raster_name <- raster_names[1]
-              mapply(function(raster, raster_name) {
+              ## Write out the current mess maps -
+              ## create a new folder for the mess output - we are going to print it to the maps
+              if(!dir.exists(MESS_dir)) {
+                message('Creating MESS directory for ', taxa)
+                dir.create(MESS_dir)
                 
-                ## Create a level plot of MESS output for each predictor variable, for each taxon
-                p <- levelplot(raster, margin = FALSE, scales = list(draw = FALSE),
-                               at = seq(minValue(raster), maxValue(raster), len = 100),
-                               colorkey = list(height = 0.6),
-                               main = gsub('_', ' ', sprintf(' Current_mess_for_%s (%s)', 
-                                                             raster_name, save_name))) +
+                ## Create a PNG file of MESS maps for each maxent variable
+                message('Creating mess maps of each current environmental predictor for ', taxa)
+                
+                ## raster_name <- raster_names[1]
+                mapply(function(raster, raster_name) {
                   
-                  latticeExtra::layer(sp.polygons(poly), 
-                                      data = list(poly = poly)) ## need list() for polygon
+                  ## Create a level plot of MESS output for each predictor variable, for each taxon
+                  p <- levelplot(raster, margin = FALSE, scales = list(draw = FALSE),
+                                 at = seq(minValue(raster), maxValue(raster), len = 100),
+                                 colorkey = list(height = 0.6),
+                                 main = gsub('_', ' ', sprintf(' Current_mess_for_%s (%s)', 
+                                                               raster_name, save_name))) +
+                    
+                    latticeExtra::layer(sp.polygons(poly), 
+                                        data = list(poly = poly)) ## need list() for polygon
+                  
+                  p <- diverge0(p, 'RdBu')
+                  f <- sprintf('%s/%s%s%s.png', MESS_dir, save_name, "_current_mess_", raster_name)
+                  
+                  png(f, 8, 8, units = 'in', res = 300, type = 'cairo')
+                  print(p)
+                  dev.off()
+                  
+                }, unstack(mess_current$similarity), names(mess_current$similarity))
                 
-                p <- diverge0(p, 'RdBu')
-                f <- sprintf('%s/%s%s%s.png', MESS_dir, save_name, "_current_mess_", raster_name)
-                
-                png(f, 8, 8, units = 'in', res = 300, type = 'cairo')
-                print(p)
-                dev.off()
-                
-              }, unstack(mess_current$similarity), names(mess_current$similarity))
-              
-            } else {
-              message(taxa, ' MESS directory already created')
-            }
-            
-            ## Write the raster of novel environments to the MESS sub-directory
-            if(!file.exists(sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel"))) {
-              
-              message('Writing currently novel environments to file for ', taxa)
-              raster::writeRaster(novel_current, 
-                                  sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel"),
-                                  overwrite = TRUE)
-              
-            } else {
-              message(taxa, ' Current MESS file already saved')
+              } else {
+                message(taxa, ' MESS directory already created')
+              }
             }
             
             ## Now mask out novel environments
@@ -342,7 +339,7 @@ project_maxent_current_grids_mess = function(taxa_list,
           
           ## Now create a panel of PNG files for maxent projections and MESS maps
           ## All the projections and extents need to match
-          empty_ras <- raster::init(current_grids, function(x) NA)
+          empty_ras <- raster::init(current_grids[[1]], function(x) NA)
           
           ## Use the 'levelplot' function to make a multipanel output:
           ## occurrence points, current raster and future raster
@@ -591,8 +588,8 @@ habitat_threshold = function(taxa_list,
               16, 10, units = 'in', res = 500)
           
           ##
-          raster::plot(current_suit_thresh, main = paste0(taxa, ' > ', thresh), legend = FALSE)
-          raster::plot(poly, add = TRUE, legend = FALSE)
+          raster::plot(current_suit_thresh, main = paste0(taxa, ' > ', thresh))
+          raster::plot(poly, add = TRUE)
           dev.off()
           
         } else {
@@ -2039,7 +2036,7 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             message('SDM and Veg rasters do not intersect for ', taxa, 'but it has a host taxa')
             
             single_sf          <- dplyr::bind_rows(list(sdm_threshold_att, 
-                                                       host_threshold))
+                                                        host_threshold))
             sdm_plus_host      <- st_union(single_sf)
             sdm_plus_host_poly <- st_cast(sdm_plus_host, "POLYGON")
             

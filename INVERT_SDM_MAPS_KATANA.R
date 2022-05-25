@@ -344,7 +344,7 @@ INVERT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>%
 
 ## Calculate Insect habitat - fails after this species?
 ## Code is stalling before or after :: Naranjakotta - it should be the taxa either side of that...
-calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.RESULTS$searchTaxon),
+calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
                                      targ_maxent_table  = INVERT.RESULTS.HOSTS,
                                      host_maxent_table  = PLANT.RESULTS.HOSTS,
                                      
