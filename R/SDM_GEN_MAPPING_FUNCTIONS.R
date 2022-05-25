@@ -271,22 +271,24 @@ project_maxent_current_grids_mess = function(taxa_list,
             ## is.na(novel_current) is a binary layer showing
             ## not novel [=1] vs novel [=0],
             ## so multiplying this with hs_current will mask out novel
-            hs_current_not_novel <- pred.current * is.na(novel_current)
+            hs_current_not_novel       <- pred.current * is.na(novel_current)
+            hs_current_not_novel_above <- thresh_greater(hs_current_not_novel)
+            hs_current_not_novel_above[hs_current_not_novel_above == 0] <- NA
+            hs_current_not_novel_above_ras <- terra::rast(hs_current_not_novel_above)
             
             ## Write out not-novel raster :: this can go to the main directory
             ## Write the raster of novel environments to the MESS sub-directory
-            if(!file.exists(sprintf('%s%s/full/%s%s.tif', maxent_path, 
-                                    save_name, save_name, "_current_not_novel"))) {
+            not_novel_file <- sprintf('%s%s/full/%s%s.tif', maxent_path, 
+                                      save_name, save_name, "_current_not_novel")
+            
+            if(!file.exists(not_novel_file)) {
               
               message('Writing currently un-novel environments to file for ', taxa)
-              raster::writeRaster(hs_current_not_novel, sprintf('%s%s/full/%s%s.tif', maxent_path,
-                                                                save_name, save_name, 
-                                                                "_current_not_novel"), overwrite = TRUE)
+              raster::writeRaster(hs_current_not_novel, not_novel_file, overwrite = TRUE)
               
             } else {
               message(taxa, ' Current un-novel environments file already saved')
             }
-            
             gc()
             
             ## Create the MESS path and save shapefiles
@@ -294,7 +296,7 @@ project_maxent_current_grids_mess = function(taxa_list,
             if(save_novel_poly) {
               
               ## Create shape files 
-              current_novel_raster <- terra::rast(sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel"))
+              current_novel_raster <- terra::rast(novel_file)
               vals       <- terra::unique(current_novel_raster)
               uniue_vals <- is.na(vals[[1]]) %>% unique()
               
@@ -329,10 +331,34 @@ project_maxent_current_grids_mess = function(taxa_list,
           }
           
           message('save raster for ', taxa, ' as per mess analysis')
-          writeRaster(current_suit_thresh, 
+          writeRaster(hs_current_not_novel_above, 
                       sprintf('%s/%s/full/%s_%s%s.tif', maxent_path,
                               save_name, save_name, "current_suit_not_novel_above_", thresh),
                       overwrite = TRUE)
+          
+          ## Now save the cells that are above the threshold, and also not novel...
+          current_mess_poly      <- terra::as.polygons(hs_current_not_novel_above_ras) 
+          current_mess_poly_dat  <- terra::subset(current_mess_poly, current_mess_poly$layer == 1)
+          current_mess_poly_geom <- current_mess_poly_dat %>% st_as_sf() %>% repair_geometry()
+          
+          ## Now save the thresh-holded rasters as shapefiles
+          message('Saving current threshold SDM rasters to polygons for ', taxa)
+          st_write(current_mess_poly_geom,
+                   
+                   dsn    = sprintf('%s/%s/full/%s_%s%s.gpkg', 
+                                    maxent_path,
+                                    save_name, 
+                                    save_name, 
+                                    'current_suit_not_novel_above_', 
+                                    thresh),
+                   
+                   layer  = paste0(save_name, 
+                                   '_current_suit_not_novel_above_', 
+                                   thresh),
+                   
+                   quiet  = TRUE,
+                   append = FALSE)
+          gc()
           
           ## Below, we create a dummy polygon as the first list element (which is the extent
           ## of the raster, expanded by 10%), to plot on panel 1). 50 = approx 50 lines across the polygon
@@ -352,7 +378,7 @@ project_maxent_current_grids_mess = function(taxa_list,
           
           print(levelplot(raster::stack(empty_ras,
                                         pred.current,
-                                        current_suit_thresh, 
+                                        hs_current_not_novel_above, 
                                         quick = TRUE), margin = FALSE,
                           
                           ## Create a colour scheme using colbrewer: 100 is to make it continuos
@@ -362,10 +388,10 @@ project_maxent_current_grids_mess = function(taxa_list,
                                              ylab = list(cex = 1.8)),
                           
                           at = seq(0, 1, length = 100),
-                          col.regions = colorRampPalette(rev(brewer.pal(9, 'YlOrRd'))),
+                          col.regions = colorRampPalette(brewer.pal(9, 'YlOrRd')),
                           
                           ## Give each plot a name: the third panel is the GCM
-                          names.attr = c('HSM records', 'HSM', '> thresh'),
+                          names.attr = c('HSM records', 'HSM', paste0('HS > ', thresh)),
                           colorkey   = list(height = 0.5, width = 3), xlab = '', ylab = '',
                           main       = list(gsub('_', ' ', taxa), font = 4, cex = 2)) +
                   
