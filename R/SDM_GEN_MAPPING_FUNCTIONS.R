@@ -195,14 +195,14 @@ project_maxent_current_grids_mess = function(taxa_list,
           
           if(create_mess) {
             
-            ## Report current mess map in progress
-            ## Could work out how to the static mess once, before looping through scenarios
-            MESS_dir   = sprintf('%s%s/full/%s', maxent_path, save_name, 'MESS_output')
-            novel_file = sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel")
-            
             if(!dir.exists(MESS_dir)) {
               message('Creating MESS directory for ', taxa)
               dir.create(MESS_dir) }
+            
+            ## Report current mess map in progress
+            ## Could work out how to the static mess once, before looping through scenarios
+            MESS_dir   = sprintf('%s%s/full/%s', maxent_path, save_name, 'MESS_output')
+            novel_file = sprintf('%s/%s%s.tif',  MESS_dir,    save_name, "_current_novel")
             
             ## If the current novel layer doesn't exist, create it
             if(!file.exists(novel_file)) {
