@@ -267,7 +267,7 @@ project_maxent_current_grids_mess = function(taxa_list,
               }, unstack(mess_current$similarity), names(mess_current$similarity))
             }
             
-            ## Now mask out novel environments
+            ## Now mask out novel environments.
             ## is.na(novel_current) is a binary layer showing
             ## not novel [=1] vs novel [=0],
             ## so multiplying this with hs_current will mask out novel
