@@ -200,6 +200,10 @@ project_maxent_current_grids_mess = function(taxa_list,
             MESS_dir   = sprintf('%s%s/full/%s', maxent_path, save_name, 'MESS_output')
             novel_file = sprintf('%s/%s%s.tif', MESS_dir, save_name, "_current_novel")
             
+            if(!dir.exists(MESS_dir)) {
+              message('Creating MESS directory for ', taxa)
+              dir.create(MESS_dir) }
+            
             ## If the current novel layer doesn't exist, create it
             if(!file.exists(novel_file)) {
               
@@ -233,10 +237,7 @@ project_maxent_current_grids_mess = function(taxa_list,
               
               ## Write out the current mess maps -
               ## create a new folder for the mess output - we are going to print it to the maps
-              if(!dir.exists(MESS_dir)) {
-                message('Creating MESS directory for ', taxa)
-                dir.create(MESS_dir)
-                
+
                 ## Create a PNG file of MESS maps for each maxent variable
                 message('Creating mess maps of each current environmental predictor for ', taxa)
                 
@@ -261,10 +262,6 @@ project_maxent_current_grids_mess = function(taxa_list,
                   dev.off()
                   
                 }, unstack(mess_current$similarity), names(mess_current$similarity))
-                
-              } else {
-                message(taxa, ' MESS directory already created')
-              }
             }
             
             ## Now mask out novel environments
