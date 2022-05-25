@@ -9,6 +9,7 @@ project_maxent_current_grids_mess(
   maxent_path,
   current_grids,
   create_mess,
+  mess_layers,
   save_novel_poly,
   maxent_table,
   output_path,
@@ -24,6 +25,8 @@ project_maxent_current_grids_mess(
 \item{current_grids}{Character string - Vector of current enviro conditions that you want to include}
 
 \item{create_mess}{Logical - Create mess maps of the predictions (T/F)?}
+
+\item{mess_layers}{Logical - Save mess maps of the each layer as .png (T/F)?}
 
 \item{save_novel_poly}{Character string - Save the novel areas as polygons?}
 
