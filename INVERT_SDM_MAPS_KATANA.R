@@ -5,23 +5,19 @@
 
 # \
 # 
-# This code prepares all the data and code needed for the analysis of inverts habitat after the 2019-2020 fires ::
-#   
-#   
-#   \
+# Load the packages ::
+# 
+# 
+# \
+# 
+# To install, run :
 
 
 ## Set env
 rm(list = ls())
-#if (!Sys.getenv("JAVA_TOOL_OPTIONS")) {
-if (all(Sys.getenv("JAVA_HOME")=="")) {
-  Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jre1.8.0_321')
-}
-if (all(Sys.getenv("JAVA_TOOL_OPTIONS")=="")) {
-  options(java.parameters = "-Xmx64G")
-}
+options(java.parameters = "-Xmx64000m")
+Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jre1.8.0_321')
 
-options(warn=0)
 
 ## Function to load or install packages
 ipak <- function(pkg){
@@ -47,10 +43,10 @@ INV_dir              <- './data/ALA/Insects/'
 check_dir            <- './data/ALA/Insects/check_plots/'
 out_dir              <- './output/'
 
-inv_rs_dir           <- './output/invert_maxent_pbi_ala/'
-inv_back_dir         <- './output/invert_maxent_pbi_ala/back_sel_models/'
-inv_full_dir         <- './output/invert_maxent_pbi_ala/full_models/'
-inv_results_dir      <- './output/invert_maxent_pbi_ala/results/'
+inv_rs_dir           <- './output/invert_maxent_raster_update/'
+inv_back_dir         <- './output/invert_maxent_raster_update/back_sel_models/'
+inv_full_dir         <- './output/invert_maxent_raster_update/full_models/'
+inv_results_dir      <- './output/invert_maxent_raster_update/results/'
 
 plant_rs_dir         <- './output/plant_maxent_raster_update/'
 plant_back_dir       <- './output/plant_maxent_raster_update/back_sel_models/'
@@ -58,9 +54,9 @@ plant_full_dir       <- './output/plant_maxent_raster_update/full_models/'
 plant_results_dir    <- './output/plant_maxent_raster_update/results/'
 
 veg_dir              <- './data/Remote_sensing/Veg_data/Forest_cover/'
-inv_habitat_dir      <- './output/invert_maxent_pbi_ala/Habitat_suitability/'
-inv_inters_dir       <- './output/invert_maxent_pbi_ala/Habitat_suitability/SDM_Veg_intersect/'
-inv_thresh_dir       <- './output/invert_maxent_pbi_ala/Habitat_suitability/SDM_thresholds/'
+inv_habitat_dir      <- './output/invert_maxent_raster_update/Habitat_suitability/'
+inv_inters_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_Veg_intersect/'
+inv_thresh_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
 inv_fire_dir         <- './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
 
 plant_habitat_dir    <- './output/plant_maxent_raster_update/Habitat_suitability/'
@@ -78,7 +74,7 @@ dir_list <- c(tempdir, ALA_dir,
               plant_habitat_dir, plant_inters_dir, plant_thresh_dir, plant_fire_dir)
 
 
-## Create the folders if they don't exist.
+## Create the folders if they don't exist
 for(dir in dir_list) {
   
   if(!dir.exists(paste0(main_dir, dir))) {
@@ -91,10 +87,8 @@ for(dir in dir_list) {
 
 
 ## Try and set the raster temp directory to a location not on the partition, to save space
-rasterOptions(memfrac = 0.9,
-              tmpdir  = tempdir)
-
-terraOptions(memfrac = 0.9, 
+rasterOptions(tmpdir = tempdir)
+terraOptions(memfrac = 0.5, 
              tempdir = tempdir) 
 
 
@@ -108,6 +102,7 @@ terraOptions(memfrac = 0.9,
 # Load the vegetation rasters at 280m.
 # 
 # \
+
 
 
 ## get target taxa
@@ -187,20 +182,21 @@ plant_map_taxa  <- PLANT.MAXENT.RESULTS$searchTaxon      %>% gsub(" ", "_", .,)
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
 ## VALUES : 1-4, burn intensity from 2019-2020 fires, originally @ 10m resolution, re-sampled to 100m
 template_raster_250m <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
-FESM_NSW_10m         <- raster('./data/Remote_sensing/FESM/fesm_20200319_albers.tif')
-FESM_AUS_20m         <- raster('./data/Remote_sensing/FESM/NBR_Burn_severity_classed_ALB.tif')
+# FESM_NSW_10m         <- raster('./data/Remote_sensing/FESM/fesm_20200319_albers.tif')
+# FESM_AUS_20m         <- raster('./data/Remote_sensing/FESM/NBR_Burn_severity_classed_ALB.tif')
 
 
 ## Read in feature layers for fire that have been repaired in ArcMap
-FESM_east_20m_binary <- readRDS('./data/Remote_sensing/FESM/Fire_perimeters_for_forests_and_woodlands_split.rds') %>% st_as_sf()
-FESM_east_20m_categ  <- readRDS('./data/Remote_sensing/FESM/NBR_Burn_severity_classes.rds') %>% st_as_sf()
+FESM_east_20m_binary <- readRDS('./data/Remote_sensing/FESM/Fire_perimeters_sub.rds')
+FESM_east_20m_categ  <- readRDS('./data/Remote_sensing/FESM/NBR_Burn_severity_classes_sub.rds')
+
+FESM_east_20m_binary_sub <- readRDS('./data/Remote_sensing/FESM/Fire_perimeters_sub.rds')
+FESM_east_20m_categ_sub  <- readRDS('./data/Remote_sensing/FESM/NBR_Burn_severity_classes_sub.rds')
 
 
 ## Read in the SDM data, to intersect with the Veg layers
-AUS_forest_RS_ras        <- raster(paste0(veg_dir,  'alpsbk_aust_y2009_sf1a2_forest.tif'))
-AUS_forest_RS_feat       <- readRDS(paste0(veg_dir, 'Aus_forest_cover_east_coast_classes_split.rds')) %>% st_as_sf()
-AUS_forest_RS_feat_class <- st_read(paste0(veg_dir,'Aus_forest_cover_east_coast_classes.shp')) %>% 
-  st_transform(., st_crs(3577)) %>% st_as_sf()
+AUS_forest_RS_feat       <- readRDS(paste0(veg_dir, 'Aus_forest_cover_east_coast_classes_sub.rds'))
+AUS_forest_RS_feat_split <- readRDS(paste0(veg_dir,'Aus_forest_cover_east_coast_classes_split_sub.rds')) 
 
 ## Read in the reptile points
 SDM.SPAT.OCC.BG.GDA <- readRDS(paste0(inv_results_dir, 'SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds'))
@@ -209,9 +205,7 @@ million_metres      <- 1000000
 
 
 ## Check projections and resolutions
-projection(FESM_NSW_10m);projection(SDM.SPAT.OCC.BG.GDA)
-raster::xres(FESM_AUS_20m)
-gc()
+projection(FESM_east_20m_binary);projection(SDM.SPAT.OCC.BG.GDA)
 
 
 
@@ -232,7 +226,7 @@ gc()
 
 ## Select the Vegetation pixels that intersect with the records of each invertebrate species
 taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
-                                        taxa_list      = rev(target.insect.spp),
+                                        taxa_list      = sort(target.insect.spp),
                                         taxa_level     = 'species',
                                         habitat_poly   = AUS_forest_RS_feat,
                                         int_cols       = intersect_cols,
@@ -282,20 +276,20 @@ gc()
 
 
 ## Now also intersect the whole SDM layer with the Veg layer, creating a cross-tab of habitat
-# SDM.SPAT.OCC.BG.GDA.TARG.INV <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysis_taxa, ] %>% st_as_sf() %>%  
-#   dplyr::select(searchTaxon, lon, lat) %>% 
-#     st_transform(., st_crs(3577)) %>% st_as_sf()
-# 
-# 
-# sdm_veg_int <- st_intersection(SDM.SPAT.OCC.BG.GDA.TARG.INV, AUS_forest_RS_feat_class) %>%
-#   
-#   ## Calculate the area of suitable habitat in each Veg class
-#   mutate(Area_km2 = st_area(geom)/million_metres,
-#          Area_km2 = drop_units(Area_km2))
-# gc()
+SDM.TARG.INVERT.POINTS <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysis_taxa, ] %>%
+  st_as_sf() %>%
+  dplyr::select(searchTaxon, lon, lat) %>%
+  st_transform(., st_crs(3577)) %>% st_as_sf() %>% st_subdivide()
 
 
-## Save as a geopackage and table : spp, genus, family
+sdm_veg_crosstab          <- st_intersection(SDM.TARG.INVERT.POINTS,
+                                             AUS_forest_RS_feat)
+
+sdm_veg_crosstab$geom     <- st_geometry(sdm_veg_crosstab)
+sdm_veg_crosstab$Area_km2 <- sdm_veg_crosstab$geom/million_metres
+
+
+
 
 
 
@@ -326,16 +320,17 @@ PLANT.RESULTS.HOSTS <- PLANT.MAXENT.RESULTS %>%
   
   rename(Host_Plant_taxon = "searchTaxon") %>% 
   left_join(., host_plants, by = "Host_Plant_taxon") %>% 
-  dplyr::select(searchTaxon, Host_Plant_taxon, everything()) #%>% 
+  dplyr::select(searchTaxon, Host_Plant_taxon, everything()) %>%
+  rename(host_dir = results_dir) %>% na.omit()
 
-# mutate(host_dir = gsub(' ', '_', Host_Plant_taxon)) %>%
-# mutate(host_dir = ifelse(!is.na(Host_Plant_taxon),  paste0(plant_back_dir, '/', host_dir, '/full/'), NA))
 
 INVERT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>% 
   
-  left_join(., host_plants, by = "searchTaxon") %>% 
-  mutate(host_dir = gsub(' ', '_', Host_Plant_taxon)) #%>% 
-# mutate(host_dir = ifelse(!is.na(Host_Plant_taxon),  paste0(host_back_dir, host_dir, '/full/'), NA))
+  left_join(., select(PLANT.RESULTS.HOSTS, 
+                      "searchTaxon", 
+                      "Host_Plant_taxon", 
+                      "host_dir"), by = "searchTaxon") 
+
 
 
 # For each Invertebrate species, calculate the % of suitable habitat that was burnt by the
@@ -361,7 +356,7 @@ calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.SPP
                                      thresh_patt        = '_current_suit_not_novel_above_',
                                      
                                      int_cols           = intersect_cols,
-                                     main_int_layer     = FESM_east_20m_binary,
+                                     main_int_layer     = FESM_east_20m_binary_sub,
                                      template_raster    = template_raster_250m,
                                      poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                                      epsg               = 3577)
