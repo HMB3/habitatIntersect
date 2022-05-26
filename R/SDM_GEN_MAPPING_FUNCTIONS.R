@@ -697,8 +697,7 @@ taxa_records_habitat_features_intersect = function(analysis_df,
         message('Clip habitat layer to the SDM points for ', taxa)
         taxa_VEG_intersects_clip <- st_intersection(taxa_buffer, habitat_poly) %>% 
           dplyr::select(all_of(int_cols))
-        
-        
+
         gc()
         
         if(nrow(taxa_VEG_intersects_clip) > 0 ) {

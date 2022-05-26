@@ -43,10 +43,10 @@ INV_dir              <- './data/ALA/Insects/'
 check_dir            <- './data/ALA/Insects/check_plots/'
 out_dir              <- './output/'
 
-inv_rs_dir           <- './output/invert_maxent_raster_update/'
-inv_back_dir         <- './output/invert_maxent_raster_update/back_sel_models/'
-inv_full_dir         <- './output/invert_maxent_raster_update/full_models/'
-inv_results_dir      <- './output/invert_maxent_raster_update/results/'
+inv_rs_dir           <- './output/invert_maxent_pbi_ala/'
+inv_back_dir         <- './output/invert_maxent_pbi_ala/back_sel_models/'
+inv_full_dir         <- './output/invert_maxent_pbi_ala/full_models/'
+inv_results_dir      <- './output/invert_maxent_pbi_ala/results/'
 
 plant_rs_dir         <- './output/plant_maxent_raster_update/'
 plant_back_dir       <- './output/plant_maxent_raster_update/back_sel_models/'
@@ -54,10 +54,10 @@ plant_full_dir       <- './output/plant_maxent_raster_update/full_models/'
 plant_results_dir    <- './output/plant_maxent_raster_update/results/'
 
 veg_dir              <- './data/Remote_sensing/Veg_data/Forest_cover/'
-inv_habitat_dir      <- './output/invert_maxent_raster_update/Habitat_suitability/'
-inv_inters_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_Veg_intersect/'
-inv_thresh_dir       <- './output/invert_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
-inv_fire_dir         <- './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
+inv_habitat_dir      <- './output/invert_maxent_pbi_ala/Habitat_suitability/'
+inv_inters_dir       <- './output/invert_maxent_pbi_ala/Habitat_suitability/SDM_Veg_intersect/'
+inv_thresh_dir       <- './output/invert_maxent_pbi_ala/Habitat_suitability/SDM_thresholds/'
+inv_fire_dir         <- './output/invert_maxent_pbi_ala/Habitat_suitability/FESM_SDM_intersect/'
 
 plant_habitat_dir    <- './output/plant_maxent_raster_update/Habitat_suitability/'
 plant_inters_dir     <- './output/plant_maxent_raster_update/Habitat_suitability/Veg_intersect/'
@@ -182,8 +182,6 @@ plant_map_taxa  <- PLANT.MAXENT.RESULTS$searchTaxon      %>% gsub(" ", "_", .,)
 ## FESM   : https://datasets.seed.nsw.gov.au/dataset/fire-extent-and-severity-mapping-fesm
 ## VALUES : 1-4, burn intensity from 2019-2020 fires, originally @ 10m resolution, re-sampled to 100m
 template_raster_250m <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip_GDA_ALB.tif')
-# FESM_NSW_10m         <- raster('./data/Remote_sensing/FESM/fesm_20200319_albers.tif')
-# FESM_AUS_20m         <- raster('./data/Remote_sensing/FESM/NBR_Burn_severity_classed_ALB.tif')
 
 
 ## Read in feature layers for fire that have been repaired in ArcMap
@@ -199,7 +197,7 @@ AUS_forest_RS_feat       <- readRDS(paste0(veg_dir, 'Aus_forest_cover_east_coast
 AUS_forest_RS_feat_split <- readRDS(paste0(veg_dir,'Aus_forest_cover_east_coast_classes_split_sub.rds')) 
 
 ## Read in the reptile points
-SDM.SPAT.OCC.BG.GDA <- readRDS(paste0(inv_results_dir, 'SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds'))
+SDM.SPAT.OCC.BG.GDA <- readRDS(paste0(inv_results_dir, 'SDM_SPAT_OCC_BG_ALL_INVERT_TAXA_ALA_PBI.rds'))
 intersect_cols      <- c("searchTaxon", "species", "genus", "family", "SOURCE", "gridcode", "Vegetation")
 million_metres      <- 1000000
 
@@ -276,17 +274,30 @@ gc()
 
 
 ## Now also intersect the whole SDM layer with the Veg layer, creating a cross-tab of habitat
-SDM.TARG.INVERT.POINTS <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysis_taxa, ] %>%
-  st_as_sf() %>%
-  dplyr::select(searchTaxon, lon, lat) %>%
-  st_transform(., st_crs(3577)) %>% st_as_sf() %>% st_subdivide()
+# SDM.TARG.INVERT.POINTS <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysis_taxa, ] %>%
+#   st_as_sf() %>%
+#   dplyr::select(searchTaxon, lon, lat) %>%
+#   st_transform(., st_crs(3577)) %>% st_as_sf() %>% st_subdivide()
+# 
+# 
+# sdm_veg_crosstab          <- st_intersection(SDM.TARG.INVERT.POINTS,
+#                                              AUS_forest_RS_feat)
+# saveRDS(sdm_veg_crosstab, paste0(veg_dir,'sdm_veg_crosstab.rds'))
+# 
+# 
+# ## Read it back in
+# # sdm_veg_crosstab  <- readRDS(paste0(veg_dir,'sdm_veg_crosstab.rds'))
+# 
+# sdm_veg_crosstab_df <- sdm_veg_crosstab  %>% as_tibble() %>% 
+#   dplyr::select(searchTaxon, Vegetation) %>% 
+#   group_by(searchTaxon, Vegetation)      %>% 
+#   tally() %>% 
+#   
+#   mutate(Percent = round(n / sum(n) *100, 2))
+# 
+# write_csv(sdm_veg_crosstab_df, paste0(inv_results_dir, 'sdm_veg_crosstab.csv'))
 
 
-sdm_veg_crosstab          <- st_intersection(SDM.TARG.INVERT.POINTS,
-                                             AUS_forest_RS_feat)
-
-sdm_veg_crosstab$geom     <- st_geometry(sdm_veg_crosstab)
-sdm_veg_crosstab$Area_km2 <- sdm_veg_crosstab$geom/million_metres
 
 
 
@@ -311,27 +322,34 @@ sdm_veg_crosstab$Area_km2 <- sdm_veg_crosstab$geom/million_metres
 
 ## Add Host Plants to the Maxent LUT 
 ## Read in the host plant species
-host_plants <- read_excel(paste0(inv_habitat_dir, '/INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
-                          sheet = 'INV_TAXA_HSM_RATINGS') %>% filter(Target_taxon == "Yes") %>%
-  dplyr::select(searchTaxon, Host_Plant_taxon)
+host_plants <- read_excel(paste0(inv_results_dir, '/INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
+                          sheet = 'TABLE 3') %>% filter(!is.na(HostTaxon)) %>%
+  dplyr::select(searchTaxon, HostTaxon) %>% na.omit()
 
 
 PLANT.RESULTS.HOSTS <- PLANT.MAXENT.RESULTS %>% 
   
-  rename(Host_Plant_taxon = "searchTaxon") %>% 
-  left_join(., host_plants, by = "Host_Plant_taxon") %>% 
-  dplyr::select(searchTaxon, Host_Plant_taxon, everything()) %>%
-  rename(host_dir = results_dir) %>% na.omit()
+  rename(HostTaxon = "searchTaxon") %>% 
+  left_join(., host_plants, by = "HostTaxon") %>% 
+  dplyr::select(searchTaxon, HostTaxon, everything()) %>%
+  rename(host_dir = results_dir) %>% na.omit() %>% distinct()
 
 
 INVERT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>% 
   
   left_join(., select(PLANT.RESULTS.HOSTS, 
                       "searchTaxon", 
-                      "Host_Plant_taxon", 
-                      "host_dir"), by = "searchTaxon") 
+                      "HostTaxon", 
+                      "host_dir"), by = "searchTaxon")
 
 
+## Clean_up species
+# incomplete_taxa <- read_excel(paste0(inv_results_dir, '/INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
+#                             sheet = 'TABLE 6') %>% 
+#   dplyr::select(Complete_taxa) %>% .$Complete_taxa %>% setdiff(analysis_taxa, .)
+# 
+# incomplete_folers <- incomplete_taxa %>% gsub(' ', '_', .) %>% as.data.frame()
+# write_csv(incomplete_folers, paste0(inv_results_dir, '/incomplete.csv'))
 
 # For each Invertebrate species, calculate the % of suitable habitat that was burnt by the
 # 2019-2020 fires. We can do this by combining pixels in the rasters like this: 
@@ -342,9 +360,10 @@ INVERT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>%
 # 
 # This will give us the % of suitable habitat in each burn intensity category(0-5).
 
+
 ## Calculate Insect habitat - fails after this species?
 ## Code is stalling before or after :: Naranjakotta - it should be the taxa either side of that...
-calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
+calculate_taxa_habitat_host_features(taxa_list          = rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
                                      targ_maxent_table  = INVERT.RESULTS.HOSTS,
                                      host_maxent_table  = PLANT.RESULTS.HOSTS,
                                      
@@ -370,7 +389,7 @@ gc()
 
 
 ## Calculate Insect habitat
-INVERT.FESM.list <- list.files('./output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/', 
+INVERT.FESM.list <- list.files('./output/invert_maxent_pbi_ala/Habitat_suitability/FESM_SDM_intersect/', 
                                pattern     = '_intersect_Fire.csv', 
                                full.names  = TRUE, 
                                recursive   = TRUE) 
@@ -408,7 +427,7 @@ View(INVERT.FESM.TABLE)
 
 ## Save the FESM intersect results to file
 write_csv(INVERT.FESM.TABLE, 
-          './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/INVERT_TAXA_SDM_VEG_intersect_Fire.csv')
+          './output/invert_maxent_pbi_ala/Habitat_suitability/FESM_SDM_intersect/INVERT_TAXA_SDM_VEG_intersect_Fire.csv')
 
 
 message('sdm fire intersect run succsessfully for ', length(INVERT.FESM.list), 'taxa')
