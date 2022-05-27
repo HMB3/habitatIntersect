@@ -478,35 +478,142 @@ message('sdm data preparation code successfuly run')
 SDM.SPAT.OCC.BG.GDA    <- readRDS(paste0(inv_results_dir,   
                                       'SDM_SPAT_OCC_BG_ALL_INVERT_TAXA_ALA_PBI.rds'))
 
-SDM.SPAT.OCC.BG.GDA.SF <- SDM.SPAT.OCC.BG.GDA %>% st_as_sf()
 
-sdm_coords_df          <- st_coordinates(SDM.SPAT.OCC.BG.GDA.SF) %>% as.data.frame()
-
-# sdm_coords_sf <- 
-#   SpatialPointsDataFrame(coords      = sdm_coords_mat %>% 
-#                             dplyr::select(X, Y) %>% as.matrix(),
-#                           data        = sdm_coords_mat,
-#                           proj4string = CRS("+init=epsg:3577")) %>%
-#   
-#   st_as_sf() %>% 
-#   st_transform(., st_crs(3577))
-
-
-SDM.SPAT.OCC.BG.GDA.SF$X <- sdm_coords_df$X
-SDM.SPAT.OCC.BG.GDA.SF$Y <- sdm_coords_df$Y
-SDM.SPAT.OCC.BG.GDA.SP   <- SDM.SPAT.OCC.BG.GDA.SF %>% dplyr::select(-lat, -lon) %>% 
-  as_Spatial()
-  
-  
 unique(SDM.SPAT.OCC.BG.GDA$searchTaxon) %in% target.insect.spp      %>% table()
 unique(SDM.SPAT.OCC.BG.GDA$searchTaxon) %in% target.insect.genera   %>% table()
 unique(SDM.SPAT.OCC.BG.GDA$searchTaxon) %in% target.insect.families %>% table()
 
 
 
-## What do the species data look like?
-View(SDM.SPAT.OCC.BG.TARG.INV.SF)
+## Also save a big table of just the background taxa
+SDM.SPAT.OCC.BG.TARG.GDA <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysis_taxa, ]
+SDM.SPAT.OCC.BG.TARG.FAM <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% target.insect.families, ]
+SDM.SPAT.OCC.BG.TARG.GEN <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% target.insect.genera, ]
+SDM.SPAT.OCC.BG.TARG.SPP <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% target.insect.spp, ]
 
+
+st_write(SDM.SPAT.OCC.BG.TARG.FAM %>% st_as_sf(), 
+         dsn   = file.path(getwd(), 
+                           paste0(inv_results_dir, 'SDM_ALL_INVERT_FAMILIES_ALA_PBI.gpkg')), 
+         layer = 'SDM_TARGET_INVERT_FAMILIES', 
+         quiet = TRUE)
+
+
+st_write(SDM.SPAT.OCC.BG.TARG.GEN %>% st_as_sf(), 
+         dsn   = file.path(getwd(), paste0(inv_results_dir, 'SDM_ALL_INVERT_GENERA_ALA_PBI.gpkg')), 
+         layer = 'SDM_TARGET_INVERT_GENERA', 
+         quiet = TRUE)
+
+
+st_write(SDM.SPAT.OCC.BG.TARG.SPP %>% st_as_sf(), 
+         dsn   = file.path(getwd(), paste0(inv_results_dir, 'SDM_ALL_INVERT_SPECIES_ALA_PBI.gpkg')), 
+         layer = 'SDM_TARGET_INVERT_SPECIES', 
+         quiet = TRUE)
+
+
+st_write(SDM.SPAT.OCC.BG.TARG.GDA %>% st_as_sf(), 
+         dsn   = file.path(getwd(), paste0(inv_results_dir, 'SDM_ALL_INVERT_TAXA_ALA_PBI.gpkg')), 
+         layer = 'SDM_TARGET_INVERT_TAXA', 
+         quiet = TRUE)
+
+
+## Loop through families
+for(taxa in target.insect.families) {
+  
+  ## 
+  if(taxa %in% unique(SDM.SPAT.OCC.BG.TARG.GDA$searchTaxon)) {
+    
+    taxa_shp <- paste0(inv_records_dir,
+                       taxa, '_SDM_ALA_PBI_points.shp')
+    
+    if(!file.exists(taxa_shp)) {
+      
+      message('Subsetting ', taxa, ' shapefile and geo-package layers')
+      taxa_occ <- SDM.SPAT.OCC.BG.TARG.GDA %>% .[.$searchTaxon %in% taxa, ]
+      
+      st_write(taxa_occ %>% st_as_sf(), 
+               paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_POINTS.shp'))
+      
+      st_write(taxa_occ %>% st_as_sf(), 
+               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA_ALA_PBI.gpkg'), 
+               layer = paste0(taxa, '_SDM_points'), 
+               quiet = TRUE)
+      
+    } else {
+      message(taxa, ' SDM .shp already exists')}
+    
+  } else {
+    message(taxa, ' has no data')}
+}
+
+
+
+## Loop through genera
+for(taxa in target.insect.genera) {
+  
+  ## 
+  if(taxa %in% unique(SDM.SPAT.OCC.BG.TARG.GDA$searchTaxon)) {
+    
+    taxa_shp <- paste0(inv_records_dir,
+                       taxa, '_SDM_ALA_PBI_points.shp')
+    
+    if(!file.exists(taxa_shp)) {
+      
+      message('Subsetting ', taxa, ' shapefile and geo-package layers')
+      taxa_occ <- SDM.SPAT.OCC.BG.TARG.GDA %>% .[.$searchTaxon %in% taxa, ]
+      
+      st_write(taxa_occ %>% st_as_sf(), 
+               paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_points.shp'))
+      
+      st_write(taxa_occ %>% st_as_sf(), 
+               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA__ALA_PBI.gpkg'), 
+               layer = paste0(taxa, '_SDM_points'), 
+               quiet = TRUE)
+      
+    } else {
+      message(taxa, ' SDM .shp already exists')}
+    
+  } else {
+    message(taxa, ' has no data')}
+}
+
+
+
+
+
+## Loop through species
+for(taxa in target.insect.spp) {
+  
+  ## taxa = target.insect.spp[79] 
+  if(taxa %in% unique(SDM.SPAT.OCC.BG.TARG.GDA$searchTaxon)) {
+    
+    taxa_shp <- paste0(inv_records_dir,
+                       taxa, '_SDM_ALA_PBI_points.shp')
+    
+    if(!file.exists(taxa_shp)) {
+      
+      message('Subsetting ', taxa, ' shapefile and geo-package layers')
+      taxa_occ <- SDM.SPAT.OCC.BG.TARG.GDA %>% .[.$searchTaxon %in% taxa, ]
+      
+      st_write(taxa_occ %>% st_as_sf(), 
+               paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_points.shp'))
+      
+      st_write(taxa_occ %>% st_as_sf(), 
+               dsn = paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_points.gpkg'), 
+               layer = paste0(taxa, '_SDM_points'), 
+               quiet = TRUE)
+      
+      st_write(taxa_occ %>% st_as_sf(), 
+               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA_ALA_PBI.gpkg'), 
+               layer = paste0(taxa, '_SDM_points'), 
+               quiet = TRUE)
+      
+    } else {
+      message(taxa, ' SDM .shp already exists')}
+    
+  } else {
+    message(taxa, ' has no data')}
+}
 
 
 ## END =============================================================
