@@ -836,7 +836,7 @@ calculate_taxa_habitat_host_rasters = function(taxa_list,
         ## Get the directory of the host plants
         host_taxa <- targ_maxent_table    %>%
           filter(searchTaxon == taxa)     %>%
-          dplyr::select(Host_Plant_taxon) %>%
+          dplyr::select(HostTaxon) %>%
           distinct() %>% .[1, ] %>% .[[1]]
         
         ## Get the sdm threshold for each host taxa
@@ -1276,6 +1276,7 @@ calculate_taxa_habitat_host_rasters = function(taxa_list,
 #' @param int_cols           Character string - List of intersect columns
 #' @param thresh_patt        Character string - The pattern for the threshold files
 #' @param main_int_layer     Character string - The pattern for the intersect files
+#' @param second_int_layer   Character string - The pattern for the intersect files
 #' @param template_raster    Raster::raster - template raster with study extent and resolution
 #' @param poly_path          Character string - file path to feature polygon layer
 #' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
@@ -1291,6 +1292,7 @@ calculate_taxa_habitat_host_features = function(taxa_list,
                                                 thresh_patt,
                                                 int_cols,
                                                 main_int_layer,
+                                                second_int_layer,
                                                 template_raster, 
                                                 poly_path,
                                                 epsg) {
@@ -1307,30 +1309,30 @@ calculate_taxa_habitat_host_features = function(taxa_list,
   taxa_list %>%
     
     ## Loop over just the taxa
-    ## taxa = taxa_list[73]
+    ## taxa = taxa_list[1]
     lapply(function(taxa) {
       
       ## Get table
       target_table <- targ_maxent_table %>%
         filter(searchTaxon == taxa)
       
-      if(!is.na(target_table$Host_Plant_taxon)) {
+      if(!is.na(target_table$HostTaxon)) {
         
         ## Get the directory of the host plants
         host_dir <- host_maxent_table %>%
           filter(searchTaxon == taxa) %>%
-          dplyr::select(results_dir)  %>%
+          dplyr::select(host_dir)  %>%
           distinct() %>% .[1, ] %>% .[[1]]
         
         ## Get the directory of the host plants
         host_taxa <- host_maxent_table    %>%
           filter(searchTaxon == taxa)     %>%
-          dplyr::select(Host_Plant_taxon) %>%
+          dplyr::select(HostTaxon) %>%
           distinct() %>% .[1, ] %>% .[[1]]
         
         ## Get the sdm threshold for each host taxa
         host_thresh <- host_maxent_table    %>%
-          filter(Host_Plant_taxon == host_taxa)  %>%
+          filter(HostTaxon == host_taxa)  %>%
           dplyr::select(Logistic_threshold) %>%
           distinct() %>% .[1, ] %>% .[[1]]
         
@@ -1804,7 +1806,7 @@ calculate_taxa_habitat_host_features = function(taxa_list,
       } else {
         
         ## If the invert taxa has a host ----
-        message(taxa, 'has a host plant')
+        message(taxa, ' has a host plant')
         
         ## Print the taxa being analysed
         sdm_threshold <- st_read(dsn = sprintf('%s/%s/full/%s_%s%s.gpkg', 
@@ -1824,16 +1826,16 @@ calculate_taxa_habitat_host_features = function(taxa_list,
                  Area_km2 = drop_units(Area_km2)) %>% 
           dplyr::select(Habitat, Taxa, Area_km2) 
         
-        
-        sdm_thresh_sub <- st_subdivide(sdm_threshold) %>% 
-          st_buffer(., 0) %>% st_as_sf() 
-        
-        sdm_thresh_att  <- sdm_thresh_sub %>%
-          
-          dplyr::mutate(Habitat       = 1,
-                        Taxa          = taxa,
-                        Area_Poly_km2 = st_area(geom)/million_metres,
-                        Area_Poly_km2 = drop_units(Area_Poly_km2))
+        ## This step is slow
+        # sdm_thresh_sub <- sdm_threshold %>% st_subdivide() %>% 
+        #   st_buffer(., 0) %>% st_as_sf() 
+        # 
+        # sdm_thresh_att  <- sdm_thresh_sub %>%
+        #   
+        #   dplyr::mutate(Habitat       = 1,
+        #                 Taxa          = taxa,
+        #                 Area_Poly_km2 = st_area(geom)/million_metres,
+        #                 Area_Poly_km2 = drop_units(Area_Poly_km2))
         
         host_threshold_ras <- paste0(host_dir, host_name, "_current_suit_not_novel_above_", host_thresh, '.tif')
         host_string        <- list.files(host_path, 

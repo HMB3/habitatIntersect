@@ -188,8 +188,9 @@ template_raster_250m <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip
 FESM_east_20m_binary <- readRDS('./data/Remote_sensing/FESM/Fire_perimeters_sub.rds')
 FESM_east_20m_categ  <- readRDS('./data/Remote_sensing/FESM/NBR_Burn_severity_classes_sub.rds')
 
-FESM_east_20m_binary_sub <- readRDS('./data/Remote_sensing/FESM/Fire_perimeters_sub.rds')
-FESM_east_20m_categ_sub  <- readRDS('./data/Remote_sensing/FESM/NBR_Burn_severity_classes_sub.rds')
+FESM_east_20m_binary_sub   <- readRDS('./data/Remote_sensing/FESM/Fire_perimeters_sub.rds')
+FESM_east_20m_binary_split <- readRDS('./data/Remote_sensing/FESM/Fire_perimeters_split.rds')
+FESM_east_20m_categ_sub    <- readRDS('./data/Remote_sensing/FESM/NBR_Burn_severity_classes_sub.rds')
 
 
 ## Read in the SDM data, to intersect with the Veg layers
@@ -322,34 +323,26 @@ gc()
 
 ## Add Host Plants to the Maxent LUT 
 ## Read in the host plant species
-host_plants <- read_excel(paste0(inv_results_dir, '/INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
-                          sheet = 'TABLE 3') %>% filter(!is.na(HostTaxon)) %>%
-  dplyr::select(searchTaxon, HostTaxon) %>% na.omit()
-
-
-PLANT.RESULTS.HOSTS <- PLANT.MAXENT.RESULTS %>% 
-  
-  rename(HostTaxon = "searchTaxon") %>% 
-  left_join(., host_plants, by = "HostTaxon") %>% 
-  dplyr::select(searchTaxon, HostTaxon, everything()) %>%
-  rename(host_dir = results_dir) %>% na.omit() %>% distinct()
-
-
-INVERT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>% 
-  
-  left_join(., select(PLANT.RESULTS.HOSTS, 
-                      "searchTaxon", 
-                      "HostTaxon", 
-                      "host_dir"), by = "searchTaxon")
-
-
-## Clean_up species
-# incomplete_taxa <- read_excel(paste0(inv_results_dir, '/INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
-#                             sheet = 'TABLE 6') %>% 
-#   dplyr::select(Complete_taxa) %>% .$Complete_taxa %>% setdiff(analysis_taxa, .)
+# host_plants <- read_excel(paste0(inv_results_dir, '/INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
+#                           sheet = 'TABLE 3') %>% filter(!is.na(HostTaxon)) %>%
+#   dplyr::select(searchTaxon, HostTaxon) %>% na.omit()
 # 
-# incomplete_folers <- incomplete_taxa %>% gsub(' ', '_', .) %>% as.data.frame()
-# write_csv(incomplete_folers, paste0(inv_results_dir, '/incomplete.csv'))
+# 
+# PLANT.RESULTS.HOSTS <- PLANT.MAXENT.RESULTS %>% 
+#   
+#   rename(HostTaxon = "searchTaxon") %>% 
+#   left_join(., host_plants, by = "HostTaxon") %>% 
+#   dplyr::select(searchTaxon, HostTaxon, everything()) %>%
+#   rename(host_dir = results_dir) %>% na.omit() %>% distinct()
+# 
+# 
+# INVERT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>% 
+#   
+#   left_join(., select(PLANT.RESULTS.HOSTS, 
+#                       "searchTaxon", 
+#                       "HostTaxon", 
+#                       "host_dir"), by = "searchTaxon")
+
 
 # For each Invertebrate species, calculate the % of suitable habitat that was burnt by the
 # 2019-2020 fires. We can do this by combining pixels in the rasters like this: 
@@ -361,76 +354,59 @@ INVERT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>%
 # This will give us the % of suitable habitat in each burn intensity category(0-5).
 
 
-## Calculate Insect habitat - fails after this species?
-## Code is stalling before or after :: Naranjakotta - it should be the taxa either side of that...
-calculate_taxa_habitat_host_features(taxa_list          = rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
-                                     targ_maxent_table  = INVERT.RESULTS.HOSTS,
-                                     host_maxent_table  = PLANT.RESULTS.HOSTS,
-                                     
-                                     target_path        = inv_back_dir,
-                                     output_path        = inv_fire_dir,
-                                     intersect_path     = inv_inters_dir,
-                                     intersect_patt     = '_SDM_VEG_intersection.gpkg',
-                                     host_path          = plant_thresh_dir,
-                                     thresh_patt        = '_current_suit_not_novel_above_',
-                                     
-                                     int_cols           = intersect_cols,
-                                     main_int_layer     = FESM_east_20m_binary_sub,
-                                     template_raster    = template_raster_250m,
-                                     poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-                                     epsg               = 3577)
+## Calculate Insect habitat within binary fire layer
+# calculate_taxa_habitat_host_features(taxa_list          = rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
+#                                      targ_maxent_table  = INVERT.RESULTS.HOSTS,
+#                                      host_maxent_table  = PLANT.RESULTS.HOSTS,
+#                                      
+#                                      target_path        = inv_back_dir,
+#                                      output_path        = inv_fire_dir,
+#                                      intersect_path     = inv_inters_dir,
+#                                      intersect_patt     = '_SDM_VEG_intersection.gpkg',
+#                                      host_path          = plant_thresh_dir,
+#                                      thresh_patt        = '_current_suit_not_novel_above_',
+#                                      
+#                                      int_cols           = intersect_cols,
+#                                      main_int_layer     = FESM_east_20m_binary_split,
+#                                      second_int_layer   = AUS_forest_RS_feat,
+#                                      template_raster    = template_raster_250m,
+#                                      poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
+#                                      epsg               = 3577)
+# 
+# gc()
 
-gc()
+
+# calculate_taxa_habitat_host_features(taxa_list          = rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
+#                                      targ_maxent_table  = INVERT.RESULTS.HOSTS,
+#                                      host_maxent_table  = PLANT.RESULTS.HOSTS,
+#                                      
+#                                      target_path        = inv_back_dir,
+#                                      output_path        = inv_fire_dir,
+#                                      intersect_path     = inv_inters_dir,
+#                                      intersect_patt     = '_SDM_VEG_intersection.gpkg',
+#                                      host_path          = plant_thresh_dir,
+#                                      thresh_patt        = '_current_suit_not_novel_above_',
+#                                      
+#                                      int_cols           = intersect_cols,
+#                                      main_int_layer     = FESM_east_20m_categ_sub,
+#                                      second_int_layer   = AUS_forest_RS_feat,
+#                                      template_raster    = template_raster_250m,
+#                                      poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
+#                                      epsg               = 3577)
+# 
+# gc()
+
 
 
 # For each taxa, we create a table of the area in square kilometers of suitable habitat that intersects with each burn 
 # intensity category from the FESM fire intensity layer. Let's combine all those tables together, to create a master 
 # table of estimated burnt area.
 
-
-## Calculate Insect habitat
-INVERT.FESM.list <- list.files('./output/invert_maxent_pbi_ala/Habitat_suitability/FESM_SDM_intersect/', 
-                               pattern     = '_intersect_Fire.csv', 
-                               full.names  = TRUE, 
-                               recursive   = TRUE) 
+message('sdm fire intersect run succsessfully for ', length(INVERT.MAXENT.SPP.RESULTS$searchTaxon), 'taxa')
 
 
-## Now combine the SUA tables for each species into one table 
-INVERT.FESM.TABLE <- INVERT.FESM.list %>%
-  
-  ## pipe the list into lapply
-  lapply(function(x) {
-    
-    ## create the character string
-    f <- paste0(x)
-    
-    ## load each .RData file
-    d <- read.csv(f)
-    d
-    
-  }) %>%
-  
-  ## finally, bind all the rows together
-  bind_rows
 
 
-## Subset to just the analysis species - some species did not process properly?
-INVERT.FESM.TABLE <-  INVERT.FESM.TABLE[INVERT.FESM.TABLE$Habitat_taxa %in% 
-                                          sort(unique(MAXENT.RESULTS.HOSTS$searchTaxon)) , ] %>%  
-  .[complete.cases(.), ]
 
-
-## How many taxa have been processed?
-length(unique(INVERT.FESM.TABLE$Habitat_taxa))
-View(INVERT.FESM.TABLE)
-
-
-## Save the FESM intersect results to file
-write_csv(INVERT.FESM.TABLE, 
-          './output/invert_maxent_pbi_ala/Habitat_suitability/FESM_SDM_intersect/INVERT_TAXA_SDM_VEG_intersect_Fire.csv')
-
-
-message('sdm fire intersect run succsessfully for ', length(INVERT.FESM.list), 'taxa')
-
-
+## END =============================================================
 
