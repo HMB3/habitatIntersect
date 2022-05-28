@@ -1800,34 +1800,6 @@ calculate_taxa_habitat_host_features = function(taxa_list,
         message(taxa, ' has a host plant')
         
         ## Print the taxa being analysed
-        sdm_threshold <- st_read(dsn = sprintf('%s/%s/full/%s_%s%s.gpkg', 
-                                               target_path,
-                                               save_name, 
-                                               save_name, 
-                                               'current_suit_not_novel_above_', 
-                                               target_thresh)) 
-        
-        sdm_threshold_att <- sdm_threshold %>% 
-          st_cast(., "POLYGON") %>% 
-          
-          ## This hasn't burnt yet
-          mutate(Habitat  = 1,
-                 Taxa     = taxa,
-                 Area_km2 = st_area(geom)/million_metres,
-                 Area_km2 = drop_units(Area_km2)) %>% 
-          dplyr::select(Habitat, Taxa, Area_km2) 
-        
-        ## This step is slow
-        # sdm_thresh_sub <- sdm_threshold %>% st_subdivide() %>% 
-        #   st_buffer(., 0) %>% st_as_sf() 
-        # 
-        # sdm_thresh_att  <- sdm_thresh_sub %>%
-        #   
-        #   dplyr::mutate(Habitat       = 1,
-        #                 Taxa          = taxa,
-        #                 Area_Poly_km2 = st_area(geom)/million_metres,
-        #                 Area_Poly_km2 = drop_units(Area_Poly_km2))
-        
         host_threshold_ras <- paste0(host_dir, host_name, 
                                      "_current_suit_not_novel_above_", host_thresh, '.tif')
         host_string        <- list.files(host_path, 
@@ -2060,9 +2032,6 @@ calculate_taxa_habitat_host_features = function(taxa_list,
                                                         host_threshold))
             sdm_plus_host      <- st_union(single_sf)
             sdm_plus_host_poly <- st_cast(sdm_plus_host, "POLYGON")
-            
-            # sdm_plus_host_sub  <- st_subdivide(sdm_plus_host_poly) %>% 
-            #   st_buffer(., 0) %>% st_as_sf() 
             
             sdm_plus_veg_att   <- sdm_plus_host_poly %>% st_as_sf() %>%
               
