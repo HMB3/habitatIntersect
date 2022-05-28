@@ -1690,7 +1690,8 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             
             ## calc % burnt within forest classes
             percent_burnt_forest_overall <- sum(sdm_fire_forest_int_classes$Percent_burnt_veg)
-            percent_burnt_forest_class   <- sdm_fire_forest_int_classes$Area_poly/sdm_fire_forest_area_km2 * 100 %>% round(., 1)
+            percent_burnt_forest_class   <- sdm_fire_forest_int_classes$Area_poly/
+              sdm_fire_forest_area_km2 * 100 %>% round(., 1)
             
             ## Create a tibble of overall areas for each taxon
             ## Include the SDM area in each fire classs here
@@ -1709,7 +1710,9 @@ calculate_taxa_habitat_host_features = function(taxa_list,
                      Percent_burnt     = percent_burnt_overall)
             
             ## Create a tibble of vegetation areas for each taxon
-            sdm_fire_forest_areas <- data.frame(matrix(NA, ncol = 4, nrow = 7))
+            sdm_fire_forest_areas <- data.frame(matrix(NA, 
+                                                       ncol = 4, 
+                                                       nrow = unique(sdm_fire_forest_int$Vegetation)))
             
             colnames(sdm_fire_forest_areas) <- c('Taxa', 
                                                  'Vegetation', 
@@ -1771,12 +1774,15 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             
             message('writing threshold png for ', taxa)
             png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.png'),
-                11, 4, units = 'in', res = 400)
+                6, 12, units = 'in', res = 400)
             
-            plot(current_thresh_ras,         col = 'green', legend = FALSE)
-            plot(fire_layer_ras, add = TRUE, col = 'orange',legend = FALSE)
+            plot(fire_layer_ras,                 col = 'orange',legend = FALSE)
+            plot(current_thresh_ras, add = TRUE, col = 'green', legend = FALSE)
             plot(poly, add = TRUE)
             
+            title(main = taxa, 
+                  sub  = paste0(round(percent_burnt_overall, 2), 
+                                " % Suitable habitat Burnt"))
             dev.off()
             gc()
             
@@ -1827,7 +1833,7 @@ calculate_taxa_habitat_host_features = function(taxa_list,
         host_string        <- list.files(host_path, 
                                          full.names = TRUE) %>% 
           .[grep(".gpkg", .)] %>% 
-        
+          
           .[grep(paste0(host_name, collapse = '|'), ., ignore.case = TRUE)]
         
         
@@ -2081,7 +2087,7 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             
             ## create sf attributes for each intersecting polygon
             sdm_fire_int_att <- sdm_fire_int %>% st_cast(., "POLYGON") %>%
-
+              
               mutate(Habitat       = 1,
                      Taxa          = taxa,
                      Fire          = 'Burnt',
