@@ -697,7 +697,7 @@ taxa_records_habitat_features_intersect = function(analysis_df,
         message('Clip habitat layer to the SDM points for ', taxa)
         taxa_VEG_intersects_clip <- st_intersection(taxa_buffer, habitat_poly) %>% 
           dplyr::select(all_of(int_cols))
-
+        
         gc()
         
         if(nrow(taxa_VEG_intersects_clip) > 0 ) {
@@ -1376,33 +1376,31 @@ calculate_taxa_habitat_host_features = function(taxa_list,
       
       sdm_fire_geo       <- paste0(output_path, save_name, '_sdm_fire_intersect.gpkg')
       
+      
+      ## Read in the current suitability raster :: get the current_not`_novel raster
+      ## Get the taxa directory name.
+      sdm_threshold <- st_read(dsn = sprintf('%s/%s/full/%s_%s%s.gpkg', 
+                                             target_path,
+                                             save_name, 
+                                             save_name, 
+                                             'current_suit_not_novel_above_', 
+                                             target_thresh)) 
+      
+      sdm_threshold_att <- sdm_threshold %>% 
+        st_cast(., "POLYGON") %>% 
+        
+        ## This hasn't burnt yet
+        mutate(Habitat  = 1,
+               Taxa     = taxa,
+               Area_km2 = st_area(geom)/million_metres,
+               Area_km2 = drop_units(Area_km2)) %>% 
+        dplyr::select(Habitat, Taxa, Area_km2) 
+      
       ## If the invert taxa has no host ----
       if(is.na(host_dir)) {
         
         ## If the threshold raster data doesn't exist :
         if(!file.exists(sdm_fire_geo)) {
-          
-          ## Print the taxa being analysed
-          message('Intersecting SDM with Fire for ', taxa)
-          
-          ## Read in the current suitability raster :: get the current_not`_novel raster
-          ## Get the taxa directory name.
-          sdm_threshold <- st_read(dsn = sprintf('%s/%s/full/%s_%s%s.gpkg', 
-                                                 target_path,
-                                                 save_name, 
-                                                 save_name, 
-                                                 'current_suit_not_novel_above_', 
-                                                 target_thresh)) 
-          
-          sdm_threshold_att <- sdm_threshold %>% 
-            st_cast(., "POLYGON") %>% 
-            
-            ## This hasn't burnt yet
-            mutate(Habitat  = 1,
-                   Taxa     = taxa,
-                   Area_km2 = st_area(geom)/million_metres,
-                   Area_km2 = drop_units(Area_km2)) %>% 
-            dplyr::select(Habitat, Taxa, Area_km2) 
           
           ## Read the SVTM intersect file in
           intersect_string <- list.files(intersect_path, 
@@ -1602,8 +1600,8 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.png'),
                 11, 4, units = 'in', res = 400)
             
-            plot(current_thresh_ras, legend = FALSE)
-            plot(fire_layer_ras, add = TRUE, legend = FALSE)
+            plot(current_thresh_ras,         col = 'green', legend = FALSE)
+            plot(fire_layer_ras, add = TRUE, col = 'orange',legend = FALSE)
             plot(poly, add = TRUE)
             
             dev.off()
@@ -1613,22 +1611,8 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             ## No intersect, No host ----
             message('SDM and Veg rasters do not intersect for ', taxa, ' and it does not have a host taxa')
             
-            ## Now combine the Veg intersect and the SDM
-            # sdm_thresh_sub <- st_subdivide(sdm_threshold) %>% 
-            #   st_buffer(., 0) %>% st_as_sf()
-            
-            sdm_threshold_att <- sdm_threshold %>% 
-              st_cast(., "POLYGON") %>% 
-              
-              dplyr::mutate(Habitat       = 1,
-                            Taxa          = taxa,
-                            Area_Poly_km2 = st_area(geom)/million_metres,
-                            Area_Poly_km2 = drop_units(Area_Poly_km2))
-            
             ## Calculate area of the SDM - don't need the fire area
-            # sdm_areas     <- st_area(sdm_thresh_sub)/million_metres
-            # sdm_areas_km2 <- drop_units(sdm_threshold_att$Area_Poly_km2) 
-            sdm_area_km2  <- sdm_threshold_att$Area_Poly_km2 %>% sum()
+            sdm_area_km2  <- sdm_threshold_att$Area_km2 %>% sum()
             
             ## Then do the Cell stats ::
             ## estimated x % of each taxons habitat in each fire intensity category 
@@ -1660,7 +1644,7 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             sdm_fire_forest_int <- st_intersection(sdm_fire_int, st_buffer(second_int_layer, 0))
             
             ## This intersect is causing the slow down
-            sdm_forest_int      <- st_intersection(st_buffer(sdm_threshold, 0), second_int_layer) %>%
+            sdm_forest_int      <- st_intersection(sdm_threshold_att, second_int_layer) %>%
               
               ## Calculate the area of suitable habitat in each Veg class
               mutate(Area_km2 = st_area(geom)/million_metres,
@@ -1789,8 +1773,8 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.png'),
                 11, 4, units = 'in', res = 400)
             
-            plot(current_thresh_ras, legend = FALSE)
-            plot(fire_layer_ras, add = TRUE, legend = FALSE)
+            plot(current_thresh_ras,         col = 'green', legend = FALSE)
+            plot(fire_layer_ras, add = TRUE, col = 'orange',legend = FALSE)
             plot(poly, add = TRUE)
             
             dev.off()
@@ -1838,10 +1822,12 @@ calculate_taxa_habitat_host_features = function(taxa_list,
         #                 Area_Poly_km2 = st_area(geom)/million_metres,
         #                 Area_Poly_km2 = drop_units(Area_Poly_km2))
         
-        host_threshold_ras <- paste0(host_dir, host_name, "_current_suit_not_novel_above_", host_thresh, '.tif')
+        host_threshold_ras <- paste0(host_dir, host_name, 
+                                     "_current_suit_not_novel_above_", host_thresh, '.tif')
         host_string        <- list.files(host_path, 
-                                         pattern    = thresh_patt, 
                                          full.names = TRUE) %>% 
+          .[grep(".gpkg", .)] %>% 
+        
           .[grep(paste0(host_name, collapse = '|'), ., ignore.case = TRUE)]
         
         
@@ -2052,8 +2038,8 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.png'),
                 11, 4, units = 'in', res = 400)
             
-            plot(current_thresh_ras, legend = FALSE)
-            plot(fire_layer_ras, add = TRUE, legend = FALSE)
+            plot(current_thresh_ras,         col = 'green', legend = FALSE)
+            plot(fire_layer_ras, add = TRUE, col = 'orange',legend = FALSE)
             plot(poly, add = TRUE)
             
             dev.off()
@@ -2069,10 +2055,10 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             sdm_plus_host      <- st_union(single_sf)
             sdm_plus_host_poly <- st_cast(sdm_plus_host, "POLYGON")
             
-            sdm_plus_host_sub  <- st_subdivide(sdm_plus_host_poly) %>% 
-              st_buffer(., 0) %>% st_as_sf() 
+            # sdm_plus_host_sub  <- st_subdivide(sdm_plus_host_poly) %>% 
+            #   st_buffer(., 0) %>% st_as_sf() 
             
-            sdm_plus_veg_att   <- sdm_plus_host_sub %>%
+            sdm_plus_veg_att   <- sdm_plus_host_poly %>% st_as_sf() %>%
               
               dplyr::mutate(Habitat       = 1,
                             Taxa          = taxa,
@@ -2080,14 +2066,14 @@ calculate_taxa_habitat_host_features = function(taxa_list,
                             Area_Poly_km2 = drop_units(Area_Poly_km2))
             
             ## Calculate area of the SDM - don't need the fire area
-            sdm_areas     <- st_area(sdm_plus_host_sub)/million_metres
+            sdm_areas     <- st_area(sdm_plus_veg_att)/million_metres
             sdm_areas_km2 <- drop_units(sdm_areas) 
             sdm_area_km2  <- drop_units(sdm_areas) %>% sum()
             
             ## Then do the Cell stats ::
             ## estimated x % of each taxon's habitat in each fire intensity category 
             message('Intersecting SDM with Fire layers for ', taxa)
-            sdm_fire_int           <- st_intersection(sdm_plus_host_sub, main_int_layer)  
+            sdm_fire_int           <- st_intersection(sdm_plus_veg_att, main_int_layer)  
             sdm_fire_areas         <- st_area(sdm_fire_int)/million_metres
             sdm_fire_areas_km2     <- drop_units(sdm_fire_areas)
             sdm_fire_area_km2      <- drop_units(sdm_fire_areas) %>% sum()
@@ -2095,7 +2081,7 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             
             ## create sf attributes for each intersecting polygon
             sdm_fire_int_att <- sdm_fire_int %>% st_cast(., "POLYGON") %>%
-              
+
               mutate(Habitat       = 1,
                      Taxa          = taxa,
                      Fire          = 'Burnt',
@@ -2103,7 +2089,7 @@ calculate_taxa_habitat_host_features = function(taxa_list,
                      Area_Poly_km2 = drop_units(Area_Poly_km2))
             
             ## Calculate total areas separately
-            sdm_fire_int_areas_m2  <- st_area(suldm_fire_int)/million_metres
+            sdm_fire_int_areas_m2  <- st_area(sdm_fire_int)/million_metres
             sdm_fire_int_areas_km2 <- drop_units(sdm_fire_int_areas_m2)
             sdm_fire_int_area_km2  <- drop_units(sdm_fire_int_areas_m2) %>% sum() 
             percent_burnt_overall  <- sdm_fire_int_area_km2/sdm_area_km2 * 100 %>% round(.)
@@ -2111,10 +2097,10 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             
             ## calc % burnt within forest
             message('Intersecting SDM + Fire layer with Forest layer for ', taxa)
-            sdm_fire_forest_int <- st_intersection(sdm_fire_int, second_int_layer)
+            sdm_fire_forest_int <- st_intersection(sdm_fire_int_att, second_int_layer)
             
             ## This intersect is causing the slow down
-            sdm_forest_int      <- st_intersection(sdm_plus_veg_sub, second_int_layer) %>%
+            sdm_forest_int      <- st_intersection(sdm_plus_veg_att, second_int_layer) %>%
               
               ## Calculate the area of suitable habitat in each Veg class
               mutate(Area_km2 = st_area(x)/million_metres,
@@ -2243,8 +2229,8 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.png'),
                 11, 4, units = 'in', res = 400)
             
-            plot(current_thresh_ras, legend = FALSE)
-            plot(fire_layer_ras, add = TRUE, legend = FALSE)
+            plot(current_thresh_ras,         col = 'green', legend = FALSE)
+            plot(fire_layer_ras, add = TRUE, col = 'orange',legend = FALSE)
             plot(poly, add = TRUE)
             
             dev.off()
