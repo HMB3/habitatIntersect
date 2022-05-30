@@ -1470,28 +1470,8 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             
             ## calc % burnt within forest
             message('Intersecting SDM + Fire layer with Forest layer for ', taxa)
-            sdm_fire_forest_int <- st_intersection(sdm_fire_int_att,   second_int_layer)
-            sdm_forest_int      <- st_intersection(sdm_threshold_cast, second_int_layer) %>% 
-              
-              ## Calculate the area of suitable habitat in each Veg class
-              mutate(Area_km2 = st_area(geom)/million_metres,
-                     Area_km2 = drop_units(Area_km2))
-            gc()
-            
-            ## Aggregate the sdm * forest areas into veg classes
-            sdm_forest_int_classes <- sdm_forest_int %>%
-              
-              st_set_geometry(NULL) %>% 
-              mutate(Taxa = taxa) %>% 
-              dplyr::select(Taxa, Vegetation, Area_km2) %>% 
-              group_by(Taxa, Vegetation) %>% 
-              summarise(Habitat_Veg_Area = sum(Area_km2))
-            
-            ## Calculate total areas separately
-            sdm_forest_int_areas_m2   <- st_area(sdm_forest_int)/million_metres 
-            sdm_forest_int_areas_km2  <- drop_units(sdm_forest_int_areas_m2)
-            sdm_forest_int_area_km2   <- drop_units(sdm_forest_int_areas_m2) %>% sum()
-            
+            sdm_fire_forest_int       <- st_intersection(sdm_fire_int_att,   second_int_layer)
+
             sdm_fire_forest_areas_m2  <- st_area(sdm_fire_forest_int)/million_metres
             sdm_fire_forest_areas_km2 <- drop_units(sdm_fire_forest_areas_m2)
             sdm_fire_forest_area_km2  <- drop_units(sdm_fire_forest_areas_m2) %>% sum()
@@ -1646,28 +1626,8 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             
             ## calc % burnt within forest
             message('Intersecting SDM + Fire layer with Forest layer for ', taxa)
-            sdm_fire_forest_int <- st_intersection(sdm_fire_int_att,   second_int_layer)
-            sdm_forest_int      <- st_intersection(sdm_threshold_cast, second_int_layer) %>%
-              
-              ## Calculate the area of suitable habitat in each Veg class
-              mutate(Area_km2 = st_area(geom)/million_metres,
-                     Area_km2 = drop_units(Area_km2))
-            gc()
-            
-            ## Aggregate the sdm * forest areas into veg classes
-            sdm_forest_int_classes <- sdm_forest_int %>%
-              
-              st_set_geometry(NULL) %>% 
-              mutate(Taxa = taxa) %>% 
-              dplyr::select(Taxa, Vegetation, Area_km2) %>% 
-              group_by(Taxa, Vegetation) %>% 
-              summarise(Habitat_Veg_Area = sum(Area_km2))
-            
-            ## Calculate total areas separately
-            sdm_forest_int_areas_m2   <- st_area(sdm_forest_int)/million_metres 
-            sdm_forest_int_areas_km2  <- drop_units(sdm_forest_int_areas_m2)
-            sdm_forest_int_area_km2   <- drop_units(sdm_forest_int_areas_m2) %>% sum()
-            
+            sdm_fire_forest_int       <- st_intersection(sdm_fire_int_att,   second_int_layer)
+
             sdm_fire_forest_areas_m2  <- st_area(sdm_fire_forest_int)/million_metres
             sdm_fire_forest_areas_km2 <- drop_units(sdm_fire_forest_areas_m2)
             sdm_fire_forest_area_km2  <- drop_units(sdm_fire_forest_areas_m2) %>% sum()
@@ -1884,28 +1844,8 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             
             ## calc % burnt within forest
             message('Intersecting SDM + Fire layer with Forest layer for ', taxa)
-            sdm_fire_forest_int <- st_intersection(sdm_fire_int_att,   second_int_layer)
-            sdm_forest_int      <- st_intersection(sdm_threshold_cast, second_int_layer) %>%
-              
-              ## Calculate the area of suitable habitat in each Veg class
-              mutate(Area_km2 = st_area(x)/million_metres,
-                     Area_km2 = drop_units(Area_km2))
-            gc()
-            
-            ## Aggregate the sdm * forest areas into veg classes
-            sdm_forest_int_classes <- sdm_forest_int %>%
-              
-              st_set_geometry(NULL) %>% 
-              mutate(Taxa = taxa) %>% 
-              dplyr::select(Taxa, Vegetation, Area_km2) %>% 
-              group_by(Taxa, Vegetation) %>% 
-              summarise(Habitat_Veg_Area = sum(Area_km2))
-            
-            ## Calculate total areas separately
-            sdm_forest_int_areas_m2   <- st_area(sdm_forest_int)/million_metres 
-            sdm_forest_int_areas_km2  <- drop_units(sdm_forest_int_areas_m2)
-            sdm_forest_int_area_km2   <- drop_units(sdm_forest_int_areas_m2) %>% sum()
-            
+            sdm_fire_forest_int       <- st_intersection(sdm_fire_int_att,   second_int_layer)
+
             sdm_fire_forest_areas_m2  <- st_area(sdm_fire_forest_int)/million_metres
             sdm_fire_forest_areas_km2 <- drop_units(sdm_fire_forest_areas_m2)
             sdm_fire_forest_area_km2  <- drop_units(sdm_fire_forest_areas_m2) %>% sum()
@@ -2073,28 +2013,8 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             
             ## calc % burnt within forest
             message('Intersecting SDM + Fire layer with Forest layer for ', taxa)
-            sdm_fire_forest_int <- st_intersection(sdm_fire_int_att,   second_int_layer)
-            sdm_forest_int      <- st_intersection(sdm_threshold_cast, second_int_layer) %>%
-              
-              ## Calculate the area of suitable habitat in each Veg class
-              mutate(Area_km2 = st_area(x)/million_metres,
-                     Area_km2 = drop_units(Area_km2))
-            gc()
-            
-            ## Aggregate the sdm * forest areas into veg classes
-            sdm_forest_int_classes <- sdm_forest_int %>%
-              
-              st_set_geometry(NULL) %>% 
-              mutate(Taxa = taxa) %>% 
-              dplyr::select(Taxa, Vegetation, Area_km2) %>% 
-              group_by(Taxa, Vegetation) %>% 
-              summarise(Habitat_Veg_Area = sum(Area_km2))
-            
-            ## Calculate total areas separately
-            sdm_forest_int_areas_m2   <- st_area(sdm_forest_int)/million_metres 
-            sdm_forest_int_areas_km2  <- drop_units(sdm_forest_int_areas_m2)
-            sdm_forest_int_area_km2   <- drop_units(sdm_forest_int_areas_m2) %>% sum()
-            
+            sdm_fire_forest_int       <- st_intersection(sdm_fire_int_att,   second_int_layer)
+
             sdm_fire_forest_areas_m2  <- st_area(sdm_fire_forest_int)/million_metres
             sdm_fire_forest_areas_km2 <- drop_units(sdm_fire_forest_areas_m2)
             sdm_fire_forest_area_km2  <- drop_units(sdm_fire_forest_areas_m2) %>% sum()
@@ -2349,19 +2269,8 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
         
         ## calc % burnt within forest
         message('Intersecting SDM + Fire layer with Forest layer for ', taxa)
-        sdm_fire_forest_int   <- st_intersection(sdm_fire_int_att,   second_int_layer)
-        sdm_forest_int        <- st_intersection(sdm_threshold_cast, second_int_layer) %>%
-          
-          ## Calculate the area of suitable habitat in each Veg class
-          mutate(Area_km2 = st_area(geom)/million_metres,
-                 Area_km2 = drop_units(Area_km2))
-        
-        gc()
-        
-        ## Calculate total areas separately
-        sdm_forest_int_area_m2   <- st_area(sdm_forest_int)/million_metres 
-        sdm_forest_int_area_km2  <- drop_units(sdm_forest_int_area_m2) %>% sum()
-        
+        sdm_fire_forest_int      <- st_intersection(sdm_fire_int_att,   second_int_layer)
+
         sdm_fire_forest_area_m2  <- st_area(sdm_fire_forest_int)/million_metres
         sdm_fire_forest_area_km2 <- drop_units(sdm_fire_forest_area_m2)
         
