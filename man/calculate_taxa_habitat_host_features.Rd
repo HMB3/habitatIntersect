@@ -10,12 +10,13 @@ calculate_taxa_habitat_host_features(
   host_maxent_table,
   target_path,
   output_path,
-  intersect_path,
   host_path,
+  intersect_path,
   intersect_patt,
-  thresh_patt,
   int_cols,
+  thresh_patt,
   main_int_layer,
+  second_int_layer,
   template_raster,
   poly_path,
   epsg
@@ -32,17 +33,19 @@ calculate_taxa_habitat_host_features(
 
 \item{output_path}{Character string - The file path to save the function output}
 
-\item{intersect_path}{Character string - The file path containing the intersecting rasters}
-
 \item{host_path}{Character string - The file path to save the function output}
+
+\item{intersect_path}{Character string - The file path containing the intersecting rasters}
 
 \item{intersect_patt}{Character string - The pattern for the intersect files}
 
-\item{thresh_patt}{Character string - The pattern for the threshold files}
-
 \item{int_cols}{Character string - List of intersect columns}
 
+\item{thresh_patt}{Character string - The pattern for the threshold files}
+
 \item{main_int_layer}{Character string - The pattern for the intersect files}
+
+\item{second_int_layer}{Character string - The pattern for the intersect files}
 
 \item{template_raster}{Raster::raster - template raster with study extent and resolution}
 
