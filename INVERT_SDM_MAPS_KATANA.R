@@ -185,17 +185,10 @@ template_raster_250m <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip
 
 
 ## Read in feature layers for fire that have been repaired in ArcMap
-FESM_east_20m_binary <- readRDS('./data/Remote_sensing/FESM/Fire_perimeters_sub.rds')
-FESM_east_20m_categ  <- readRDS('./data/Remote_sensing/FESM/NBR_Burn_severity_classes_sub.rds')
+FESM_east_20m_categ        <- readRDS('./data/Remote_sensing/FESM/NBR_Burn_severity_classes_cast.rds')
+FESM_east_20m_binary_split <- readRDS('./data/Remote_sensing/FESM/Fire_perimeters_split.rds') %>% st_cast(., "POLYGON")
+AUS_forest_RS_feat_split   <- readRDS(paste0(veg_dir,'Aus_forest_cover_east_coast_classes_split.rds')) %>% st_cast(., "POLYGON")
 
-FESM_east_20m_binary_sub   <- readRDS('./data/Remote_sensing/FESM/Fire_perimeters_sub.rds')
-FESM_east_20m_binary_split <- readRDS('./data/Remote_sensing/FESM/Fire_perimeters_split.rds')
-FESM_east_20m_categ_sub    <- readRDS('./data/Remote_sensing/FESM/NBR_Burn_severity_classes_sub.rds')
-
-
-## Read in the SDM data, to intersect with the Veg layers
-AUS_forest_RS_feat       <- readRDS(paste0(veg_dir, 'Aus_forest_cover_east_coast_classes_sub.rds'))
-AUS_forest_RS_feat_split <- readRDS(paste0(veg_dir,'Aus_forest_cover_east_coast_classes_split_sub.rds')) 
 
 ## Read in the reptile points
 SDM.SPAT.OCC.BG.GDA <- readRDS(paste0(inv_results_dir, 'SDM_SPAT_OCC_BG_ALL_INVERT_TAXA_ALA_PBI.rds'))
@@ -205,7 +198,6 @@ million_metres      <- 1000000
 
 ## Check projections and resolutions
 projection(FESM_east_20m_binary);projection(SDM.SPAT.OCC.BG.GDA)
-
 
 
 

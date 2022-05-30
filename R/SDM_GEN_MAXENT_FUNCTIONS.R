@@ -62,7 +62,7 @@ run_sdm_analysis_no_crop = function(taxa_list,
     st_transform(., st_crs(epsg))
   
   ## Loop over all the taxa
-  ## taxa <- sort(taxa_list)[1]
+  ## taxa <- sort(taxa_list)[2]
   lapply(taxa_list, function(taxa){
     
     ## Skip the taxa if the directory already exists, before the loop

@@ -200,6 +200,8 @@ SDM.SPAT.OCC.BG.GDA       <- readRDS(paste0(inv_results_dir,
 
 SDM.PLANT.SPAT.OCC.BG.GDA <- readRDS(paste0(plant_results_dir, 
                                             'SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds'))
+SDM.PLANT.SPAT.OCC.BG.GDA$X <- SDM.PLANT.SPAT.OCC.BG.GDA$lon
+SDM.PLANT.SPAT.OCC.BG.GDA$Y <- SDM.PLANT.SPAT.OCC.BG.GDA$lat
 
 
 ## What is the breakdown of spp?
@@ -290,7 +292,7 @@ gc()
 
 
 
-run_sdm_analysis_no_crop(taxa_list               = sort(host_plant_taxa),
+run_sdm_analysis_no_crop(taxa_list               = sort(host_plant_taxa)[2],
                          taxa_level              = 'species',
                          maxent_dir              = plant_back_dir,     
                          bs_dir                  = plant_back_dir,
@@ -418,12 +420,12 @@ tryCatch(
 
 tryCatch(
   
-  project_maxent_current_grids_mess(taxa_list       = host_map_taxa,    
+  project_maxent_current_grids_mess(taxa_list       = host_map_taxa[12],    
                                     maxent_path     = plant_back_dir,
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = FALSE,
                                     mess_layers     = FALSE,
-                                    save_novel_poly = FALSE,
+                                    save_novel_poly = TRUE,
                                     output_path     = paste0(plant_thresh_dir, 'plants_sdm_novel_combo.gpkg'),
                                     poly_path       = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                                     epsg            = 3577),
