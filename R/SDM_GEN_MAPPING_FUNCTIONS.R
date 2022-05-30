@@ -1543,7 +1543,6 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             
             ## Now save the thresh-holded rasters as shapefiles
             message('Saving SDM Fire intersect polygons for ', taxa)
-            
             st_write(sdm_fire_int_att, 
                      
                      dsn    = sdm_fire_geo, 
@@ -1562,15 +1561,6 @@ calculate_taxa_habitat_host_features = function(taxa_list,
                      append = FALSE)
             gc()
             
-            st_write(sdm_forest_int, 
-                     
-                     dsn    = sdm_fire_geo, 
-                     layer  = paste0(save_name, '_sdm_forest_int'),
-                     
-                     quiet  = TRUE,
-                     append = FALSE)
-            gc()
-            
             ## Create rasters for plotting
             t <- raster::raster(template_raster) %>% 
               raster::crop(., extent(main_int_layer))
@@ -1583,12 +1573,15 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             
             message('writing threshold png for ', taxa)
             png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.png'),
-                11, 4, units = 'in', res = 400)
+                6, 12, units = 'in', res = 400)
             
-            plot(current_thresh_ras,         col = 'green', legend = FALSE)
-            plot(fire_layer_ras, add = TRUE, col = 'orange',legend = FALSE)
+            plot(fire_layer_ras,                 col = 'orange',legend = FALSE)
+            plot(current_thresh_ras, add = TRUE, col = 'green', legend = FALSE)
             plot(poly, add = TRUE)
             
+            title(main = taxa, 
+                  sub  = paste0(round(percent_burnt_overall, 2), 
+                                " % Suitable habitat Burnt"))
             dev.off()
             gc()
             
@@ -1712,15 +1705,6 @@ calculate_taxa_habitat_host_features = function(taxa_list,
                      
                      dsn    = sdm_fire_geo, 
                      layer  = paste0(save_name, '_sdm_fire_forest_int_sub'),
-                     
-                     quiet  = TRUE,
-                     append = FALSE)
-            gc()
-            
-            st_write(sdm_forest_int, 
-                     
-                     dsn    = sdm_fire_geo, 
-                     layer  = paste0(save_name, '_sdm_forest_int'),
                      
                      quiet  = TRUE,
                      append = FALSE)
@@ -1934,15 +1918,6 @@ calculate_taxa_habitat_host_features = function(taxa_list,
                      append = FALSE)
             gc()
             
-            st_write(sdm_forest_int, 
-                     
-                     dsn    = sdm_fire_geo, 
-                     layer  = paste0(save_name, '_sdm_forest_int'),
-                     
-                     quiet  = TRUE,
-                     append = FALSE)
-            gc()
-            
             ## Create rasters for plotting
             t <- raster::raster(template_raster) %>% 
               raster::crop(., extent(main_int_layer))
@@ -1955,12 +1930,15 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             
             message('writing threshold png for ', taxa)
             png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.png'),
-                11, 4, units = 'in', res = 400)
+                6, 12, units = 'in', res = 400)
             
-            plot(current_thresh_ras,         col = 'green', legend = FALSE)
-            plot(fire_layer_ras, add = TRUE, col = 'orange',legend = FALSE)
+            plot(fire_layer_ras,                 col = 'orange',legend = FALSE)
+            plot(current_thresh_ras, add = TRUE, col = 'green', legend = FALSE)
             plot(poly, add = TRUE)
             
+            title(main = taxa, 
+                  sub  = paste0(round(percent_burnt_overall, 2), 
+                                " % Suitable habitat Burnt"))
             dev.off()
             gc()
             
@@ -2104,15 +2082,6 @@ calculate_taxa_habitat_host_features = function(taxa_list,
                      append = FALSE)
             gc()
             
-            st_write(sdm_forest_int, 
-                     
-                     dsn    = sdm_fire_geo, 
-                     layer  = paste0(save_name, '_sdm_forest_int'),
-                     
-                     quiet  = TRUE,
-                     append = FALSE)
-            gc()
-            
             ## Create rasters for plotting
             t <- raster::raster(template_raster) %>% 
               raster::crop(., extent(main_int_layer))
@@ -2125,12 +2094,15 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             
             message('writing threshold png for ', taxa)
             png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.png'),
-                11, 4, units = 'in', res = 400)
+                6, 12, units = 'in', res = 400)
             
-            plot(current_thresh_ras,         col = 'green', legend = FALSE)
-            plot(fire_layer_ras, add = TRUE, col = 'orange',legend = FALSE)
+            plot(fire_layer_ras,                 col = 'orange',legend = FALSE)
+            plot(current_thresh_ras, add = TRUE, col = 'green', legend = FALSE)
             plot(poly, add = TRUE)
             
+            title(main = taxa, 
+                  sub  = paste0(round(percent_burnt_overall, 2), 
+                                " % Suitable habitat Burnt"))
             dev.off()
             gc()
           }
@@ -2328,7 +2300,6 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
         ## Now save the thresh-holded rasters as shapefiles
         message('Saving SDM Fire intersect polygons for ', taxa)
         save_intersect <- paste0(output_path, intersect_name)
-        
         st_write(sdm_fire_int_att, 
                  
                  dsn    = save_intersect, 
@@ -2337,7 +2308,6 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
                  
                  quiet  = TRUE,
                  append = FALSE)
-        
         gc()
         
         st_write(sdm_fire_forest_int_att, 
@@ -2348,7 +2318,6 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
                  
                  quiet  = TRUE,
                  append = FALSE)
-        
         gc()
         
         ## Create rasters for plotting
