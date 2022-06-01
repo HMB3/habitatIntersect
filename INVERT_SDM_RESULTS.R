@@ -34,54 +34,10 @@ ipak(sdmgen_packages)
 
 
 ## The functions expect these folders,
-main_dir             <- paste0(getwd(), "/")
-tempdir              <- './TEMP/'
-ALA_dir              <- './data/ALA/'
-INV_dir              <- './data/ALA/Insects/'
-check_dir            <- './data/ALA/Insects/check_plots/'
-out_dir              <- './output/'
-
 inv_rs_dir           <- './output/invert_maxent_pbi_ala/'
-inv_back_dir         <- './output/invert_maxent_pbi_ala/back_sel_models/'
-inv_full_dir         <- './output/invert_maxent_pbi_ala/full_models/'
 inv_results_dir      <- './output/invert_maxent_pbi_ala/results/'
-
-plant_rs_dir         <- './output/plant_maxent_raster_update/'
-plant_back_dir       <- './output/plant_maxent_raster_update/back_sel_models/'
-plant_full_dir       <- './output/plant_maxent_raster_update/full_models/'
-plant_results_dir    <- './output/plant_maxent_raster_update/results/'
-
-veg_dir              <- './data/Remote_sensing/Veg_data/Forest_cover/'
-inv_habitat_dir      <- './output/invert_maxent_pbi_ala/Habitat_suitability/'
-inv_inters_dir       <- './output/invert_maxent_pbi_ala/Habitat_suitability/SDM_Veg_intersect/'
-inv_thresh_dir       <- './output/invert_maxent_pbi_ala/Habitat_suitability/SDM_thresholds/'
 inv_fire_dir         <- './output/invert_maxent_pbi_ala/Habitat_suitability/FESM_SDM_intersect/'
 
-plant_habitat_dir    <- './output/plant_maxent_raster_update/Habitat_suitability/'
-plant_inters_dir     <- './output/plant_maxent_raster_update/Habitat_suitability/Veg_intersect/'
-plant_thresh_dir     <- './output/plant_maxent_raster_update/Habitat_suitability/SDM_thresholds/'
-plant_fire_dir       <- './output/plant_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
-
-
-
-
-dir_list <- c(tempdir, ALA_dir, 
-              INV_dir, check_dir, out_dir, inv_rs_dir, inv_back_dir, inv_full_dir, inv_results_dir,
-              plant_rs_dir, plant_back_dir, plant_full_dir, plant_results_dir, veg_dir,
-              inv_habitat_dir, inv_inters_dir, inv_thresh_dir, inv_fire_dir,
-              plant_habitat_dir, plant_inters_dir, plant_thresh_dir, plant_fire_dir)
-
-
-## Create the folders if they don't exist
-for(dir in dir_list) {
-  
-  if(!dir.exists(paste0(main_dir, dir))) {
-    message('Creating ', dir, ' directory')
-    dir.create(file.path(main_dir, dir), recursive = TRUE) 
-    
-  } else {
-    message(dir, ' directory already exists')}
-}
 
 
 ## Try and set the raster temp directory to a location not on the partition, to save space
@@ -183,8 +139,8 @@ INVERT.FESM.TABLE <-  INVERT.FESM.TABLE[INVERT.FESM.TABLE$Taxa %in%
   .[complete.cases(.), ]
 
 
-INVERT.FESM..VEG.TABLE <-  INVERT.FESM.TABLE[INVERT.FESM.VEG.TABLE$Taxa %in%
-                                          sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)) , ] %>%
+INVERT.FESM.VEG.TABLE <-  INVERT.FESM.TABLE[INVERT.FESM.VEG.TABLE$Taxa %in%
+                                               sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)) , ] %>%
   .[complete.cases(.), ]
 
 
@@ -199,6 +155,10 @@ View(INVERT.FESM.VEG.TABLE)
 INVERT.FESM.TABLE.FAM <- INVERT.FESM.TABLE %>% .[.$Taxa %in% target.insect.families, ]
 INVERT.FESM.TABLE.GEN <- INVERT.FESM.TABLE %>% .[.$Taxa %in% target.insect.genera, ]
 INVERT.FESM.TABLE.SPP <- INVERT.FESM.TABLE %>% .[.$Taxa %in% target.insect.spp, ]
+
+INVERT.FESM.VEG.TABLE.FAM <- INVERT.FESM.VEG.TABLE %>% .[.$Taxa %in% target.insect.families, ]
+INVERT.FESM.VEG.TABLE.GEN <- INVERT.FESM.VEG.TABLE %>% .[.$Taxa %in% target.insect.genera, ]
+INVERT.FESM.VEG.TABLE.SPP <- INVERT.FESM.VEG.TABLE %>% .[.$Taxa %in% target.insect.spp, ]
 
 
 
@@ -217,7 +177,26 @@ write_csv(INVERT.FESM.VEG.TABLE,
 
 
 ## Read in the geopackage, so we can save the results
-SDM_ALL_INVERT_TAXA_ALA_PBI <- paste0(inv_results_dir, 'SDM_ALL_INVERT_TAXA_ALA_PBI.gpkg')
+SDM_ALL_INVERT_TAXA_ALA_PBI    <- paste0(inv_results_dir, 'SDM_ALL_INVERT_TAXA_ALA_PBI.gpkg')
+ALL_INVERT_TAXA_ALA_PBI_NICHES <- read_csv(paste0(inv_results_dir, 'GLOBAL_NICHES_ALL_INVERT_TAXA_ALA_PBI.csv'))
+
+
+st_write(ALL_INVERT_TAXA_ALA_PBI_NICHES, 
+         
+         dsn    = SDM_ALL_INVERT_TAXA_ALA_PBI, 
+         layer  = 'INVERT_TAXA_NICHES_ALA_PBI',
+         
+         quiet  = TRUE,
+         append = TRUE)
+
+
+st_write(INVERT.MAXENT.RESULTS, 
+         
+         dsn    = SDM_ALL_INVERT_TAXA_ALA_PBI, 
+         layer  = 'INVERT_TAXA_MAXENT_RESULTS_ALA_PBI',
+         
+         quiet  = TRUE,
+         append = TRUE)
 
 
 st_write(INVERT.FESM.TABLE, 
@@ -226,23 +205,238 @@ st_write(INVERT.FESM.TABLE,
          layer  = 'INVERT_TAXA_SDM_intersect_Fire_ALA_PBI',
          
          quiet  = TRUE,
-         append = FALSE)
+         append = TRUE)
 
 
 st_write(INVERT.FESM.VEG.TABLE, 
          
          dsn    = SDM_ALL_INVERT_TAXA_ALA_PBI, 
-         layer  = 'INVERT_TAXA_SDM_intersect_Fire_ALA_PBI',
+         layer  = 'INVERT_TAXA_SDM_intersect_Veg_Fire_ALA_PBI',
          
          quiet  = TRUE,
          append = FALSE)
 
 
 
-## 2). CREATE HABITAT LOSS GRAPHS OF =============================================================
+## Check database has the new layers
+st_layers(dsn = SDM_ALL_INVERT_TAXA_ALA_PBI)$name
 
 
-## 
+
+
+
+
+## 2). CREATE HABITAT LOSS GRAPHS =============================================================
+
+
+## Species % burnt graphs ----
+
+for(taxa in INVERT.FESM.TABLE$Taxa) {
+  
+  ## taxa = INVERT.FESM.TABLE$Taxa[1]
+  bar_df  <- INVERT.FESM.TABLE %>% filter(Taxa == taxa) %>% 
+    mutate(Percent_unburnt = 100 - Percent_burnt) 
+  
+  plot <- ggplot(bar_df, aes(fill=Percent_burnt, y=Percent_burnt, x=Taxa)) + 
+    geom_bar(position="stack", stat="identity")
+  
+  print(plot)
+  
+}
+
+
+## Graphs for each species ----
+
+## Graphs of the % burnt and un-burnt
+for(taxa in INVERT.FESM.TABLE$Taxa) {
+  
+  ## taxa = INVERT.FESM.TABLE$Taxa[1]
+  bar_df  <- INVERT.FESM.TABLE %>% filter(Taxa == taxa) %>% 
+    mutate(Percent_unburnt = 100 - Percent_burnt) 
+  
+  plot <- ggplot(bar_df, aes(fill=Percent_burnt, y=Percent_burnt, x=Taxa)) + 
+    geom_bar(position="stack", stat="identity")
+  
+  print(plot)
+  
+}
+
+
+## Graphs of the % burnt in each Vegetation type
+for(taxa in unique(INVERT.FESM.VEG.TABLE$Taxa)) {
+  
+  ## Update the table
+  # taxa <- unique(INVERT.FESM.VEG.TABLE$Taxa)[10]
+  message('writing sdm fire vegetation for ', taxa)
+  
+  save_name     <- gsub(' ', '_', taxa)
+  bar_df        <- INVERT.FESM.VEG.TABLE %>% filter(Taxa == taxa) %>% 
+    mutate(Habitat_Veg_burnt_perc = round(Habitat_Veg_burnt_perc, 2))
+  bar_df$Vegetation <- factor(bar_df$Vegetation, 
+                              levels = bar_df$Vegetation[order(bar_df$Habitat_Veg_burnt_perc, decreasing = TRUE)])
+  
+  
+  overall_burnt <- INVERT.FESM.TABLE %>% filter(Taxa == taxa) %>% .$Percent_burn %>% round(., 2)
+  
+  ##
+  ymax = max(bar_df$Habitat_Veg_burnt_perc) + 
+    max(bar_df$Habitat_Veg_burnt_perc * axis_multiplier)
+  
+  sdm_fire_veg_plot <- ggplot(bar_df, 
+                              aes(x = Vegetation, 
+                                  y = Habitat_Veg_burnt_perc, 
+                                  fill = Vegetation)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    coord_flip() +
+    
+    scale_fill_manual(values = c('Extremely tall open forest' = 'forestgreen', 
+                                 'Low open forest'            = 'lightgoldenrod1',
+                                 'Medium Open forest'         = "yellowgreen",
+                                 'Very tall open forest'      = "palegreen3",
+                                 'Tall open forest'           = "mediumspringgreen",
+                                 'Tall closed forest'         = "limegreen",
+                                 'very tall closed forest'    = "mediumseagreen"), na.value = "grey") +
+    
+    geom_text(aes(label   = Habitat_Veg_burnt_perc, hjust = + 0.5), 
+              hjust       = -0.5, 
+              position    = position_dodge(width = 1),
+              inherit.aes = TRUE,
+              size        = lab_size) +
+    
+    theme_classic(base_size = 16) +
+    ylab('Percentage (%) Burnt') +
+    ggtitle(taxa) +
+    xlab('') +
+    labs(caption = paste0(overall_burnt, ' % Burnt Overall')) +
+    
+    ylim(c(ymin, ymax)) +
+    
+    theme(plot.margin     = unit(c(1.5, 1.5, 1.5, 1.5), "cm"),
+          plot.title      = element_text(vjust = 5, size = tsize, face = "bold"),
+          axis.text.x     = element_text(size  = xsize),
+          axis.title.x    = element_text(size  = xsize, face = "bold"),
+          legend.position = 'none',
+          
+          axis.title.y    = element_text(size = ysize, face = "bold"),
+          axis.text.y     = element_text(size = ysize, color = "black"),
+          plot.subtitle   = element_text(size = capt_size, hjust = 0.5, face = "italic", color="black"),
+          plot.caption    = element_text(size = capt_size, hjust = 0.5, face = "italic", color="black"))
+  
+  png(paste0(inv_fire_dir, save_name, '_SDM_VEG_intersect_Fire_Barplots.png'),
+      12, 6, units = 'in', res = 500)
+  plot(sdm_fire_veg_plot)
+  dev.off()
+  gc()
+  
+}
+
+
+## Graphs of the % burnt in each Burn category 
+for(taxa in unique(INVERT.FESM.VEG.TABLE$Taxa)) {
+  
+  ## Update the table
+  # taxa <- unique(INVERT.FESM.VEG.TABLE$Taxa)[10]
+  message('writing sdm fire vegetation for ', taxa)
+  
+  save_name     <- gsub(' ', '_', taxa)
+  bar_df        <- INVERT.FESM.VEG.TABLE %>% filter(Taxa == taxa) %>% 
+    mutate(Habitat_Veg_burnt_perc = round(Habitat_Veg_burnt_perc, 2))
+  bar_df$Vegetation <- factor(bar_df$Vegetation, 
+                              levels = bar_df$Vegetation[order(bar_df$Habitat_Veg_burnt_perc, decreasing = TRUE)])
+  
+  
+  overall_burnt <- INVERT.FESM.TABLE %>% filter(Taxa == taxa) %>% .$Percent_burn %>% round(., 2)
+  
+  ##
+  ymax = max(bar_df$Habitat_Veg_burnt_perc) + 
+    max(bar_df$Habitat_Veg_burnt_perc * axis_multiplier)
+  
+  sdm_fire_veg_plot <- ggplot(bar_df, 
+                              aes(x = Vegetation, 
+                                  y = Habitat_Veg_burnt_perc, 
+                                  fill = Vegetation)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    coord_flip() +
+    
+    scale_fill_manual(values = c('Extremely tall open forest' = 'forestgreen', 
+                                 'Low open forest'            = 'lightgoldenrod1',
+                                 'Medium Open forest'         = "yellowgreen",
+                                 'Very tall open forest'      = "palegreen3",
+                                 'Tall open forest'           = "mediumspringgreen",
+                                 'Tall closed forest'         = "limegreen",
+                                 'very tall closed forest'    = "mediumseagreen"), na.value = "grey") +
+    
+    geom_text(aes(label   = Habitat_Veg_burnt_perc, hjust = + 0.5), 
+              hjust       = -0.5, 
+              position    = position_dodge(width = 1),
+              inherit.aes = TRUE,
+              size        = lab_size) +
+    
+    theme_classic(base_size = 16) +
+    ylab('Percentage (%) Burnt') +
+    ggtitle(taxa) +
+    xlab('') +
+    labs(caption = paste0(overall_burnt, ' % Burnt Overall')) +
+    
+    ylim(c(ymin, ymax)) +
+    
+    theme(plot.margin     = unit(c(1.5, 1.5, 1.5, 1.5), "cm"),
+          plot.title      = element_text(vjust = 5, size = tsize, face = "bold"),
+          axis.text.x     = element_text(size  = xsize),
+          axis.title.x    = element_text(size  = xsize, face = "bold"),
+          legend.position = 'none',
+          
+          axis.title.y    = element_text(size = ysize, face = "bold"),
+          axis.text.y     = element_text(size = ysize, color = "black"),
+          plot.subtitle   = element_text(size = capt_size, hjust = 0.5, face = "italic", color="black"),
+          plot.caption    = element_text(size = capt_size, hjust = 0.5, face = "italic", color="black"))
+  
+  png(paste0(inv_fire_dir, save_name, '_SDM_VEG_intersect_Fire_Barplots.png'),
+      12, 6, units = 'in', res = 500)
+  plot(sdm_fire_veg_plot)
+  dev.off()
+  gc()
+  
+}
+
+
+## Graphs across all species ----
+
+## Group by burn category, Veg type and Invert type
+INVERT.TAXA.FESM.VEG.GROUP <- INVERT.FESM.VEG.TABLE %>% 
+  
+  ## group by Vegetation
+  group_by(Vegetation) %>% 
+  summarise(Average_burnt_area    = mean(Habitat_Veg_burnt_area),
+            Average_burnt_percent = mean(Habitat_Veg_burnt_perc)) %>% 
+  arrange(-Average_burnt_percent)
+
+
+INVERT.FAM.FESM.VEG.GROUP <- INVERT.FESM.VEG.TABLE.FAM %>% 
+  
+  ## group by Vegetation
+  group_by(Vegetation) %>% 
+  summarise(Average_burnt_area    = mean(Habitat_Veg_burnt_area),
+            Average_burnt_percent = mean(Habitat_Veg_burnt_perc)) %>% 
+  arrange(-Average_burnt_percent)
+
+
+INVERT.GEN.FESM.VEG.GROUP <- INVERT.FESM.VEG.TABLE.GEN %>% 
+  
+  ## group by Vegetation
+  group_by(Vegetation) %>% 
+  summarise(Average_burnt_area    = mean(Habitat_Veg_burnt_area),
+            Average_burnt_percent = mean(Habitat_Veg_burnt_perc)) %>% 
+  arrange(-Average_burnt_percent)
+
+
+INVERT.GEN.FESM.VEG.GROUP <- INVERT.FESM.VEG.TABLE.SPP %>% 
+  
+  ## group by Vegetation
+  group_by(Vegetation) %>% 
+  summarise(Average_burnt_area    = mean(Habitat_Veg_burnt_area),
+            Average_burnt_percent = mean(Habitat_Veg_burnt_perc)) %>% 
+  arrange(-Average_burnt_percent)
 
 
 
