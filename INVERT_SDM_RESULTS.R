@@ -35,6 +35,7 @@ ipak(sdmgen_packages)
 
 ## The functions expect these folders,
 inv_rs_dir           <- './output/invert_maxent_pbi_ala/'
+inv_back_dir         <- './output/invert_maxent_pbi_ala/back_sel_models/'
 inv_results_dir      <- './output/invert_maxent_pbi_ala/results/'
 inv_fire_dir         <- './output/invert_maxent_pbi_ala/Habitat_suitability/FESM_SDM_intersect/'
 
@@ -87,6 +88,7 @@ INVERT.FESM.list    <- list.files('./output/invert_maxent_pbi_ala/Habitat_suitab
                                   full.names  = TRUE, 
                                   recursive   = TRUE) 
 
+
 INVERT.FESM.VEG.list <- list.files('./output/invert_maxent_pbi_ala/Habitat_suitability/FESM_SDM_intersect/', 
                                    pattern     = 'VEG_intersect_Fire.csv', 
                                    full.names  = TRUE, 
@@ -136,12 +138,20 @@ INVERT.FESM.VEG.TABLE <- INVERT.FESM.VEG.list %>%
 ## Subset to just the analysis species - some species did not process properly?
 INVERT.FESM.TABLE <-  INVERT.FESM.TABLE[INVERT.FESM.TABLE$Taxa %in%
                                           sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)) , ] %>%
-  .[complete.cases(.), ]
+  .[complete.cases(.), ] %>% 
+  
+  mutate(Habitat_km2       = round(Habitat_km2, 1),
+         Habitat_burnt_km2 = round(Habitat_burnt_km2, 1),
+         Percent_burnt     = round(Percent_burnt, 1))
 
 
-INVERT.FESM.VEG.TABLE <-  INVERT.FESM.TABLE[INVERT.FESM.VEG.TABLE$Taxa %in%
+INVERT.FESM.VEG.TABLE <-  INVERT.FESM.VEG.TABLE[INVERT.FESM.VEG.TABLE$Taxa %in%
                                                sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)) , ] %>%
-  .[complete.cases(.), ]
+  .[complete.cases(.), ] %>% 
+  
+  mutate(Habitat_Veg_burnt_area = round(Habitat_Veg_burnt_area, 1),
+         Habitat_Veg_burnt_perc = round(Habitat_Veg_burnt_perc, 1))
+
 
 
 ## How many taxa have been processed?
@@ -166,8 +176,27 @@ INVERT.FESM.VEG.TABLE.SPP <- INVERT.FESM.VEG.TABLE %>% .[.$Taxa %in% target.inse
 write_csv(INVERT.FESM.TABLE,
           paste0(inv_results_dir, '/INVERT_TAXA_SDM_intersect_Fire_ALA_PBI.csv'))
 
+write_csv(INVERT.FESM.TABLE.FAM,
+          paste0(inv_results_dir, '/INVERT_FAM_SDM_intersect_Fire_ALA_PBI.csv'))
+
+write_csv(INVERT.FESM.TABLE.GEN,
+          paste0(inv_results_dir, '/INVERT_GEN_SDM_intersect_Fire_ALA_PBI.csv'))
+
+write_csv(INVERT.FESM.TABLE.SPP,
+          paste0(inv_results_dir, '/INVERT_SPP_SDM_intersect_Fire_ALA_PBI.csv'))
+
+
 write_csv(INVERT.FESM.VEG.TABLE,
           paste0(inv_results_dir, '/INVERT_TAXA_SDM_VEG_intersect_Fire_ALA_PBI.csv'))
+
+write_csv(INVERT.FESM.VEG.TABLE.FAM,
+          paste0(inv_results_dir, '/INVERT_FAM_SDM_VEG_intersect_Fire_ALA_PBI.csv'))
+
+write_csv(INVERT.FESM.VEG.TABLE.GEN,
+          paste0(inv_results_dir, '/INVERT_GEN_SDM_VEG_intersect_Fire_ALA_PBI.csv'))
+
+write_csv(INVERT.FESM.VEG.TABLE.SPP,
+          paste0(inv_results_dir, '/INVERT_SPP_SDM_VEG_intersect_Fire_ALA_PBI.csv'))
 
 
 
@@ -262,6 +291,20 @@ for(taxa in INVERT.FESM.TABLE$Taxa) {
 }
 
 
+## 
+tsize     = 30
+capt_size = 20
+xsize     = 20
+ysize     = 20
+ycol      = 'black'
+lab_size  = 8
+
+ymin      = 0 
+axis_multiplier = 0.2
+ylab  = '\nPercent (%)\n'
+xlab  = ''
+
+
 ## Graphs of the % burnt in each Vegetation type
 for(taxa in unique(INVERT.FESM.VEG.TABLE$Taxa)) {
   
@@ -273,10 +316,14 @@ for(taxa in unique(INVERT.FESM.VEG.TABLE$Taxa)) {
   bar_df        <- INVERT.FESM.VEG.TABLE %>% filter(Taxa == taxa) %>% 
     mutate(Habitat_Veg_burnt_perc = round(Habitat_Veg_burnt_perc, 2))
   bar_df$Vegetation <- factor(bar_df$Vegetation, 
-                              levels = bar_df$Vegetation[order(bar_df$Habitat_Veg_burnt_perc, decreasing = TRUE)])
+                              levels = bar_df$Vegetation[order(bar_df$Habitat_Veg_burnt_perc, 
+                                                               decreasing = TRUE)])
   
+  overall_burnt <- INVERT.FESM.TABLE %>% filter(Taxa == taxa) %>% 
+    .$Percent_burn %>% round(., 2)
   
-  overall_burnt <- INVERT.FESM.TABLE %>% filter(Taxa == taxa) %>% .$Percent_burn %>% round(., 2)
+  area_burnt    <- INVERT.FESM.TABLE %>% filter(Taxa == taxa) %>% 
+    .$Habitat_burnt_km2 %>% round(., 0)
   
   ##
   ymax = max(bar_df$Habitat_Veg_burnt_perc) + 
@@ -307,7 +354,8 @@ for(taxa in unique(INVERT.FESM.VEG.TABLE$Taxa)) {
     ylab('Percentage (%) Burnt') +
     ggtitle(taxa) +
     xlab('') +
-    labs(caption = paste0(overall_burnt, ' % Burnt Overall')) +
+    labs(caption = paste0(overall_burnt, ' % Burnt overall (', 
+                          area_burnt, ' km2)')) +
     
     ylim(c(ymin, ymax)) +
     
@@ -403,6 +451,7 @@ for(taxa in unique(INVERT.FESM.VEG.TABLE$Taxa)) {
 ## Graphs across all species ----
 
 ## Group by burn category, Veg type and Invert type
+## Thes will all be the same
 INVERT.TAXA.FESM.VEG.GROUP <- INVERT.FESM.VEG.TABLE %>% 
   
   ## group by Vegetation
@@ -437,6 +486,8 @@ INVERT.GEN.FESM.VEG.GROUP <- INVERT.FESM.VEG.TABLE.SPP %>%
   summarise(Average_burnt_area    = mean(Habitat_Veg_burnt_area),
             Average_burnt_percent = mean(Habitat_Veg_burnt_perc)) %>% 
   arrange(-Average_burnt_percent)
+
+
 
 
 

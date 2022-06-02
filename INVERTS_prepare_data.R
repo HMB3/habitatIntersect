@@ -211,6 +211,14 @@ rm(Insects_ALA_1)
 rm(Insects_ALA_2)
 
 
+'Asteron'         %in% unique(ALA.LAND.INV.SPP$searchTaxon)
+'Graycassis'      %in% unique(ALA.LAND.INV.SPP$searchTaxon)
+'Venatrix'        %in% unique(ALA.LAND.INV.SPP$searchTaxon)
+'Mysticarion'     %in% unique(ALA.LAND.INV.SPP$searchTaxon)
+'Austrochloritis' %in% unique(ALA.LAND.INV.SPP$searchTaxon)
+'Diphyoropa'      %in% unique(ALA.LAND.INV.SPP$searchTaxon)
+
+
 
 ALA_LAND_INV_SPP_sf <- SpatialPointsDataFrame(coords      = ALA.LAND.INV.SPP %>% 
                                                 dplyr::select(lon, lat) %>% as.matrix(),
@@ -483,6 +491,14 @@ unique(SDM.SPAT.OCC.BG.GDA$searchTaxon) %in% target.insect.spp      %>% table()
 unique(SDM.SPAT.OCC.BG.GDA$searchTaxon) %in% target.insect.genera   %>% table()
 unique(SDM.SPAT.OCC.BG.GDA$searchTaxon) %in% target.insect.families %>% table()
 
+
+## Look for missing taxa 
+'Asteron'         %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)
+'Graycassis'      %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)
+'Venatrix'        %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)
+'Mysticarion'     %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)
+'Austrochloritis' %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)
+'Diphyoropa'      %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)
 
 
 ## Also save a big table of just the background taxa
