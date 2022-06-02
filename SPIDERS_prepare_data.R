@@ -32,6 +32,8 @@ ipak <- function(pkg){
   sapply(pkg, require, character.only = TRUE)
 }
 
+'%!in%' <- function(x,y)!('%in%'(x,y))
+
 
 ## Load packages
 #devtools::install_github("HMB3/nenswniche")
@@ -99,7 +101,7 @@ terraOptions(memfrac = 0.9,
 
 
 coord_clean <- FALSE
-save_name   <- 'ALL_SPIDER_TAXA_ALA_PBI'
+save_name   <- 'ALL_SPIDER_TAXA_ALA_PBI_SITES'
 
 
 # STEP 1 :: Get spp lists ----
@@ -147,16 +149,95 @@ taxa_remain <- sdm_taxa %>%
   dplyr::select(Taxa) %>% 
   .$Taxa %>% sort() 
 
+
 taxa_done <- sdm_taxa %>% 
   filter(Size > 0) %>%
   dplyr::select(Taxa) %>% 
   .$Taxa %>% sort()
 
+
 taxa_difference <- c(taxa_remain, species_remain) %>% unique() %>% sort()
-intersect(analysis_taxa, taxa_difference) %>% sort() 
+intersect(analysis_taxa, taxa_difference) %>% sort()
+
+
+site_cols <- c("genus", 
+               "species", 
+               "family",
+               "Host_Genus",
+               "Host_species",
+               "plantTaxon",
+               "lat", 
+               "lon", 
+               "country", 
+               "state",
+               "locality",
+               "institutionCode", 
+               "basisOfRecord")
+
+
+PBI_AUS_SITES <- read_tsv(file      = './data/Taxonomy/PBI_updated_dump_sorted.tsv', 
+                          col_names = TRUE) %>% 
+  
+  ## Now clean up the data so it can be combined with the ALA
+  mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>%
+  dplyr::rename(genus           = Genus,
+                locality        = Locality,
+                country         = Country,
+                family          = Family,
+                lat             = Lat,
+                lon             = Lon,
+                institutionCode = Inst_Code,
+                recordedBy      = Collector,
+                state           = State_Prov,
+                basisOfRecord   = Coll_Method) %>% 
+  
+  mutate(plantTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
+  
+  ## Change this to the order of the clean columns   
+  dplyr::select(searchTaxon, one_of(site_cols))
+
+
+
+
+## What are the taxa in the PBI sites
+SITE_spp    <- PBI_AUS_SITES$searchTaxon %>% unique() %>% sort()
+SITE_genus  <- PBI_AUS_SITES$genus       %>% unique() %>% sort()
+SITE_family <- PBI_AUS_SITES$family      %>% unique() %>% sort()
+
+
+re_analyse_spp  <- intersect(analysis_taxa, SITE_spp)
+re_analyse_gen  <- intersect(analysis_taxa, SITE_genus)
+re_analyse_fam  <- intersect(analysis_taxa, SITE_family)
+re_analyse_taxa <- c(re_analyse_spp, re_analyse_gen, re_analyse_fam) %>% sort()
   
   
-  # STEP 2 :: Combine taxa occurrence data ----
+## only get the old site data that doesn't overlap with the new site data
+PBI_AUS_UNIQUE <- PBI_AUS %>% 
+  
+  filter(searchTaxon %!in% re_analyse_taxa)
+
+
+PBI_AUS_SITES_UNIQUE <- bind_rows(PBI_AUS_UNIQUE,
+                                  PBI_AUS_SITES)
+
+
+## Get bad spider records
+bad_spiders      <- read_csv('./data/ALA/Spiders/suspect_spider_records.csv')
+bad_spiders_spdf <- SpatialPointsDataFrame(coords      = bad_spiders %>% 
+                                             dplyr::select(lon, lat) %>% as.matrix(),
+                                           data        = bad_spiders,
+                                           proj4string = CRS("+init=epsg:4326")) %>%
+  
+  st_as_sf() %>% 
+  st_transform(., st_crs(3577))
+
+bad_spiders_coord  <- st_coordinates(bad_spiders_spdf)
+bad_spiders_spdf$X <- bad_spiders_coord[,"X"]
+bad_spiders_spdf$Y <- bad_spiders_coord[,"Y"]
+bad_spiders_spdf <- bad_spiders_spdf %>% dplyr::select(-lat, -lon)
+
+
+# STEP 2 :: Combine taxa occurrence data ----
 
 
 ## 250m Climate, Soil and terrain variables
@@ -246,7 +327,7 @@ ALA_LAND_INV_SPP_sf <- SpatialPointsDataFrame(coords      = ALA.LAND.SPID.SPP %>
 
 ## Prepare site data 
 ## Combine all the site data into one table
-all_insect_pbi <- PBI_AUS %>%
+all_insect_pbi_site <- PBI_AUS_SITES_UNIQUE %>%
   
   ## Remove the NA coordinates, and add a 'SOURCE' column
   completeFun(., c('lat', 'lon')) %>% 
@@ -255,16 +336,16 @@ all_insect_pbi <- PBI_AUS %>%
 
 
 ## Create a SPDF for the SITE Data
-all_insect_pbi_sf <- SpatialPointsDataFrame(coords      = all_insect_pbi %>% 
+all_insect_pbi_site_sf <- SpatialPointsDataFrame(coords      = all_insect_pbi_site %>% 
                                               dplyr::select(lon, lat) %>% as.matrix(),
-                                            data        = all_insect_site_df_species,
+                                            data        = all_insect_pbi_site,
                                             proj4string = CRS("+init=epsg:4326")) %>%
   
   st_as_sf() %>% 
   st_transform(., st_crs(4326))
 
 
-COMBO.RASTER.PBI.SPP <- combine_records_extract(records_df       = all_insect_pbi_sf,
+COMBO.RASTER.PBI.SPP <- combine_records_extract(records_df       = all_insect_pbi_site_sf,
                                                 add_sites        = FALSE,
                                                 filter_taxo      = FALSE,
                                                 
@@ -273,7 +354,7 @@ COMBO.RASTER.PBI.SPP <- combine_records_extract(records_df       = all_insect_pb
                                                 template_raster  = template_raster_250m,
                                                 world_raster     = aus.climate.veg.grids.250m,
                                                 epsg             = 4326,
-                                                taxa_list        = analysis_taxa,
+                                                taxa_list        = taxa_difference,
                                                 taxa_level       = 'family',   
                                                 
                                                 ## This might need to change too
@@ -295,13 +376,15 @@ COMBO_RASTER_PBI_SPP_sf <- SpatialPointsDataFrame(coords      = COMBO.RASTER.PBI
 ## Genera
 COMBO.RASTER.PBI.GEN <- COMBO.RASTER.PBI.SPP %>%
   dplyr::select(-searchTaxon) %>% 
-  dplyr::rename(searchTaxon = genus) %>% dplyr::select(searchTaxon, everything())
+  dplyr::rename(searchTaxon = genus) %>% 
+  dplyr::select(searchTaxon, everything())
 
 
 ## Families
 COMBO.RASTER.PBI.FAM <- COMBO.RASTER.PBI.SPP %>%
   dplyr::select(-searchTaxon)  %>% 
-  dplyr::rename(searchTaxon = family) %>% dplyr::select(searchTaxon, everything())
+  dplyr::rename(searchTaxon = family) %>% 
+  dplyr::select(searchTaxon, everything())
 
 
 COMBO.SPP.GEN.FAM.PBI <- bind_rows(COMBO.RASTER.PBI.SPP,
@@ -332,7 +415,7 @@ COMBO.RASTER.ALA.SPP = combine_records_extract(records_df       = ALA_LAND_INV_S
                                                template_raster  = template_raster_250m,
                                                world_raster     = aus.climate.veg.grids.250m,
                                                epsg             = 4326,
-                                               taxa_list        = target.insect.families,
+                                               taxa_list        = taxa_difference,
                                                taxa_level       = NA,   
                                                
                                                ## This might need to change too
@@ -369,7 +452,6 @@ gc()
 
 ## Now bind the ALA and PBI tables together
 COMBO.SPP.GEN.FAM.ALA.PBI <- bind_rows(COMBO.SPP.GEN.FAM.ALA, COMBO.SPP.GEN.FAM.PBI)
-
 rm(COMBO.SPP.GEN.FAM.ALA)
 rm(COMBO.SPP.GEN.FAM.PBI)
 gc()
@@ -382,12 +464,12 @@ gc()
 
 
 ##
-GLOB.NICHE.ALL = calc_enviro_niches(coord_df     = COMBO.SPP.GEN.FAM.ALA.PBI %>% .[.$searchTaxon %in% analysis_taxa, ],
+GLOB.NICHE.ALL = calc_enviro_niches(coord_df     = COMBO.SPP.GEN.FAM.ALA.PBI %>% .[.$searchTaxon %in% taxa_difference, ],
                                     prj          = CRS("+init=epsg:4326"),
                                     country_shp  = AUS,
                                     world_shp    = LAND,
                                     kop_shp      = Koppen_shp,
-                                    taxa_list    = analysis_taxa,
+                                    taxa_list    = taxa_difference,
                                     env_vars     = names(aus.climate.veg.grids.250m),
                                     cell_size    = 2,
                                     save_data    = TRUE,
@@ -395,7 +477,7 @@ GLOB.NICHE.ALL = calc_enviro_niches(coord_df     = COMBO.SPP.GEN.FAM.ALA.PBI %>%
                                     data_path    = inv_results_dir)
 
 
-plot_range_histograms(coord_df     = COMBO.SPP.GEN.FAM.ALA.PBI %>% .[.$searchTaxon %in% analysis_taxa, ],
+plot_range_histograms(coord_df     = COMBO.SPP.GEN.FAM.ALA.PBI %>% .[.$searchTaxon %in% taxa_difference, ],
                       taxa_list    = target.insect.genera,
                       range_path   = check_dir)
 
@@ -442,7 +524,7 @@ if(coord_clean) {
 
 ## Combine occ data with the bg data 
 SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD_CLEAN_sf,
-                                         taxa_list         = analysis_taxa,
+                                         taxa_list         = taxa_difference,
                                          
                                          site_flag         = 'SITE',
                                          occ_flag          = 'ALA',
@@ -474,14 +556,21 @@ SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD_CLEAN_sf,
 
 ## Create subset of target reptiles
 ## Save each taxa as an individual shapefile
-# SDM.SPAT.OCC.BG.GDA = readRDS('./output/invert_maxent_pbi_ala/results/SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds')
-SDM.SPAT.OCC.BG.TARG.SPID    <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysis_taxa, ]
+SDM.SPAT.OCC.BG.GDA          <- readRDS(paste0(inv_results_dir, '/SDM_SPAT_OCC_BG_ALL_SPIDER_TAXA_ALA_PBI_SITES.rds'))
+
+
+SDM.SPAT.OCC.BG.TARG.SPID    <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% taxa_difference, ]
 SDM.SPAT.OCC.BG.TARG.SPID.SF <- SDM.SPAT.OCC.BG.TARG.SPID %>% st_as_sf()
+thead <- SDM.SPAT.OCC.BG.TARG.SPID.SF %>% head(., 10)
 
 
-st_write(SDM.SPAT.OCC.BG.TARG.SPID %>% st_as_sf(), 
+suspect_spiders <- st_intersection(SDM.SPAT.OCC.BG.TARG.SPID.SF, bad_spiders_spdf)
+dim(suspect_spiders)
+
+
+st_write(SDM.SPAT.OCC.BG.TARG.SPID.SF %>% st_as_sf(), 
          dsn   = paste0(inv_results_dir, save_name, '.gpkg'), 
-         layer = 'SDM_TARGET_INVERT_TAXA', 
+         layer = 'SDM_TARGET_SPIDER_TAXA', 
          quiet = TRUE)
 
 gc()
@@ -498,13 +587,8 @@ message('sdm data preparation code successfuly run')
 
 ## Check the species data - 34 target species are in the final data
 ## These then drop out due to cross-validation, etc. 
-SDM.SPAT.OCC.BG.GDA    <- readRDS(paste0(inv_results_dir,   
-                                         'SDM_SPAT_OCC_BG_ALL_INVERT_TAXA_ALA_PBI.rds'))
-
-
-unique(SDM.SPAT.OCC.BG.GDA$searchTaxon) %in% target.insect.spp      %>% table()
-unique(SDM.SPAT.OCC.BG.GDA$searchTaxon) %in% target.insect.genera   %>% table()
-unique(SDM.SPAT.OCC.BG.GDA$searchTaxon) %in% target.insect.families %>% table()
+# SDM.SPAT.OCC.BG.GDA    <- readRDS(paste0(inv_results_dir,   
+#                                          'SDM_SPAT_OCC_BG_ALL_INVERT_TAXA_ALA_PBI.rds'))
 
 
 ## Look for missing taxa 
@@ -516,57 +600,25 @@ unique(SDM.SPAT.OCC.BG.GDA$searchTaxon) %in% target.insect.families %>% table()
 'Diphyoropa'      %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)
 
 
-## Also save a big table of just the background taxa
-SDM.SPAT.OCC.BG.TARG.GDA <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysis_taxa, ]
-SDM.SPAT.OCC.BG.TARG.FAM <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% target.insect.families, ]
-SDM.SPAT.OCC.BG.TARG.GEN <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% target.insect.genera, ]
-SDM.SPAT.OCC.BG.TARG.SPP <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% target.insect.spp, ]
-
-
-st_write(SDM.SPAT.OCC.BG.TARG.FAM %>% st_as_sf(), 
-         dsn   = file.path(getwd(), 
-                           paste0(inv_results_dir, 'SDM_ALL_INVERT_FAMILIES_ALA_PBI.gpkg')), 
-         layer = 'SDM_TARGET_INVERT_FAMILIES', 
-         quiet = TRUE)
-
-
-st_write(SDM.SPAT.OCC.BG.TARG.GEN %>% st_as_sf(), 
-         dsn   = file.path(getwd(), paste0(inv_results_dir, 'SDM_ALL_INVERT_GENERA_ALA_PBI.gpkg')), 
-         layer = 'SDM_TARGET_INVERT_GENERA', 
-         quiet = TRUE)
-
-
-st_write(SDM.SPAT.OCC.BG.TARG.SPP %>% st_as_sf(), 
-         dsn   = file.path(getwd(), paste0(inv_results_dir, 'SDM_ALL_INVERT_SPECIES_ALA_PBI.gpkg')), 
-         layer = 'SDM_TARGET_INVERT_SPECIES', 
-         quiet = TRUE)
-
-
-st_write(SDM.SPAT.OCC.BG.TARG.GDA %>% st_as_sf(), 
-         dsn   = file.path(getwd(), paste0(inv_results_dir, 'SDM_ALL_INVERT_TAXA_ALA_PBI.gpkg')), 
-         layer = 'SDM_TARGET_INVERT_TAXA', 
-         quiet = TRUE)
-
-
 ## Loop through families
-for(taxa in target.insect.families) {
+for(taxa in taxa_difference) {
   
   ## 
-  if(taxa %in% unique(SDM.SPAT.OCC.BG.TARG.GDA$searchTaxon)) {
+  if(taxa %in% unique(SDM.SPAT.OCC.BG.TARG.SPID$searchTaxon)) {
     
     taxa_shp <- paste0(inv_records_dir,
-                       taxa, '_SDM_ALA_PBI_points.shp')
+                       taxa, '_SDM_ALA_PBI_SITE_points.shp')
     
     if(!file.exists(taxa_shp)) {
       
       message('Subsetting ', taxa, ' shapefile and geo-package layers')
-      taxa_occ <- SDM.SPAT.OCC.BG.TARG.GDA %>% .[.$searchTaxon %in% taxa, ]
+      taxa_occ <- SDM.SPAT.OCC.BG.TARG.SPID %>% .[.$searchTaxon %in% taxa, ]
       
       st_write(taxa_occ %>% st_as_sf(), 
-               paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_POINTS.shp'))
+               paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_SITE_POINTS.shp'))
       
       st_write(taxa_occ %>% st_as_sf(), 
-               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA_ALA_PBI.gpkg'), 
+               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA_ALA_PBI_SITES.gpkg'), 
                layer = paste0(taxa, '_SDM_points'), 
                quiet = TRUE)
       
@@ -577,74 +629,6 @@ for(taxa in target.insect.families) {
     message(taxa, ' has no data')}
 }
 
-
-
-## Loop through genera
-for(taxa in target.insect.genera) {
-  
-  ## 
-  if(taxa %in% unique(SDM.SPAT.OCC.BG.TARG.GDA$searchTaxon)) {
-    
-    taxa_shp <- paste0(inv_records_dir,
-                       taxa, '_SDM_ALA_PBI_points.shp')
-    
-    if(!file.exists(taxa_shp)) {
-      
-      message('Subsetting ', taxa, ' shapefile and geo-package layers')
-      taxa_occ <- SDM.SPAT.OCC.BG.TARG.GDA %>% .[.$searchTaxon %in% taxa, ]
-      
-      st_write(taxa_occ %>% st_as_sf(), 
-               paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_points.shp'))
-      
-      st_write(taxa_occ %>% st_as_sf(), 
-               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA__ALA_PBI.gpkg'), 
-               layer = paste0(taxa, '_SDM_points'), 
-               quiet = TRUE)
-      
-    } else {
-      message(taxa, ' SDM .shp already exists')}
-    
-  } else {
-    message(taxa, ' has no data')}
-}
-
-
-
-
-
-## Loop through species
-for(taxa in target.insect.spp) {
-  
-  ## taxa = target.insect.spp[79] 
-  if(taxa %in% unique(SDM.SPAT.OCC.BG.TARG.GDA$searchTaxon)) {
-    
-    taxa_shp <- paste0(inv_records_dir,
-                       taxa, '_SDM_ALA_PBI_points.shp')
-    
-    if(!file.exists(taxa_shp)) {
-      
-      message('Subsetting ', taxa, ' shapefile and geo-package layers')
-      taxa_occ <- SDM.SPAT.OCC.BG.TARG.GDA %>% .[.$searchTaxon %in% taxa, ]
-      
-      st_write(taxa_occ %>% st_as_sf(), 
-               paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_points.shp'))
-      
-      st_write(taxa_occ %>% st_as_sf(), 
-               dsn = paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_points.gpkg'), 
-               layer = paste0(taxa, '_SDM_points'), 
-               quiet = TRUE)
-      
-      st_write(taxa_occ %>% st_as_sf(), 
-               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA_ALA_PBI.gpkg'), 
-               layer = paste0(taxa, '_SDM_points'), 
-               quiet = TRUE)
-      
-    } else {
-      message(taxa, ' SDM .shp already exists')}
-    
-  } else {
-    message(taxa, ' has no data')}
-}
 
 
 ## END =============================================================

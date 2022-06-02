@@ -2162,8 +2162,8 @@ prepare_sdm_table = function(coord_df,
   
   ## Convert lat/lon to eastings and northings for projected coordinate system
   SDM.COORDS     <- st_coordinates(SDM.DATA.ALL)
-  SDM.DATA.ALL$X <- SDM.COORDS$X
-  SDM.DATA.ALL$Y <- SDM.COORDS$Y
+  SDM.DATA.ALL$X <- SDM.COORDS[,"X"]
+  SDM.DATA.ALL$Y <- SDM.COORDS[,"Y"]
   
   ## Create a unique identifier for spatial cleaning.
   ## This is used for automated cleaning of the records, and also saving shapefiles
@@ -2324,7 +2324,8 @@ prepare_sdm_table = function(coord_df,
     
     ## Save .rds file of the occurrence and BG points for the next session
     saveRDS(SDM.SPAT.OCC.BG,   paste0(data_path, 'SDM_SPAT_OCC_BG_',  save_run, '.rds'))
-    write_csv(SDM.SPAT.OCC.BG, paste0(data_path, 'SDM_SPAT_OCC_BG_',  save_run, '.csv'))
+    
+    # write_csv(SDM.SPAT.OCC.BG, paste0(data_path, 'SDM_SPAT_OCC_BG_',  save_run, '.csv'))
     
     # st_write(SDM.SPAT.OCC.BG,
     #          dsn    = paste0(data_path, 'SDM_SPAT_OCC_BG_',  save_run, '.gpkg'),

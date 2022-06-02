@@ -260,9 +260,9 @@ all_insect_pbi_sites <- PBI_AUS_SITES_UNIQUE %>%
 
 ## Create a SPDF for the SITE Data
 all_insect_pbi_sites_sf <- SpatialPointsDataFrame(coords      = all_insect_pbi_sites %>% 
-                                              dplyr::select(lon, lat) %>% as.matrix(),
-                                            data        = all_insect_site_df_species,
-                                            proj4string = CRS("+init=epsg:4326")) %>%
+                                                    dplyr::select(lon, lat) %>% as.matrix(),
+                                                  data        = all_insect_pbi_sites,
+                                                  proj4string = CRS("+init=epsg:4326")) %>%
   
   st_as_sf() %>% 
   st_transform(., st_crs(4326))
@@ -328,7 +328,7 @@ gc()
 if(coord_clean) {
   
   message('clean coordinates')
-  COORD.CLEAN = coord_clean_records(records      = COMBO.SPP.GEN.FAM.ALA.PBI,
+  COORD.CLEAN = coord_clean_records(records      = COMBO.SPP.GEN.FAM.PBI,
                                     site_flag    = 'SITE',
                                     occ_flag     = 'ALA',
                                     multi_source = TRUE,
@@ -350,10 +350,10 @@ if(coord_clean) {
   
 } else {
   message('do not clean coordinates')
-  COMBO.SPP.GEN.FAM.ALA.PBI$coord_summary <- TRUE
-  COORD_CLEAN_sf <- SpatialPointsDataFrame(coords      = COMBO.SPP.GEN.FAM.ALA.PBI %>% 
+  COMBO.SPP.GEN.FAM.PBI$coord_summary <- TRUE
+  COORD_CLEAN_sf <- SpatialPointsDataFrame(coords      = COMBO.SPP.GEN.FAM.PBI %>% 
                                              dplyr::select(lon, lat) %>% as.matrix(),
-                                           data        = COMBO.SPP.GEN.FAM.ALA.PBI,
+                                           data        = COMBO.SPP.GEN.FAM.PBI,
                                            proj4string = CRS("+init=epsg:4326")) %>%
     
     st_as_sf() %>% 
@@ -362,47 +362,52 @@ if(coord_clean) {
 
 
 ## Combine occ data with the bg data 
-SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD_CLEAN_sf,
-                                         taxa_list         = analysis_taxa,
-                                         
-                                         site_flag         = 'SITE',
-                                         occ_flag          = 'ALA',
-                                         spat_out_remove   = FALSE,
-                                         site_split        = FALSE,
-                                         
-                                         sdm_table_vars    = c('searchTaxon', 
-                                                               'species',  
-                                                               'genus', 
-                                                               'family',
-                                                               'order',
-                                                               'class',                         
-                                                               'phylum',                        
-                                                               'kingdom',
-                                                               'lon',      
-                                                               'lat',
-                                                               'year',
-                                                               'SOURCE', 
-                                                               'SPAT_OUT',
-                                                               names(aus.climate.veg.grids.250m)),
-                                         
-                                         save_run          = save_name,
-                                         read_background   = FALSE,
-                                         country_epsg      = 3577,
-                                         world_epsg        = "+init=epsg:4326",
-                                         save_data         = TRUE,
-                                         data_path         = inv_results_dir)
+SDM.DATA.ALL <- COORD_CLEAN_sf %>%
+  
+  dplyr::mutate(SPAT_OUT = 'TRUE',
+                order    = '',
+                class    = '',
+                phylum   = '',
+                kingdom  = '',
+                year     = 2021) %>% 
+  
+  dplyr::select(one_of(c('searchTaxon', 
+                         'species',  
+                         'genus', 
+                         'family',
+                         'order',
+                         'class',                         
+                         'phylum',                        
+                         'kingdom',
+                         'lon',      
+                         'lat',
+                         'year',
+                         'SOURCE', 
+                         'SPAT_OUT',
+                         names(aus.climate.veg.grids.250m)))) %>% 
+
+  st_transform(., st_crs(3577)) %>% 
+  dplyr::select(-lat, -lon)
+
+
+## Convert lat/lon to eastings and northings for projected coordinate system
+SDM.COORDS     <- st_coordinates(SDM.DATA.ALL)
+SDM.DATA.ALL$X <- SDM.COORDS[,"X"]
+SDM.DATA.ALL$Y <- SDM.COORDS[,"Y"]
+
+
+
 
 
 ## Create subset of target reptiles
 ## Save each taxa as an individual shapefile
-# SDM.SPAT.OCC.BG.GDA = readRDS('./output/invert_maxent_pbi_ala/results/SDM_SPAT_OCC_BG_ALL_TARGET_INSECT_TAXA.rds')
-SDM.SPAT.OCC.BG.TARG.INV    <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysis_taxa, ]
-SDM.SPAT.OCC.BG.TARG.INV.SF <- SDM.SPAT.OCC.BG.TARG.INV %>% st_as_sf()
+saveRDS(SDM.DATA.ALL,   paste0(inv_results_dir, 'SDM_SPAT_OCC_BG_',  save_run, '.rds'))
+write_csv(SDM.DATA.ALL, paste0(inv_results_dir, 'SDM_SPAT_OCC_BG_',  save_run, '.csv'))
 
 
-st_write(SDM.SPAT.OCC.BG.TARG.INV %>% st_as_sf(), 
+st_write(SDM.DATA.ALL %>% st_as_sf(), 
          dsn   = paste0(inv_results_dir, save_name, '.gpkg'), 
-         layer = 'SDM_TARGET_INVERT_TAXA', 
+         layer = 'SDM_TARGET_INVERT_TAXA_PBI_SITES', 
          quiet = TRUE)
 
 gc()
@@ -420,17 +425,17 @@ message('sdm data preparation code successfuly run')
 ## Check the species data - 34 target species are in the final data
 ## These then drop out due to cross-validation, etc. 
 SDM.SPAT.OCC.BG.GDA    <- readRDS(paste0(inv_results_dir,   
-                                         'SDM_SPAT_OCC_BG_ALL_INVERT_TAXA_ALA_PBI.rds'))
+                                         'SDM_SPAT_OCC_BG_ALL_INVERT_TAXA_ALA_PBI_SITES.rds'))
 
 
 
 
 
-# Prepare niches ----
+# Calc updated niches with new data ----
 
 
 ##
-GLOB.NICHE.ALL = calc_enviro_niches(coord_df     = COMBO.SPP.GEN.FAM.ALA.PBI %>% .[.$searchTaxon %in% analysis_taxa, ],
+GLOB.NICHE.ALL = calc_enviro_niches(coord_df     = COMBO.SPP.GEN.FAM.PBI %>% .[.$searchTaxon %in% analysis_taxa, ],
                                     prj          = CRS("+init=epsg:4326"),
                                     country_shp  = AUS,
                                     world_shp    = LAND,
@@ -443,7 +448,7 @@ GLOB.NICHE.ALL = calc_enviro_niches(coord_df     = COMBO.SPP.GEN.FAM.ALA.PBI %>%
                                     data_path    = inv_results_dir)
 
 
-plot_range_histograms(coord_df     = COMBO.SPP.GEN.FAM.ALA.PBI %>% .[.$searchTaxon %in% analysis_taxa, ],
+plot_range_histograms(coord_df     = COMBO.SPP.GEN.FAM.PBI %>% .[.$searchTaxon %in% analysis_taxa, ],
                       taxa_list    = target.insect.genera,
                       range_path   = check_dir)
 
@@ -472,25 +477,25 @@ SDM.SPAT.OCC.BG.TARG.SPP <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% target.
 
 st_write(SDM.SPAT.OCC.BG.TARG.FAM %>% st_as_sf(), 
          dsn   = file.path(getwd(), 
-                           paste0(inv_results_dir, 'SDM_ALL_INVERT_FAMILIES_ALA_PBI.gpkg')), 
+                           paste0(inv_results_dir, 'SDM_ALL_INVERT_FAMILIES_ALA_PBI_SITES.gpkg')), 
          layer = 'SDM_TARGET_INVERT_FAMILIES', 
          quiet = TRUE)
 
 
 st_write(SDM.SPAT.OCC.BG.TARG.GEN %>% st_as_sf(), 
-         dsn   = file.path(getwd(), paste0(inv_results_dir, 'SDM_ALL_INVERT_GENERA_ALA_PBI.gpkg')), 
+         dsn   = file.path(getwd(), paste0(inv_results_dir, 'SDM_ALL_INVERT_GENERA_ALA_PBI_SITES.gpkg')), 
          layer = 'SDM_TARGET_INVERT_GENERA', 
          quiet = TRUE)
 
 
 st_write(SDM.SPAT.OCC.BG.TARG.SPP %>% st_as_sf(), 
-         dsn   = file.path(getwd(), paste0(inv_results_dir, 'SDM_ALL_INVERT_SPECIES_ALA_PBI.gpkg')), 
+         dsn   = file.path(getwd(), paste0(inv_results_dir, 'SDM_ALL_INVERT_SPECIES_ALA_PBI_SITES.gpkg')), 
          layer = 'SDM_TARGET_INVERT_SPECIES', 
          quiet = TRUE)
 
 
 st_write(SDM.SPAT.OCC.BG.TARG.GDA %>% st_as_sf(), 
-         dsn   = file.path(getwd(), paste0(inv_results_dir, 'SDM_ALL_INVERT_TAXA_ALA_PBI.gpkg')), 
+         dsn   = file.path(getwd(), paste0(inv_results_dir, 'SDM_ALL_INVERT_TAXA_ALA_PBI_SITES.gpkg')), 
          layer = 'SDM_TARGET_INVERT_TAXA', 
          quiet = TRUE)
 
@@ -502,7 +507,7 @@ for(taxa in target.insect.families) {
   if(taxa %in% unique(SDM.SPAT.OCC.BG.TARG.GDA$searchTaxon)) {
     
     taxa_shp <- paste0(inv_records_dir,
-                       taxa, '_SDM_ALA_PBI_points.shp')
+                       taxa, '_SDM_ALA_PBI_SITES_points.shp')
     
     if(!file.exists(taxa_shp)) {
       
@@ -510,10 +515,10 @@ for(taxa in target.insect.families) {
       taxa_occ <- SDM.SPAT.OCC.BG.TARG.GDA %>% .[.$searchTaxon %in% taxa, ]
       
       st_write(taxa_occ %>% st_as_sf(), 
-               paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_POINTS.shp'))
+               paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_SITES_POINTS.shp'))
       
       st_write(taxa_occ %>% st_as_sf(), 
-               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA_ALA_PBI.gpkg'), 
+               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA_ALA_PBI_SITES.gpkg'), 
                layer = paste0(taxa, '_SDM_points'), 
                quiet = TRUE)
       
@@ -533,7 +538,7 @@ for(taxa in target.insect.genera) {
   if(taxa %in% unique(SDM.SPAT.OCC.BG.TARG.GDA$searchTaxon)) {
     
     taxa_shp <- paste0(inv_records_dir,
-                       taxa, '_SDM_ALA_PBI_points.shp')
+                       taxa, '_SDM_ALA_PBI_SITES_points.shp')
     
     if(!file.exists(taxa_shp)) {
       
@@ -541,10 +546,10 @@ for(taxa in target.insect.genera) {
       taxa_occ <- SDM.SPAT.OCC.BG.TARG.GDA %>% .[.$searchTaxon %in% taxa, ]
       
       st_write(taxa_occ %>% st_as_sf(), 
-               paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_points.shp'))
+               paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_SITES_points.shp'))
       
       st_write(taxa_occ %>% st_as_sf(), 
-               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA__ALA_PBI.gpkg'), 
+               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA__ALA_PBI_SITES.gpkg'), 
                layer = paste0(taxa, '_SDM_points'), 
                quiet = TRUE)
       
@@ -566,7 +571,7 @@ for(taxa in target.insect.spp) {
   if(taxa %in% unique(SDM.SPAT.OCC.BG.TARG.GDA$searchTaxon)) {
     
     taxa_shp <- paste0(inv_records_dir,
-                       taxa, '_SDM_ALA_PBI_points.shp')
+                       taxa, '_SDM_ALA_PBI_SITES_points.shp')
     
     if(!file.exists(taxa_shp)) {
       
@@ -574,15 +579,15 @@ for(taxa in target.insect.spp) {
       taxa_occ <- SDM.SPAT.OCC.BG.TARG.GDA %>% .[.$searchTaxon %in% taxa, ]
       
       st_write(taxa_occ %>% st_as_sf(), 
-               paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_points.shp'))
+               paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_SITES_points.shp'))
       
       st_write(taxa_occ %>% st_as_sf(), 
-               dsn = paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_points.gpkg'), 
+               dsn = paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_SITES_points.gpkg'), 
                layer = paste0(taxa, '_SDM_points'), 
                quiet = TRUE)
       
       st_write(taxa_occ %>% st_as_sf(), 
-               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA_ALA_PBI.gpkg'), 
+               dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA_ALA_PBI_SITES.gpkg'), 
                layer = paste0(taxa, '_SDM_points'), 
                quiet = TRUE)
       
