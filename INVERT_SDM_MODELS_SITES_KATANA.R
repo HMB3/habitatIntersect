@@ -32,6 +32,8 @@ ipak <- function(pkg){
   sapply(pkg, require, character.only = TRUE)
 }
 
+'%!in%' <- function(x,y)!('%in%'(x,y))
+
 
 ## Load packages
 #devtools::install_github("HMB3/nenswniche")
@@ -139,7 +141,7 @@ gc()
 
 
 
-## 2). RUN SDM ANALYSIS =============================================================
+## 2). TAXA =============================================================
 
 
 
@@ -188,6 +190,50 @@ site_cols <- c("genus",
                "basisOfRecord")
 
 
+taxa_qc <- read_excel(paste0(inv_results_dir, 'SDM_target_species.xlsx'),
+                      sheet = 'Invert_QA_check')
+
+sdm_taxa <- read_excel(paste0(inv_results_dir, 'INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
+                       sheet = 'Missing_taxa')
+
+species_remain <- taxa_qc %>% 
+  filter(grepl("Missing", Note)) %>%
+  filter(is.na(Morpho)) %>%
+  dplyr::select(Binomial) %>% 
+  .$Binomial %>% sort()
+
+
+taxa_remain <- sdm_taxa %>% 
+  filter(Size == 0) %>%
+  dplyr::select(Taxa) %>% 
+  .$Taxa %>% sort() %>% gsub('_', ' ', .,)
+
+
+taxa_done <- sdm_taxa %>% 
+  filter(Size > 0) %>%
+  dplyr::select(Taxa) %>% 
+  .$Taxa %>% sort()
+
+
+taxa_difference <- c(taxa_remain, species_remain) %>% unique() %>% sort()
+intersect(analysis_taxa, taxa_difference) %>% sort()
+
+
+site_cols <- c("genus", 
+               "species", 
+               "family",
+               "Host_Genus",
+               "Host_species",
+               "plantTaxon",
+               "lat", 
+               "lon", 
+               "country", 
+               "state",
+               "locality",
+               "institutionCode", 
+               "basisOfRecord")
+
+
 PBI_AUS_SITES <- read_tsv(file      = './data/Taxonomy/PBI_updated_dump_sorted.tsv', 
                           col_names = TRUE) %>% 
   
@@ -210,6 +256,8 @@ PBI_AUS_SITES <- read_tsv(file      = './data/Taxonomy/PBI_updated_dump_sorted.t
   dplyr::select(searchTaxon, one_of(site_cols))
 
 
+
+
 ## What are the taxa in the PBI sites
 SITE_spp    <- PBI_AUS_SITES$searchTaxon %>% unique() %>% sort()
 SITE_genus  <- PBI_AUS_SITES$genus       %>% unique() %>% sort()
@@ -222,15 +270,28 @@ re_analyse_fam  <- intersect(analysis_taxa, SITE_family)
 re_analyse_taxa <- c(re_analyse_spp, re_analyse_gen, re_analyse_fam) %>% sort()
 
 
+## only get the old site data that doesn't overlap with the new site data
+PBI_AUS_UNIQUE <- PBI_AUS %>% 
+  
+  filter(searchTaxon %!in% re_analyse_taxa)
 
+
+PBI_AUS_SITES_UNIQUE <- bind_rows(PBI_AUS_UNIQUE,
+                                  PBI_AUS_SITES)
+
+
+
+
+
+## 3). RUN SDM ANALYSIS =============================================================
 
 
 ## Read in the SDM data
 SDM.SPAT.OCC.BG.GDA      <- readRDS(paste0(inv_results_dir,   
-                                            'SDM_SPAT_OCC_BG_ALL_INVERT_TAXA_ALA_PBI.rds'))
+                                           'SDM_SPAT_OCC_BG_ALL_INVERT_TAXA_ALA_PBI.rds'))
 
 drops <- c("SPOUT.OBS") # list of col names
-SDM.SPAT.OCC.BG.GDA      <- SDM.SPAT.OCC.BG.GDA[,!(names(SDM.SPAT.OCC.BG.GDA) %in% drops)] 
+SDM.SPAT.OCC.BG.GDA      <- SDM.SPAT.OCC.BG.GDA[,!(names(SDM.SPAT.OCC.BG.GDA) %in% drops)]
 
 
 SDM.SPAT.OCC.BG.SITE.GDA <- readRDS(paste0(inv_results_dir,   
@@ -239,19 +300,44 @@ SDM.SPAT.OCC.BG.SITE.GDA <- readRDS(paste0(inv_results_dir,
 
 
 SDM.SPAT.OCC.BG.SPID.GDA <- readRDS(paste0(inv_results_dir,   
-                                           'SDM_SPAT_OCC_BG_ALL_SPIDER_TAXA_ALA_PBI_SITES.rds')) %>% 
-  as_Spatial()
+                                           'SDM_SPAT_OCC_BG_ALL_SPIDER_TAXA_ALA_PBI_SITES.rds')) 
+SDM.SPAT.OCC.BG.SPID.GDA <- SDM.SPAT.OCC.BG.SPID.GDA[,!(names(SDM.SPAT.OCC.BG.SPID.GDA) %in% drops)]
 
 
 ## Bind them together
 SDM.SPAT.OCC.BG.PBI.SITE.GDA <- rbind(SDM.SPAT.OCC.BG.GDA,
-                                      SDM.SPAT.OCC.BG.SITE.GDA)
+                                      SDM.SPAT.OCC.BG.SITE.GDA,
+                                      SDM.SPAT.OCC.BG.SPID.GDA)
 
 
 ## What is the breakdown of spp?
 table(target.insect.spp      %in% SDM.SPAT.OCC.BG.PBI.SITE.GDA$searchTaxon)
 table(target.insect.genera   %in% SDM.SPAT.OCC.BG.PBI.SITE.GDA$searchTaxon)
 table(target.insect.families %in% SDM.SPAT.OCC.BG.PBI.SITE.GDA$searchTaxon)
+
+
+## Run family-level models for invertebrates.
+run_sdm_analysis_no_crop(taxa_list               = sort(taxa_difference),
+                         taxa_level              = 'species',
+                         maxent_dir              = inv_back_dir,
+                         bs_dir                  = inv_back_dir,
+                         sdm_df                  = SDM.SPAT.OCC.BG.PBI.SITE.GDA,
+                         sdm_predictors          = names(aus.climate.veg.grids.250m),
+                         
+                         backwards_sel           = TRUE,
+                         template_raster         = template_raster_250m,
+                         cor_thr                 = 0.8,
+                         pct_thr                 = 5,
+                         k_thr                   = 4,
+                         min_n                   = 10,
+                         max_bg_size             = 100000,
+                         background_buffer_width = 100000,
+                         feat_save               = TRUE,
+                         features                = 'lpq',
+                         replicates              = 5,
+                         responsecurves          = TRUE,
+                         poly_path               = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
+                         epsg                    = 3577)
 
 
 ## Run family-level models for invertebrates.
@@ -337,7 +423,7 @@ gc()
 
 
 
-## 3). PROJECT SDMs =============================================================
+## 4). PROJECT SDMs =============================================================
 
 
 # \
@@ -486,7 +572,7 @@ tryCatch(
 
 
 
-## 4). THRESHOLD SDMs =============================================================
+## 5). THRESHOLD SDMs =============================================================
 
 
 # \

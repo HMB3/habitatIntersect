@@ -209,8 +209,8 @@ re_analyse_spp  <- intersect(analysis_taxa, SITE_spp)
 re_analyse_gen  <- intersect(analysis_taxa, SITE_genus)
 re_analyse_fam  <- intersect(analysis_taxa, SITE_family)
 re_analyse_taxa <- c(re_analyse_spp, re_analyse_gen, re_analyse_fam) %>% sort()
-  
-  
+
+
 ## only get the old site data that doesn't overlap with the new site data
 PBI_AUS_UNIQUE <- PBI_AUS %>% 
   
@@ -235,6 +235,9 @@ bad_spiders_coord  <- st_coordinates(bad_spiders_spdf)
 bad_spiders_spdf$X <- bad_spiders_coord[,"X"]
 bad_spiders_spdf$Y <- bad_spiders_coord[,"Y"]
 bad_spiders_spdf <- bad_spiders_spdf %>% dplyr::select(-lat, -lon)
+
+
+
 
 
 # STEP 2 :: Combine taxa occurrence data ----
@@ -296,11 +299,11 @@ Spiders_ALA <- SPIDERS %>% dplyr::select(., -'verbatimElevation...81', -'verbati
 
 
 ALA.LAND.SPID.SPP <- format_ala_dump(ALA_table     = Spiders_ALA,
-                                    record_type   = "ALA",
-                                    keep_cols     = ALA_keep,
-                                    year_filt     = FALSE,
-                                    unique_cells  = FALSE,
-                                    world_raster  = aus_annual_precip)
+                                     record_type   = "ALA",
+                                     keep_cols     = ALA_keep,
+                                     year_filt     = FALSE,
+                                     unique_cells  = FALSE,
+                                     world_raster  = aus_annual_precip)
 
 rm(SPIDERS)
 rm(MOLLUSCS)
@@ -337,9 +340,9 @@ all_insect_pbi_site <- PBI_AUS_SITES_UNIQUE %>%
 
 ## Create a SPDF for the SITE Data
 all_insect_pbi_site_sf <- SpatialPointsDataFrame(coords      = all_insect_pbi_site %>% 
-                                              dplyr::select(lon, lat) %>% as.matrix(),
-                                            data        = all_insect_pbi_site,
-                                            proj4string = CRS("+init=epsg:4326")) %>%
+                                                   dplyr::select(lon, lat) %>% as.matrix(),
+                                                 data        = all_insect_pbi_site,
+                                                 proj4string = CRS("+init=epsg:4326")) %>%
   
   st_as_sf() %>% 
   st_transform(., st_crs(4326))
@@ -457,9 +460,6 @@ rm(COMBO.SPP.GEN.FAM.PBI)
 gc()
 
 
-
-
-
 # Prepare niches ----
 
 
@@ -478,7 +478,7 @@ GLOB.NICHE.ALL = calc_enviro_niches(coord_df     = COMBO.SPP.GEN.FAM.ALA.PBI %>%
 
 
 plot_range_histograms(coord_df     = COMBO.SPP.GEN.FAM.ALA.PBI %>% .[.$searchTaxon %in% taxa_difference, ],
-                      taxa_list    = target.insect.genera,
+                      taxa_list    = taxa_difference,
                       range_path   = check_dir)
 
 
@@ -522,6 +522,9 @@ if(coord_clean) {
 }
 
 
+
+
+
 ## Combine occ data with the bg data 
 SDM.SPAT.OCC.BG.GDA <- prepare_sdm_table(coord_df          = COORD_CLEAN_sf,
                                          taxa_list         = taxa_difference,
@@ -561,7 +564,6 @@ SDM.SPAT.OCC.BG.GDA          <- readRDS(paste0(inv_results_dir, '/SDM_SPAT_OCC_B
 
 SDM.SPAT.OCC.BG.TARG.SPID    <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% taxa_difference, ]
 SDM.SPAT.OCC.BG.TARG.SPID.SF <- SDM.SPAT.OCC.BG.TARG.SPID %>% st_as_sf()
-thead <- SDM.SPAT.OCC.BG.TARG.SPID.SF %>% head(., 10)
 
 
 suspect_spiders <- st_intersection(SDM.SPAT.OCC.BG.TARG.SPID.SF, bad_spiders_spdf)
@@ -592,12 +594,13 @@ message('sdm data preparation code successfuly run')
 
 
 ## Look for missing taxa 
-'Asteron'         %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)
-'Graycassis'      %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)
-'Venatrix'        %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)
-'Mysticarion'     %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)
-'Austrochloritis' %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)
-'Diphyoropa'      %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)
+'Asteron'         %in% unique(SDM.SPAT.OCC.BG.TARG.SPID$searchTaxon)
+'Graycassis'      %in% unique(SDM.SPAT.OCC.BG.TARG.SPID$searchTaxon)
+'Venatrix'        %in% unique(SDM.SPAT.OCC.BG.TARG.SPID$searchTaxon)
+'Mysticarion'     %in% unique(SDM.SPAT.OCC.BG.TARG.SPID$searchTaxon)
+'Austrochloritis' %in% unique(SDM.SPAT.OCC.BG.TARG.SPID$searchTaxon)
+'Diphyoropa'      %in% unique(SDM.SPAT.OCC.BG.TARG.SPID$searchTaxon)
+
 
 
 ## Loop through families
