@@ -460,27 +460,6 @@ rm(COMBO.SPP.GEN.FAM.PBI)
 gc()
 
 
-# Prepare niches ----
-
-
-##
-GLOB.NICHE.ALL = calc_enviro_niches(coord_df     = COMBO.SPP.GEN.FAM.ALA.PBI %>% .[.$searchTaxon %in% taxa_difference, ],
-                                    prj          = CRS("+init=epsg:4326"),
-                                    country_shp  = AUS,
-                                    world_shp    = LAND,
-                                    kop_shp      = Koppen_shp,
-                                    taxa_list    = taxa_difference,
-                                    env_vars     = names(aus.climate.veg.grids.250m),
-                                    cell_size    = 2,
-                                    save_data    = TRUE,
-                                    save_run     = save_name,
-                                    data_path    = inv_results_dir)
-
-
-plot_range_histograms(coord_df     = COMBO.SPP.GEN.FAM.ALA.PBI %>% .[.$searchTaxon %in% taxa_difference, ],
-                      taxa_list    = taxa_difference,
-                      range_path   = check_dir)
-
 
 # STEP 4 :: Prepare SDM table ----
 
@@ -512,6 +491,28 @@ if(coord_clean) {
 } else {
   message('do not clean coordinates')
   COMBO.SPP.GEN.FAM.ALA.PBI$coord_summary <- TRUE
+  
+  
+  # Prepare niches ----
+  GLOB.NICHE.ALL = calc_enviro_niches(coord_df     = COMBO.SPP.GEN.FAM.ALA.PBI %>% 
+                                        .[.$searchTaxon %in% taxa_difference, ],
+                                      prj          = CRS("+init=epsg:4326"),
+                                      country_shp  = AUS,
+                                      world_shp    = LAND,
+                                      kop_shp      = Koppen_shp,
+                                      taxa_list    = taxa_difference,
+                                      env_vars     = names(aus.climate.veg.grids.250m),
+                                      cell_size    = 2,
+                                      save_data    = TRUE,
+                                      save_run     = save_name,
+                                      data_path    = inv_results_dir)
+  
+  
+  plot_range_histograms(coord_df     = COMBO.SPP.GEN.FAM.ALA.PBI %>% .[.$searchTaxon %in% taxa_difference, ],
+                        taxa_list    = taxa_difference,
+                        range_path   = check_dir)
+  
+  
   COORD_CLEAN_sf <- SpatialPointsDataFrame(coords      = COMBO.SPP.GEN.FAM.ALA.PBI %>% 
                                              dplyr::select(lon, lat) %>% as.matrix(),
                                            data        = COMBO.SPP.GEN.FAM.ALA.PBI,

@@ -28,6 +28,9 @@ ipak <- function(pkg){
 }
 
 
+'%!in%' <- function(x,y)!('%in%'(x,y))
+
+
 ## Load packages
 #devtools::install_github("HMB3/nenswniche")
 library(nenswniche)
@@ -43,10 +46,10 @@ INV_dir              <- './data/ALA/Insects/'
 check_dir            <- './data/ALA/Insects/check_plots/'
 out_dir              <- './output/'
 
-inv_rs_dir           <- './output/invert_maxent_pbi_ala/'
-inv_back_dir         <- './output/invert_maxent_pbi_ala/back_sel_models/'
-inv_full_dir         <- './output/invert_maxent_pbi_ala/full_models/'
-inv_results_dir      <- './output/invert_maxent_pbi_ala/results/'
+inv_rs_dir           <- './output/invert_maxent_pbi_ala_site/'
+inv_back_dir         <- './output/invert_maxent_pbi_ala_site/back_sel_models/'
+inv_full_dir         <- './output/invert_maxent_pbi_ala_site/full_models/'
+inv_results_dir      <- './output/invert_maxent_pbi_ala_site/results/'
 
 plant_rs_dir         <- './output/plant_maxent_raster_update/'
 plant_back_dir       <- './output/plant_maxent_raster_update/back_sel_models/'
@@ -54,10 +57,10 @@ plant_full_dir       <- './output/plant_maxent_raster_update/full_models/'
 plant_results_dir    <- './output/plant_maxent_raster_update/results/'
 
 veg_dir              <- './data/Remote_sensing/Veg_data/Forest_cover/'
-inv_habitat_dir      <- './output/invert_maxent_pbi_ala/Habitat_suitability/'
-inv_inters_dir       <- './output/invert_maxent_pbi_ala/Habitat_suitability/SDM_Veg_intersect/'
-inv_thresh_dir       <- './output/invert_maxent_pbi_ala/Habitat_suitability/SDM_thresholds/'
-inv_fire_dir         <- './output/invert_maxent_pbi_ala/Habitat_suitability/FESM_SDM_intersect/'
+inv_habitat_dir      <- './output/invert_maxent_pbi_ala_site/Habitat_suitability/'
+inv_inters_dir       <- './output/invert_maxent_pbi_ala_site/Habitat_suitability/SDM_Veg_intersect/'
+inv_thresh_dir       <- './output/invert_maxent_pbi_ala_site/Habitat_suitability/SDM_thresholds/'
+inv_fire_dir         <- './output/invert_maxent_pbi_ala_site/Habitat_suitability/FESM_SDM_intersect/'
 
 plant_habitat_dir    <- './output/plant_maxent_raster_update/Habitat_suitability/'
 plant_inters_dir     <- './output/plant_maxent_raster_update/Habitat_suitability/Veg_intersect/'
@@ -123,6 +126,114 @@ analysis_taxa <- str_trim(c(target.insect.spp,
                             target.insect.families)) %>% unique()
 
 
+site_cols <- c("genus", 
+               "species", 
+               "family",
+               "Host_Genus",
+               "Host_species",
+               "plantTaxon",
+               "lat", 
+               "lon", 
+               "country", 
+               "state",
+               "locality",
+               "institutionCode", 
+               "basisOfRecord")
+
+
+taxa_qc  <- read_excel(paste0(inv_results_dir, 'SDM_target_species.xlsx'),
+                      sheet = 'Invert_QA_check')
+
+sdm_taxa <- read_excel(paste0(inv_results_dir, 'INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
+                       sheet = 'Missing_taxa')
+
+species_remain <- taxa_qc %>% 
+  filter(grepl("Missing", Note)) %>%
+  filter(is.na(Morpho)) %>%
+  dplyr::select(Binomial) %>% 
+  .$Binomial %>% sort()
+
+
+taxa_remain <- sdm_taxa %>% 
+  filter(Size == 0) %>%
+  dplyr::select(Taxa) %>% 
+  .$Taxa %>% sort() %>% gsub('_', ' ', .,)
+
+
+taxa_done <- sdm_taxa %>% 
+  filter(Size > 0) %>%
+  dplyr::select(Taxa) %>% 
+  .$Taxa %>% sort()
+
+
+taxa_difference <- c(taxa_remain, species_remain) %>% unique() %>% sort() %>% gsub('_', ' ', .)
+intersect(analysis_taxa, taxa_difference) %>% sort()
+setdiff(analysis_taxa, taxa_difference) %>% sort()
+
+
+site_cols <- c("genus", 
+               "species", 
+               "family",
+               "Host_Genus",
+               "Host_species",
+               "plantTaxon",
+               "lat", 
+               "lon", 
+               "country", 
+               "state",
+               "locality",
+               "institutionCode", 
+               "basisOfRecord")
+
+
+PBI_AUS_SITES <- read_tsv(file      = './data/Taxonomy/PBI_updated_dump_sorted.tsv', 
+                          col_names = TRUE) %>% 
+  
+  ## Now clean up the data so it can be combined with the ALA
+  mutate(searchTaxon = paste(Genus, species,  sep = " ")) %>%
+  dplyr::rename(genus           = Genus,
+                locality        = Locality,
+                country         = Country,
+                family          = Family,
+                lat             = Lat,
+                lon             = Lon,
+                institutionCode = Inst_Code,
+                recordedBy      = Collector,
+                state           = State_Prov,
+                basisOfRecord   = Coll_Method) %>% 
+  
+  mutate(plantTaxon = paste(Host_Genus, Host_species,  sep = " ")) %>% 
+  
+  ## Change this to the order of the clean columns   
+  dplyr::select(searchTaxon, one_of(site_cols))
+
+
+
+
+## What are the taxa in the PBI sites
+SITE_spp    <- PBI_AUS_SITES$searchTaxon %>% unique() %>% sort()
+SITE_genus  <- PBI_AUS_SITES$genus       %>% unique() %>% sort()
+SITE_family <- PBI_AUS_SITES$family      %>% unique() %>% sort()
+
+
+re_analyse_spp  <- intersect(analysis_taxa, SITE_spp)
+re_analyse_gen  <- intersect(analysis_taxa, SITE_genus)
+re_analyse_fam  <- intersect(analysis_taxa, SITE_family)
+re_analyse_taxa <- c(re_analyse_spp, re_analyse_gen, re_analyse_fam) %>% sort()
+
+
+## only get the old site data that doesn't overlap with the new site data
+PBI_AUS_UNIQUE <- PBI_AUS %>% 
+  
+  filter(searchTaxon %!in% re_analyse_taxa)
+
+
+PBI_AUS_SITES_UNIQUE <- bind_rows(PBI_AUS_UNIQUE,
+                                  PBI_AUS_SITES)
+
+
+
+
 ## Read in the SDM data
 ## This function aggregates the results for models that ran successfully
 INVERT.MAXENT.RESULTS     <- compile_sdm_results(taxa_list    = analysis_taxa,
@@ -185,19 +296,13 @@ template_raster_250m <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip
 
 
 ## Read in feature layers for fire that have been repaired in ArcMap
+SDM.SPAT.OCC.BG.GDA        <- readRDS(paste0(inv_results_dir,   
+                                             'SDM_COMBINED_ALL_INVERT_SPIDERS_ALA_PBI_SITES.rds'))
+
 FESM_east_20m_categ        <- readRDS('./data/Remote_sensing/FESM/NBR_Burn_severity_classes_cast.rds')
-FESM_east_20m_binary_split <- readRDS('./data/Remote_sensing/FESM/Fire_perimeters_split.rds') %>% st_cast(., "POLYGON")
+FESM_east_20m_binary_split <- readRDS('./data/Remote_sensing/FESM/Fire_perimeters_split.rds')          %>% st_cast(., "POLYGON")
 AUS_forest_RS_feat_split   <- readRDS(paste0(veg_dir,'Aus_forest_cover_east_coast_classes_split.rds')) %>% st_cast(., "POLYGON")
 
-
-## Read in the reptile points
-SDM.SPAT.OCC.BG.GDA <- readRDS(paste0(inv_results_dir, 'SDM_SPAT_OCC_BG_ALL_INVERT_TAXA_ALA_PBI.rds'))
-intersect_cols      <- c("searchTaxon", "species", "genus", "family", "SOURCE", "gridcode", "Vegetation")
-million_metres      <- 1000000
-
-
-## Check projections and resolutions
-projection(FESM_east_20m_binary);projection(SDM.SPAT.OCC.BG.GDA)
 
 
 
@@ -215,11 +320,32 @@ projection(FESM_east_20m_binary);projection(SDM.SPAT.OCC.BG.GDA)
 # \
 
 
+intersect_cols      <- c("searchTaxon", "species", "genus", "family", "SOURCE", "gridcode", "Vegetation")
+million_metres      <- 1000000
+
+
 ## Select the Vegetation pixels that intersect with the records of each invertebrate species
 taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
-                                        taxa_list      = sort(target.insect.spp),
+                                        taxa_list      = rev(taxa_difference),
                                         taxa_level     = 'species',
-                                        habitat_poly   = AUS_forest_RS_feat,
+                                        habitat_poly   = AUS_forest_RS_feat_split,
+                                        int_cols       = intersect_cols,
+                                        output_path    = inv_inters_dir,
+                                        buffer         = 5000,
+                                        raster_convert = FALSE,
+                                        save_shp       = FALSE,
+                                        save_png       = FALSE,
+                                        poly_path      = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
+                                        epsg           = 3577)
+
+gc()
+
+
+
+taxa_records_habitat_features_intersect(analysis_df    = SDM.SPAT.OCC.BG.GDA,
+                                        taxa_list      = re_analyse_taxa,
+                                        taxa_level     = 'species',
+                                        habitat_poly   = AUS_forest_RS_feat_split,
                                         int_cols       = intersect_cols,
                                         output_path    = inv_inters_dir,
                                         buffer         = 5000,

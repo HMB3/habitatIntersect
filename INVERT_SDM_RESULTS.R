@@ -41,14 +41,6 @@ inv_fire_dir         <- './output/invert_maxent_pbi_ala/Habitat_suitability/FESM
 
 
 
-## Try and set the raster temp directory to a location not on the partition, to save space
-rasterOptions(tmpdir = tempdir)
-terraOptions(memfrac = 0.5, 
-             tempdir = tempdir) 
-
-
-
-
 
 
 ## 1). COLLATE % BURNT FOR ALL TAXA =============================================================
@@ -146,7 +138,7 @@ INVERT.FESM.TABLE <-  INVERT.FESM.TABLE[INVERT.FESM.TABLE$Taxa %in%
 
 
 INVERT.FESM.VEG.TABLE <-  INVERT.FESM.VEG.TABLE[INVERT.FESM.VEG.TABLE$Taxa %in%
-                                               sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)) , ] %>%
+                                                  sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)) , ] %>%
   .[complete.cases(.), ] %>% 
   
   mutate(Habitat_Veg_burnt_area = round(Habitat_Veg_burnt_area, 1),
@@ -207,7 +199,9 @@ write_csv(INVERT.FESM.VEG.TABLE.SPP,
 
 ## Read in the geopackage, so we can save the results
 SDM_ALL_INVERT_TAXA_ALA_PBI    <- paste0(inv_results_dir, 'SDM_ALL_INVERT_TAXA_ALA_PBI.gpkg')
-ALL_INVERT_TAXA_ALA_PBI_NICHES <- read_csv(paste0(inv_results_dir, 'GLOBAL_NICHES_ALL_INVERT_TAXA_ALA_PBI.csv'))
+ALL_INVERT_TAXA_ALA_PBI_NICHES <- read_csv(paste0(inv_results_dir, 'GLOBAL_NICHES_ALL_INVERT_TAXA_ALA_PBI.csv')) %>%
+  
+  bind_rows(read_csv(paste0(inv_results_dir, 'ALL_SPIDER_TAXA_ALA_PBI_SITES.csv')))
 
 
 st_write(ALL_INVERT_TAXA_ALA_PBI_NICHES, 
@@ -256,6 +250,18 @@ st_layers(dsn = SDM_ALL_INVERT_TAXA_ALA_PBI)$name
 
 
 ## 2). CREATE HABITAT LOSS GRAPHS =============================================================
+
+
+## Species % burnt scatter plots ----
+INVERT.FESM.TABLE.SPP.RANGE <- INVERT.FESM.TABLE.SPP %>% 
+  
+  left_join(., dplyr::select(ALL_INVERT_TAXA_ALA_PBI_NICHES,
+                             searchTaxon,
+                             Aus_records,
+                             AOO,
+                             EOO,
+                             KOP_count), by = c('Taxa' = 'searchTaxon'))
+
 
 
 ## Species % burnt graphs ----

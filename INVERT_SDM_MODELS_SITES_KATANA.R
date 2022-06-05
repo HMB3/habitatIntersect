@@ -341,7 +341,7 @@ run_sdm_analysis_no_crop(taxa_list               = sort(taxa_difference),
 
 
 ## Run family-level models for invertebrates.
-run_sdm_analysis_no_crop(taxa_list               = sort(re_analyse_fam),
+run_sdm_analysis_no_crop(taxa_list               = sort(taxa_difference),
                          taxa_level              = 'family',
                          maxent_dir              = inv_back_dir,
                          bs_dir                  = inv_back_dir,
@@ -368,7 +368,7 @@ gc()
 
 
 ## Run genus-level models for invertebrates.
-run_sdm_analysis_no_crop(taxa_list               = rev(sort(re_analyse_gen)),
+run_sdm_analysis_no_crop(taxa_list               = rev(sort(target.insect.genera)),
                          taxa_level              = 'genus',
                          maxent_dir              = inv_back_dir,
                          bs_dir                  = inv_back_dir,
@@ -470,14 +470,6 @@ INVERT.MAXENT.SPP.RESULTS <- compile_sdm_results(taxa_list    = target.insect.sp
                                                  save_run     = "INVERT_ANALYSIS_TAXA")
 
 
-PLANT.MAXENT.RESULTS      <- compile_sdm_results(taxa_list    = host_plant_taxa,
-                                                 results_dir  = plant_back_dir,
-                                                 data_path    = plant_habitat_dir,
-                                                 sdm_path     = plant_back_dir,
-                                                 save_data    = FALSE,
-                                                 save_run     = "INVERT_ANALYSIS_TAXA")
-
-
 ## How many target taxa were modelled?
 nrow(INVERT.MAXENT.SPP.RESULTS)/length(target.insect.spp)      *100 
 nrow(INVERT.MAXENT.GEN.RESULTS)/length(target.insect.genera)   *100
@@ -488,8 +480,7 @@ nrow(INVERT.MAXENT.FAM.RESULTS)/length(target.insect.families) *100
 ## then create a list of logistic thresholds
 invert_map_taxa <- INVERT.MAXENT.RESULTS$searchTaxon     %>% gsub(" ", "_", .,)
 invert_map_spp  <- INVERT.MAXENT.SPP.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
-plant_map_taxa  <- PLANT.MAXENT.RESULTS$searchTaxon      %>% gsub(" ", "_", .,)
-host_map_taxa   <- host_plant_taxa                       %>% gsub(" ", "_", .,)
+
 
 
 # The projection function takes the maxent models created by the 'fit_maxent_targ_bg_back_sel' function, 
@@ -501,7 +492,7 @@ host_map_taxa   <- host_plant_taxa                       %>% gsub(" ", "_", .,)
 ## Project SDMs across the Study area for the invert taxa
 tryCatch(
   
-  project_maxent_current_grids_mess(taxa_list       = invert_map_spp,    
+  project_maxent_current_grids_mess(taxa_list       = rev(invert_map_taxa),    
                                     maxent_path     = inv_back_dir,
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
@@ -525,31 +516,7 @@ tryCatch(
 
 tryCatch(
   
-  project_maxent_current_grids_mess(taxa_list       = host_map_taxa[12],    
-                                    maxent_path     = plant_back_dir,
-                                    current_grids   = east.climate.veg.grids.250m,         
-                                    create_mess     = FALSE,
-                                    mess_layers     = FALSE,
-                                    save_novel_poly = TRUE,
-                                    output_path     = paste0(plant_thresh_dir, 'plants_sdm_novel_combo.gpkg'),
-                                    poly_path       = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-                                    epsg            = 3577),
-  
-  ## If the species fails, write a fail message to file
-  error = function(cond) {
-    
-    ## This will write the error message inside the text file, but it won't include the species
-    file.create(file.path(inv_back_dir, "mapping_failed_current.txt"))
-    cat(cond$message, file = file.path(inv_back_dir, "inv_mapping_failed_current.txt"))
-    warning(cond$message)
-    
-  })
-
-
-
-tryCatch(
-  
-  project_maxent_current_grids_mess(taxa_list       = invert_map_taxa,    
+  project_maxent_current_grids_mess(taxa_list       = invert_map_spp,    
                                     maxent_path     = inv_back_dir,
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
