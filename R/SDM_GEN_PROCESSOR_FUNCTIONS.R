@@ -2167,7 +2167,7 @@ prepare_sdm_table = function(coord_df,
     st_transform(., st_crs(country_epsg)) %>% 
     dplyr::select(-lat, -lon)
   
-  ## Convert lat/lon to eastings and northings for projected coordinate system
+  ## Convert lat/lon to eastings and northings for projected coordinate system.
   SDM.COORDS     <- st_coordinates(SDM.DATA.ALL)
   SDM.DATA.ALL$X <- SDM.COORDS[,"X"]
   SDM.DATA.ALL$Y <- SDM.COORDS[,"Y"]
