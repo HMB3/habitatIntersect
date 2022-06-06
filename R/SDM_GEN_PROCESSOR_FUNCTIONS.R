@@ -602,14 +602,16 @@ combine_ala_records = function(taxa_list,
       
       ## Note that these filters are very forgiving...
       ## Unless we include the NAs, very few records are returned!
-      filter(!is.na(lon) & !is.na(lat)) %>%
-      filter(lon <= 180 & lat >= -90) %>%
-      filter(lon <= 180 & lat >= -90) %>%
-      filter(!is.na(year))
+      dplyr::filter(!is.na(lon) & !is.na(lat)) %>%
+      dplyr::filter(lon < 179.0)  %>%
+      dplyr::filter(lon < 89.0)   %>%
+      dplyr::filter(lat > -179.0) %>%
+      dplyr::filter(lat > -89.0)  %>%
+      dplyr::filter(!is.na(year))
     
     if(year_filt) {
       
-      CLEAN <- CLEAN %>% filter(year >= year_lim) 
+      CLEAN <- CLEAN %>% dplyr::filter(year >= year_lim) 
       
     }
     
@@ -652,7 +654,7 @@ combine_ala_records = function(taxa_list,
       
       ## Finally, filter the cleaned ALA data to only those points on land.
       ## This is achieved with the final [onland]
-      LAND.POINTS = filter(CLEAN, terra::cellFromXY(world_raster_spat, mat) %in%
+      LAND.POINTS = dplyr::filter(CLEAN, terra::cellFromXY(world_raster_spat, mat) %in%
                              unique(terra::cellFromXY(world_raster_spat, mat))[onland])
       
       ## how many records were on land?
@@ -770,19 +772,21 @@ format_ala_dump = function(ALA_table,
   (sum(is.na(TRIM$scientificName)) + nrow(subset(TRIM, scientificName == "")))/nrow(TRIM)*100
   
   ## 3). FILTER RECORDS TO THOSE WITH COORDINATES, AND AFTER 1950
-  ## Now filter the ALA records using conditions which are not too restrictive
+  ## Now dplyr::filter the ALA records using conditions which are not too restrictive
   CLEAN <- TRIM %>%
     
     ## Note that these filters are very forgiving...
     ## Unless we include the NAs, very few records are returned!
-    filter(!is.na(lon) & !is.na(lat)) %>%
-    filter(lon <= 180 & lat >= -90) %>%
-    filter(lon <= 180 & lat >= -90) %>%
-    filter(!is.na(year))
+    dplyr::filter(!is.na(lon) & !is.na(lat)) %>%
+    dplyr::filter(lon < 179.0)  %>%
+    dplyr::filter(lon < 89.0)   %>%
+    dplyr::filter(lat > -179.0) %>%
+    dplyr::filter(lat > -89.0)  %>%
+    dplyr::filter(!is.na(year))
   
   if(year_filt) {
     
-    CLEAN <- CLEAN %>% filter(year >= year_lim) 
+    CLEAN <- CLEAN %>% dplyr::filter(year >= year_lim) 
     
   }
   
@@ -821,7 +825,7 @@ format_ala_dump = function(ALA_table,
     
     ## Finally, filter the cleaned ALA data to only those points on land.
     ## This is achieved with the final [onland]
-    LAND.POINTS = filter(CLEAN, terra::cellFromXY(world_raster_spat, mat) %in%
+    LAND.POINTS = dplyr::filter(CLEAN, terra::cellFromXY(world_raster_spat, mat) %in%
                            unique(terra::cellFromXY(world_raster_spat, mat))[onland])
     
     ## how many records were on land?
@@ -922,15 +926,17 @@ combine_gbif_records = function(taxa_list,
           searchtax <- gsub(records_extension, "",    x)
           
           ## Filter the data for each taxon
-          message('filter records for ', searchtax)
+          message('dplyr::filter records for ', searchtax)
           d <- d %>% dplyr::mutate(searchTaxon = searchtax) %>%
             dplyr::select(one_of(keep_cols)) %>% 
             
-            filter(!is.na(lon) & !is.na(lat)) %>%
-            filter(lon <= 180 & lat >= -90) %>%
-            filter(lon <= 180 & lat >= -90) %>%
-            filter(year >= 1950) %>%
-            filter(!is.na(year))
+            dplyr::filter(!is.na(lon) & !is.na(lat)) %>%
+            dplyr::filter(lon < 179.0)  %>%
+            dplyr::filter(lon < 89.0)   %>%
+            dplyr::filter(lat > -179.0) %>%
+            dplyr::filter(lat > -89.0)  %>%
+            dplyr::filter(year > 1950) %>%
+            dplyr::filter(!is.na(year))
           
         } else {
           message('No location data for ', x, ' skipping')
@@ -1014,7 +1020,7 @@ combine_gbif_records = function(taxa_list,
     
     ## Finally, filter the cleaned GBIF data to only those points on land.
     ## This is achieved with the final [onland]
-    LAND.POINTS = filter(GBIF.CLEAN, cellFromXY(world_raster, xy_mat) %in%
+    LAND.POINTS = dplyr::filter(GBIF.CLEAN, cellFromXY(world_raster, xy_mat) %in%
                            unique(cellFromXY(world_raster,    xy_mat))[onland])
     
     ## how many records were on land?
@@ -1088,7 +1094,7 @@ combine_records_extract = function(records_df,
     
     message('fitler taxonomy')
     records_df <- records_df %>% dplyr::mutate(Match_SN_ST = str_detect(!!taxa_level, searchTaxon)) %>% 
-      filter(Match_SN_ST == 'TRUE') %>% as.data.frame()
+      dplyr::filter(Match_SN_ST == 'TRUE') %>% as.data.frame()
     
   } else {
     message('Do not filter taxonomy of searched taxa vs returned' )
@@ -1096,8 +1102,8 @@ combine_records_extract = function(records_df,
   }
   
   ## Make sure the projection matches
-  RECORDS.84 = records_df %>% 
-    st_transform(., st_crs(epsg))
+  RECORDS.84 = records_df #%>% 
+    #st_transform(., st_crs(epsg))
   
   ## Don't taxo match the site data :: this needs to be kept without exclusion
   if(add_sites) {
@@ -1227,12 +1233,12 @@ coord_clean_records = function(records,
     
     ## Split the site data up from the ALA data
     message('Subset data by source')
-    ala_records  <- records %>% filter(SOURCE == occ_flag)
-    site_records <- records %>% filter(SOURCE == site_flag) %>% dplyr::mutate(coord_summary = TRUE)
+    ala_records  <- records %>% dplyr::filter(SOURCE == occ_flag)
+    site_records <- records %>% dplyr::filter(SOURCE == site_flag) %>% dplyr::mutate(coord_summary = TRUE)
     
   } else {
     message('Do not subset data by source')
-    ala_records  <- records %>% filter(SOURCE == 'ALA')
+    ala_records  <- records %>% dplyr::filter(SOURCE == 'ALA')
   }
   
   ## Rename the columns to fit the CleanCoordinates format and create a tibble.
@@ -1399,8 +1405,8 @@ check_spatial_outliers = function(occ_df,
   if(multi_source){
     
     message('Subset data by source')
-    occ_only <- occ_df %>% filter(SOURCE == occ_flag)
-    site_df  <- occ_df %>% filter(SOURCE == site_flag) %>% dplyr::mutate(SPAT_OUT = TRUE)
+    occ_only <- occ_df %>% dplyr::filter(SOURCE == occ_flag)
+    site_df  <- occ_df %>% dplyr::filter(SOURCE == site_flag) %>% dplyr::mutate(SPAT_OUT = TRUE)
     
   } else {
     message('Do not subset data by source')
@@ -1487,7 +1493,7 @@ check_spatial_outliers = function(occ_df,
       
       ## Plot a subset of taxa
       ## spp = spat.taxa[1]
-      SPAT.PLOT <- SPAT.FLAG %>% filter(searchTaxon == taxa) %>%
+      SPAT.PLOT <- SPAT.FLAG %>% dplyr::filter(searchTaxon == taxa) %>%
         SpatialPointsDataFrame(coords      = .[c("lon", "lat")],
                                data        = .,
                                proj4string = prj)
@@ -1535,7 +1541,7 @@ check_spatial_outliers = function(occ_df,
     
     ##
     message('Combine the Spatially cleaned data with the site data' )
-    SPAT.FLAG <- SPAT.FLAG %>% filter(SPAT_OUT == TRUE) %>% bind_rows(., site_df)
+    SPAT.FLAG <- SPAT.FLAG %>% dplyr::filter(SPAT_OUT == TRUE) %>% bind_rows(., site_df)
     SPAT.TRUE <- SpatialPointsDataFrame(coords      = SPAT.FLAG[c("lon", "lat")],
                                         data        = SPAT.FLAG,
                                         proj4string = prj)
@@ -1545,7 +1551,7 @@ check_spatial_outliers = function(occ_df,
     
   } else {
     message('Dont add site data' )
-    SPAT.TRUE <- SPAT.FLAG %>% filter(SPAT_OUT == TRUE)
+    SPAT.TRUE <- SPAT.FLAG %>% dplyr::filter(SPAT_OUT == TRUE)
   }
   return(SPAT.TRUE)
 }
@@ -1588,7 +1594,7 @@ calc_enviro_niches = function(coord_df,
           length(env_vars), ' climate variables')
   
   NICHE.1KM <- coord_df %>% as.data.frame () %>%
-    filter(coord_summary == TRUE)
+    dplyr::filter(coord_summary == TRUE)
   NICHE.1KM.84 <- SpatialPointsDataFrame(coords      = NICHE.1KM[c("lon", "lat")],
                                          data        = NICHE.1KM,
                                          proj4string = prj)
@@ -1900,7 +1906,7 @@ plot_range_histograms = function(coord_df,
     
     ## Create a new field RANGE, which is either site or NATURAL
     coord_spp <- coord_df %>%
-      filter(searchTaxon == spp) %>%
+      dplyr::filter(searchTaxon == spp) %>%
       dplyr::mutate(RANGE = ifelse(SOURCE != "INVENTORY", "NATURAL", "site"))
     
     convex_hull <- sprintf("%s%s_%s", range_path, spp, "1km_convex_hull.png")
@@ -2136,7 +2142,7 @@ prepare_sdm_table = function(coord_df,
                              world_epsg) {
   
   ## Just add clean_df to this step.
-  coord_df <- filter(coord_df, coord_summary == TRUE)
+  coord_df <- dplyr::filter(coord_df, coord_summary == TRUE)
   
   ## Create a table with all the variables needed for SDM analysis
   message('Preparing SDM table for ', length(unique(coord_df$searchTaxon)),
@@ -2150,8 +2156,8 @@ prepare_sdm_table = function(coord_df,
     dplyr::select(one_of(sdm_table_vars))
   
   ## Split the table into ALA and site data 
-  COMBO.RASTER.ALA  <- COMBO.RASTER.ALL %>% filter(SOURCE == occ_flag)
-  COMBO.RASTER.SITE <- COMBO.RASTER.ALL %>% filter(SOURCE == site_flag) %>% dplyr::mutate(SPAT_OUT = TRUE)
+  COMBO.RASTER.ALA  <- COMBO.RASTER.ALL %>% dplyr::filter(SOURCE == occ_flag)
+  COMBO.RASTER.SITE <- COMBO.RASTER.ALL %>% dplyr::filter(SOURCE == site_flag) %>% dplyr::mutate(SPAT_OUT = TRUE)
   
   
   ## Create a spatial points object, and change to a projected system to calculate distance more accurately

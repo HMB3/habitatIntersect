@@ -48,10 +48,9 @@ INV_dir              <- './data/ALA/Insects/'
 check_dir            <- './data/ALA/Insects/check_plots/'
 out_dir              <- './output/'
 
-inv_rs_dir           <- './output/invert_maxent_pbi_ala/'
-inv_back_dir         <- './output/invert_maxent_pbi_ala/back_sel_models/'
-inv_full_dir         <- './output/invert_maxent_pbi_ala/full_models/'
-inv_results_dir      <- './output/invert_maxent_pbi_ala/results/'
+inv_rs_dir           <- './output/invert_maxent_pbi_ala_site/'
+inv_back_dir         <- './output/invert_maxent_pbi_ala_site/back_sel_models/'
+inv_results_dir      <- './output/invert_maxent_pbi_ala_site/results/'
 
 plant_rs_dir         <- './output/plant_maxent_raster_update/'
 plant_back_dir       <- './output/plant_maxent_raster_update/back_sel_models/'
@@ -59,9 +58,9 @@ plant_full_dir       <- './output/plant_maxent_raster_update/full_models/'
 plant_results_dir    <- './output/plant_maxent_raster_update/results/'
 
 veg_dir              <- './data/Remote_sensing/Veg_data/Forest_cover/'
-inv_habitat_dir      <- './output/invert_maxent_pbi_ala/Habitat_suitability/'
-inv_inters_dir       <- './output/invert_maxent_pbi_ala/Habitat_suitability/SDM_Veg_intersect/'
-inv_thresh_dir       <- './output/invert_maxent_pbi_ala/Habitat_suitability/SDM_thresholds/'
+inv_habitat_dir      <- './output/invert_maxent_pbi_ala_site/Habitat_suitability/'
+inv_inters_dir       <- './output/invert_maxent_pbi_ala_site/Habitat_suitability/SDM_Veg_intersect/'
+inv_thresh_dir       <- './output/invert_maxent_pbi_ala_site/Habitat_suitability/SDM_thresholds/'
 inv_fire_dir         <- './output/invert_maxent_raster_update/Habitat_suitability/FESM_SDM_intersect/'
 
 plant_habitat_dir    <- './output/plant_maxent_raster_update/Habitat_suitability/'
@@ -73,8 +72,8 @@ plant_fire_dir       <- './output/plant_maxent_raster_update/Habitat_suitability
 
 
 dir_list <- c(tempdir, ALA_dir, 
-              INV_dir, check_dir, out_dir, inv_rs_dir, inv_back_dir, inv_full_dir, inv_results_dir,
-              plant_rs_dir, plant_back_dir, plant_full_dir, plant_results_dir, veg_dir,
+              INV_dir, check_dir, out_dir, inv_rs_dir, inv_back_dir, inv_results_dir,
+              plant_rs_dir, plant_back_dir, plant_results_dir, veg_dir,
               inv_habitat_dir, inv_inters_dir, inv_thresh_dir, inv_fire_dir,
               plant_habitat_dir, plant_inters_dir, plant_thresh_dir, plant_fire_dir)
 
@@ -470,44 +469,6 @@ tryCatch(
 ## 4). THRESHOLD SDMs =============================================================
 
 
-# \
-# 
-# To use the habitat suitability rasters in area calculations (e.g. comparing the area of suitable habitat
-#                                                              affected by fire), we need to convert the continuous suitability scores (ranging from 0-1) to binary values
-# (either 1, or 0). To do this, we need to pick a threshold of habitat suitability, below which the species 
-# is not considered present. Here we have chosen the 10th% Logistic threshold for each taxa (ref).
-# 
-# 
-# \
-
-
-## Threshold the invertebrate SDM models to be either 0 or 1
-# habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)),
-#                   maxent_table  = INVERT.MAXENT.RESULTS,
-#                   maxent_path   = inv_back_dir,
-#                   output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
-#                   poly_path     = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-#                   epsg          = 3577)
-# 
-# gc()
-
-
-## Threshold the invertebrate SDM models to be either 0 or 1 
-# habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTaxon)),
-#                   maxent_table  = INVERT.MAXENT.SPP.RESULTS,
-#                   maxent_path   = inv_back_dir,
-#                   output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
-#                   poly_path     = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-#                   epsg          = 3577)
-
-
-## Threshold the invertebrate SDM models to be either 0 or 1
-# habitat_threshold(taxa_list     = sort(unique(PLANT.MAXENT.RESULTS$searchTaxon)),
-#                   maxent_table  = PLANT.MAXENT.RESULTS,
-#                   maxent_path   = inv_back_dir,
-#                   output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
-#                   poly_path     = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-#                   epsg          = 3577)
 
 
 ## Now copy the thresh-holded SDM rasters to stand alone folder (i.e. all taxa in one folder)

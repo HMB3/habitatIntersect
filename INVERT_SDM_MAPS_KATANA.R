@@ -394,27 +394,27 @@ gc()
 
 ## Now also intersect the whole SDM layer with the Veg layer, creating a cross-tab of habitat
 # SDM.TARG.INVERT.POINTS <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% analysis_taxa, ] %>%
-#   st_as_sf() %>%
-#   dplyr::select(searchTaxon, lon, lat) %>%
+#   dplyr::select(searchTaxon, X, Y) %>%
 #   st_transform(., st_crs(3577)) %>% st_as_sf() %>% st_subdivide()
 # 
 # 
 # sdm_veg_crosstab          <- st_intersection(SDM.TARG.INVERT.POINTS,
-#                                              AUS_forest_RS_feat)
-# saveRDS(sdm_veg_crosstab, paste0(veg_dir,'sdm_veg_crosstab.rds'))
+#                                              AUS_forest_RS_feat_split)
 # 
+# saveRDS(sdm_veg_crosstab, paste0(veg_dir,'SDM_POINTS_VEG_CROSSTAB.rds'))
+
+
+## Read it back in
+# sdm_veg_crosstab  <- readRDS(paste0(veg_dir,'sdm_veg_crosstab.rds'))
+
+# sdm_veg_crosstab_df <- sdm_veg_crosstab  %>% as_tibble() %>%
+#   dplyr::select(searchTaxon, Vegetation) %>%
+#   group_by(searchTaxon, Vegetation)      %>%
+#   tally() %>%
 # 
-# ## Read it back in
-# # sdm_veg_crosstab  <- readRDS(paste0(veg_dir,'sdm_veg_crosstab.rds'))
-# 
-# sdm_veg_crosstab_df <- sdm_veg_crosstab  %>% as_tibble() %>% 
-#   dplyr::select(searchTaxon, Vegetation) %>% 
-#   group_by(searchTaxon, Vegetation)      %>% 
-#   tally() %>% 
-#   
 #   mutate(Percent = round(n / sum(n) *100, 2))
 # 
-# write_csv(sdm_veg_crosstab_df, paste0(inv_results_dir, 'sdm_veg_crosstab.csv'))
+# write_csv(sdm_veg_crosstab_df, paste0(inv_results_dir, 'SDM_POINTS_VEG_CROSSTAB.csv'))
 
 
 
@@ -441,25 +441,25 @@ gc()
 
 ## Add Host Plants to the Maxent LUT 
 ## Read in the host plant species
-# host_plants <- read_excel(paste0(inv_results_dir, '/INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
-#                           sheet = 'TABLE 3') %>% filter(!is.na(HostTaxon)) %>%
-#   dplyr::select(searchTaxon, HostTaxon) %>% na.omit()
-# 
-# 
-# PLANT.RESULTS.HOSTS <- PLANT.MAXENT.RESULTS %>% 
-#   
-#   rename(HostTaxon = "searchTaxon") %>% 
-#   left_join(., host_plants, by = "HostTaxon") %>% 
-#   dplyr::select(searchTaxon, HostTaxon, everything()) %>%
-#   rename(host_dir = results_dir) %>% na.omit() %>% distinct()
-# 
-# 
-# INVERT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>% 
-#   
-#   left_join(., select(PLANT.RESULTS.HOSTS, 
-#                       "searchTaxon", 
-#                       "HostTaxon", 
-#                       "host_dir"), by = "searchTaxon")
+host_plants <- read_excel(paste0(inv_results_dir, '/INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
+                          sheet = 'TABLE 3') %>% filter(!is.na(HostTaxon)) %>%
+  dplyr::select(searchTaxon, HostTaxon) %>% na.omit()
+
+
+PLANT.RESULTS.HOSTS <- PLANT.MAXENT.RESULTS %>%
+
+  rename(HostTaxon = "searchTaxon") %>%
+  left_join(., host_plants, by = "HostTaxon") %>%
+  dplyr::select(searchTaxon, HostTaxon, everything()) %>%
+  rename(host_dir = results_dir) %>% na.omit() %>% distinct()
+
+
+INVERT.RESULTS.HOSTS <- INVERT.MAXENT.RESULTS %>%
+
+  left_join(., select(PLANT.RESULTS.HOSTS,
+                      "searchTaxon",
+                      "HostTaxon",
+                      "host_dir"), by = "searchTaxon")
 
 
 # For each Invertebrate species, calculate the % of suitable habitat that was burnt by the
@@ -473,46 +473,46 @@ gc()
 
 
 ## Calculate Insect habitat within binary fire layer
-# calculate_taxa_habitat_host_features(taxa_list          = rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
-#                                      targ_maxent_table  = INVERT.RESULTS.HOSTS,
-#                                      host_maxent_table  = PLANT.RESULTS.HOSTS,
-#                                      
-#                                      target_path        = inv_back_dir,
-#                                      output_path        = inv_fire_dir,
-#                                      intersect_path     = inv_inters_dir,
-#                                      intersect_patt     = '_SDM_VEG_intersection.gpkg',
-#                                      host_path          = plant_thresh_dir,
-#                                      thresh_patt        = '_current_suit_not_novel_above_',
-#                                      
-#                                      int_cols           = intersect_cols,
-#                                      main_int_layer     = FESM_east_20m_binary_split,
-#                                      second_int_layer   = AUS_forest_RS_feat,
-#                                      template_raster    = template_raster_250m,
-#                                      poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-#                                      epsg               = 3577)
-# 
-# gc()
+calculate_taxa_habitat_host_features(taxa_list          = rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
+                                     targ_maxent_table  = INVERT.RESULTS.HOSTS,
+                                     host_maxent_table  = PLANT.RESULTS.HOSTS,
+
+                                     target_path        = inv_back_dir,
+                                     output_path        = inv_fire_dir,
+                                     intersect_path     = inv_inters_dir,
+                                     intersect_patt     = '_SDM_VEG_intersection.gpkg',
+                                     host_path          = plant_thresh_dir,
+                                     thresh_patt        = '_current_suit_not_novel_above_',
+
+                                     int_cols           = intersect_cols,
+                                     main_int_layer     = FESM_east_20m_binary_split,
+                                     second_int_layer   = AUS_forest_RS_feat,
+                                     template_raster    = template_raster_250m,
+                                     poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
+                                     epsg               = 3577)
+
+gc()
 
 
-# calculate_taxa_habitat_host_features(taxa_list          = rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
-#                                      targ_maxent_table  = INVERT.RESULTS.HOSTS,
-#                                      host_maxent_table  = PLANT.RESULTS.HOSTS,
-#                                      
-#                                      target_path        = inv_back_dir,
-#                                      output_path        = inv_fire_dir,
-#                                      intersect_path     = inv_inters_dir,
-#                                      intersect_patt     = '_SDM_VEG_intersection.gpkg',
-#                                      host_path          = plant_thresh_dir,
-#                                      thresh_patt        = '_current_suit_not_novel_above_',
-#                                      
-#                                      int_cols           = intersect_cols,
-#                                      main_int_layer     = FESM_east_20m_categ_sub,
-#                                      second_int_layer   = AUS_forest_RS_feat,
-#                                      template_raster    = template_raster_250m,
-#                                      poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-#                                      epsg               = 3577)
-# 
-# gc()
+calculate_taxa_habitat_host_features(taxa_list          = rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
+                                     targ_maxent_table  = INVERT.RESULTS.HOSTS,
+                                     host_maxent_table  = PLANT.RESULTS.HOSTS,
+
+                                     target_path        = inv_back_dir,
+                                     output_path        = inv_fire_dir,
+                                     intersect_path     = inv_inters_dir,
+                                     intersect_patt     = '_SDM_VEG_intersection.gpkg',
+                                     host_path          = plant_thresh_dir,
+                                     thresh_patt        = '_current_suit_not_novel_above_',
+
+                                     int_cols           = intersect_cols,
+                                     main_int_layer     = FESM_east_20m_categ_sub,
+                                     second_int_layer   = AUS_forest_RS_feat,
+                                     template_raster    = template_raster_250m,
+                                     poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
+                                     epsg               = 3577)
+
+gc()
 
 
 
