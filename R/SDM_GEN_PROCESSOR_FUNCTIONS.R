@@ -2162,7 +2162,7 @@ prepare_sdm_table = function(coord_df,
   
   
   ## Create a spatial points object, and change to a projected system to calculate distance more accurately
-  ## This is the mollweide projection used for the SDMs
+  ## This is the mollweide projection used for the SDMs.
   SDM.DATA.ALL <- COMBO.RASTER.ALA %>%
     st_transform(., st_crs(country_epsg)) %>% 
     dplyr::select(-lat, -lon)
