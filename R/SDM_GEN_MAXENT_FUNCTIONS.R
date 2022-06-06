@@ -250,7 +250,7 @@ fit_maxent_targ_bg_back_sel_no_crop <- function(occ,
     
     if(nrow(bg_buffer) > 100000) {
       sample_row <- nrow(bg_buffer)/100000
-      bg_buffer     <- bg_buffer[seq(1, nrow(bg_buffer), sample_row), ]
+      bg_buffer  <- bg_buffer[seq(1, nrow(bg_buffer), sample_row), ]
     }
   
     bgX         <- raster_extent[1] + floor((bg_buffer$X - raster_extent[1]) / cell_size ) * cell_size  + cell_size /2

@@ -655,7 +655,7 @@ combine_ala_records = function(taxa_list,
       ## Finally, filter the cleaned ALA data to only those points on land.
       ## This is achieved with the final [onland]
       LAND.POINTS = dplyr::filter(CLEAN, terra::cellFromXY(world_raster_spat, mat) %in%
-                             unique(terra::cellFromXY(world_raster_spat, mat))[onland])
+                                    unique(terra::cellFromXY(world_raster_spat, mat))[onland])
       
       ## how many records were on land?
       records.ocean = nrow(CLEAN) - nrow(LAND.POINTS)
@@ -826,7 +826,7 @@ format_ala_dump = function(ALA_table,
     ## Finally, filter the cleaned ALA data to only those points on land.
     ## This is achieved with the final [onland]
     LAND.POINTS = dplyr::filter(CLEAN, terra::cellFromXY(world_raster_spat, mat) %in%
-                           unique(terra::cellFromXY(world_raster_spat, mat))[onland])
+                                  unique(terra::cellFromXY(world_raster_spat, mat))[onland])
     
     ## how many records were on land?
     records.ocean = nrow(CLEAN) - nrow(LAND.POINTS)
@@ -1021,7 +1021,7 @@ combine_gbif_records = function(taxa_list,
     ## Finally, filter the cleaned GBIF data to only those points on land.
     ## This is achieved with the final [onland]
     LAND.POINTS = dplyr::filter(GBIF.CLEAN, cellFromXY(world_raster, xy_mat) %in%
-                           unique(cellFromXY(world_raster,    xy_mat))[onland])
+                                  unique(cellFromXY(world_raster,    xy_mat))[onland])
     
     ## how many records were on land?
     records.ocean = nrow(GBIF.CLEAN) - nrow(LAND.POINTS)  ## 91575 records are in the ocean
@@ -1102,8 +1102,8 @@ combine_records_extract = function(records_df,
   }
   
   ## Make sure the projection matches
-  RECORDS.84 = records_df #%>% 
-    #st_transform(., st_crs(epsg))
+  RECORDS.84 = records_df %>% 
+    st_transform(., st_crs(epsg)) 
   
   ## Don't taxo match the site data :: this needs to be kept without exclusion
   if(add_sites) {
@@ -1137,11 +1137,11 @@ combine_records_extract = function(records_df,
     message(round(nrow(RECORDS.COMBO.84.THIN)/nrow(RECORDS.COMBO.84)*100, 2), " % records retained at 1km resolution")
     
     ## Create points: the 'over' function seems to need geographic coordinates for this data...
-    COMBO.POINTS   = RECORDS.COMBO.84.THIN[c("lon", "lat")]
+    COMBO.POINTS <- RECORDS.COMBO.84.THIN[c("lon", "lat")] 
     
   } else {
     message('dont thin the records out' )
-    COMBO.POINTS     = RECORDS.COMBO.84[c("lon", "lat")]
+    COMBO.POINTS     = RECORDS.COMBO.84[c("lon", "lat")] 
     RECORDS.COMBO.84.THIN = RECORDS.COMBO.84
   }
   
@@ -2157,7 +2157,8 @@ prepare_sdm_table = function(coord_df,
   
   ## Split the table into ALA and site data 
   COMBO.RASTER.ALA  <- COMBO.RASTER.ALL %>% dplyr::filter(SOURCE == occ_flag)
-  COMBO.RASTER.SITE <- COMBO.RASTER.ALL %>% dplyr::filter(SOURCE == site_flag) %>% dplyr::mutate(SPAT_OUT = TRUE)
+  COMBO.RASTER.SITE <- COMBO.RASTER.ALL %>% dplyr::filter(SOURCE == site_flag) %>% 
+    dplyr::mutate(SPAT_OUT = TRUE)
   
   
   ## Create a spatial points object, and change to a projected system to calculate distance more accurately
