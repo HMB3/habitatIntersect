@@ -159,20 +159,42 @@ host_taxa_updates <- read_excel(paste0(inv_results_dir, 'INVERST_HSM_CHECK.xlsx'
 
 
 ## Read in the SDM data
-SDM.SPAT.OCC.BG.GDA <- readRDS(paste0(plant_results_dir,   
-                                      'SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds'))
+SDM.PLANT.GDA       <- readRDS(paste0(plant_results_dir,   
+                                      'SDM_SPAT_OCC_BG_ALL_TARGET_HOST_PLANTS.rds')) %>% 
+  st_as_sf() %>% 
+  st_transform(., st_crs(3577))
+
+SDM.PLANT.GDA$X <- SDM.PLANT.GDA$lon
+SDM.PLANT.GDA$Y <- SDM.PLANT.GDA$lat
+SDM.PLANT.GDA$order     <- ''
+SDM.PLANT.GDA$class     <- ''
+SDM.PLANT.GDA$phylum    <- ''
+SDM.PLANT.GDA$kingdom   <- ''
+SDM.PLANT.GDA$SPOUT.OBS <- TRUE
+
+drops <- c("lon", "lat")
+SDM.PLANT.GDA <- SDM.PLANT.GDA[ , !(names(SDM.PLANT.GDA) %in% drops)]
 
 
-host_taxa_updates %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon) %>% table()
-setdiff(host_taxa_updates, unique(SDM.SPAT.OCC.BG.GDA$searchTaxon))
+SDM.PLANT.EXTRA.GDA <- readRDS(paste0(plant_results_dir,   
+                                      'SDM_SPAT_OCC_BG_EXTRA_PLANT_TAXA.rds')) %>% 
+  st_as_sf() %>% 
+  st_transform(., st_crs(3577))
+
+
+SDM.PLANT.ALL.GDA <- rbind(SDM.PLANT.EXTRA.GDA, SDM.PLANT.GDA) 
+
+
+host_taxa_updates %in%     unique(SDM.PLANT.ALL.GDA$searchTaxon) %>% table()
+setdiff(host_taxa_updates, unique(SDM.PLANT.ALL.GDA$searchTaxon))
 
 
 ## Run family-level models for invertebrates.
-run_sdm_analysis_no_crop(taxa_list               = sort(searchTaxon),
+run_sdm_analysis_no_crop(taxa_list               = sort(host_taxa_updates),
                          taxa_level              = 'species',
                          maxent_dir              = plant_back_dir,
-                         bs_dir                  = plant_back_dirr,
-                         sdm_df                  = SDM.SPAT.OCC.BG.PBI.SITE.GDA,
+                         bs_dir                  = plant_back_dir,
+                         sdm_df                  = SDM.PLANT.ALL.GDA,
                          sdm_predictors          = names(aus.climate.veg.grids.250m),
                          
                          backwards_sel           = TRUE,
