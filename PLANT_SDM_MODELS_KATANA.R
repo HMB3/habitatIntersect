@@ -172,6 +172,7 @@ SDM.PLANT.GDA$phylum    <- ''
 SDM.PLANT.GDA$kingdom   <- ''
 SDM.PLANT.GDA$SPOUT.OBS <- TRUE
 
+
 drops <- c("lon", "lat")
 SDM.PLANT.GDA <- SDM.PLANT.GDA[ , !(names(SDM.PLANT.GDA) %in% drops)]
 
@@ -182,7 +183,7 @@ SDM.PLANT.EXTRA.GDA <- readRDS(paste0(plant_results_dir,
   st_transform(., st_crs(3577))
 
 
-SDM.PLANT.ALL.GDA <- rbind(SDM.PLANT.EXTRA.GDA, SDM.PLANT.GDA) 
+SDM.PLANT.ALL.GDA <- rbind(SDM.PLANT.EXTRA.GDA, SDM.PLANT.GDA) %>% as_Spatial()
 
 
 host_taxa_updates %in%     unique(SDM.PLANT.ALL.GDA$searchTaxon) %>% table()
@@ -213,84 +214,6 @@ run_sdm_analysis_no_crop(taxa_list               = sort(host_taxa_updates),
                          epsg                    = 3577)
 
 
-## Run family-level models for invertebrates.
-run_sdm_analysis_no_crop(taxa_list               = sort(taxa_difference),
-                         taxa_level              = 'family',
-                         maxent_dir              = inv_back_dir,
-                         bs_dir                  = inv_back_dir,
-                         sdm_df                  = SDM.SPAT.OCC.BG.PBI.SITE.GDA,
-                         sdm_predictors          = names(aus.climate.veg.grids.250m),
-                         
-                         backwards_sel           = TRUE,
-                         template_raster         = template_raster_250m,
-                         cor_thr                 = 0.8,
-                         pct_thr                 = 5,
-                         k_thr                   = 4,
-                         min_n                   = 10,
-                         max_bg_size             = 100000,
-                         background_buffer_width = 100000,
-                         feat_save               = TRUE,
-                         features                = 'lpq',
-                         replicates              = 5,
-                         responsecurves          = TRUE,
-                         poly_path               = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-                         epsg                    = 3577)
-
-
-gc()
-
-
-## Run genus-level models for invertebrates.
-run_sdm_analysis_no_crop(taxa_list               = rev(sort(target.insect.genera)),
-                         taxa_level              = 'genus',
-                         maxent_dir              = inv_back_dir,
-                         bs_dir                  = inv_back_dir,
-                         sdm_df                  = SDM.SPAT.OCC.BG.PBI.SITE.GDA,
-                         sdm_predictors          = names(aus.climate.veg.grids.250m),
-                         
-                         backwards_sel           = TRUE,
-                         template_raster         = template_raster_250m,
-                         cor_thr                 = 0.8,
-                         pct_thr                 = 5,
-                         k_thr                   = 4,
-                         min_n                   = 10,
-                         max_bg_size             = 100000,
-                         background_buffer_width = 100000,
-                         feat_save               = TRUE,
-                         features                = 'lpq',
-                         replicates              = 5,
-                         responsecurves          = TRUE,
-                         poly_path               = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-                         epsg                    = 3577)
-
-
-gc()
-
-
-## Run species-level models for invertebrates
-run_sdm_analysis_no_crop(taxa_list               = rev(sort(re_analyse_spp)),
-                         taxa_level              = 'species',
-                         maxent_dir              = inv_back_dir,     
-                         bs_dir                  = inv_back_dir,
-                         sdm_df                  = SDM.SPAT.OCC.BG.PBI.SITE.GDA,
-                         sdm_predictors          = names(aus.climate.veg.grids.250m),
-                         
-                         backwards_sel           = TRUE,      
-                         template_raster         = template_raster_250m,
-                         cor_thr                 = 0.8,  
-                         pct_thr                 = 5, 
-                         k_thr                   = 4, 
-                         min_n                   = 10,  
-                         max_bg_size             = 100000,
-                         background_buffer_width = 100000,
-                         feat_save               = TRUE,
-                         features                = 'lpq',
-                         replicates              = 5,
-                         responsecurves          = TRUE,
-                         poly_path               = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-                         epsg                    = 3577)
-
-gc()
 
 
 
@@ -311,48 +234,15 @@ gc()
 
 ## Create a table of maxent results
 ## This function aggregates the results for models that ran successfully
-INVERT.MAXENT.RESULTS     <- compile_sdm_results(taxa_list    = analysis_taxa,
-                                                 results_dir  = inv_back_dir,
-                                                 data_path    = inv_results_dir,
-                                                 sdm_path     = inv_back_dir,
-                                                 save_data    = TRUE,
-                                                 save_run     = "INVERT_ALL_TAXA_ALA_PBI")
+PLANT.MAXENT.RESULTS <- compile_sdm_results(taxa_list    = host_taxa_updates,
+                                            results_dir  = plant_back_dir,
+                                            data_path    = plant_results_dir,
+                                            sdm_path     = plant_back_dir,
+                                            save_data    = FALSE,
+                                            save_run     = "INVERT_ANALYSIS_TAXA")
 
 
-INVERT.MAXENT.FAM.RESULTS <- compile_sdm_results(taxa_list    = target.insect.families,
-                                                 results_dir  = inv_back_dir,
-                                                 data_path    = inv_habitat_dir,
-                                                 sdm_path     = inv_back_dir,
-                                                 save_data    = FALSE,
-                                                 save_run     = "INVERT_ANALYSIS_TAXA")
-
-
-INVERT.MAXENT.GEN.RESULTS <- compile_sdm_results(taxa_list    = target.insect.genera,
-                                                 results_dir  = inv_back_dir,
-                                                 data_path    = inv_habitat_dir,
-                                                 sdm_path     = inv_back_dir,
-                                                 save_data    = FALSE,
-                                                 save_run     = "INVERT_ANALYSIS_TAXA")
-
-
-INVERT.MAXENT.SPP.RESULTS <- compile_sdm_results(taxa_list    = target.insect.spp,
-                                                 results_dir  = inv_back_dir,
-                                                 data_path    = inv_habitat_dir,
-                                                 sdm_path     = inv_back_dir,
-                                                 save_data    = FALSE,
-                                                 save_run     = "INVERT_ANALYSIS_TAXA")
-
-
-## How many target taxa were modelled?
-nrow(INVERT.MAXENT.SPP.RESULTS)/length(target.insect.spp)      *100 
-nrow(INVERT.MAXENT.GEN.RESULTS)/length(target.insect.genera)   *100
-nrow(INVERT.MAXENT.FAM.RESULTS)/length(target.insect.families) *100
-
-
-## Get map_taxa from the maxent results table above, change the species column,
-## then create a list of logistic thresholds
-invert_map_taxa <- INVERT.MAXENT.RESULTS$searchTaxon     %>% gsub(" ", "_", .,)
-invert_map_spp  <- INVERT.MAXENT.SPP.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
+plant_map_spp  <- PLANT.MAXENT.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
 
 
 
@@ -365,14 +255,14 @@ invert_map_spp  <- INVERT.MAXENT.SPP.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
 ## Project SDMs across the Study area for the invert taxa
 tryCatch(
   
-  project_maxent_current_grids_mess(taxa_list       = rev(invert_map_taxa),    
-                                    maxent_path     = inv_back_dir,
+  project_maxent_current_grids_mess(taxa_list       = sort(plant_map_spp),    
+                                    maxent_path     = plant_back_dir,
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
                                     mess_layers     = FALSE,
                                     save_novel_poly = TRUE,
-                                    maxent_table    = INVERT.MAXENT.RESULTS,
-                                    output_path     = paste0(inv_thresh_dir, 'inverts_sdm_novel_combo.gpkg'),
+                                    maxent_table    = PLANT.MAXENT.RESULTS,
+                                    output_path     = paste0(plant_thresh_dir, 'plants_sdm_novel_combo.gpkg'),
                                     poly_path       = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                                     epsg            = 3577),
   
@@ -380,34 +270,14 @@ tryCatch(
   error = function(cond) {
     
     ## This will write the error message inside the text file, but it won't include the species
-    file.create(file.path(inv_back_dir, "mapping_failed_current.txt"))
-    cat(cond$message, file = file.path(inv_back_dir, "inv_mapping_failed_current.txt"))
+    file.create(file.path(plant_back_dir, "mapping_failed_current.txt"))
+    cat(cond$message, file = file.path(plant_back_dir, "plant_mapping_failed_current.txt"))
     warning(cond$message)
     
   })
 
 
-tryCatch(
-  
-  project_maxent_current_grids_mess(taxa_list       = invert_map_spp,    
-                                    maxent_path     = inv_back_dir,
-                                    current_grids   = east.climate.veg.grids.250m,         
-                                    create_mess     = TRUE,
-                                    mess_layers     = FALSE,
-                                    save_novel_poly = TRUE,
-                                    output_path     = paste0(inv_thresh_dir, 'inverts_sdm_novel_combo.gpkg'),
-                                    poly_path       = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-                                    epsg            = 3577),
-  
-  ## If the species fails, write a fail message to file
-  error = function(cond) {
-    
-    ## This will write the error message inside the text file, but it won't include the species
-    file.create(file.path(inv_back_dir, "mapping_failed_current.txt"))
-    cat(cond$message, file = file.path(inv_back_dir, "inv_mapping_failed_current.txt"))
-    warning(cond$message)
-    
-  })
+
 
 
 

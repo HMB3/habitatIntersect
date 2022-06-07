@@ -603,11 +603,11 @@ combine_ala_records = function(taxa_list,
       ## Note that these filters are very forgiving...
       ## Unless we include the NAs, very few records are returned!
       dplyr::filter(!is.na(lon) & !is.na(lat)) %>%
+      dplyr::filter(!is.na(year)) %>% 
       dplyr::filter(lon < 179.0)  %>%
-      dplyr::filter(lon < 89.0)   %>%
-      dplyr::filter(lat > -179.0) %>%
-      dplyr::filter(lat > -89.0)  %>%
-      dplyr::filter(!is.na(year))
+      dplyr::filter(lon > -179.0) %>%
+      dplyr::filter(lat < 89.0)   %>%
+      dplyr::filter(lat > -89.0)
     
     if(year_filt) {
       
@@ -778,12 +778,12 @@ format_ala_dump = function(ALA_table,
     ## Note that these filters are very forgiving...
     ## Unless we include the NAs, very few records are returned!
     dplyr::filter(!is.na(lon) & !is.na(lat)) %>%
+    dplyr::filter(!is.na(year)) %>% 
     dplyr::filter(lon < 179.0)  %>%
-    dplyr::filter(lon < 89.0)   %>%
-    dplyr::filter(lat > -179.0) %>%
-    dplyr::filter(lat > -89.0)  %>%
-    dplyr::filter(!is.na(year))
-  
+    dplyr::filter(lon > -179.0) %>%
+    dplyr::filter(lat < 89.0)   %>%
+    dplyr::filter(lat > -89.0)
+
   if(year_filt) {
     
     CLEAN <- CLEAN %>% dplyr::filter(year >= year_lim) 
@@ -931,12 +931,11 @@ combine_gbif_records = function(taxa_list,
             dplyr::select(one_of(keep_cols)) %>% 
             
             dplyr::filter(!is.na(lon) & !is.na(lat)) %>%
+            dplyr::filter(!is.na(year)) %>% 
             dplyr::filter(lon < 179.0)  %>%
-            dplyr::filter(lon < 89.0)   %>%
-            dplyr::filter(lat > -179.0) %>%
-            dplyr::filter(lat > -89.0)  %>%
-            dplyr::filter(year > 1950) %>%
-            dplyr::filter(!is.na(year))
+            dplyr::filter(lon > -179.0) %>%
+            dplyr::filter(lat < 89.0)   %>%
+            dplyr::filter(lat > -89.0)
           
         } else {
           message('No location data for ', x, ' skipping')

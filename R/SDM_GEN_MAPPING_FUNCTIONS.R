@@ -39,8 +39,7 @@ project_maxent_current_grids_mess = function(taxa_list,
   ## Rename the raster grids
   ## Note this step is only needed if the current grids used in the 
   ## their original form, rather than being renamed
-  # names(current_grids) <- grid_names
-  
+
   ## First, run a loop over each scenario:
   lapply(taxa_list, function(x) {
     
@@ -52,7 +51,7 @@ project_maxent_current_grids_mess = function(taxa_list,
     maxent_predict_fun <- function(taxa) {
       
       ## Create taxa name
-      ## taxa = taxa_list[5]
+      ## taxa = taxa_list[1]
       save_name = gsub(' ', '_', taxa)
       
       ## First check if the taxa exists
@@ -81,9 +80,17 @@ project_maxent_current_grids_mess = function(taxa_list,
           
           ## Read in taxa with data and occurrence files
           message('Read in the swd and occ data')
-          swd    <- as.data.frame(readRDS(sprintf('%s%s/%s_occ_swd.rds', maxent_path, save_name, save_name)))
-          occ    <- readRDS(sprintf('%s%s/%s_occ.rds', maxent_path, save_name, save_name))
-          occ_sp <- as_Spatial(occ)
+          swd_new <- sprintf('%s%s/%s_occ_swd.rds', maxent_path, save_name, save_name)
+          swd_old <- sprintf('%s%s/swd.rds', maxent_path, save_name)
+          
+          if(file.exists(swd_new)){
+          swd    <- as.data.frame(readRDS(swd_new))
+          
+          } else {
+            swd    <- as.data.frame(readRDS(swd_old)) 
+          }
+          
+          occ    <- swd
           
           ## If the current raster prediction has not been run, run it.
           if(!file.exists(f_current) == TRUE) {
@@ -401,7 +408,7 @@ project_maxent_current_grids_mess = function(taxa_list,
                   ## Can the current layer be plotted on it's own?
                   ## Add the novel maps as vectors.
                   latticeExtra::layer(sp.polygons(poly), data = list(poly = poly)) +
-                  latticeExtra::layer(sp.points(occ_sp, pch = 19, cex = 0.15,
+                  latticeExtra::layer(sp.points(occ, pch = 19, cex = 0.15,
                                                 col = c('red', 'transparent', 
                                                         'transparent')[panel.number()]),
                                       data = list(occ_sp = occ_sp)))
@@ -1310,7 +1317,7 @@ calculate_taxa_habitat_host_features = function(taxa_list,
   taxa_list %>%
     
     ## Loop over just the taxa
-    ## taxa = taxa_list[7]
+    ## taxa = taxa_list[1]
     # Mutusca brevicornis
     lapply(function(taxa) {
       

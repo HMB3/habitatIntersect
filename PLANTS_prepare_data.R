@@ -173,21 +173,21 @@ gc()
 # STEP 3 :: extract environmental values ----
 
 
-ALA.LAND.SPP <- combine_ala_records(taxa_list         =  background_plants,
-                                    records_path      = "./data/ALA/Plants/",
-                                    records_extension = "_ALA_records.RData",
-                                    record_type       = "ALA",
-                                    keep_cols         = ALA_keep,
-                                    year_filt         = FALSE,
-                                    unique_cells      = FALSE,
-                                    world_raster      = aus_annual_precip)
+# ALA.LAND.SPP <- combine_ala_records(taxa_list         =  background_plants,
+#                                     records_path      = "./data/ALA/Plants/",
+#                                     records_extension = "_ALA_records.RData",
+#                                     record_type       = "ALA",
+#                                     keep_cols         = ALA_keep,
+#                                     year_filt         = FALSE,
+#                                     unique_cells      = FALSE,
+#                                     world_raster      = aus_annual_precip)
+# 
+# 
+# ALA.LAND.SP.SAMP <- ALA.LAND.SPP %>% .[sample(nrow(.), 100000), ]
 
 
-ALA.LAND.SP.SAMP <- ALA.LAND.SPP %>% .[sample(nrow(.), 100000), ]
-
-
-host_taxa_updated %in% unique(ALA.LAND.SP.SAMP$searchTaxon) %>% table()
-setdiff(host_taxa_updated, unique(ALA.LAND.SP.SAMP$searchTaxon))
+# host_taxa_updated %in% unique(ALA.LAND.SP.SAMP$searchTaxon) %>% table()
+# setdiff(host_taxa_updated, unique(ALA.LAND.SP.SAMP$searchTaxon))
 
 
 ## The below should really all be one big table
@@ -196,6 +196,8 @@ Plants_ALA_down_1 <- read_csv('./data/ALA/Plants/manual_download/records-2022-06
 Plants_ALA_down_2 <- read_csv('./data/ALA/Plants/manual_download/records-2022-06-06_2.csv')
 Plants_ALA_down_3 <- read_csv('./data/ALA/Plants/manual_download/records-2022-06-06_3.csv')
 Plants_ALA_down_4 <- read_csv('./data/ALA/Plants/manual_download/records-2022-06-06_4.csv')
+Plants_ALA_down_5 <- read_csv('./data/ALA/Plants/manual_download/records-2022-06-07.csv')
+Plants_ALA_down_6 <- read_csv('./data/ALA/Plants/manual_download/records-2022-06-07_1.csv')
 
 
 error_cols <- c('eventTime', 'identificationID', 'taxonID', 
@@ -211,7 +213,14 @@ Plants_ALA_down <- Plants_ALA_down_1[, !names(Plants_ALA_down_1) %in% error_cols
   dplyr::select(., -starts_with("verbatim")) %>% 
   
   bind_rows(., Plants_ALA_down_4 [, !names(Plants_ALA_down_4) %in% error_cols])  %>%
+  dplyr::select(., -starts_with("verbatim")) %>% 
+  
+  bind_rows(., Plants_ALA_down_5 [, !names(Plants_ALA_down_5) %in% error_cols])  %>%
+  dplyr::select(., -starts_with("verbatim")) %>% 
+  
+  bind_rows(., Plants_ALA_down_6 [, !names(Plants_ALA_down_6) %in% error_cols])  %>%
   dplyr::select(., -starts_with("verbatim")) 
+
 
 
 # Plants_ALA_1 <- read_csv('./data/ALA/Plants/records-2021-11-25.csv')
@@ -258,9 +267,10 @@ ALA.LAND.PLANT.SPP <- format_ala_dump(ALA_table     = Plants_ALA_down,
                                       world_raster  = aus_annual_precip)
 
 
-# saveRDS(Plants_ALA, paste0(ALA_dir, 'ALA_plants_invert_hosts.rds'))
+# ALA.LAND.SPP.UPDATE <- ALA.LAND.SP.SAMP %>% bind_rows(., ALA.LAND.PLANT.SPP)
 
-ALA.LAND.SPP.UPDATE <- ALA.LAND.SP.SAMP %>% bind_rows(., ALA.LAND.PLANT.SPP)
+host_taxa_updates %in%     unique(ALA.LAND.PLANT.SPP$searchTaxon) %>% table()
+setdiff(host_taxa_updates, unique(ALA.LAND.PLANT.SPP$searchTaxon))
 
 
 ALA_LAND_INV_SPP_sf <- SpatialPointsDataFrame(coords      = ALA.LAND.PLANT.SPP %>% 
@@ -282,7 +292,7 @@ COMBO.RASTER.PLANT.SPP <- combine_records_extract(records_df       = ALA_LAND_IN
                                                   template_raster  = template_raster_250m,
                                                   world_raster     = aus.climate.veg.grids.250m,
                                                   epsg             = 4326,
-                                                  taxa_list        = background_plants,
+                                                  taxa_list        = host_taxa_updated,
                                                   taxa_level       = 'species',   
                                                   
                                                   ## This might need to change too
