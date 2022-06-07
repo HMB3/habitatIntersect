@@ -411,7 +411,7 @@ project_maxent_current_grids_mess = function(taxa_list,
                   latticeExtra::layer(sp.points(occ, pch = 19, cex = 0.15,
                                                 col = c('red', 'transparent', 
                                                         'transparent')[panel.number()]),
-                                      data = list(occ_sp = occ_sp)))
+                                      data = list(occ = occ)))
           dev.off()
           gc()
           
