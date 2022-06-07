@@ -269,8 +269,8 @@ ALA.LAND.PLANT.SPP <- format_ala_dump(ALA_table     = Plants_ALA_down,
 
 # ALA.LAND.SPP.UPDATE <- ALA.LAND.SP.SAMP %>% bind_rows(., ALA.LAND.PLANT.SPP)
 
-host_taxa_updates %in%     unique(ALA.LAND.PLANT.SPP$searchTaxon) %>% table()
-setdiff(host_taxa_updates, unique(ALA.LAND.PLANT.SPP$searchTaxon))
+host_taxa_updated %in%     unique(ALA.LAND.PLANT.SPP$searchTaxon) %>% table()
+setdiff(host_taxa_updated, unique(ALA.LAND.PLANT.SPP$searchTaxon))
 
 
 ALA_LAND_INV_SPP_sf <- SpatialPointsDataFrame(coords      = ALA.LAND.PLANT.SPP %>% 
