@@ -553,62 +553,18 @@ tryCatch(
 # \
 
 
-## Threshold the invertebrate SDM models to be either 0 or 1
-# habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)),
-#                   maxent_table  = INVERT.MAXENT.RESULTS,
-#                   maxent_path   = inv_back_dir,
-#                   output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
-#                   poly_path     = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-#                   epsg          = 3577)
-# 
-# gc()
-
-
-## Threshold the invertebrate SDM models to be either 0 or 1 
-# habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTaxon)),
-#                   maxent_table  = INVERT.MAXENT.SPP.RESULTS,
-#                   maxent_path   = inv_back_dir,
-#                   output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
-#                   poly_path     = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-#                   epsg          = 3577)
-
-
-## Threshold the invertebrate SDM models to be either 0 or 1
-# habitat_threshold(taxa_list     = sort(unique(PLANT.MAXENT.RESULTS$searchTaxon)),
-#                   maxent_table  = PLANT.MAXENT.RESULTS,
-#                   maxent_path   = inv_back_dir,
-#                   output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
-#                   poly_path     = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-#                   epsg          = 3577)
-
-
 ## Now copy the thresh-holded SDM rasters to stand alone folder (i.e. all taxa in one folder)
 inv_thresh_sdms_ras <- list.files(path       = inv_back_dir,
                                   pattern    = '_current_suit_not_novel_above_', 
                                   recursive  = TRUE,
-                                  full.names = TRUE) %>% 
-  .[grep(".tif", .)]
+                                  full.names = TRUE) %>% .[grep(".tif", .)]
 
 
 inv_thresh_sdms_feat <- list.files(path       = inv_back_dir,
                                    pattern    = '_current_suit_not_novel_above_', 
                                    recursive  = TRUE,
-                                   full.names = TRUE) %>% 
-  .[grep(".gpkg", .)] 
+                                   full.names = TRUE) %>% .[grep(".gpkg", .)] 
 
-
-plant_thresh_sdms_ras <- list.files(path       = plant_back_dir,
-                                    pattern    = '_current_suit_not_novel_above_', 
-                                    recursive  = TRUE,
-                                    full.names = TRUE) %>% 
-  .[grep(".tif", .)]
-
-
-plant_thresh_sdms_feat <- list.files(path       = plant_back_dir,
-                                     pattern    = '_current_suit_above_', 
-                                     recursive  = TRUE,
-                                     full.names = TRUE) %>% 
-  .[grep(".gpkg", .)] 
 
 
 file.copy(from      = inv_thresh_sdms_ras, 
@@ -624,19 +580,6 @@ file.copy(from      = inv_thresh_sdms_feat,
           recursive = TRUE, 
           copy.mode = TRUE)
 
-
-file.copy(from      = plant_thresh_sdms_ras, 
-          to        = plant_thresh_dir, 
-          overwrite = TRUE, 
-          recursive = TRUE, 
-          copy.mode = TRUE)
-
-
-file.copy(from      = plant_thresh_sdms_feat, 
-          to        = plant_thresh_dir, 
-          overwrite = TRUE, 
-          recursive = TRUE, 
-          copy.mode = TRUE)
 
 
 message('sdm code successfuly run')

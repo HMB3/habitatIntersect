@@ -34,10 +34,10 @@ ipak(sdmgen_packages)
 
 
 ## The functions expect these folders,
-inv_rs_dir           <- './output/invert_maxent_pbi_ala/'
-inv_back_dir         <- './output/invert_maxent_pbi_ala/back_sel_models/'
-inv_results_dir      <- './output/invert_maxent_pbi_ala/results/'
-inv_fire_dir         <- './output/invert_maxent_pbi_ala/Habitat_suitability/FESM_SDM_intersect/'
+inv_rs_dir           <- './output/invert_maxent_pbi_ala_site/'
+inv_back_dir         <- './output/invert_maxent_pbi_ala_site/back_sel_models/'
+inv_results_dir      <- './output/invert_maxent_pbi_ala_site/results/'
+inv_fire_dir         <- './output/invert_maxent_pbi_ala_site/Habitat_suitability/FESM_SDM_intersect/'
 
 
 
@@ -64,13 +64,109 @@ analysis_taxa <- str_trim(c(target.insect.spp,
                             target.insect.families)) %>% unique()
 
 
+## Full list of analysis taxa -
+analysis_taxa   <- str_trim(c(target.insect.spp, 
+                              target.insect.genera, 
+                              target.insect.families)) %>% unique()
+
+site_cols <- c("genus", 
+               "species", 
+               "family",
+               "Host_Genus",
+               "Host_species",
+               "plantTaxon",
+               "lat", 
+               "lon", 
+               "country", 
+               "state",
+               "locality",
+               "institutionCode", 
+               "basisOfRecord")
+
+
+taxa_qc <- read_excel(paste0(inv_results_dir, 'SDM_target_species.xlsx'),
+                      sheet = 'Invert_QA_check')
+
+sdm_taxa <- read_excel(paste0(inv_results_dir, 'INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
+                       sheet = 'Missing_taxa')
+
+species_remain <- taxa_qc %>% 
+  filter(grepl("Missing", Note)) %>%
+  filter(is.na(Morpho)) %>%
+  dplyr::select(Binomial) %>% 
+  .$Binomial %>% sort()
+
+
+taxa_remain <- sdm_taxa %>% 
+  filter(Size == 0) %>%
+  dplyr::select(Taxa) %>% 
+  .$Taxa %>% sort() %>% gsub('_', ' ', .,)
+
+
+taxa_done <- sdm_taxa %>% 
+  filter(Size > 0) %>%
+  dplyr::select(Taxa) %>% 
+  .$Taxa %>% sort()
+
+
+taxa_difference <- c(taxa_remain, species_remain) %>% unique() %>% sort()
+intersect(analysis_taxa, taxa_difference) %>% sort()
+
+
+## Combine Niches
+ALL_INVERT_TAXA_ALA_PBI_NICHES      <- read_csv(paste0(inv_results_dir, 'GLOBAL_NICHES_ALL_INVERT_TAXA_ALA_PBI.csv'))
+ALL_INVERT_TAXA_ALA_SITE_NICHES     <- read_csv(paste0(inv_results_dir, 'GLOBAL_NICHES_ALL_INVERT_TAXA_ALA_PBI_SITES.csv'))
+ALL_INVERT_TAXA_ALA_SPID_NICHES     <- read_csv(paste0(inv_results_dir, 'GLOBAL_NICHES_ALL_SPIDER_TAXA_ALA_PBI_SITES.csv'))
+
+ALL_INVERT_TAXA_ALA_PBI_NICHES_UNI  <- ALL_INVERT_TAXA_ALA_PBI_NICHES %>% .[.$searchTaxon %in% 
+                                                                              setdiff(ALL_INVERT_TAXA_ALA_PBI_NICHES$searchTaxon, 
+                                                                                      ALL_INVERT_TAXA_ALA_SITE_NICHES$searchTaxon), ]
+
+ALL_INVERT_TAXA_ALA_SITE_NICHES_UNI <- ALL_INVERT_TAXA_ALA_SITE_NICHES %>% .[.$searchTaxon %in% 
+                                                                               setdiff(ALL_INVERT_TAXA_ALA_SITE_NICHES$searchTaxon, 
+                                                                                       ALL_INVERT_TAXA_ALA_PBI_NICHES_UNI$searchTaxon), ]
+
+ALL_INVERT_TAXA_ALL_NICHES_UNI      <- bind_rows(ALL_INVERT_TAXA_ALA_PBI_NICHES_UNI, 
+                                                 ALL_INVERT_TAXA_ALA_SITE_NICHES_UNI)
+
+ALL_INVERT_TAXA_ALA_SPID_NICHES_UNI <- ALL_INVERT_TAXA_ALA_SPID_NICHES %>% .[.$searchTaxon %in% 
+                                                                               setdiff(ALL_INVERT_TAXA_ALA_SPID_NICHES$searchTaxon, 
+                                                                                       ALL_INVERT_TAXA_ALL_NICHES_UNI$searchTaxon), ]
+
+
+ALL_INVERT_TAXA_ALL_NICHES_UNI      <- bind_rows(ALL_INVERT_TAXA_ALL_NICHES_UNI,
+                                                 ALL_INVERT_TAXA_ALA_SPID_NICHES_UNI)
+
+
+write_csv(ALL_INVERT_TAXA_ALL_NICHES_UNI,
+          paste0(inv_results_dir, '/AUS_INVERT_TAXA_ALL_NICHES.csv'))
+
+
 ## Update the  
-INVERT.MAXENT.RESULTS <- compile_sdm_results(taxa_list    = analysis_taxa,
-                                             results_dir  = inv_back_dir,
-                                             data_path    = inv_results_dir,
-                                             sdm_path     = inv_back_dir,
-                                             save_data    = TRUE,
-                                             save_run     = 'INVERT_ALL_TAXA_ALA_PBI')
+SITES.MAXENT.RESULTS    <- compile_sdm_results(taxa_list    = analysis_taxa,
+                                               results_dir  = inv_back_dir,
+                                               data_path    = inv_results_dir,
+                                               sdm_path     = inv_back_dir,
+                                               save_data    = FALSE,
+                                               save_run     = 'INVERT_ALL_TAXA_ALA_PBI_SITES')
+
+
+SPID.MAXENT.RESULTS     <- compile_sdm_results(taxa_list    = taxa_difference,
+                                               results_dir  = inv_back_dir,
+                                               data_path    = inv_results_dir,
+                                               sdm_path     = inv_back_dir,
+                                               save_data    = FALSE,
+                                               save_run     = 'INVERT_SPIDER_TAXA_ALA_PBI_SITES')
+
+
+SITES.ALL.MAXENT.RESULTS <- bind_rows(SITES.MAXENT.RESULTS, SPID.MAXENT.RESULTS %>% .[.$searchTaxon %in% 
+                                                                                        setdiff(SPID.MAXENT.RESULTS$searchTaxon, 
+                                                                                                SITES.MAXENT.RESULTS$searchTaxon), ])
+
+
+
+write_csv(SITES.ALL.MAXENT.RESULTS,
+          paste0(inv_results_dir, '/MAXENT_RESULTS_INSECTS_SPID_TAXA_ALA_PBI_SITES.csv'))
 
 
 
@@ -199,9 +295,6 @@ write_csv(INVERT.FESM.VEG.TABLE.SPP,
 
 ## Read in the geopackage, so we can save the results
 SDM_ALL_INVERT_TAXA_ALA_PBI    <- paste0(inv_results_dir, 'SDM_ALL_INVERT_TAXA_ALA_PBI.gpkg')
-ALL_INVERT_TAXA_ALA_PBI_NICHES <- read_csv(paste0(inv_results_dir, 'GLOBAL_NICHES_ALL_INVERT_TAXA_ALA_PBI.csv')) %>%
-  
-  bind_rows(read_csv(paste0(inv_results_dir, 'ALL_SPIDER_TAXA_ALA_PBI_SITES.csv')))
 
 
 st_write(ALL_INVERT_TAXA_ALA_PBI_NICHES, 
@@ -281,6 +374,9 @@ for(taxa in INVERT.FESM.TABLE$Taxa) {
 
 
 ## Graphs for each species ----
+
+
+## For the groups, use facetting :: looks better ----
 
 ## Graphs of the % burnt and un-burnt
 for(taxa in INVERT.FESM.TABLE$Taxa) {

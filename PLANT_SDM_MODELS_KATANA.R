@@ -70,6 +70,7 @@ plant_thresh_dir     <- './output/plant_maxent_raster_update/Habitat_suitability
 rasterOptions(memfrac = 0.9,
               tmpdir  = tempdir)
 
+
 terraOptions(memfrac = 0.9, 
              tempdir = tempdir) 
 
@@ -93,7 +94,8 @@ east.climate.veg.grids.250m  <- raster::stack(
   list.files('./data/CSIRO_layers/250m/FESM_EXT/', pattern =".tif", full.names = TRUE))
 
 
-names(aus.climate.veg.grids.250m)[1:11] <- 
+names(aus.climate.veg.grids.250m)[1:11] <-
+  
   names(east.climate.veg.grids.250m)[1:11] <- 
   c("Tree_canopy_peak_foliage_total",
     "Plant_cover_fraction_0_5m", 
@@ -255,7 +257,7 @@ plant_map_spp  <- PLANT.MAXENT.RESULTS$searchTaxon %>% gsub(" ", "_", .,)
 ## Project SDMs across the Study area for the invert taxa
 tryCatch(
   
-  project_maxent_current_grids_mess(taxa_list       = sort(plant_map_spp),    
+  project_maxent_current_grids_mess(taxa_list       = rev(plant_map_spp),    
                                     maxent_path     = plant_back_dir,
                                     current_grids   = east.climate.veg.grids.250m,         
                                     create_mess     = TRUE,
@@ -278,68 +280,7 @@ tryCatch(
 
 
 
-
-
-
-
-## 5). THRESHOLD SDMs =============================================================
-
-
-# \
-# 
-# To use the habitat suitability rasters in area calculations (e.g. comparing the area of suitable habitat
-#                                                              affected by fire), we need to convert the continuous suitability scores (ranging from 0-1) to binary values
-# (either 1, or 0). To do this, we need to pick a threshold of habitat suitability, below which the species 
-# is not considered present. Here we have chosen the 10th% Logistic threshold for each taxa (ref).
-# 
-# 
-# \
-
-
-## Threshold the invertebrate SDM models to be either 0 or 1
-# habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)),
-#                   maxent_table  = INVERT.MAXENT.RESULTS,
-#                   maxent_path   = inv_back_dir,
-#                   output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
-#                   poly_path     = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-#                   epsg          = 3577)
-# 
-# gc()
-
-
-## Threshold the invertebrate SDM models to be either 0 or 1 
-# habitat_threshold(taxa_list     = sort(unique(INVERT.MAXENT.SPP.RESULTS$searchTaxon)),
-#                   maxent_table  = INVERT.MAXENT.SPP.RESULTS,
-#                   maxent_path   = inv_back_dir,
-#                   output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
-#                   poly_path     = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-#                   epsg          = 3577)
-
-
-## Threshold the invertebrate SDM models to be either 0 or 1
-# habitat_threshold(taxa_list     = sort(unique(PLANT.MAXENT.RESULTS$searchTaxon)),
-#                   maxent_table  = PLANT.MAXENT.RESULTS,
-#                   maxent_path   = inv_back_dir,
-#                   output_path   = paste0(inv_thresh_dir, 'inverts_sdm_thresholds_combo.gpkg'),
-#                   poly_path     = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-#                   epsg          = 3577)
-
-
 ## Now copy the thresh-holded SDM rasters to stand alone folder (i.e. all taxa in one folder)
-inv_thresh_sdms_ras <- list.files(path       = inv_back_dir,
-                                  pattern    = '_current_suit_not_novel_above_', 
-                                  recursive  = TRUE,
-                                  full.names = TRUE) %>% 
-  .[grep(".tif", .)]
-
-
-inv_thresh_sdms_feat <- list.files(path       = inv_back_dir,
-                                   pattern    = '_current_suit_not_novel_above_', 
-                                   recursive  = TRUE,
-                                   full.names = TRUE) %>% 
-  .[grep(".gpkg", .)] 
-
-
 plant_thresh_sdms_ras <- list.files(path       = plant_back_dir,
                                     pattern    = '_current_suit_not_novel_above_', 
                                     recursive  = TRUE,
@@ -353,19 +294,6 @@ plant_thresh_sdms_feat <- list.files(path       = plant_back_dir,
                                      full.names = TRUE) %>% 
   .[grep(".gpkg", .)] 
 
-
-file.copy(from      = inv_thresh_sdms_ras, 
-          to        = inv_thresh_dir, 
-          overwrite = TRUE, 
-          recursive = TRUE, 
-          copy.mode = TRUE)
-
-
-file.copy(from      = inv_thresh_sdms_feat, 
-          to        = inv_thresh_dir, 
-          overwrite = TRUE, 
-          recursive = TRUE, 
-          copy.mode = TRUE)
 
 
 file.copy(from      = plant_thresh_sdms_ras, 

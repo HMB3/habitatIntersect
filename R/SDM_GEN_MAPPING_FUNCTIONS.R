@@ -39,7 +39,7 @@ project_maxent_current_grids_mess = function(taxa_list,
   ## Rename the raster grids
   ## Note this step is only needed if the current grids used in the 
   ## their original form, rather than being renamed
-
+  
   ## First, run a loop over each scenario:
   lapply(taxa_list, function(x) {
     
@@ -83,14 +83,17 @@ project_maxent_current_grids_mess = function(taxa_list,
           swd_new <- sprintf('%s%s/%s_occ_swd.rds', maxent_path, save_name, save_name)
           swd_old <- sprintf('%s%s/swd.rds', maxent_path, save_name)
           
+          occ_file <- sprintf('%s%s/%s_occ.rds', maxent_path, save_name, save_name)
+          
           if(file.exists(swd_new)){
-          swd    <- as.data.frame(readRDS(swd_new))
-          
+            
+            swd    <- as.data.frame(readRDS(swd_new))
+            occ    <- readRDS(occ_file)
+            
           } else {
-            swd    <- as.data.frame(readRDS(swd_old)) 
+            swd    <- as.data.frame(readRDS(swd_old))
+            occ    <- readRDS(occ_file)
           }
-          
-          occ    <- swd
           
           ## If the current raster prediction has not been run, run it.
           if(!file.exists(f_current) == TRUE) {
@@ -1317,13 +1320,19 @@ calculate_taxa_habitat_host_features = function(taxa_list,
   taxa_list %>%
     
     ## Loop over just the taxa
-    ## taxa = taxa_list[1]
+    ## taxa = taxa_list[52]
     # Mutusca brevicornis
     lapply(function(taxa) {
       
       ## Get table
       target_table <- targ_maxent_table %>%
         filter(searchTaxon == taxa)
+      
+      host_count <- target_table %>% dplyr::select(HostTaxon, 
+                                                   HostTaxon2, 
+                                                   HostTaxon3, 
+                                                   HostTaxon4) %>%  
+        summarise_all(funs(sum(!is.na(.)))) %>% rowSums()
       
       if(!is.na(target_table$HostTaxon)) {
         
@@ -1374,11 +1383,107 @@ calculate_taxa_habitat_host_features = function(taxa_list,
         
       }
       
-      current_thresh     <- sprintf('%s/%s/full/%s_%s%s.tif', target_path,
-                                    save_name, save_name, 
-                                    "current_suit_not_novel_above_", target_thresh)
+      if(!is.na(target_table$HostTaxon2)) {
+        
+        ## Get the directory of the host plants
+        host_dir2 <- host_maxent_table   %>%
+          filter(HostTaxon == target_table$HostTaxon2) %>%
+          dplyr::select(host_dir)  %>%
+          distinct() %>% .[1, ] %>% .[[1]]
+        
+        ## Get the directory of the host plants
+        host_taxa2 <- host_maxent_table  %>%
+          filter(HostTaxon == host_taxa) %>%
+          dplyr::select(HostTaxon2) %>%
+          distinct() %>% .[1, ] %>% .[[1]]
+        
+        ## Get the sdm threshold for each host taxa
+        host_thresh2 <- host_maxent_table %>%
+          filter(HostTaxon == host_taxa2) %>%
+          dplyr::select(Logistic_threshold) %>%
+          distinct() %>% .[1, ] %>% .[[1]]
+        
+        host_name2 <- gsub(' ', '_', host_taxa2)
+        
+      } else {
+        ## Get the directory of the host plants
+        host_dir2    <- NA
+        host_taxa2   <- NA
+        host_thresh2 <- NA
+        host_name2   <- NA
+      }
       
-      current_thresh_ras <- raster(current_thresh)
+      if(!is.na(target_table$HostTaxon3)) {
+        
+        ## Get the directory of the host plants
+        host_dir3 <- host_maxent_table   %>%
+          filter(HostTaxon == target_table$HostTaxon3) %>%
+          dplyr::select(host_dir)  %>%
+          distinct() %>% .[1, ] %>% .[[1]]
+        
+        ## Get the directory of the host plants
+        host_taxa3 <- host_maxent_table  %>%
+          filter(HostTaxon == host_taxa) %>%
+          dplyr::select(HostTaxon3) %>%
+          distinct() %>% .[1, ] %>% .[[1]]
+        
+        ## Get the sdm threshold for each host taxa
+        host_thresh3 <- host_maxent_table %>%
+          filter(HostTaxon == host_taxa3) %>%
+          dplyr::select(Logistic_threshold) %>%
+          distinct() %>% .[1, ] %>% .[[1]]
+        
+        host_name3 <- gsub(' ', '_', host_taxa3)
+        
+      } else {
+        ## Get the directory of the host plants
+        host_dir3    <- NA
+        host_taxa3   <- NA
+        host_thresh3 <- NA
+        host_name3   <- NA
+      }
+      
+      if(!is.na(target_table$HostTaxon4)) {
+        
+        ## Get the directory of the host plants
+        host_dir4 <- host_maxent_table   %>%
+          filter(HostTaxon == target_table$HostTaxon4) %>%
+          dplyr::select(host_dir)  %>%
+          distinct() %>% .[1, ] %>% .[[1]]
+        
+        ## Get the directory of the host plants
+        host_taxa4 <- host_maxent_table  %>%
+          filter(HostTaxon == host_taxa) %>%
+          dplyr::select(HostTaxon4) %>%
+          distinct() %>% .[1, ] %>% .[[1]]
+        
+        ## Get the sdm threshold for each host taxa
+        host_thresh3 <- host_maxent_table %>%
+          filter(HostTaxon == host_taxa3) %>%
+          dplyr::select(Logistic_threshold) %>%
+          distinct() %>% .[1, ] %>% .[[1]]
+        
+        host_name4 <- gsub(' ', '_', host_taxa4)
+        
+      } else {
+        ## Get the directory of the host plants
+        host_dir4    <- NA
+        host_taxa4   <- NA
+        host_thresh4 <- NA
+        host_name4   <- NA
+      }
+      
+      current_thresh_ras_path <- list.files(path       = inv_thresh_dir,
+                                            pattern    = '_current_suit_not_novel_above_', 
+                                            recursive  = TRUE,
+                                            full.names = TRUE) %>% .[grep(".tif", .)] %>% .[grep(save_name, .)]
+      
+      current_thresh_feat_path <- list.files(path       = inv_thresh_dir,
+                                             pattern    = '_current_suit_not_novel_above_', 
+                                             recursive  = TRUE,
+                                             full.names = TRUE) %>% .[grep(".gpkg", .)] %>% .[grep(save_name, .)]
+      
+      current_thresh_ras <- raster(current_thresh_ras_path)
       
       occ                <- readRDS(sprintf('%s/%s/%s_occ.rds', 
                                             target_path, save_name, save_name))
@@ -1390,12 +1495,7 @@ calculate_taxa_habitat_host_features = function(taxa_list,
         
         ## Read in the current suitability raster :: get the current_not`_novel raster
         ## Get the taxa directory name.
-        sdm_threshold <- st_read(dsn = sprintf('%s/%s/full/%s_%s%s.gpkg', 
-                                               target_path,
-                                               save_name, 
-                                               save_name, 
-                                               'current_suit_not_novel_above_', 
-                                               target_thresh))
+        sdm_threshold <- st_read(dsn = current_thresh_feat_path)
         
         sdm_threshold_cast <- sdm_threshold %>% 
           st_cast(., "POLYGON") %>% 
@@ -1759,11 +1859,12 @@ calculate_taxa_habitat_host_features = function(taxa_list,
         } else {
           
           ## If the invert taxa has a host ----
-          message(taxa, ' has a host plant')
+          message(taxa, ' has ', host_count, ' host plants')
           
           ## Print the taxa being analysed
           host_threshold_ras <- paste0(host_dir, host_name, 
                                        "_current_suit_not_novel_above_", host_thresh, '.tif')
+          
           host_string        <- list.files(host_path, 
                                            full.names = TRUE) %>% 
             .[grep(".gpkg", .)] %>% 
@@ -1776,12 +1877,66 @@ calculate_taxa_habitat_host_features = function(taxa_list,
                                            full.names = TRUE) %>% 
             .[grep(paste0(save_name, collapse = '|'), ., ignore.case = TRUE)]
           
-          if(file.exists(host_threshold_ras)) {
+          host_threshold  <- st_read(dsn = host_string) %>% 
+            filter(!st_is_empty(.)) %>% 
+            repair_geometry()
+          
+          ## This block above needs to replicated for all host taxa for the target
+          if(!is.na(host_dir2)) {
             
-            ## Read in host and target rasters
-            host_threshold  <- st_read(dsn = host_string) %>% 
+            host_threshold_ras2 <- paste0(host_dir2, host_name2, 
+                                          "_current_suit_not_novel_above_", host_thresh2, '.tif')
+            
+            host_string2        <- list.files(host_dir2, 
+                                              "_current_suit_not_novel_above_",
+                                              full.names = TRUE) %>% 
+              .[grep(".gpkg", .)] %>% 
+              
+              .[grep(paste0(host_name2, collapse = '|'), ., ignore.case = TRUE)]
+            
+            host_threshold2  <- st_read(dsn = host_string2) %>% 
               filter(!st_is_empty(.)) %>% 
-              repair_geometry() 
+              repair_geometry()
+            
+          }
+          
+          if(!is.na(host_dir3)) {
+            
+            host_threshold_ras3 <- paste0(host_dir3, host_name3, 
+                                          "_current_suit_not_novel_above_", host_thresh3, '.tif')
+            
+            host_string3        <- list.files(host_dir3, 
+                                              "_current_suit_not_novel_above_",
+                                              full.names = TRUE) %>% 
+              .[grep(".gpkg", .)] %>% 
+              
+              .[grep(paste0(host_name3, collapse = '|'), ., ignore.case = TRUE)]
+            
+            host_threshold3  <- st_read(dsn = host_string3) %>% 
+              filter(!st_is_empty(.)) %>% 
+              repair_geometry()
+            
+          }
+          
+          if(!is.na(host_dir4)) {
+            
+            host_threshold_ras4 <- paste0(host_dir4, host_name4, 
+                                          "_current_suit_not_novel_above_", host_thresh4, '.tif')
+            
+            host_string4        <- list.files(host_dir4, 
+                                              "_current_suit_not_novel_above_",
+                                              full.names = TRUE) %>% 
+              .[grep(".gpkg", .)] %>% 
+              
+              .[grep(paste0(host_name4, collapse = '|'), ., ignore.case = TRUE)]
+            
+            host_threshold4  <- st_read(dsn = host_string4) %>% 
+              filter(!st_is_empty(.)) %>% 
+              repair_geometry()
+            
+          }
+          
+          if(file.exists(host_threshold_ras)) {
             
             if(length(intersect_string) == 1) {
               
@@ -1796,9 +1951,43 @@ calculate_taxa_habitat_host_features = function(taxa_list,
               
               ## Now combine the Veg intersect and the SDM
               message('merging SDMs and Veg data for ', taxa)
-              single_sf              <- dplyr::bind_rows(list(sdm_threshold_att, 
-                                                              host_threshold, 
-                                                              intersect_file))
+              ## There needs to be variable for how many host there are, then a separate 
+              ## block for one, two, three or four hosts, each with their own results.
+              if(host_count == 1) {
+                
+                single_sf <- dplyr::bind_rows(list(sdm_threshold_att, 
+                                                   host_threshold, 
+                                                   intersect_file))
+              }
+              
+              if(host_count == 2) {
+                
+                single_sf  <- dplyr::bind_rows(list(sdm_threshold_att, 
+                                                    host_threshold,
+                                                    host_threshold2,
+                                                    intersect_file))
+              }
+              
+              if(host_count == 3) {
+                
+                single_sf  <- dplyr::bind_rows(list(sdm_threshold_att, 
+                                                    host_threshold,
+                                                    host_threshold2,
+                                                    host_threshold3,
+                                                    intersect_file))
+              }
+              
+              if(host_count == 4) {
+                
+                single_sf  <- dplyr::bind_rows(list(sdm_threshold_att, 
+                                                    host_threshold,
+                                                    host_threshold2,
+                                                    host_threshold3,
+                                                    host_threshold4,
+                                                    intersect_file))
+              }
+              
+              
               sdm_plus_veg_host      <- st_union(single_sf)
               sdm_plus_veg_host_poly <- st_cast(sdm_plus_veg_host, "POLYGON")
               
@@ -1970,8 +2159,45 @@ calculate_taxa_habitat_host_features = function(taxa_list,
               ## No intersect, but host plant ---- 
               message('SDM and Veg rasters do not intersect for ', taxa, 'but it has a host taxa')
               
-              single_sf          <- dplyr::bind_rows(list(sdm_threshold_att, 
-                                                          host_threshold))
+              ## Veg intersect & host plant ---- 
+              message('SDM and Veg rasters intersect for ', taxa, ' and it has a host plant')
+              ## Filter out values we don't want - where habitat = 1, but KEEP where FIRE is NA
+              ## If FIRE is NA, that means that....
+   
+              ## Now combine the Veg intersect and the SDM
+              message('merging SDMs and Veg data for ', taxa)
+              ## There needs to be variable for how many host there are, then a separate 
+              ## block for one, two, three or four hosts, each with their own results.
+              if(host_count == 1) {
+                
+                single_sf <- dplyr::bind_rows(list(sdm_threshold_att, 
+                                                   host_threshold))
+              }
+              
+              if(host_count == 2) {
+                
+                single_sf  <- dplyr::bind_rows(list(sdm_threshold_att, 
+                                                    host_threshold,
+                                                    host_threshold2))
+              }
+              
+              if(host_count == 3) {
+                
+                single_sf  <- dplyr::bind_rows(list(sdm_threshold_att, 
+                                                    host_threshold,
+                                                    host_threshold2,
+                                                    host_threshold3))
+              }
+              
+              if(host_count == 4) {
+                
+                single_sf  <- dplyr::bind_rows(list(sdm_threshold_att, 
+                                                    host_threshold,
+                                                    host_threshold2,
+                                                    host_threshold3,
+                                                    host_threshold4))
+              }
+              
               sdm_plus_host      <- st_union(single_sf)
               sdm_plus_host_poly <- st_cast(sdm_plus_host, "POLYGON")
               
