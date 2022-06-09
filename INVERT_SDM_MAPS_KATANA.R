@@ -394,7 +394,7 @@ if(cross_tab_veg) {
 
 
 
-## 3). ESTIMATE % BURNT FOR EACH TAXA =============================================================
+## 4). ESTIMATE % BURNT OVERALL FOR EACH TAXA =============================================================
 
 
 # \
@@ -410,8 +410,8 @@ if(cross_tab_veg) {
 
 ## Add Host Plants to the Maxent LUT 
 ## Read in the host plant species
-host_plants <- read_excel(paste0(inv_results_dir, '/INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
-                          sheet = 'TABLE 3') %>% filter(!is.na(HostTaxon)) %>%
+host_plants <- read_excel(paste0(inv_results_dir, '/INVERST_HSM_CHECK.xlsx'),
+                          sheet = 'HSM_check') %>% filter(!is.na(HostTaxon)) %>%
   dplyr::select(searchTaxon, HostTaxon, HostTaxon2, HostTaxon3, HostTaxon4)
 
 
@@ -474,7 +474,7 @@ calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.SPP
 gc()
 
 
-calculate_taxa_habitat_host_features(taxa_list          = rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
+calculate_taxa_habitat_host_features(taxa_list          = rev(INVERT.MAXENT.GEN.RESULTS$searchTaxon),
                                      targ_maxent_table  = INVERT.RESULTS.HOSTS,
                                      host_maxent_table  = PLANT.RESULTS.HOSTS,
                                      
@@ -486,8 +486,8 @@ calculate_taxa_habitat_host_features(taxa_list          = rev(INVERT.MAXENT.SPP.
                                      thresh_patt        = '_current_suit_not_novel_above_',
                                      
                                      int_cols           = intersect_cols,
-                                     main_int_layer     = FESM_east_20m_categ_sub,
-                                     second_int_layer   = AUS_forest_RS_feat,
+                                     main_int_layer     = FESM_east_20m_binary_split,
+                                     second_int_layer   = AUS_forest_RS_feat_split,
                                      template_raster    = template_raster_250m,
                                      poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                                      epsg               = 3577)
@@ -495,12 +495,66 @@ calculate_taxa_habitat_host_features(taxa_list          = rev(INVERT.MAXENT.SPP.
 gc()
 
 
+calculate_taxa_habitat_host_features(taxa_list          = rev(INVERT.MAXENT.FAM.RESULTS$searchTaxon),
+                                     targ_maxent_table  = INVERT.RESULTS.HOSTS,
+                                     host_maxent_table  = PLANT.RESULTS.HOSTS,
+                                     
+                                     target_path        = inv_back_dir,
+                                     output_path        = inv_fire_dir,
+                                     intersect_path     = inv_inters_dir,
+                                     intersect_patt     = '_SDM_VEG_intersection.gpkg',
+                                     host_path          = plant_thresh_dir,
+                                     thresh_patt        = '_current_suit_not_novel_above_',
+                                     
+                                     int_cols           = intersect_cols,
+                                     main_int_layer     = FESM_east_20m_binary_split,
+                                     second_int_layer   = AUS_forest_RS_feat_split,
+                                     template_raster    = template_raster_250m,
+                                     poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
+                                     epsg               = 3577)
+
+gc()
+
 
 # For each taxa, we create a table of the area in square kilometers of suitable habitat that intersects with each burn 
 # intensity category from the FESM fire intensity layer. Let's combine all those tables together, to create a master 
 # table of estimated burnt area.
 
+
+
+
+
+## 5). ESTIMATE % BURNT OVERALL FOR EACH TAXA =============================================================
+
+
+
+## Calculate Insect habitat within categorical fire layer
+calculate_habitat_categories_intersect(taxa_list          = rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
+                                       targ_maxent_table  = INVERT.RESULTS.HOSTS,
+                                       
+                                       target_path        = inv_back_dir,
+                                       output_path        = inv_fire_dir,
+                                       
+                                       habitat_layer      = AUS_forest_RS_feat_split,
+                                       category_layer     = FESM_east_20m_categ,
+                                       habitat_col        = "Vegetation",
+                                       category_col       = "Burn_Categ",
+                                       intersect_habitat  = FALSE,
+                                       
+                                       template_raster    = template_raster_250m,
+                                       poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
+                                       epsg               = 3577)
+
+gc()
+
+
+
+
 message('sdm fire intersect run succsessfully for ', length(INVERT.MAXENT.SPP.RESULTS$searchTaxon), 'taxa')
+
+
+
+
 
 
 
