@@ -135,7 +135,7 @@ ALL_INVERT_TAXA_ALA_SPID_NICHES_UNI <- ALL_INVERT_TAXA_ALA_SPID_NICHES %>% .[.$s
 
 
 ALL_INVERT_TAXA_ALL_NICHES_UNI      <- bind_rows(ALL_INVERT_TAXA_ALL_NICHES_UNI,
-                                                 ALL_INVERT_TAXA_ALA_SPID_NICHES_UNI)
+                                                 ALL_INVERT_TAXA_ALA_SPID_NICHES_UNI)kl2
 
 
 write_csv(ALL_INVERT_TAXA_ALL_NICHES_UNI,

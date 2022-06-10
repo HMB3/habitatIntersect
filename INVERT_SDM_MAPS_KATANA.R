@@ -529,23 +529,23 @@ gc()
 
 
 ## Calculate Insect habitat within categorical fire layer
-calculate_habitat_categories_intersect(taxa_list          = rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
-                                       targ_maxent_table  = INVERT.RESULTS.HOSTS,
-                                       
-                                       target_path        = inv_back_dir,
-                                       output_path        = inv_fire_dir,
-                                       
-                                       habitat_layer      = AUS_forest_RS_feat_split,
-                                       category_layer     = FESM_east_20m_categ,
-                                       habitat_col        = "Vegetation",
-                                       category_col       = "Burn_Categ",
-                                       intersect_habitat  = FALSE,
-                                       
-                                       template_raster    = template_raster_250m,
-                                       poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-                                       epsg               = 3577)
-
-gc()
+# calculate_habitat_categories_intersect(taxa_list          = rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
+#                                        targ_maxent_table  = INVERT.RESULTS.HOSTS,
+#                                        
+#                                        target_path        = inv_back_dir,
+#                                        output_path        = inv_fire_dir,
+#                                        
+#                                        habitat_layer      = AUS_forest_RS_feat_split,
+#                                        category_layer     = FESM_east_20m_categ,
+#                                        habitat_col        = "Vegetation",
+#                                        category_col       = "Burn_Categ",
+#                                        intersect_habitat  = FALSE,
+#                                        
+#                                        template_raster    = template_raster_250m,
+#                                        poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
+#                                        epsg               = 3577)
+# 
+# gc()
 
 
 

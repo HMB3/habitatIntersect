@@ -53,7 +53,6 @@ out_dir              <- './output/'
 inv_rs_dir           <- './output/invert_maxent_pbi_ala_site/'
 inv_back_dir         <- './output/invert_maxent_pbi_ala_site/back_sel_models/'
 inv_back_dir_old     <- './output/invert_maxent_pbi_ala/back_sel_models/'
-inv_full_dir         <- './output/invert_maxent_pbi_ala_site/full_models/'
 inv_results_dir      <- './output/invert_maxent_pbi_ala_site/results/'
 
 veg_dir              <- './data/Remote_sensing/Veg_data/Forest_cover/'
@@ -65,7 +64,7 @@ inv_fire_dir         <- './output/invert_maxent_pbi_ala_site/Habitat_suitability
 
 
 dir_list <- c(tempdir, ALA_dir, 
-              INV_dir, check_dir, out_dir, inv_rs_dir, inv_back_dir, inv_full_dir, inv_results_dir,
+              INV_dir, check_dir, out_dir, inv_rs_dir, inv_back_dir, inv_results_dir,
               inv_habitat_dir, inv_inters_dir, inv_thresh_dir, inv_fire_dir)
 
 
@@ -145,7 +144,8 @@ taxa_done <- sdm_taxa %>%
   .$Taxa %>% sort()
 
 
-taxa_difference <- c(taxa_remain, species_remain) %>% unique() %>% sort() %>% gsub('_', ' ', .)
+taxa_difference <- c(taxa_remain, species_remain) %>% unique() %>% 
+  sort() %>% gsub('_', ' ', .)
 intersect(analysis_taxa, taxa_difference) %>% sort()
 
 
@@ -209,6 +209,8 @@ PBI_AUS_UNIQUE <- PBI_AUS %>%
 
 PBI_AUS_SITES_UNIQUE <- bind_rows(PBI_AUS_UNIQUE,
                                   PBI_AUS_SITES)
+
+
 
 
 
