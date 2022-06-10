@@ -1691,12 +1691,15 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             fire_layer_ras   <- fasterize(main_int_layer %>% st_cast(., "POLYGON"), t) %>% 
               raster::crop(., extent(main_int_layer))
             
+            sdm_plus_veg_ras <- fasterize(sdm_plus_veg_att %>% st_cast(., "POLYGON"), t) %>% 
+              raster::crop(., extent(main_int_layer))
+            
             message('writing threshold png for ', taxa)
             png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.png'),
                 6, 12, units = 'in', res = 400)
             
-            plot(fire_layer_ras,                 col = 'orange',legend = FALSE)
-            plot(current_thresh_ras, add = TRUE, col = 'green', legend = FALSE)
+            plot(fire_layer_ras,               col = 'orange',legend = FALSE)
+            plot(sdm_plus_veg_ras, add = TRUE, col = 'green', legend = FALSE)
             plot(poly, add = TRUE)
             
             title(main = taxa, 
@@ -1840,12 +1843,15 @@ calculate_taxa_habitat_host_features = function(taxa_list,
             fire_layer_ras <- fasterize(main_int_layer %>% st_cast(., "POLYGON"), t) %>% 
               raster::crop(., extent(main_int_layer))
             
+            sdm_plus_veg_ras <- fasterize(sdm_plus_veg_att %>% st_cast(., "POLYGON"), t) %>% 
+              raster::crop(., extent(main_int_layer))
+            
             message('writing threshold png for ', taxa)
             png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.png'),
                 6, 12, units = 'in', res = 400)
             
-            plot(fire_layer_ras,                 col = 'orange',legend = FALSE)
-            plot(current_thresh_ras, add = TRUE, col = 'green', legend = FALSE)
+            plot(fire_layer_ras,               col = 'orange',legend = FALSE)
+            plot(sdm_plus_veg_ras, add = TRUE, col = 'green', legend = FALSE)
             plot(poly, add = TRUE)
             
             title(main = taxa, 
@@ -2141,12 +2147,15 @@ calculate_taxa_habitat_host_features = function(taxa_list,
               fire_layer_ras   <- fasterize(main_int_layer %>% st_cast(., "POLYGON"), t) %>% 
                 raster::crop(., extent(main_int_layer))
               
+              sdm_plus_veg_ras <- fasterize(sdm_plus_veg_att %>% st_cast(., "POLYGON"), t) %>% 
+                raster::crop(., extent(main_int_layer))
+              
               message('writing threshold png for ', taxa)
               png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.png'),
                   6, 12, units = 'in', res = 400)
               
-              plot(fire_layer_ras,                 col = 'orange',legend = FALSE)
-              plot(current_thresh_ras, add = TRUE, col = 'green', legend = FALSE)
+              plot(fire_layer_ras,               col = 'orange',legend = FALSE)
+              plot(sdm_plus_veg_ras, add = TRUE, col = 'green', legend = FALSE)
               plot(poly, add = TRUE)
               
               title(main = taxa, 
@@ -2350,12 +2359,15 @@ calculate_taxa_habitat_host_features = function(taxa_list,
               fire_layer_ras   <- fasterize(main_int_layer %>% st_cast(., "POLYGON"), t) %>% 
                 raster::crop(., extent(main_int_layer))
               
+              sdm_plus_veg_ras <- fasterize(sdm_plus_veg_att %>% st_cast(., "POLYGON"), t) %>% 
+                raster::crop(., extent(main_int_layer))
+              
               message('writing threshold png for ', taxa)
               png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.png'),
                   6, 12, units = 'in', res = 400)
               
               plot(fire_layer_ras,   col = 'orange',legend = FALSE)
-              plot(sdm_plus_veg_att, add = TRUE, col = 'green', legend = FALSE)
+              plot(sdm_plus_veg_ras, add = TRUE, col = 'green', legend = FALSE)
               plot(poly, add = TRUE)
               
               title(main = taxa, 
