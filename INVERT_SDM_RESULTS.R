@@ -114,9 +114,11 @@ intersect(analysis_taxa, taxa_difference) %>% sort()
 
 
 ## Combine Niches
-ALL_INVERT_TAXA_ALA_PBI_NICHES      <- read_csv(paste0(inv_results_dir, 'GLOBAL_NICHES_ALL_INVERT_TAXA_ALA_PBI.csv'))
-ALL_INVERT_TAXA_ALA_SITE_NICHES     <- read_csv(paste0(inv_results_dir, 'GLOBAL_NICHES_ALL_INVERT_TAXA_ALA_PBI_SITES.csv'))
-ALL_INVERT_TAXA_ALA_SPID_NICHES     <- read_csv(paste0(inv_results_dir, 'GLOBAL_NICHES_ALL_SPIDER_TAXA_ALA_PBI_SITES.csv'))
+ALL_INVERT_TAXA_ALA_PBI_NICHES   <- read_csv(paste0(inv_results_dir, 'GLOBAL_NICHES_ALL_INVERT_TAXA_ALA_PBI.csv'))
+ALL_INVERT_TAXA_ALA_SITE_NICHES  <- read_csv(paste0(inv_results_dir, 'GLOBAL_NICHES_ALL_INVERT_TAXA_ALA_PBI_SITES.csv'))
+ALL_INVERT_TAXA_ALA_SPID_NICHES  <- read_csv(paste0(inv_results_dir, 'GLOBAL_NICHES_ALL_SPIDER_TAXA_ALA_PBI_SITES.csv'))
+ALL_INVERT_TAXA_ALA_DIFF_NICHES  <- read_csv(paste0(inv_results_dir, 'GLOBAL_NICHES_DIFFERENCE_INVERT_TAXA_ALA_PBI.csv'))
+
 
 ALL_INVERT_TAXA_ALA_PBI_NICHES_UNI  <- ALL_INVERT_TAXA_ALA_PBI_NICHES %>% .[.$searchTaxon %in% 
                                                                               setdiff(ALL_INVERT_TAXA_ALA_PBI_NICHES$searchTaxon, 
@@ -135,7 +137,8 @@ ALL_INVERT_TAXA_ALA_SPID_NICHES_UNI <- ALL_INVERT_TAXA_ALA_SPID_NICHES %>% .[.$s
 
 
 ALL_INVERT_TAXA_ALL_NICHES_UNI      <- bind_rows(ALL_INVERT_TAXA_ALL_NICHES_UNI,
-                                                 ALL_INVERT_TAXA_ALA_SPID_NICHES_UNI)kl2
+                                                 ALL_INVERT_TAXA_ALA_SPID_NICHES_UNI,
+                                                 ALL_INVERT_TAXA_ALA_DIFF_NICHES) 
 
 
 write_csv(ALL_INVERT_TAXA_ALL_NICHES_UNI,
