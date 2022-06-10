@@ -284,7 +284,7 @@ template_raster_250m <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip
 SDM.SPAT.OCC.BG.GDA        <- readRDS(paste0(inv_results_dir,   
                                              'SDM_COMBINED_ALL_INVERT_SPIDERS_ALA_PBI_SITES.rds'))
 
-FESM_east_20m_categ        <- readRDS('./data/Remote_sensing/FESM/NBR_Burn_severity_classes_cast.rds')
+FESM_east_20m_categ        <- readRDS('./data/Remote_sensing/FESM/NBR_Burn_severity_classes_cast.rds') %>% st_cast(., "POLYGON")
 FESM_east_20m_binary_split <- readRDS('./data/Remote_sensing/FESM/Fire_perimeters_split.rds')          %>% st_cast(., "POLYGON")
 AUS_forest_RS_feat_split   <- readRDS(paste0(veg_dir,'Aus_forest_cover_east_coast_classes_split.rds')) %>% st_cast(., "POLYGON")
 
