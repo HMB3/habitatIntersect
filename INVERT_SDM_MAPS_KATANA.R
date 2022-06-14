@@ -284,7 +284,7 @@ template_raster_250m <- raster('./data/CSIRO_layers/250m/AUS/Extra/Annual_precip
 SDM.SPAT.OCC.BG.GDA        <- readRDS(paste0(inv_results_dir,   
                                              'SDM_COMBINED_ALL_INVERT_SPIDERS_ALA_PBI_SITES.rds'))
 
-FESM_east_20m_categ        <- readRDS('./data/Remote_sensing/FESM/NBR_Burn_severity_classes_cast.rds') %>% st_cast(., "POLYGON")
+FESM_east_20m_categ        <- st_read('./data/Remote_sensing/FESM/NBR_Burn_severity_classes.shp')      %>% st_cast(., "POLYGON")
 FESM_east_20m_binary_split <- readRDS('./data/Remote_sensing/FESM/Fire_perimeters_split.rds')          %>% st_cast(., "POLYGON")
 AUS_forest_RS_feat_split   <- readRDS(paste0(veg_dir,'Aus_forest_cover_east_coast_classes_split.rds')) %>% st_cast(., "POLYGON")
 
@@ -459,6 +459,7 @@ calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.SPP
                                      
                                      target_path        = inv_back_dir,
                                      output_path        = inv_fire_dir,
+                                     thresh_path        = inv_thresh_dir,
                                      intersect_path     = inv_inters_dir,
                                      intersect_patt     = '_SDM_VEG_intersection.gpkg',
                                      host_path          = plant_thresh_dir,
@@ -521,10 +522,19 @@ gc()
 # table of estimated burnt area.
 
 
+## 5). ESTIMATE % BURNT OVERALL FOR TAXA WITHOUT RECORDS =============================================================
+
+
+## How do we add the plant SDMs together for those inverts without records, but with host plants?
 
 
 
-## 5). ESTIMATE % BURNT OVERALL FOR EACH TAXA =============================================================
+
+
+## 6). ESTIMATE % BURNT OVERALL FOR EACH TAXA =============================================================
+
+
+## Try individual reads
 
 
 

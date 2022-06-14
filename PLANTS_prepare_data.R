@@ -50,12 +50,10 @@ out_dir              <- './output/'
 
 inv_rs_dir           <- './output/invert_maxent_pbi_ala_site/'
 inv_back_dir         <- './output/invert_maxent_pbi_ala_site/back_sel_models/'
-inv_full_dir         <- './output/invert_maxent_pbi_ala_site/full_models/'
 inv_results_dir      <- './output/invert_maxent_pbi_ala_site/results/'
 
 plant_rs_dir         <- './output/plant_maxent_raster_update/'
 plant_back_dir       <- './output/plant_maxent_raster_update/back_sel_models/'
-plant_full_dir       <- './output/plant_maxent_raster_update/full_models/'
 plant_results_dir    <- './output/plant_maxent_raster_update/results/'
 
 veg_dir              <- './data/Remote_sensing/Veg_data/Forest_cover/'
@@ -72,8 +70,8 @@ plant_fire_dir       <- './output/plant_maxent_raster_update/Habitat_suitability
 
 
 dir_list <- c(tempdir, ALA_dir, 
-              INV_dir, check_dir, out_dir, inv_rs_dir, inv_back_dir, inv_full_dir, inv_results_dir,
-              plant_rs_dir, plant_back_dir, plant_full_dir, plant_results_dir, veg_dir,
+              INV_dir, check_dir, out_dir, inv_rs_dir, inv_back_dir, inv_results_dir,
+              plant_rs_dir, plant_back_dir, plant_results_dir, veg_dir,
               inv_habitat_dir, inv_inters_dir, inv_thresh_dir, inv_fire_dir,
               plant_habitat_dir, plant_inters_dir, plant_thresh_dir, plant_fire_dir)
 
@@ -99,7 +97,7 @@ terraOptions(memfrac = 0.9,
 
 
 coord_clean <- TRUE
-save_name   <- 'EXTRA_PLANT_TAXA'
+save_name   <- 'REMAIN_PLANT_TAXA'
 
 
 # STEP 1 :: Get spp lists ----
@@ -115,7 +113,8 @@ data('target.host.plants')
 
 
 host_taxa_updated <- read_excel(paste0(inv_results_dir, 'INVERST_HSM_CHECK.xlsx'),
-                                sheet = 'All_plants') %>% select(searchTaxon) %>% .$searchTaxon 
+                                sheet = 'All_host_plants') %>% 
+  select(searchTaxon) %>% .$searchTaxon 
 
 background_plants <- host_taxa_updated %>% 
   c(target.host.plants, .) %>% unique %>% sort()
@@ -203,20 +202,22 @@ Plants_ALA_down_6 <- read_csv('./data/ALA/Plants/manual_download/records-2022-06
 error_cols <- c('eventTime', 'identificationID', 'taxonID', 
                 'occurrenceID', 'eventID', 'verbatimElevation...77', 'datasetID')
 
-Plants_ALA_down <- Plants_ALA_down_1[, !names(Plants_ALA_down_1) %in% error_cols] %>% 
-  dplyr::select(., -starts_with("verbatim")) %>% 
+Plants_ALA_down <- 
   
-  bind_rows(., Plants_ALA_down_2 [, !names(Plants_ALA_down_2) %in% error_cols])  %>%
-  dplyr::select(., -starts_with("verbatim")) %>% 
+  Plants_ALA_down_3[, !names(Plants_ALA_down_3) %in% error_cols] %>%
+  dplyr::select(., -starts_with("verbatim")) %>%
   
-  bind_rows(., Plants_ALA_down_3 [, !names(Plants_ALA_down_3) %in% error_cols])  %>%
-  dplyr::select(., -starts_with("verbatim")) %>% 
+  # bind_rows(., Plants_ALA_down_2 [, !names(Plants_ALA_down_2) %in% error_cols])  %>%
+  # dplyr::select(., -starts_with("verbatim")) %>% 
+  # 
+  # bind_rows(., Plants_ALA_down_3 [, !names(Plants_ALA_down_3) %in% error_cols])  %>%
+  # dplyr::select(., -starts_with("verbatim")) %>% 
   
-  bind_rows(., Plants_ALA_down_4 [, !names(Plants_ALA_down_4) %in% error_cols])  %>%
-  dplyr::select(., -starts_with("verbatim")) %>% 
-  
-  bind_rows(., Plants_ALA_down_5 [, !names(Plants_ALA_down_5) %in% error_cols])  %>%
-  dplyr::select(., -starts_with("verbatim")) %>% 
+  # bind_rows(., Plants_ALA_down_4 [, !names(Plants_ALA_down_4) %in% error_cols])  %>%
+  # dplyr::select(., -starts_with("verbatim")) %>% 
+  # 
+  # bind_rows(., Plants_ALA_down_5 [, !names(Plants_ALA_down_5) %in% error_cols])  %>%
+  # dplyr::select(., -starts_with("verbatim")) %>% 
   
   bind_rows(., Plants_ALA_down_6 [, !names(Plants_ALA_down_6) %in% error_cols])  %>%
   dplyr::select(., -starts_with("verbatim")) 

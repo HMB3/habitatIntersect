@@ -81,7 +81,6 @@ out_dir              <- './output/'
 
 reptile_rs_dir         <- './output/reptile_maxent/'
 reptile_back_dir       <- './output/reptile_maxent/back_sel_models/'
-reptile_full_dir       <- './output/reptile_maxent/full_models/'
 reptile_results_dir    <- './output/reptile_maxent/results/'
 
 reptile_habitat_dir    <- './output/reptile_maxent/Habitat_suitability/'

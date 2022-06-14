@@ -150,7 +150,8 @@ data('target.host.plants')
 
 
 host_taxa_updates <- read_excel(paste0(inv_results_dir, 'INVERST_HSM_CHECK.xlsx'),
-                                sheet = 'All_plants') %>% select(searchTaxon) %>% .$searchTaxon
+                                sheet = 'All_host_plants') %>% select(searchTaxon) %>% 
+  .$searchTaxon %>% sort()
 
 
 
@@ -185,7 +186,13 @@ SDM.PLANT.EXTRA.GDA <- readRDS(paste0(plant_results_dir,
   st_transform(., st_crs(3577))
 
 
-SDM.PLANT.ALL.GDA <- rbind(SDM.PLANT.EXTRA.GDA, SDM.PLANT.GDA) %>% as_Spatial()
+SDM.PLANT.DIFF.GDA <- readRDS(paste0(plant_results_dir,   
+                                      'SDM_SPAT_OCC_BG_REMAIN_PLANT_TAXA.rds')) %>% 
+  st_as_sf() %>% 
+  st_transform(., st_crs(3577))
+
+
+SDM.PLANT.ALL.GDA <- rbind(SDM.PLANT.EXTRA.GDA, SDM.PLANT.GDA, SDM.PLANT.DIFF.GDA) %>% as_Spatial()
 
 
 host_taxa_updates %in%     unique(SDM.PLANT.ALL.GDA$searchTaxon) %>% table()
@@ -193,7 +200,7 @@ setdiff(host_taxa_updates, unique(SDM.PLANT.ALL.GDA$searchTaxon))
 
 
 ## Run family-level models for invertebrates.
-run_sdm_analysis_no_crop(taxa_list               = sort(host_taxa_updates),
+run_sdm_analysis_no_crop(taxa_list               = host_taxa_updates,
                          taxa_level              = 'species',
                          maxent_dir              = plant_back_dir,
                          bs_dir                  = plant_back_dir,

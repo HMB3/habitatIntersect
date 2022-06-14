@@ -1280,6 +1280,7 @@ calculate_taxa_habitat_host_rasters = function(taxa_list,
 #' @param targ_maxent_table  data frame - table of maxent results for target taxa
 #' @param host_maxent_table  data frame - table of maxent results for host taxa
 #' @param target_path        Character string - The file path containing the existing maxent models
+#' @param thresh_path        Character string - The file path containing the existing maxent models
 #' @param output_path        Character string - The file path to save the function output
 #' @param host_path          Character string - The file path to save the function output
 #' @param intersect_path     Character string - The file path containing the intersecting rasters
@@ -1297,6 +1298,7 @@ calculate_taxa_habitat_host_features = function(taxa_list,
                                                 host_maxent_table,
                                                 target_path,
                                                 output_path,
+                                                thresh_path,
                                                 host_path,
                                                 intersect_path,
                                                 intersect_patt,
@@ -1473,12 +1475,12 @@ calculate_taxa_habitat_host_features = function(taxa_list,
         host_name4   <- NA
       }
       
-      current_thresh_ras_path <- list.files(path       = inv_thresh_dir,
+      current_thresh_ras_path <- list.files(path       = thresh_path,
                                             pattern    = '_current_suit_not_novel_above_', 
                                             recursive  = TRUE,
                                             full.names = TRUE) %>% .[grep(".tif", .)] %>% .[grep(save_name, .)]
       
-      current_thresh_feat_path <- list.files(path       = inv_thresh_dir,
+      current_thresh_feat_path <- list.files(path       = thresh_path,
                                              pattern    = '_current_suit_not_novel_above_', 
                                              recursive  = TRUE,
                                              full.names = TRUE) %>% .[grep(".gpkg", .)] %>% .[grep(save_name, .)]
@@ -2597,7 +2599,6 @@ calculate_habitat_categories_intersect <- function(taxa_list,
                append = FALSE)
       gc()
       
-      
       ## Create rasters for plotting
       t <- raster::raster(template_raster) %>% 
         raster::crop(., extent(category_layer))
@@ -2608,12 +2609,12 @@ calculate_habitat_categories_intersect <- function(taxa_list,
       fire_layer_ras   <- fasterize(category_layer %>% st_cast(., "POLYGON"), t) %>% 
         raster::crop(., extent(category_layer))
       
-      message('writing threshold png for ', taxa)
+      message('writing fire SDM intersect for ', taxa)
       png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire_Categories.png'),
           6, 12, units = 'in', res = 400)
       
       plot(fire_layer_ras,                 col = 'orange',legend = FALSE)
-      plot(sdm_cast, add = TRUE, col = 'green', legend = FALSE)
+      plot(current_thresh_ras, add = TRUE, col = 'green', legend = FALSE)
       plot(poly, add = TRUE)
       
       title(main = taxa, 
@@ -2621,7 +2622,6 @@ calculate_habitat_categories_intersect <- function(taxa_list,
                           " % Suitable habitat Burnt"))
       dev.off()
       gc()
-      
       
     }) 
 }
@@ -2638,7 +2638,7 @@ calculate_habitat_categories_intersect <- function(taxa_list,
 #' @param layer_list         Character string - list of feature layers to look up
 #' @param targ_maxent_table  data frame - table of maxent results for target taxa
 #' @param target_path        Character string - The file path containing the existing maxent models
-#' @param threshold_path     Character string - The file path containing the thresh-holded layers
+#' @param thresh_path     Character string - The file path containing the thresh-holded layers
 #' @param intersect_path     Character string - The file path containing the intersected layers
 #' @param intersect_patt     Character string - The pattern for the intersected layers
 #' @param output_path        Character string - The file path containing the intersecting layers
@@ -2656,11 +2656,10 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
                                                 targ_maxent_table,
                                                 target_path,
                                                 output_path,
+                                                thresh_path,
                                                 intersect_name,
-                                                threshold_path,
                                                 intersect_path,
                                                 intersect_patt,
-                                                layer_list,
                                                 main_int_layer,
                                                 second_int_layer,
                                                 template_raster,
@@ -2691,23 +2690,54 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
       ## Get the taxa directory name
       save_name <- gsub(' ', '_', taxa)
       
-      current_thresh = sprintf('%s/%s/full/%s_%s%s.tif', target_path,
-                               save_name, save_name, "current_suit_not_novel_above_", target_thresh)
+      current_thresh_ras_path <- list.files(path       = thresh_path,
+                                            pattern    = '_current_suit_not_novel_above_', 
+                                            recursive  = TRUE,
+                                            full.names = TRUE) %>% .[grep(".tif", .)] %>% .[grep(save_name, .)]
       
-      current_thresh_ras <- raster(current_thresh)
-      occ <- readRDS(sprintf('%s/%s/%s_occ.rds', target_path, save_name, save_name)) 
+      current_thresh_feat_path <- list.files(path       = thresh_path,
+                                             pattern    = '_current_suit_not_novel_above_', 
+                                             recursive  = TRUE,
+                                             full.names = TRUE) %>% .[grep(".gpkg", .)] %>% .[grep(save_name, .)]
+      
+      current_thresh_ras <- raster(current_thresh_ras_path)
+      
+      occ                <- readRDS(sprintf('%s/%s/%s_occ.rds', 
+                                            target_path, save_name, save_name))
+      
+      sdm_fire_geo       <- paste0(output_path, save_name, '_sdm_fire_intersect.gpkg')
+      sdm_fire_png       <- paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.png')
       
       ## If the threshold raster data doesn't exist :
-      if(file.exists(current_thresh)) {
+      if(!file.exists(sdm_fire_png)) {
+        
+        
+        ## Read in the current suitability raster :: get the current_not`_novel raster
+        ## Get the taxa directory name.
+        sdm_threshold <- st_read(dsn = current_thresh_feat_path)
+        
+        sdm_threshold_cast <- sdm_threshold %>% 
+          st_cast(., "POLYGON") %>% 
+          
+          ## This hasn't burnt yet
+          mutate(Taxa     = taxa)
+        
+        sdm_threshold_att <- sdm_threshold %>% 
+          st_cast(., "POLYGON") %>% 
+          
+          ## This hasn't burnt yet
+          mutate(Habitat  = 1,
+                 Taxa     = taxa,
+                 Area_km2 = st_area(geom)/million_metres,
+                 Area_km2 = drop_units(Area_km2)) %>% 
+          dplyr::select(Habitat, Taxa, Area_km2) 
         
         ## Print the taxa being analysed
         message('Intersecting SDM with Fire for ', taxa)
         
         ## Read in the current suitability raster :: get the current_not`_novel raster
         ## Get the taxa directory name
-        layer_name    <- layer_list[grep(save_name, layer_list)][[1]]
-        sdm_threshold <- st_read(dsn   = threshold_path, 
-                                 layer = layer_name) %>% 
+        sdm_threshold <- st_read(current_thresh_feat_path) %>% 
           filter(!st_is_empty(.)) %>% repair_geometry()
         
         ## create sf attributes for each sdm polygon
@@ -2724,57 +2754,73 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
         sdm_area_km2 <- st_area(sdm_threshold)/million_metres
         sdm_area_km2 <- drop_units(sdm_area_km2)
         
-        ## Then do the Cell stats ::
-        ## estimated x % of each taxon's habitat in each fire intensity category 
-        message('Intersecting SDM with Fire layers for ', taxa)
-        sdm_fire_int         <- st_intersection(sdm_threshold_att, main_int_layer) %>% 
-          
-          ## Calculate the area again
-          mutate(Area_km2 = st_area(geom)/million_metres,
-                 Area_km2 = drop_units(Area_km2))
+        ## No intersect, No host ----
+        message('SDM and Veg rasters do not intersect for ', taxa, ' and it does not have a host taxa')
         
+        ## Calculate area of the SDM - don't need the fire area
+        sdm_area_km2  <- sdm_threshold_att$Area_km2 %>% sum()
+        
+        ## Then do the Cell stats ::
+        ## estimated x % of each taxons habitat in each fire intensity category 
+        message('Intersecting SDM with Fire layers for ', taxa)
+        sdm_fire_int           <- st_intersection(sdm_threshold_att, main_int_layer)  
+        sdm_fire_areas         <- st_area(sdm_fire_int)/million_metres
+        sdm_fire_areas_km2     <- drop_units(sdm_fire_areas)
+        sdm_fire_area_km2      <- drop_units(sdm_fire_areas) %>% sum()
         gc()
         
         ## create sf attributes for each intersecting polygon
-        sdm_fire_int_att <- sdm_fire_int %>% st_cast(., "POLYGON") %>% 
+        sdm_fire_int_att <- sdm_fire_int %>% st_cast(., "POLYGON") %>%
           
           mutate(Habitat       = 1,
                  Taxa          = taxa,
                  Fire          = 'Burnt',
                  Area_Poly_km2 = st_area(geom)/million_metres,
-                 Area_Poly_km2 = drop_units(Area_Poly_km2)) 
+                 Area_Poly_km2 = drop_units(Area_Poly_km2))
         
         ## Calculate total areas separately
-        sdm_fire_int_area_m2  <- st_area(sdm_fire_int)/million_metres
-        sdm_fire_int_area_km2 <- drop_units(sdm_fire_int_area_m2) 
-        percent_burnt         <- sdm_fire_int_area_km2/sdm_area_km2 * 100 %>% round(.)
+        sdm_fire_int_areas_m2  <- st_area(sdm_fire_int)/million_metres
+        sdm_fire_int_areas_km2 <- drop_units(sdm_fire_int_areas_m2)
+        sdm_fire_int_area_km2  <- drop_units(sdm_fire_int_areas_m2) %>% sum() 
+        percent_burnt_overall  <- sdm_fire_int_area_km2/sdm_area_km2 * 100 %>% round(.)
         gc()
         
         ## calc % burnt within forest
         message('Intersecting SDM + Fire layer with Forest layer for ', taxa)
-        sdm_fire_forest_int      <- st_intersection(sdm_fire_int_att,   second_int_layer)
+        sdm_fire_forest_int       <- st_intersection(sdm_fire_int_att,   second_int_layer)
         
-        sdm_fire_forest_area_m2  <- st_area(sdm_fire_forest_int)/million_metres
-        sdm_fire_forest_area_km2 <- drop_units(sdm_fire_forest_area_m2)
-        
+        sdm_fire_forest_areas_m2  <- st_area(sdm_fire_forest_int)/million_metres
+        sdm_fire_forest_areas_km2 <- drop_units(sdm_fire_forest_areas_m2)
+        sdm_fire_forest_area_km2  <- drop_units(sdm_fire_forest_areas_m2) %>% sum()
         gc()
         
         ## create sf attributes for each intersecting polygon
-        sdm_fire_forest_int_att <- sdm_fire_forest_int %>% st_cast(., "POLYGON") %>% 
+        sdm_fire_forest_int_att <- sdm_fire_forest_int %>% 
           
-          mutate(Taxa          = taxa,
-                 Fire          = 'Burnt',
-                 Area_poly     = st_area(geom)/million_metres,
-                 Area_poly     = drop_units(Area_poly),
-                 percent_burnt_veg = (Area_poly/Area_km2 * 100 %>% round(., 1)))
+          mutate(Taxa              = taxa,
+                 Fire              = 'Burnt',
+                 Area_poly         = st_area(geom)/million_metres,
+                 Area_poly         = drop_units(Area_poly),
+                 Percent_burnt_veg = (Area_poly/sdm_area_km2 * 100 %>% round(., 1)))
+        
+        ## Aggregate the sdm * fire * forest areas into veg classes
+        sdm_fire_forest_int_classes <- sdm_fire_forest_int_att %>%
+          
+          st_set_geometry(NULL) %>% 
+          dplyr::select(Taxa, Vegetation, Area_poly, Percent_burnt_veg) %>% 
+          group_by(Taxa, Vegetation) %>% 
+          summarise(Area_poly         = sum(Area_poly),
+                    Percent_burnt_veg = sum(Percent_burnt_veg))
         
         ## calc % burnt within forest classes
-        percent_burnt_forest_overall <- sdm_fire_forest_area_km2/sdm_area_km2 * 100 %>% round(., 1)
-        percent_burnt_forest_class   <- sdm_fire_forest_area_km2/sdm_forest_int$Area_km2 * 100 %>% round(., 1)
+        percent_burnt_forest_overall <- sum(sdm_fire_forest_int_classes$Percent_burnt_veg)
+        percent_burnt_forest_class   <- sdm_fire_forest_int_classes$Area_poly/
+          sdm_fire_forest_area_km2 * 100 %>% round(., 1)
         
         ## Create a tibble of overall areas for each taxon
         ## Include the SDM area in each fire classs here
         sdm_fire_overall_areas <- data.frame(matrix(NA, ncol = 4, nrow = 1))
+        
         colnames(sdm_fire_overall_areas) <- c('Taxa', 
                                               'Habitat_km2', 
                                               'Habitat_burnt_km2', 
@@ -2785,37 +2831,39 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
           mutate(Taxa              = taxa,
                  Habitat_km2       = sdm_area_km2,
                  Habitat_burnt_km2 = sdm_fire_int_area_km2,
-                 Percent_burnt     = percent_burnt)
+                 Percent_burnt     = percent_burnt_overall)
         
         ## Create a tibble of vegetation areas for each taxon
-        sdm_fire_forest_areas <- data.frame(matrix(NA, ncol = 4, nrow = 7))
+        veg_length <- unique(sdm_fire_forest_int$Vegetation) %>% length
+        sdm_fire_forest_areas <- data.frame(matrix(NA, 
+                                                   ncol = 4, 
+                                                   nrow = veg_length))
+        
         colnames(sdm_fire_forest_areas) <- c('Taxa', 
                                              'Vegetation', 
-                                             # 'Habitat_Total', 
-                                             'Habitat_Veg',  
-                                             #'Percent_Habitat_burnt', 
-                                             'Percent_Habitat_Veg_burnt')
+                                             'Habitat_Veg_burnt_area',  
+                                             'Habitat_Veg_burnt_perc')
         
         sdm_fire_forest_areas <- sdm_fire_forest_areas %>% 
           
-          mutate(Taxa                      = taxa,
-                 Vegetation                = unique(sdm_fire_forest_int$Vegetation),
-                 Habitat_Veg               = sdm_forest_int$Area_km2,
-                 Percent_Habitat_Veg_burnt = percent_burnt_forest_class)
+          mutate(Taxa                   = taxa,
+                 Vegetation             = unique(sdm_fire_forest_int$Vegetation),
+                 Habitat_Veg_burnt_area = sdm_fire_forest_int_classes$Area_poly,
+                 Habitat_Veg_burnt_perc = percent_burnt_forest_class)
         
         ## Save the % burnt layers
-        write.csv(sdm_fire_overall_areas, paste0(output_path, save_name, '_SDM_intersect_Fire.csv'),     row.names = FALSE)
-        write.csv(sdm_fire_forest_areas,  paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.csv'), row.names = FALSE)
+        write.csv(sdm_fire_overall_areas, 
+                  paste0(output_path, save_name, '_SDM_intersect_Fire.csv'),     row.names = FALSE)
+        write.csv(sdm_fire_forest_areas,  
+                  paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.csv'), row.names = FALSE)
         gc()
         
         ## Now save the thresh-holded rasters as shapefiles
         message('Saving SDM Fire intersect polygons for ', taxa)
-        save_intersect <- paste0(output_path, intersect_name)
         st_write(sdm_fire_int_att, 
                  
-                 dsn    = save_intersect, 
-                 layer  = paste0(save_name, 
-                                 '_sdm_intersect_fire_subset'),
+                 dsn    = sdm_fire_geo, 
+                 layer  = paste0(save_name, '_sdm_fire_int_sub'),
                  
                  quiet  = TRUE,
                  append = FALSE)
@@ -2823,9 +2871,8 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
         
         st_write(sdm_fire_forest_int_att, 
                  
-                 dsn    = save_intersect, 
-                 layer  = paste0(save_name, 
-                                 '_sdm_intersect_fire_forest_subset'),
+                 dsn    = sdm_fire_geo, 
+                 layer  = paste0(save_name, '_sdm_fire_forest_int_sub'),
                  
                  quiet  = TRUE,
                  append = FALSE)
@@ -2838,43 +2885,28 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
         current_thresh_ras <- current_thresh_ras %>% 
           raster::crop(., extent(main_int_layer))
         
-        sdm_fire_int_ras <- fasterize(sdm_fire_int,   t)
-        fire_layer_ras   <- fasterize(main_int_layer, t)
+        fire_layer_ras <- fasterize(main_int_layer %>% st_cast(., "POLYGON"), t) %>% 
+          raster::crop(., extent(main_int_layer))
+        
+        sdm_plus_veg_ras <- fasterize(sdm_plus_veg_att %>% st_cast(., "POLYGON"), t) %>% 
+          raster::crop(., extent(main_int_layer))
         
         message('writing threshold png for ', taxa)
         png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.png'),
-            11, 4, units = 'in', res = 400)
+            6, 12, units = 'in', res = 400)
         
-        print(levelplot(stack(current_thresh_ras,
-                              fire_layer_ras,
-                              sdm_fire_int_ras,
-                              quick = TRUE), 
-                        margin = FALSE,
-                        
-                        ## Create a colour scheme using colbrewer: 100 is to make it continuous
-                        ## Also, make it a one-directional colour scheme
-                        scales      = list(draw = FALSE),
-                        at = seq(0, 1, length = 3),
-                        col.regions = colorRampPalette(rev(brewer.pal(3, 'YlOrRd'))),
-                        
-                        ## Give each plot a name: the third panel is the GCM
-                        names.attr = c('SDM', 'Fire', 'SDM * Fire'),
-                        colorkey   = list(height = 0.5, width = 3), xlab = '', ylab = '',
-                        main       = list(gsub('_', ' ', taxa), font = 4, cex = 2)) +
-                
-                ## Plot the Aus shapefile with the occurrence points for reference
-                ## Can the current layer be plotted on it's own?
-                ## Add the novel maps as vectors.
-                latticeExtra::layer(sp.polygons(poly), data = list(poly = poly)) +
-                latticeExtra::layer(sp.points(occ, pch = 19, cex = 0.25,
-                                              col = c('blue', 'transparent', 'transparent')[panel.number()]),
-                                    data = list(occ = occ)))
+        plot(fire_layer_ras,               col = 'orange',legend = FALSE)
+        plot(sdm_plus_veg_ras, add = TRUE, col = 'green', legend = FALSE)
+        plot(poly, add = TRUE)
         
+        title(main = taxa, 
+              sub  = paste0(round(percent_burnt_overall, 2), 
+                            " % Suitable habitat Burnt"))
         dev.off()
         gc()
         
       } else {
-        message('Habitat Suitability threshold raster does not exist for', taxa, ' skip')
+        message('SDM fire threshold already done for ', taxa, ' skip')
         cat(taxa)
       }
       

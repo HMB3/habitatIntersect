@@ -43,7 +43,7 @@ inv_fire_dir         <- './output/invert_maxent_pbi_ala_site/Habitat_suitability
 
 
 
-## 1). COLLATE % BURNT FOR ALL TAXA =============================================================
+## 1). TAXA LISTS =============================================================
 
 
 ## get target taxa
@@ -84,11 +84,21 @@ site_cols <- c("genus",
                "basisOfRecord")
 
 
-taxa_qc <- read_excel(paste0(inv_results_dir, 'SDM_target_species.xlsx'),
-                      sheet = 'Invert_QA_check')
+taxa_qc    <- read_excel(paste0(inv_results_dir, 'SDM_target_species.xlsx'),
+                         sheet = 'Invert_QA_check')
 
-sdm_taxa <- read_excel(paste0(inv_results_dir, 'INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
-                       sheet = 'Missing_taxa')
+sdm_taxa   <- read_excel(paste0(inv_results_dir, 'INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
+                         sheet = 'Missing_taxa')
+
+invert_LUT <- read_excel(paste0(inv_results_dir, 'INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
+                         sheet = 'TABLE 3') %>% dplyr::select("searchTaxon",       
+                                                              "Aus_records",       
+                                                              "AOO",               
+                                                              "EOO",               
+                                                              "KOP_count",         
+                                                              "Type") %>% rename(Taxa = searchTaxon)
+
+table(invert_LUT$Type)
 
 species_remain <- taxa_qc %>% 
   filter(grepl("Missing", Note)) %>%
@@ -111,6 +121,12 @@ taxa_done <- sdm_taxa %>%
 
 taxa_difference <- c(taxa_remain, species_remain) %>% unique() %>% sort()
 intersect(analysis_taxa, taxa_difference) %>% sort()
+
+
+
+
+
+## 2). TAXA NICHES AND SDM RESULTS =============================================================
 
 
 ## Combine Niches
@@ -162,10 +178,34 @@ SPID.MAXENT.RESULTS     <- compile_sdm_results(taxa_list    = taxa_difference,
                                                save_run     = 'INVERT_SPIDER_TAXA_ALA_PBI_SITES')
 
 
-SITES.ALL.MAXENT.RESULTS <- bind_rows(SITES.MAXENT.RESULTS, SPID.MAXENT.RESULTS %>% .[.$searchTaxon %in% 
-                                                                                        setdiff(SPID.MAXENT.RESULTS$searchTaxon, 
-                                                                                                SITES.MAXENT.RESULTS$searchTaxon), ])
+SITES.ALL.MAXENT.RESULTS <- bind_rows(SITES.MAXENT.RESULTS, 
+                                      SPID.MAXENT.RESULTS %>% .[.$searchTaxon %in% 
+                                                                  setdiff(SPID.MAXENT.RESULTS$searchTaxon, 
+                                                                          SITES.MAXENT.RESULTS$searchTaxon), ])
 
+
+INVERT.MAXENT.FAM.RESULTS <- compile_sdm_results(taxa_list    = target.insect.families,
+                                                 results_dir  = inv_back_dir,
+                                                 data_path    = inv_habitat_dir,
+                                                 sdm_path     = inv_back_dir,
+                                                 save_data    = FALSE,
+                                                 save_run     = 'INVERT_ANALYSIS_TAXA')
+
+
+INVERT.MAXENT.GEN.RESULTS <- compile_sdm_results(taxa_list    = target.insect.genera,
+                                                 results_dir  = inv_back_dir,
+                                                 data_path    = inv_habitat_dir,
+                                                 sdm_path     = inv_back_dir,
+                                                 save_data    = FALSE,
+                                                 save_run     = 'INVERT_ANALYSIS_TAXA')
+
+
+INVERT.MAXENT.SPP.RESULTS <- compile_sdm_results(taxa_list    = target.insect.spp,
+                                                 results_dir  = inv_back_dir,
+                                                 data_path    = habitat_dir,
+                                                 sdm_path     = inv_back_dir,
+                                                 save_data    = FALSE,
+                                                 save_run     = 'INVERT_ANALYSIS_TAXA')
 
 
 write_csv(SITES.ALL.MAXENT.RESULTS,
@@ -173,14 +213,18 @@ write_csv(SITES.ALL.MAXENT.RESULTS,
 
 
 
+
+## 3). COMBINE TABLES =============================================================
+
+
 ## Get the list of files
-INVERT.FESM.list    <- list.files('./output/invert_maxent_pbi_ala/Habitat_suitability/FESM_SDM_intersect/', 
+INVERT.FESM.list    <- list.files(inv_fire_dir, 
                                   pattern     = '_SDM_intersect_Fire.csv', 
                                   full.names  = TRUE, 
                                   recursive   = TRUE) 
 
 
-INVERT.FESM.VEG.list <- list.files('./output/invert_maxent_pbi_ala/Habitat_suitability/FESM_SDM_intersect/', 
+INVERT.FESM.VEG.list <- list.files(inv_fire_dir, 
                                    pattern     = 'VEG_intersect_Fire.csv', 
                                    full.names  = TRUE, 
                                    recursive   = TRUE) 
@@ -228,20 +272,24 @@ INVERT.FESM.VEG.TABLE <- INVERT.FESM.VEG.list %>%
 
 ## Subset to just the analysis species - some species did not process properly?
 INVERT.FESM.TABLE <-  INVERT.FESM.TABLE[INVERT.FESM.TABLE$Taxa %in%
-                                          sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)) , ] %>%
+                                          sort(unique(SITES.ALL.MAXENT.RESULTS$searchTaxon)) , ] %>%
   .[complete.cases(.), ] %>% 
   
   mutate(Habitat_km2       = round(Habitat_km2, 1),
          Habitat_burnt_km2 = round(Habitat_burnt_km2, 1),
-         Percent_burnt     = round(Percent_burnt, 1))
+         Percent_burnt     = round(Percent_burnt, 1)) %>% 
+  
+  left_join(., invert_LUT %>% select(Taxa, Type), by = "Taxa")
 
 
 INVERT.FESM.VEG.TABLE <-  INVERT.FESM.VEG.TABLE[INVERT.FESM.VEG.TABLE$Taxa %in%
-                                                  sort(unique(INVERT.MAXENT.RESULTS$searchTaxon)) , ] %>%
+                                                  sort(unique(SITES.ALL.MAXENT.RESULTS$searchTaxon)) , ] %>%
   .[complete.cases(.), ] %>% 
   
   mutate(Habitat_Veg_burnt_area = round(Habitat_Veg_burnt_area, 1),
-         Habitat_Veg_burnt_perc = round(Habitat_Veg_burnt_perc, 1))
+         Habitat_Veg_burnt_perc = round(Habitat_Veg_burnt_perc, 1)) %>% 
+  
+  left_join(., invert_LUT %>% select(Taxa, Type), by = "Taxa")
 
 
 
@@ -263,7 +311,12 @@ INVERT.FESM.VEG.TABLE.SPP <- INVERT.FESM.VEG.TABLE %>% .[.$Taxa %in% target.inse
 
 
 
-## Save the FESM intersect results to file
+
+
+## 4). SAVE TABLES =============================================================
+
+
+## Save to CSV ----
 write_csv(INVERT.FESM.TABLE,
           paste0(inv_results_dir, '/INVERT_TAXA_SDM_intersect_Fire_ALA_PBI.csv'))
 
@@ -291,12 +344,7 @@ write_csv(INVERT.FESM.VEG.TABLE.SPP,
 
 
 
-
-
-## 2). SAVE TAXA TO DATABASE =============================================================
-
-
-## Read in the geopackage, so we can save the results
+## Save to geo-package ----
 SDM_ALL_INVERT_TAXA_ALA_PBI    <- paste0(inv_results_dir, 'SDM_ALL_INVERT_TAXA_ALA_PBI.gpkg')
 
 
@@ -309,7 +357,7 @@ st_write(ALL_INVERT_TAXA_ALA_PBI_NICHES,
          append = TRUE)
 
 
-st_write(INVERT.MAXENT.RESULTS, 
+st_write(SITES.ALL.MAXENT.RESULTS, 
          
          dsn    = SDM_ALL_INVERT_TAXA_ALA_PBI, 
          layer  = 'INVERT_TAXA_MAXENT_RESULTS_ALA_PBI',
@@ -345,19 +393,125 @@ st_layers(dsn = SDM_ALL_INVERT_TAXA_ALA_PBI)$name
 
 
 
-## 2). CREATE HABITAT LOSS GRAPHS =============================================================
+## 5). INDIVIDUAL TAXA GRAPHS =============================================================
 
 
 ## Species % burnt scatter plots ----
-INVERT.FESM.TABLE.SPP.RANGE <- INVERT.FESM.TABLE.SPP %>% 
+INVERT.FESM.TABLE.TAXA.RANGE <- INVERT.FESM.TABLE %>% 
   
-  left_join(., dplyr::select(ALL_INVERT_TAXA_ALA_PBI_NICHES,
+  left_join(., dplyr::select(invert_LUT,
                              searchTaxon,
                              Aus_records,
                              AOO,
                              EOO,
-                             KOP_count), by = c('Taxa' = 'searchTaxon'))
+                             KOP_count), by = c('Taxa' = 'searchTaxon')) %>% 
+  
+  dplyr::select(Percent_burnt, Habitat_km2, Habitat_burnt_km2, AOO, EOO, Aus_records, KOP_count)
 
+
+INVERT.FESM.TABLE.FAM.RANGE <- INVERT.FESM.TABLE.FAM %>% 
+  
+  left_join(., dplyr::select(invert_LUT,
+                             searchTaxon,
+                             Aus_records,
+                             AOO,
+                             EOO,
+                             KOP_count), by = c('Taxa' = 'searchTaxon')) %>% 
+  
+  dplyr::select(Percent_burnt, Habitat_km2, Habitat_burnt_km2, AOO, EOO, Aus_records, KOP_count)
+
+
+INVERT.FESM.TABLE.GEN.RANGE <- INVERT.FESM.TABLE.GEN %>% 
+  
+  left_join(., dplyr::select(invert_LUT,
+                             searchTaxon,
+                             Aus_records,
+                             AOO,
+                             EOO,
+                             KOP_count), by = c('Taxa' = 'searchTaxon')) %>% 
+  
+  dplyr::select(Percent_burnt, Habitat_km2, Habitat_burnt_km2, AOO, EOO, Aus_records, KOP_count)
+
+
+INVERT.FESM.TABLE.SPP.RANGE <- INVERT.FESM.TABLE.SPP %>% 
+  
+  left_join(., dplyr::select(invert_LUT,
+                             searchTaxon,
+                             Aus_records,
+                             AOO,
+                             EOO,
+                             KOP_count), by = c('Taxa' = 'searchTaxon')) %>% 
+  
+  dplyr::select(Percent_burnt, Habitat_km2, Habitat_burnt_km2, AOO, EOO, Aus_records, KOP_count)
+
+
+## Could create a standard graph here :: pairs.panel
+png(paste0(inv_fire_dir, 'fesm_inv_taxa_scatter_plots.png'),
+    12, 8, units = 'in', res = 500)
+
+psych::pairs.panels(INVERT.FESM.TABLE.TAXA.RANGE,
+                    method   = "pearson", # correlation method
+                    hist.col = "#00AFBB",
+                    density  = TRUE,      # show density plots
+                    ellipses = FALSE,
+                    cex = 1.2,
+                    cex.labels = 1.2,
+                    lwd = 2,
+                    col = "blue")
+
+dev.off()
+gc()
+
+
+png(paste0(inv_fire_dir, 'fesm_inv_family_scatter_plots.png'),
+    12, 8, units = 'in', res = 500)
+
+psych::pairs.panels(INVERT.FESM.TABLE.FAM.RANGE,
+                    method   = "pearson", # correlation method
+                    hist.col = "#00AFBB",
+                    density  = TRUE,      # show density plots
+                    ellipses = FALSE,
+                    cex = 1.2,
+                    cex.labels = 1.2,
+                    lwd = 2,
+                    col = "blue")
+
+dev.off()
+gc()
+
+
+png(paste0(inv_fire_dir, 'fesm_inv_genus_scatter_plots.png'),
+    12, 8, units = 'in', res = 500)
+
+psych::pairs.panels(INVERT.FESM.TABLE.GEN.RANGE,
+                    method   = "pearson", # correlation method
+                    hist.col = "#00AFBB",
+                    density  = TRUE,      # show density plots
+                    ellipses = FALSE,
+                    cex = 1.2,
+                    cex.labels = 1.2,
+                    lwd = 2,
+                    col = "blue")
+
+dev.off()
+gc()
+
+
+png(paste0(inv_fire_dir, 'fesm_inv_species_scatter_plots.png'),
+    12, 8, units = 'in', res = 500)
+
+psych::pairs.panels(INVERT.FESM.TABLE.SPP.RANGE,
+                    method   = "pearson", # correlation method
+                    hist.col = "#00AFBB",
+                    density  = TRUE,      # show density plots
+                    ellipses = FALSE,
+                    cex = 1.2,
+                    cex.labels = 1.2,
+                    lwd = 2,
+                    col = "blue")
+
+dev.off()
+gc()
 
 
 ## Species % burnt graphs ----
@@ -379,8 +533,6 @@ for(taxa in INVERT.FESM.TABLE$Taxa) {
 ## Graphs for each species ----
 
 
-## For the groups, use facetting :: looks better ----
-
 ## Graphs of the % burnt and un-burnt
 for(taxa in INVERT.FESM.TABLE$Taxa) {
   
@@ -396,7 +548,7 @@ for(taxa in INVERT.FESM.TABLE$Taxa) {
 }
 
 
-## 
+## Set variables
 tsize     = 30
 capt_size = 20
 xsize     = 20
@@ -495,19 +647,23 @@ for(taxa in unique(INVERT.FESM.VEG.TABLE$Taxa)) {
   bar_df        <- INVERT.FESM.VEG.TABLE %>% filter(Taxa == taxa) %>% 
     mutate(Habitat_Veg_burnt_perc = round(Habitat_Veg_burnt_perc, 2))
   bar_df$Vegetation <- factor(bar_df$Vegetation, 
-                              levels = bar_df$Vegetation[order(bar_df$Habitat_Veg_burnt_perc, decreasing = TRUE)])
+                              levels = bar_df$Vegetation[order(bar_df$Habitat_Veg_burnt_perc, 
+                                                               decreasing = TRUE)])
   
+  overall_burnt <- INVERT.FESM.TABLE %>% filter(Taxa == taxa) %>% 
+    .$Percent_burn %>% round(., 2)
   
-  overall_burnt <- INVERT.FESM.TABLE %>% filter(Taxa == taxa) %>% .$Percent_burn %>% round(., 2)
+  area_burnt    <- INVERT.FESM.TABLE %>% filter(Taxa == taxa) %>% 
+    .$Habitat_burnt_km2 %>% round(., 0)
   
   ##
   ymax = max(bar_df$Habitat_Veg_burnt_perc) + 
     max(bar_df$Habitat_Veg_burnt_perc * axis_multiplier)
   
-  sdm_fire_veg_plot <- ggplot(bar_df, 
-                              aes(x = Vegetation, 
-                                  y = Habitat_Veg_burnt_perc, 
-                                  fill = Vegetation)) +
+  sdm_fire_category_plot <- ggplot(bar_df, 
+                                   aes(x = Vegetation, 
+                                       y = Habitat_Veg_burnt_perc, 
+                                       fill = Vegetation)) +
     geom_bar(stat = "identity", position = "dodge") +
     coord_flip() +
     
@@ -529,7 +685,8 @@ for(taxa in unique(INVERT.FESM.VEG.TABLE$Taxa)) {
     ylab('Percentage (%) Burnt') +
     ggtitle(taxa) +
     xlab('') +
-    labs(caption = paste0(overall_burnt, ' % Burnt Overall')) +
+    labs(caption = paste0(overall_burnt, ' % Burnt overall (', 
+                          area_burnt, ' km2)')) +
     
     ylim(c(ymin, ymax)) +
     
@@ -544,13 +701,23 @@ for(taxa in unique(INVERT.FESM.VEG.TABLE$Taxa)) {
           plot.subtitle   = element_text(size = capt_size, hjust = 0.5, face = "italic", color="black"),
           plot.caption    = element_text(size = capt_size, hjust = 0.5, face = "italic", color="black"))
   
-  png(paste0(inv_fire_dir, save_name, '_SDM_VEG_intersect_Fire_Barplots.png'),
+  png(paste0(inv_fire_dir, save_name, '_SDM_Fire_Categories_Barplots.png'),
       12, 6, units = 'in', res = 500)
   plot(sdm_fire_veg_plot)
   dev.off()
   gc()
   
 }
+
+
+
+
+
+
+
+
+
+## 6). ALL TAXA GRAPHS =============================================================
 
 
 ## Graphs across all species ----
