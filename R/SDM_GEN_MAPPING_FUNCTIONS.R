@@ -2644,7 +2644,6 @@ calculate_habitat_categories_intersect <- function(taxa_list,
 #' @param taxa_list          Character string - The taxa to run maxent predictions for
 #' @param analysis_df        spdf - The spatial table of maxent records for all taxa
 #' @param taxa_level         Character string - The taxonomic level of analysis
-#' @param layer_list         Character string - list of feature layers to look up
 #' @param targ_maxent_table  data frame - table of maxent results for target taxa
 #' @param target_path        Character string - The file path containing the existing maxent models
 #' @param thresh_path     Character string - The file path containing the thresh-holded layers
