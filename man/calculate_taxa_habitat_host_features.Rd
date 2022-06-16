@@ -10,6 +10,7 @@ calculate_taxa_habitat_host_features(
   host_maxent_table,
   target_path,
   output_path,
+  thresh_path,
   host_path,
   intersect_path,
   intersect_patt,
@@ -32,6 +33,8 @@ calculate_taxa_habitat_host_features(
 \item{target_path}{Character string - The file path containing the existing maxent models}
 
 \item{output_path}{Character string - The file path to save the function output}
+
+\item{thresh_path}{Character string - The file path containing the existing maxent models}
 
 \item{host_path}{Character string - The file path to save the function output}
 

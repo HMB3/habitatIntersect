@@ -11,11 +11,10 @@ calculate_taxa_habitat_fire_features(
   targ_maxent_table,
   target_path,
   output_path,
+  thresh_path,
   intersect_name,
-  threshold_path,
   intersect_path,
   intersect_patt,
-  layer_list,
   main_int_layer,
   second_int_layer,
   template_raster,
@@ -36,15 +35,13 @@ calculate_taxa_habitat_fire_features(
 
 \item{output_path}{Character string - The file path containing the intersecting layers}
 
-\item{intersect_name}{Character string - The file name for the output intersecting layers}
+\item{thresh_path}{Character string - The file path containing the thresh-holded layers}
 
-\item{threshold_path}{Character string - The file path containing the thresh-holded layers}
+\item{intersect_name}{Character string - The file name for the output intersecting layers}
 
 \item{intersect_path}{Character string - The file path containing the intersected layers}
 
 \item{intersect_patt}{Character string - The pattern for the intersected layers}
-
-\item{layer_list}{Character string - list of feature layers to look up}
 
 \item{main_int_layer}{Simple features polygon - The main layer to intersect with the habitat layer (e.g. fire)}
 
