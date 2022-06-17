@@ -129,5 +129,5 @@ Remotes:
     johnbaums/things,
     traitecoevo/taxonlookup
 URL: https://github.com/HMB3/North_east_NSW_fire_recovery
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0
 VignetteBuilder: knitr

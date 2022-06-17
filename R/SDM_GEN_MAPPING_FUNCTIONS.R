@@ -2705,8 +2705,8 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
 #' @param template_raster    Raster::raster - template raster with study extent and resolution
 #' @param poly_path          Character string - file path to feature polygon layer
 #' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
-#' @export sdm_habitat_categories_intersect
-sdm_habitat_categories_intersect <- function(taxa_list,
+#' @export calculate_habitat_categories_intersect
+calculate_habitat_categories_intersect <- function(taxa_list,
                                              targ_maxent_table,
                                              target_path,
                                              output_path,
