@@ -144,7 +144,8 @@ setdiff(analysis_taxa, taxa_difference)   %>% sort()
 
 
 host_taxa_updated <- read_excel(paste0(inv_results_dir, 'INVERST_HSM_CHECK.xlsx'),
-                                sheet = 'All_host_plants') %>% select(searchTaxon) %>% .$searchTaxon %>% 
+                                sheet = 'All_host_plants') %>% 
+  select(searchTaxon) %>% .$searchTaxon %>% 
   sort()
 
 
