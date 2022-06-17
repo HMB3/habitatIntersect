@@ -546,7 +546,7 @@ sf_use_s2(FALSE)
 million_metres <- 1000000
 
 
-for(taxa in rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon)[1:5]) {
+for(taxa in rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon)[16:20]) {
   
   ## taxa <- sort(INVERT.MAXENT.SPP.RESULTS$searchTaxon)[1]
   save_name     <- gsub(' ', '_', taxa)
