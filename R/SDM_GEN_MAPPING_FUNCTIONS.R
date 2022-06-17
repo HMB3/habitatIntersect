@@ -2707,18 +2707,18 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
 #' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
 #' @export calculate_habitat_categories_intersect
 calculate_habitat_categories_intersect <- function(taxa_list,
-                                             targ_maxent_table,
-                                             target_path,
-                                             output_path,
-                                             thresh_path,
-                                             habitat_layer,
-                                             category_layer,
-                                             habitat_col,
-                                             category_col,
-                                             intersect_habitat,
-                                             template_raster,
-                                             poly_path,
-                                             epsg) {
+                                                   targ_maxent_table,
+                                                   target_path,
+                                                   output_path,
+                                                   thresh_path,
+                                                   habitat_layer,
+                                                   category_layer,
+                                                   habitat_col,
+                                                   category_col,
+                                                   intersect_habitat,
+                                                   template_raster,
+                                                   poly_path,
+                                                   epsg) {
   
   ## Get polygons
   poly <- st_read(poly_path) %>% 

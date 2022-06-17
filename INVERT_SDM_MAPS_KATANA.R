@@ -454,26 +454,26 @@ INVERT.RESULTS.HOSTS <- SITES.ALL.MAXENT.RESULTS %>%
 
 
 ## Calculate Insect habitat within binary fire layer
-calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
-                                     targ_maxent_table  = INVERT.RESULTS.HOSTS,
-                                     host_maxent_table  = PLANT.RESULTS.HOSTS,
-                                     
-                                     target_path        = inv_back_dir,
-                                     output_path        = inv_fire_dir,
-                                     thresh_path        = inv_thresh_dir,
-                                     intersect_path     = inv_inters_dir,
-                                     intersect_patt     = '_SDM_VEG_intersection.gpkg',
-                                     host_path          = plant_thresh_dir,
-                                     thresh_patt        = '_current_suit_not_novel_above_',
-                                     
-                                     int_cols           = intersect_cols,
-                                     main_int_layer     = FESM_east_20m_binary_split,
-                                     second_int_layer   = AUS_forest_RS_feat_split,
-                                     template_raster    = template_raster_250m,
-                                     poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-                                     epsg               = 3577)
-
-gc()
+# calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
+#                                      targ_maxent_table  = INVERT.RESULTS.HOSTS,
+#                                      host_maxent_table  = PLANT.RESULTS.HOSTS,
+#                                      
+#                                      target_path        = inv_back_dir,
+#                                      output_path        = inv_fire_dir,
+#                                      thresh_path        = inv_thresh_dir,
+#                                      intersect_path     = inv_inters_dir,
+#                                      intersect_patt     = '_SDM_VEG_intersection.gpkg',
+#                                      host_path          = plant_thresh_dir,
+#                                      thresh_patt        = '_current_suit_not_novel_above_',
+#                                      
+#                                      int_cols           = intersect_cols,
+#                                      main_int_layer     = FESM_east_20m_binary_split,
+#                                      second_int_layer   = AUS_forest_RS_feat_split,
+#                                      template_raster    = template_raster_250m,
+#                                      poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
+#                                      epsg               = 3577)
+# 
+# gc()
 
 
 # calculate_taxa_habitat_host_features(taxa_list          = rev(INVERT.MAXENT.GEN.RESULTS$searchTaxon),
