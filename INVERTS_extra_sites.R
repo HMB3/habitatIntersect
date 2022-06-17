@@ -64,7 +64,7 @@ inv_fire_dir         <- './output/invert_maxent_pbi_ala_site/Habitat_suitability
 
 
 dir_list <- c(tempdir, ALA_dir, 
-              INV_dir, check_dir, out_dir, inv_rs_dir, inv_back_dir, inv_results_dir,
+              INV_dir, check_dir, out_dir, inv_rs_dir, inv_back_dir, inv_results_dir, inv_records_dir,
               inv_habitat_dir, inv_inters_dir, inv_thresh_dir, inv_fire_dir)
 
 
@@ -490,7 +490,7 @@ file.copy(from      = inv_thresh_sdms_ras,
 ## Check the species data - 34 target species are in the final data
 ## These then drop out due to cross-validation, etc. 
 SDM.SPAT.OCC.BG.GDA    <- readRDS(paste0(inv_results_dir,   
-                                         'SDM_SPAT_OCC_BG_ALL_INVERT_TAXA_ALA_PBI_SITES.rds'))
+                                         'SDM_SPAT_OCC_BG_DIFFERENCE_INVERT_TAXA_ALA_PBI.rds'))
 
 
 unique(SDM.SPAT.OCC.BG.GDA$searchTaxon) %in% target.insect.spp      %>% table()
@@ -508,10 +508,10 @@ SDM.SPAT.OCC.BG.TARG.SPP <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% target.
 
 
 ## Loop through species
-for(taxa in re_analyse_spp) {
+for(taxa in re_analyse_fam) {
   
   ## taxa = target.insect.spp[79] 
-  if(taxa %in% unique(SDM.SPAT.OCC.BG.TARG.GDA$searchTaxon)) {
+  if(taxa %in% unique(SDM.SPAT.OCC.BG.GDA$searchTaxon)) {
     
     taxa_shp <- paste0(inv_records_dir,
                        taxa, '_SDM_ALA_PBI_SITES_points.shp')
@@ -519,7 +519,7 @@ for(taxa in re_analyse_spp) {
     if(!file.exists(taxa_shp)) {
       
       message('Subsetting ', taxa, ' shapefile and geo-package layers')
-      taxa_occ <- SDM.SPAT.OCC.BG.TARG.GDA %>% .[.$searchTaxon %in% taxa, ]
+      taxa_occ <- SDM.SPAT.OCC.BG.GDA %>% .[.$searchTaxon %in% taxa, ]
       
       st_write(taxa_occ %>% st_as_sf(), 
                paste0(inv_records_dir, taxa, '_SDM_ALA_PBI_SITES_points.shp'))
@@ -532,6 +532,7 @@ for(taxa in re_analyse_spp) {
       st_write(taxa_occ %>% st_as_sf(), 
                dsn = paste0(inv_records_dir, 'SDM_INVERT_TARG_TAXA_ALA_PBI_SITES.gpkg'), 
                layer = paste0(taxa, '_SDM_points'), 
+               append = FALSE,
                quiet = TRUE)
       
     } else {
