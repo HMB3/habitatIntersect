@@ -2666,9 +2666,9 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
           png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.png'),
               6, 12, units = 'in', res = 400)
           
-          plot(fire_layer_ras,                 col = 'orange',legend = FALSE)
-          plot(current_thresh_ras, add = TRUE, col = 'green', legend = FALSE)
-          plot(poly, add = TRUE)
+          raster::plot(fire_layer_ras,                 col = 'orange')
+          raster::plot(current_thresh_ras, add = TRUE, col = 'green')
+          raster::plot(poly, add = TRUE)
           
           title(main = taxa, 
                 sub  = paste0(round(percent_burnt_overall, 2), 
@@ -2710,6 +2710,7 @@ sdm_habitat_categories_intersect <- function(taxa_list,
                                              targ_maxent_table,
                                              target_path,
                                              output_path,
+                                             thresh_path,
                                              habitat_layer,
                                              category_layer,
                                              habitat_col,
@@ -2735,34 +2736,34 @@ sdm_habitat_categories_intersect <- function(taxa_list,
       
       ## taxa <- sort(INVERT.MAXENT.SPP.RESULTS$searchTaxon)[1]
       save_name     <- gsub(' ', '_', taxa)
-      target_table  <- INVERT.MAXENT.SPP.RESULTS %>%
+      target_table  <- targ_maxent_table %>%
         filter(searchTaxon == taxa)
       
       ## First do the straight intersect of SDM with VEG
       ## Get the sdm threshold for each inv taxa
-      target_thresh <- INVERT.MAXENT.SPP.RESULTS %>%
+      target_thresh <- targ_maxent_table  %>%
         filter(searchTaxon == taxa)       %>%
         dplyr::select(Logistic_threshold) %>%
         distinct() %>% .[1, ] %>% .[[1]]
       
-      current_thresh_feat_path <- list.files(path       = inv_thresh_dir,
+      current_thresh_feat_path <- list.files(path       = thresh_path,
                                              pattern    = '_current_suit_not_novel_above_', 
                                              recursive  = TRUE,
                                              full.names = TRUE) %>% 
         .[grep(".gpkg", .)] %>% .[grep(save_name, .)]
       
-      if(length(current_thresh_feat_path) > 0) {
+      occ                <- readRDS(sprintf('%s/%s/%s_occ.rds', 
+                                            inv_back_dir, save_name, save_name))
+      sdm_fire_geo       <- paste0(output_path, save_name, '_sdm_fire_intersect.gpkg')
+      sdm_fire_png       <- paste0(output_path, save_name, '_SDM_VEG_intersect_Fire_Categories.png')
+      
+      if(!file.exists(sdm_fire_png)) {
         
-        occ                <- readRDS(sprintf('%s/%s/%s_occ.rds', 
-                                              inv_back_dir, save_name, save_name))
+        ## Read in the SDM threshold
+        sdm_threshold <- st_read(sdm_fire_geo) %>% st_cast(., "POLYGON")
+        extent_dim    <- extent(sdm_threshold)[1]
         
-        sdm_fire_geo       <- paste0(inv_fire_dir, save_name, '_sdm_fire_intersect.gpkg')
-        sdm_fire_png       <- paste0(inv_fire_dir, save_name, '_SDM_intersect_Fire_categories.png')
-        
-        if(!file.exists(sdm_fire_png)) {
-          
-          ## Read in the SDM threshold
-          sdm_threshold <- st_read(sdm_fire_geo) %>% st_cast(., "POLYGON")
+        if(!is.na(extent_dim)) {
           
           ## Calculate area of the SDM - don't need the fire area
           sdm_areas     <- st_area(sdm_threshold)/million_metres
@@ -2775,7 +2776,7 @@ sdm_habitat_categories_intersect <- function(taxa_list,
           
           ## This takes ages...any way we can speed it up?  
           message('Cropping categorical Fire layers to the ', taxa)
-          FESM_crop <- st_crop(FESM_east_20m_classes, extent(sdm_threshold))
+          FESM_crop <- st_crop(category_layer, extent(sdm_threshold))
           
           message('Intersecting SDM with categorical Fire layers for ', taxa)
           sdm_fire_classes_int       <- st_intersection(sdm_threshold, FESM_crop)
@@ -2829,7 +2830,7 @@ sdm_habitat_categories_intersect <- function(taxa_list,
           
           ## Save the % burnt layers
           write.csv(sdm_fire_classes_areas,  
-                    paste0(inv_fire_dir, save_name, '_SDM_VEG_intersect_Fire.csv'), row.names = FALSE)
+                    paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.csv'), row.names = FALSE)
           gc()
           
           ## Now save the thresh-holded rasters as shapefiles
@@ -2846,17 +2847,17 @@ sdm_habitat_categories_intersect <- function(taxa_list,
           
           ## Create rasters for plotting
           t <- raster::raster(template_raster_250m) %>% 
-            raster::crop(., extent(FESM_east_20m_classes))
+            raster::crop(., extent(category_layer))
           
-          current_thresh_ras <- fasterize(sdm_threshold,   t) %>% 
-            raster::crop(., extent(FESM_east_20m_classes))
+          current_thresh_ras <- fasterize(sdm_threshold,  t) %>% 
+            raster::crop(., extent(category_layer))
           
-          fire_layer_ras <- fasterize(FESM_east_20m_classes, 
-                                      field = 'gridcode', t) %>% 
-            raster::crop(., extent(FESM_east_20m_classes))
+          fire_layer_ras <- fasterize(category_layer, 
+                                      field = numeric_col, t) %>% 
+            raster::crop(., extent(category_layer))
           
           message('writing threshold png for ', taxa)
-          png(paste0(inv_fire_dir, save_name, '_SDM_VEG_intersect_Fire_Categories.png'),
+          png(paste0(output_path, save_name, '_SDM_VEG_intersect_Fire_Categories.png'),
               6, 12, units = 'in', res = 400)
           
           plot(fire_layer_ras,                                legend = TRUE)
@@ -2870,7 +2871,7 @@ sdm_habitat_categories_intersect <- function(taxa_list,
           gc()
           
         } else {
-          message('SDM threshold doesnt exist for ', taxa, ' skip')
+          message('SDM threshold has no east coast data ', taxa, ' skip')
           cat(taxa)
         }
         

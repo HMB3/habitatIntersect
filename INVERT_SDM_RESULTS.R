@@ -136,20 +136,27 @@ ALL_INVERT_TAXA_ALA_SPID_NICHES  <- read_csv(paste0(inv_results_dir, 'GLOBAL_NIC
 ALL_INVERT_TAXA_ALA_DIFF_NICHES  <- read_csv(paste0(inv_results_dir, 'GLOBAL_NICHES_DIFFERENCE_INVERT_TAXA_ALA_PBI.csv'))
 
 
-ALL_INVERT_TAXA_ALA_PBI_NICHES_UNI  <- ALL_INVERT_TAXA_ALA_PBI_NICHES %>% .[.$searchTaxon %in% 
-                                                                              setdiff(ALL_INVERT_TAXA_ALA_PBI_NICHES$searchTaxon, 
-                                                                                      ALL_INVERT_TAXA_ALA_SITE_NICHES$searchTaxon), ]
+ALL_INVERT_TAXA_ALA_PBI_NICHES_UNI  <- ALL_INVERT_TAXA_ALA_PBI_NICHES %>% 
+  .[.$searchTaxon %in% 
+      setdiff(ALL_INVERT_TAXA_ALA_PBI_NICHES$searchTaxon, 
+              ALL_INVERT_TAXA_ALA_SITE_NICHES$searchTaxon), ]
 
-ALL_INVERT_TAXA_ALA_SITE_NICHES_UNI <- ALL_INVERT_TAXA_ALA_SITE_NICHES %>% .[.$searchTaxon %in% 
-                                                                               setdiff(ALL_INVERT_TAXA_ALA_SITE_NICHES$searchTaxon, 
-                                                                                       ALL_INVERT_TAXA_ALA_PBI_NICHES_UNI$searchTaxon), ]
+
+ALL_INVERT_TAXA_ALA_SITE_NICHES_UNI <- ALL_INVERT_TAXA_ALA_SITE_NICHES %>% 
+  .[.$searchTaxon %in% 
+      setdiff(ALL_INVERT_TAXA_ALA_SITE_NICHES$searchTaxon, 
+              ALL_INVERT_TAXA_ALA_PBI_NICHES_UNI$searchTaxon), ]
+
 
 ALL_INVERT_TAXA_ALL_NICHES_UNI      <- bind_rows(ALL_INVERT_TAXA_ALA_PBI_NICHES_UNI, 
                                                  ALL_INVERT_TAXA_ALA_SITE_NICHES_UNI)
 
-ALL_INVERT_TAXA_ALA_SPID_NICHES_UNI <- ALL_INVERT_TAXA_ALA_SPID_NICHES %>% .[.$searchTaxon %in% 
-                                                                               setdiff(ALL_INVERT_TAXA_ALA_SPID_NICHES$searchTaxon, 
-                                                                                       ALL_INVERT_TAXA_ALL_NICHES_UNI$searchTaxon), ]
+
+ALL_INVERT_TAXA_ALA_SPID_NICHES_UNI <- ALL_INVERT_TAXA_ALA_SPID_NICHES %>% 
+  
+  .[.$searchTaxon %in% 
+      setdiff(ALL_INVERT_TAXA_ALA_SPID_NICHES$searchTaxon, 
+              ALL_INVERT_TAXA_ALL_NICHES_UNI$searchTaxon), ]
 
 
 ALL_INVERT_TAXA_ALL_NICHES_UNI      <- bind_rows(ALL_INVERT_TAXA_ALL_NICHES_UNI,
@@ -179,9 +186,11 @@ SPID.MAXENT.RESULTS     <- compile_sdm_results(taxa_list    = taxa_difference,
 
 
 SITES.ALL.MAXENT.RESULTS <- bind_rows(SITES.MAXENT.RESULTS, 
-                                      SPID.MAXENT.RESULTS %>% .[.$searchTaxon %in% 
-                                                                  setdiff(SPID.MAXENT.RESULTS$searchTaxon, 
-                                                                          SITES.MAXENT.RESULTS$searchTaxon), ])
+                                      SPID.MAXENT.RESULTS %>% 
+                                        
+                                        .[.$searchTaxon %in% 
+                                            setdiff(SPID.MAXENT.RESULTS$searchTaxon, 
+                                                    SITES.MAXENT.RESULTS$searchTaxon), ])
 
 
 INVERT.MAXENT.FAM.RESULTS <- compile_sdm_results(taxa_list    = target.insect.families,

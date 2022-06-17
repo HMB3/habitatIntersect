@@ -89,7 +89,7 @@ terraOptions(memfrac = 0.9,
 
 
 coord_clean <- FALSE
-save_name   <- 'ALL_INVERT_TAXA_ALA_PBI'
+save_name   <- 'ALL_INVERT_TAXA_ALA_PBI_SITES'
 
 
 # STEP 1 :: Get spp lists ----

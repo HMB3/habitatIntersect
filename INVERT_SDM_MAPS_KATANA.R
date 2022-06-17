@@ -476,46 +476,46 @@ calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.SPP
 gc()
 
 
-calculate_taxa_habitat_host_features(taxa_list          = rev(INVERT.MAXENT.GEN.RESULTS$searchTaxon),
-                                     targ_maxent_table  = INVERT.RESULTS.HOSTS,
-                                     host_maxent_table  = PLANT.RESULTS.HOSTS,
-                                     
-                                     target_path        = inv_back_dir,
-                                     output_path        = inv_fire_dir,
-                                     intersect_path     = inv_inters_dir,
-                                     intersect_patt     = '_SDM_VEG_intersection.gpkg',
-                                     host_path          = plant_thresh_dir,
-                                     thresh_patt        = '_current_suit_not_novel_above_',
-                                     
-                                     int_cols           = intersect_cols,
-                                     main_int_layer     = FESM_east_20m_binary_split,
-                                     second_int_layer   = AUS_forest_RS_feat_split,
-                                     template_raster    = template_raster_250m,
-                                     poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-                                     epsg               = 3577)
+# calculate_taxa_habitat_host_features(taxa_list          = rev(INVERT.MAXENT.GEN.RESULTS$searchTaxon),
+#                                      targ_maxent_table  = INVERT.RESULTS.HOSTS,
+#                                      host_maxent_table  = PLANT.RESULTS.HOSTS,
+#                                      
+#                                      target_path        = inv_back_dir,
+#                                      output_path        = inv_fire_dir,
+#                                      intersect_path     = inv_inters_dir,
+#                                      intersect_patt     = '_SDM_VEG_intersection.gpkg',
+#                                      host_path          = plant_thresh_dir,
+#                                      thresh_patt        = '_current_suit_not_novel_above_',
+#                                      
+#                                      int_cols           = intersect_cols,
+#                                      main_int_layer     = FESM_east_20m_binary_split,
+#                                      second_int_layer   = AUS_forest_RS_feat_split,
+#                                      template_raster    = template_raster_250m,
+#                                      poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
+#                                      epsg               = 3577)
+# 
+# gc()
 
-gc()
 
-
-calculate_taxa_habitat_host_features(taxa_list          = rev(INVERT.MAXENT.FAM.RESULTS$searchTaxon),
-                                     targ_maxent_table  = INVERT.RESULTS.HOSTS,
-                                     host_maxent_table  = PLANT.RESULTS.HOSTS,
-                                     
-                                     target_path        = inv_back_dir,
-                                     output_path        = inv_fire_dir,
-                                     intersect_path     = inv_inters_dir,
-                                     intersect_patt     = '_SDM_VEG_intersection.gpkg',
-                                     host_path          = plant_thresh_dir,
-                                     thresh_patt        = '_current_suit_not_novel_above_',
-                                     
-                                     int_cols           = intersect_cols,
-                                     main_int_layer     = FESM_east_20m_binary_split,
-                                     second_int_layer   = AUS_forest_RS_feat_split,
-                                     template_raster    = template_raster_250m,
-                                     poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-                                     epsg               = 3577)
-
-gc()
+# calculate_taxa_habitat_host_features(taxa_list          = rev(INVERT.MAXENT.FAM.RESULTS$searchTaxon),
+#                                      targ_maxent_table  = INVERT.RESULTS.HOSTS,
+#                                      host_maxent_table  = PLANT.RESULTS.HOSTS,
+#                                      
+#                                      target_path        = inv_back_dir,
+#                                      output_path        = inv_fire_dir,
+#                                      intersect_path     = inv_inters_dir,
+#                                      intersect_patt     = '_SDM_VEG_intersection.gpkg',
+#                                      host_path          = plant_thresh_dir,
+#                                      thresh_patt        = '_current_suit_not_novel_above_',
+#                                      
+#                                      int_cols           = intersect_cols,
+#                                      main_int_layer     = FESM_east_20m_binary_split,
+#                                      second_int_layer   = AUS_forest_RS_feat_split,
+#                                      template_raster    = template_raster_250m,
+#                                      poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
+#                                      epsg               = 3577)
+# 
+# gc()
 
 
 # For each taxa, we create a table of the area in square kilometers of suitable habitat that intersects with each burn 
@@ -539,24 +539,163 @@ gc()
 
 
 
-## Calculate Insect habitat within categorical fire layer
-# calculate_habitat_categories_intersect(taxa_list          = rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
-#                                        targ_maxent_table  = INVERT.RESULTS.HOSTS,
-#                                        
-#                                        target_path        = inv_back_dir,
-#                                        output_path        = inv_fire_dir,
-#                                        
-#                                        habitat_layer      = AUS_forest_RS_feat_split,
-#                                        category_layer     = FESM_east_20m_categ,
-#                                        habitat_col        = "Vegetation",
-#                                        category_col       = "Burn_Categ",
-#                                        intersect_habitat  = FALSE,
-#                                        
-#                                        template_raster    = template_raster_250m,
-#                                        poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-#                                        epsg               = 3577)
-# 
-# gc()
+## file <- sort(fire_intersect_feat_path)[3] 
+poly <- st_read('data/Feature_layers/Boundaries/AUS_2016_AUST.shp') %>% 
+  st_transform(., st_crs(3577)) %>% as_Spatial()
+
+message('Use GEOS geometry for sf operations to speed up intersections')
+sf_use_s2(FALSE)
+
+
+for(taxa in rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon)) {
+  
+  ## taxa <- sort(INVERT.MAXENT.SPP.RESULTS$searchTaxon)[1]
+  save_name     <- gsub(' ', '_', taxa)
+  target_table  <- INVERT.MAXENT.SPP.RESULTS %>%
+    filter(searchTaxon == taxa)
+  
+  ## First do the straight intersect of SDM with VEG
+  ## Get the sdm threshold for each inv taxa
+  target_thresh <- INVERT.MAXENT.SPP.RESULTS %>%
+    filter(searchTaxon == taxa)       %>%
+    dplyr::select(Logistic_threshold) %>%
+    distinct() %>% .[1, ] %>% .[[1]]
+  
+  current_thresh_feat_path <- list.files(path       = inv_thresh_dir,
+                                         pattern    = '_current_suit_not_novel_above_', 
+                                         recursive  = TRUE,
+                                         full.names = TRUE) %>% 
+    .[grep(".gpkg", .)] %>% .[grep(save_name, .)]
+  
+  occ                <- readRDS(sprintf('%s/%s/%s_occ.rds', 
+                                        inv_back_dir, save_name, save_name))
+  
+  sdm_fire_geo       <- paste0(inv_fire_dir, save_name, '_sdm_fire_intersect.gpkg')
+  sdm_fire_png       <- paste0(inv_fire_dir, save_name, '_SDM_VEG_intersect_Fire_Categories.png')
+  
+  if(!file.exists(sdm_fire_png)) {
+    
+    ## Read in the SDM threshold
+    sdm_threshold <- st_read(sdm_fire_geo) %>% st_cast(., "POLYGON") %>% repair_geometry()
+    extent_dim    <- extent(sdm_threshold)[1]
+    
+    if(!is.na(extent_dim)) {
+      
+      ## Calculate area of the SDM - don't need the fire area
+      sdm_areas     <- st_area(sdm_threshold)/million_metres
+      sdm_areas_km2 <- drop_units(sdm_areas) 
+      sdm_area_km2  <- drop_units(sdm_areas) %>% sum()
+      gc()
+      
+      ## read in the intersect
+      layers <- st_layers(dsn = sdm_fire_geo)$name
+      
+      ## This takes ages...any way we can speed it up?  
+      message('Cropping categorical Fire layers to the ', taxa)
+      FESM_crop <- st_crop(FESM_east_20m_categ, extent(sdm_threshold)) %>% st_cast(., "POLYGON")
+      
+      message('Intersecting SDM with categorical Fire layers for ', taxa)
+      sdm_fire_classes_int       <- st_intersection(sdm_threshold, FESM_crop)
+      gc()
+      
+      sdm_fire_classes_areas_m2  <- st_area(sdm_fire_classes_int)/million_metres
+      sdm_fire_classes_areas_km2 <- drop_units(sdm_fire_classes_areas_m2)
+      sdm_fire_classes_area_km2  <- drop_units(sdm_fire_classes_areas_m2) %>% sum()
+      gc()
+      
+      ## create sf attributes for each intersecting polygon
+      sdm_fire_classes_int_att <- sdm_fire_classes_int %>% 
+        
+        mutate(Taxa                = taxa,
+               Area_poly           = st_area(geom)/million_metres,
+               Area_poly           = drop_units(Area_poly),
+               Percent_burnt_class = (Area_poly/sdm_area_km2 * 100 %>% round(., 1)))
+      
+      ## Aggregate the sdm * fire * classes areas into veg classes
+      sdm_fire_classes_int <- sdm_fire_classes_int_att %>%
+        
+        st_set_geometry(NULL) %>% 
+        dplyr::select(Taxa, Burn_Categ, Area_poly, Percent_burnt_class) %>% 
+        group_by(Taxa, Burn_Categ) %>% 
+        summarise(Area_poly           = sum(Area_poly),
+                  Percent_burnt_class = sum(Percent_burnt_class))
+      
+      ## calc % burnt within classes classes
+      percent_burnt_classes_overall <- sum(sdm_fire_classes_int$Percent_burnt_class)
+      percent_burnt_classes_class   <- sdm_fire_classes_int$Area_poly/
+        sdm_fire_classes_area_km2 * 100 %>% round(., 1)
+      
+      ## Create a tibble of overall areas for each taxon
+      ## Include the SDM area in each fire classs here
+      class_length <- unique(sdm_fire_classes_int$Burn_Categ) %>% length()
+      sdm_fire_classes_areas <- data.frame(matrix(NA, 
+                                                  ncol = 4, 
+                                                  nrow = class_length))
+      
+      colnames(sdm_fire_classes_areas) <- c('Taxa', 
+                                            'Burn_Category', 
+                                            'Burn_Category_burnt_area',  
+                                            'Burn_Category_burnt_perc')
+      
+      sdm_fire_classes_areas <- sdm_fire_classes_areas %>% 
+        
+        mutate(Taxa                     = taxa,
+               Burn_Category            = unique(sdm_fire_classes_int$Burn_Categ),
+               Burn_Category_burnt_area = sdm_fire_classes_int$Area_poly,
+               Burn_Category_burnt_perc = percent_burnt_classes_class)
+      
+      ## Save the % burnt layers
+      write.csv(sdm_fire_classes_areas,  
+                paste0(inv_fire_dir, save_name, '_SDM_VEG_intersect_Fire.csv'), row.names = FALSE)
+      gc()
+      
+      ## Now save the thresh-holded rasters as shapefiles
+      message('Saving SDM Fire intersect polygons for ', taxa)
+      
+      st_write(sdm_fire_classes_int_att, 
+               
+               dsn    = sdm_fire_geo, 
+               layer  = paste0(save_name, '_sdm_fire_classes_intersect_sub'),
+               
+               quiet  = TRUE,
+               append = FALSE)
+      gc()
+      
+      ## Create rasters for plotting
+      t <- raster::raster(template_raster_250m) %>% 
+        raster::crop(., extent(FESM_east_20m_categ))
+      
+      current_thresh_ras <- fasterize(sdm_threshold,   t) %>% 
+        raster::crop(., extent(FESM_east_20m_categ))
+      
+      fire_layer_ras <- fasterize(FESM_east_20m_categ, 
+                                  field = 'gridcode', t) %>% 
+        raster::crop(., extent(FESM_east_20m_categ))
+      
+      message('writing threshold png for ', taxa)
+      png(paste0(inv_fire_dir, save_name, '_SDM_VEG_intersect_Fire_Categories.png'),
+          6, 12, units = 'in', res = 400)
+      
+      plot(fire_layer_ras,                                legend = TRUE)
+      plot(current_thresh_ras, add = TRUE, col = 'green', legend = FALSE)
+      plot(poly, add = TRUE)
+      
+      title(main = taxa, 
+            sub  = paste0(round(percent_burnt_classes_overall, 2), 
+                          " % Suitable habitat Burnt"))
+      dev.off()
+      gc()
+      
+    } else {
+      message('SDM threshold has no east coast data ', taxa, ' skip')
+      cat(taxa)
+    }
+    
+  } else {
+    message('SDM fire threshold already done for ', taxa, ' skip')
+    cat(taxa)
+  }
+} 
 
 
 
