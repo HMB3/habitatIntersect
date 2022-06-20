@@ -290,6 +290,10 @@ FESM_east_20m_binary_split <- readRDS('./data/Remote_sensing/FESM/Fire_perimeter
 AUS_forest_RS_feat_split   <- readRDS(paste0(veg_dir,'Aus_forest_cover_east_coast_classes_split.rds')) %>% st_cast(., "POLYGON")
 
 
+## Now make a 200km grid of the FESM layer
+FESM_200km_grid <- st_make_grid(FESM_east_20m_categ, 200000)
+
+
 
 
 
@@ -543,12 +547,12 @@ poly <- st_read('data/Feature_layers/Boundaries/AUS_2016_AUST.shp') %>%
 
 message('Use GEOS geometry for sf operations to speed up intersections')
 sf_use_s2(FALSE)
-million_metres <- 1000000
+
 
 
 for(taxa in rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon)[1:5]) {
   
-  ## taxa <- sort(INVERT.MAXENT.SPP.RESULTS$searchTaxon)[1]
+  ## taxa <- rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon)[1]
   save_name     <- gsub(' ', '_', taxa)
   target_table  <- INVERT.MAXENT.SPP.RESULTS %>%
     filter(searchTaxon == taxa)
@@ -589,12 +593,13 @@ for(taxa in rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon)[1:5]) {
       ## read in the intersect
       layers <- st_layers(dsn = sdm_fire_geo)$name
       
-      ## This takes ages...any way we can speed it up?  
-      message('Cropping categorical Fire layers to the ', taxa)
-      FESM_crop <- st_crop(FESM_east_20m_categ, extent(sdm_threshold)) %>% st_cast(., "POLYGON")
+      message('Intersecting SDM with Grid of categorical Fire layers for ', taxa)
+      ## 5.10pm
+      FESM_200km_grid <- st_make_grid(FESM_east_20m_categ, 200000)
+      FESM_grid_sdm   <- st_intersection(FESM_200km_grid, sdm_threshold)
       
       message('Intersecting SDM with categorical Fire layers for ', taxa)
-      sdm_fire_classes_int       <- st_intersection(sdm_threshold, FESM_crop)
+      sdm_fire_classes_int    <- st_intersection(FESM_grid_sdm, FESM_east_20m_categ)
       gc()
       
       sdm_fire_classes_areas_m2  <- st_area(sdm_fire_classes_int)/million_metres
