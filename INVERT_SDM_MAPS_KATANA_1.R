@@ -286,13 +286,9 @@ SDM.SPAT.OCC.BG.GDA        <- readRDS(paste0(inv_results_dir,
                                              'SDM_COMBINED_ALL_INVERT_SPIDERS_ALA_PBI_SITES.rds'))
 
 FESM_east_20m_categ        <- st_read('./data/Remote_sensing/FESM/NBR_Burn_severity_classes.shp')      %>% st_cast(., "POLYGON")
+# FESM_east_20m_categ        <- st_read('./data/Remote_sensing/FESM/NBR_Burn_severity_test.shp')         %>% st_cast(., "POLYGON")
 FESM_east_20m_binary_split <- readRDS('./data/Remote_sensing/FESM/Fire_perimeters_split.rds')          %>% st_cast(., "POLYGON")
 AUS_forest_RS_feat_split   <- readRDS(paste0(veg_dir,'Aus_forest_cover_east_coast_classes_split.rds')) %>% st_cast(., "POLYGON")
-
-
-## Now make a 200km grid of the FESM layer
-FESM_200km_grid <- st_make_grid(FESM_east_20m_categ, 200000)
-
 
 
 
@@ -613,7 +609,7 @@ for(taxa in rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon)[1:5]) {
       sdm_fire_classes_int_att <- sdm_fire_classes_int %>% 
         
         mutate(Taxa                = taxa,
-               Area_poly           = st_area(geom)/million_metres,
+               Area_poly           = st_area(x)/million_metres,
                Area_poly           = drop_units(Area_poly),
                Percent_burnt_class = (Area_poly/sdm_area_km2 * 100 %>% round(., 1)))
       

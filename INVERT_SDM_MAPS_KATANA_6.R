@@ -609,7 +609,7 @@ for(taxa in rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon)[25:30]) {
       sdm_fire_classes_int_att <- sdm_fire_classes_int %>% 
         
         mutate(Taxa                = taxa,
-               Area_poly           = st_area(geom)/million_metres,
+               Area_poly           = st_area(x)/million_metres,
                Area_poly           = drop_units(Area_poly),
                Percent_burnt_class = (Area_poly/sdm_area_km2 * 100 %>% round(., 1)))
       
