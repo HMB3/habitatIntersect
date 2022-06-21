@@ -589,13 +589,15 @@ for(taxa in rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon)[25:30]) {
       ## read in the intersect
       layers <- st_layers(dsn = sdm_fire_geo)$name
       
-      ## This takes ages...any way we can speed it up?  
       message('Intersecting SDM with Grid of categorical Fire layers for ', taxa)
-      FESM_200km_grid <- st_make_grid(FESM_east_20m_categ, 200000)
-      FESM_grid_sdm   <- st_intersection(FESM_200km_grid, sdm_threshold)
+      grid_net <- st_make_grid(sdm_threshold, n=c(20,20)) %>% 
+        st_cast(., "POLYGON") %>% st_as_sf()
+      
+      grid_sdm   <- st_intersection(grid_net, sdm_threshold) %>% 
+        st_cast(., "POLYGON") %>% st_as_sf()
       
       message('Intersecting SDM with categorical Fire layers for ', taxa)
-      sdm_fire_classes_int    <- st_intersection(FESM_grid_sdm, FESM_east_20m_categ)
+      sdm_fire_classes_int    <- st_intersection(grid_sdm, FESM_east_20m_categ)
       gc()
       
       sdm_fire_classes_areas_m2  <- st_area(sdm_fire_classes_int)/million_metres
