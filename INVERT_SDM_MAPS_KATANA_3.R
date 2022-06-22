@@ -600,8 +600,9 @@ for(taxa in rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon)[11:15]) {
       
       ## remove any line strings
       message('remove linestrings for ', taxa)
-      grid_sdm_filt <- grid_sdm[geom_types != 'LINESTRING', ] %>% 
-        st_make_valid() %>% st_cast(.,) %>% repair_geometry() %>% 
+      grid_sdm_filt <- grid_sdm[geom_types != 'LINESTRING', ] %>%
+        st_make_valid() %>% st_buffer(., 0.0) %>% 
+        st_cast(.,) %>% 
         st_as_sf()
       
       rm(geom_types)
