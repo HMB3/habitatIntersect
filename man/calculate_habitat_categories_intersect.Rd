@@ -10,11 +10,7 @@ calculate_habitat_categories_intersect(
   target_path,
   output_path,
   thresh_path,
-  habitat_layer,
   category_layer,
-  habitat_col,
-  category_col,
-  intersect_habitat,
   template_raster,
   poly_path,
   epsg
@@ -29,7 +25,7 @@ calculate_habitat_categories_intersect(
 
 \item{output_path}{Character string - The file path to save the function output}
 
-\item{habitat_layer}{Feature layer    - The file containing habitat features (e.g. veg categories)}
+\item{thresh_path}{Character string - The file path to save the function output}
 
 \item{category_layer}{Feature layer    - The file containing categorical features (e.g. fire intensity)}
 
@@ -38,8 +34,6 @@ calculate_habitat_categories_intersect(
 \item{poly_path}{Character string - file path to feature polygon layer}
 
 \item{epsg}{Numeric - ERSP code of coord ref system to be translated into WKT format}
-
-\item{host_maxent_table}{data frame - table of maxent results for host taxa}
 }
 \description{
 Takes a habitat suitability layer, and intersects it with a categorical featurelayer.
