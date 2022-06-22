@@ -287,20 +287,20 @@ PBI_AUS_SITES_UNIQUE <- bind_rows(PBI_AUS_UNIQUE,
 
 
 ## Read in the SDM data
-SDM.SPAT.OCC.BG.GDA      <- readRDS(paste0(inv_results_dir,   
+SDM.SPAT.OCC.BG.GDA      <- readRDS(paste0(inv_results_dir,
                                            'SDM_SPAT_OCC_BG_ALL_INVERT_TAXA_ALA_PBI.rds'))
 
 drops <- c("SPOUT.OBS") # list of col names
 SDM.SPAT.OCC.BG.GDA      <- SDM.SPAT.OCC.BG.GDA[,!(names(SDM.SPAT.OCC.BG.GDA) %in% drops)]
 
 
-SDM.SPAT.OCC.BG.SITE.GDA <- readRDS(paste0(inv_results_dir,   
-                                           'SDM_SPAT_OCC_BG_ALL_INVERT_TAXA_ALA_PBI_SITES.rds')) %>% 
+SDM.SPAT.OCC.BG.SITE.GDA <- readRDS(paste0(inv_results_dir,
+                                           'SDM_SPAT_OCC_BG_ALL_INVERT_TAXA_ALA_PBI_SITES.rds')) %>%
   as_Spatial()
 
 
-SDM.SPAT.OCC.BG.SPID.GDA <- readRDS(paste0(inv_results_dir,   
-                                           'SDM_SPAT_OCC_BG_ALL_SPIDER_TAXA_ALA_PBI_SITES.rds')) 
+SDM.SPAT.OCC.BG.SPID.GDA <- readRDS(paste0(inv_results_dir,
+                                           'SDM_SPAT_OCC_BG_ALL_SPIDER_TAXA_ALA_PBI_SITES.rds'))
 SDM.SPAT.OCC.BG.SPID.GDA <- SDM.SPAT.OCC.BG.SPID.GDA[,!(names(SDM.SPAT.OCC.BG.SPID.GDA) %in% drops)]
 
 
@@ -316,8 +316,12 @@ table(target.insect.genera   %in% SDM.SPAT.OCC.BG.PBI.SITE.GDA$searchTaxon)
 table(target.insect.families %in% SDM.SPAT.OCC.BG.PBI.SITE.GDA$searchTaxon)
 
 
+##
+setdiff(target.insect.spp, unique(SDM.SPAT.OCC.BG.PBI.SITE.GDA$searchTaxon))
+
+
 ## Run family-level models for invertebrates.
-run_sdm_analysis_no_crop(taxa_list               = sort(taxa_difference),
+run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.spp),
                          taxa_level              = 'species',
                          maxent_dir              = inv_back_dir,
                          bs_dir                  = inv_back_dir,

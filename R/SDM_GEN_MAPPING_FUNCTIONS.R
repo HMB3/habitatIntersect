@@ -2697,11 +2697,11 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
 #' @description Takes a habitat suitability layer, and intersects it with a categorical featurelayer.
 #' @param taxa_list          Character string - The taxa to run maxent predictions for
 #' @param targ_maxent_table  data frame - table of maxent results for target taxa
-#' @param host_maxent_table  data frame - table of maxent results for host taxa
 #' @param target_path        Character string - The file path containing the existing maxent models
 #' @param output_path        Character string - The file path to save the function output
+#' @param thresh_path        Character string - The file path to save the function output
 #' @param category_layer     Feature layer    - The file containing categorical features (e.g. fire intensity)
-#' @param habitat_layer      Feature layer    - The file containing habitat features (e.g. veg categories)
+#' @param category_col       Character string - The column name that we are analysing.
 #' @param template_raster    Raster::raster - template raster with study extent and resolution
 #' @param poly_path          Character string - file path to feature polygon layer
 #' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
@@ -2711,11 +2711,8 @@ calculate_habitat_categories_intersect <- function(taxa_list,
                                                    target_path,
                                                    output_path,
                                                    thresh_path,
-                                                   habitat_layer,
                                                    category_layer,
-                                                   habitat_col,
                                                    category_col,
-                                                   intersect_habitat,
                                                    template_raster,
                                                    poly_path,
                                                    epsg) {
@@ -2779,10 +2776,19 @@ calculate_habitat_categories_intersect <- function(taxa_list,
             st_cast(., "POLYGON") %>% st_as_sf() 
           
           grid_sdm   <- st_intersection(grid_net, sdm_threshold) %>% 
-            st_cast(., "POLYGON") %>% st_as_sf() %>% repair_geometry()
+            st_as_sf() 
           
-          message('Intersecting SDM with categorical Fire layers for ', taxa)
-          sdm_fire_classes_int    <- st_intersection(grid_sdm, category_layer)
+          geom_types = st_geometry_type(grid_sdm)
+          
+          #  remove any linestrings
+          grid_sdm_filt <- grid_sdm[geom_types != 'LINESTRING', ] %>% 
+            st_cast(., "POLYGON") %>% 
+            repair_geometry()     %>% st_as_sf()
+          
+          rm(geom_types)
+          
+          message('Intersecting SDM with categorical Fire layers for ', taxa, ' after gridding SDM')
+          sdm_fire_classes_int    <- st_intersection(grid_sdm_filt, FESM_east_20m_categ)
           gc()
           
           sdm_fire_classes_areas_m2  <- st_area(sdm_fire_classes_int)/million_metres
@@ -2794,7 +2800,7 @@ calculate_habitat_categories_intersect <- function(taxa_list,
           sdm_fire_classes_int_att <- sdm_fire_classes_int %>% 
             
             mutate(Taxa                = taxa,
-                   Area_poly           = st_area(geom)/million_metres,
+                   Area_poly           = st_area(x)/million_metres,
                    Area_poly           = drop_units(Area_poly),
                    Percent_burnt_class = (Area_poly/sdm_area_km2 * 100 %>% round(., 1)))
           
@@ -2802,8 +2808,8 @@ calculate_habitat_categories_intersect <- function(taxa_list,
           sdm_fire_classes_int <- sdm_fire_classes_int_att %>%
             
             st_set_geometry(NULL) %>% 
-            dplyr::select(Taxa, Burn_Categ, Area_poly, Percent_burnt_class) %>% 
-            group_by(Taxa, Burn_Categ) %>% 
+            dplyr::select(Taxa, category_col, Area_poly, Percent_burnt_class) %>% 
+            group_by(Taxa, category_col) %>% 
             summarise(Area_poly           = sum(Area_poly),
                       Percent_burnt_class = sum(Percent_burnt_class))
           
@@ -2814,26 +2820,26 @@ calculate_habitat_categories_intersect <- function(taxa_list,
           
           ## Create a tibble of overall areas for each taxon
           ## Include the SDM area in each fire classs here
-          class_length <- unique(sdm_fire_classes_int$Burn_Categ) %>% length()
+          class_length <- unique(sdm_fire_classes_int[[category_col]]) %>% length()
           sdm_fire_classes_areas <- data.frame(matrix(NA, 
                                                       ncol = 4, 
                                                       nrow = class_length))
           
           colnames(sdm_fire_classes_areas) <- c('Taxa', 
-                                                'Burn_Category', 
+                                                category_col, 
                                                 'Burn_Category_burnt_area',  
                                                 'Burn_Category_burnt_perc')
           
           sdm_fire_classes_areas <- sdm_fire_classes_areas %>% 
             
             mutate(Taxa                     = taxa,
-                   Burn_Category            = unique(sdm_fire_classes_int$Burn_Categ),
+                   Burn_Category            = unique(sdm_fire_classes_int[[category_col]]),
                    Burn_Category_burnt_area = sdm_fire_classes_int$Area_poly,
                    Burn_Category_burnt_perc = percent_burnt_classes_class)
           
           ## Save the % burnt layers
           write.csv(sdm_fire_classes_areas,  
-                    paste0(output_path, save_name, '_SDM_VEG_intersect_Fire.csv'), row.names = FALSE)
+                    paste0(output_path, save_name, '_SDM_VEG_intersect_Fire_Classes.csv'), row.names = FALSE)
           gc()
           
           ## Now save the thresh-holded rasters as shapefiles
