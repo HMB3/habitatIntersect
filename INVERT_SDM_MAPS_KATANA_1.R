@@ -598,10 +598,11 @@ for(taxa in rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon)[1:5]) {
       
       geom_types = st_geometry_type(grid_sdm)
       
-      #  remove any linestrings
+      ## remove any line strings
+      message('remove linestrings for ', taxa)
       grid_sdm_filt <- grid_sdm[geom_types != 'LINESTRING', ] %>% 
-        st_cast(., "POLYGON") %>% 
-        repair_geometry()     %>% st_as_sf()
+        st_make_valid() %>% st_cast(.,) %>% repair_geometry() %>% 
+        st_as_sf()
       
       rm(geom_types)
       

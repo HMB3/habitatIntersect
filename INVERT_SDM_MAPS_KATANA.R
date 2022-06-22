@@ -539,7 +539,7 @@ INVERT.RESULTS.HOSTS <- SITES.ALL.MAXENT.RESULTS %>%
 
 
 ## Calculate Insect habitat within categorical fire layer
-calculate_habitat_categories_intersect(taxa_list          = sort(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
+calculate_habitat_categories_intersect(taxa_list          = rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
                                        targ_maxent_table  = INVERT.MAXENT.SPP.RESULTS,
 
                                        target_path        = inv_back_dir,
@@ -547,7 +547,6 @@ calculate_habitat_categories_intersect(taxa_list          = sort(INVERT.MAXENT.S
                                        thresh_path        = inv_thresh_dir,
 
                                        category_layer     = FESM_east_20m_categ,
-                                       category_col       = "Burn_Categ",
 
                                        template_raster    = template_raster_250m,
                                        poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',

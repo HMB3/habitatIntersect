@@ -2701,7 +2701,6 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
 #' @param output_path        Character string - The file path to save the function output
 #' @param thresh_path        Character string - The file path to save the function output
 #' @param category_layer     Feature layer    - The file containing categorical features (e.g. fire intensity)
-#' @param category_col       Character string - The column name that we are analysing.
 #' @param template_raster    Raster::raster - template raster with study extent and resolution
 #' @param poly_path          Character string - file path to feature polygon layer
 #' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
@@ -2712,7 +2711,6 @@ calculate_habitat_categories_intersect <- function(taxa_list,
                                                    output_path,
                                                    thresh_path,
                                                    category_layer,
-                                                   category_col,
                                                    template_raster,
                                                    poly_path,
                                                    epsg) {
@@ -2726,7 +2724,7 @@ calculate_habitat_categories_intersect <- function(taxa_list,
   million_metres <- 1000000
   
   ## Loop over species
-  # taxa <- taxa_list[1]
+  # taxa <- taxa_list[4]
   taxa_list %>%
     
     lapply(function(taxa) {
@@ -2780,10 +2778,12 @@ calculate_habitat_categories_intersect <- function(taxa_list,
           
           geom_types = st_geometry_type(grid_sdm)
           
-          #  remove any linestrings
-          grid_sdm_filt <- grid_sdm[geom_types != 'LINESTRING', ] %>% 
-            st_cast(., "POLYGON") %>% 
-            repair_geometry()     %>% st_as_sf()
+          ## remove any line strings
+          message('remove linestrings for ', taxa)
+          grid_sdm_filt <- grid_sdm[geom_types != 'LINESTRING', ] %>%
+            st_make_valid() %>% st_buffer(., 0.0) %>% 
+            st_cast(.,) %>% 
+            st_as_sf()
           
           rm(geom_types)
           
@@ -2808,8 +2808,8 @@ calculate_habitat_categories_intersect <- function(taxa_list,
           sdm_fire_classes_int <- sdm_fire_classes_int_att %>%
             
             st_set_geometry(NULL) %>% 
-            dplyr::select(Taxa, category_col, Area_poly, Percent_burnt_class) %>% 
-            group_by(Taxa, category_col) %>% 
+            dplyr::select(Taxa, Burn_Categ, Area_poly, Percent_burnt_class) %>% 
+            group_by(Taxa, Burn_Categ) %>% 
             summarise(Area_poly           = sum(Area_poly),
                       Percent_burnt_class = sum(Percent_burnt_class))
           
@@ -2819,21 +2819,21 @@ calculate_habitat_categories_intersect <- function(taxa_list,
             sdm_fire_classes_area_km2 * 100 %>% round(., 1)
           
           ## Create a tibble of overall areas for each taxon
-          ## Include the SDM area in each fire classs here
-          class_length <- unique(sdm_fire_classes_int[[category_col]]) %>% length()
+          ## Include the SDM area in each fire class here
+          class_length <- unique(sdm_fire_classes_int$Burn_Categ) %>% length()
           sdm_fire_classes_areas <- data.frame(matrix(NA, 
                                                       ncol = 4, 
                                                       nrow = class_length))
           
           colnames(sdm_fire_classes_areas) <- c('Taxa', 
-                                                category_col, 
+                                                'Burn_Category', 
                                                 'Burn_Category_burnt_area',  
                                                 'Burn_Category_burnt_perc')
           
           sdm_fire_classes_areas <- sdm_fire_classes_areas %>% 
             
             mutate(Taxa                     = taxa,
-                   Burn_Category            = unique(sdm_fire_classes_int[[category_col]]),
+                   Burn_Category            = unique(sdm_fire_classes_int$Burn_Categ),
                    Burn_Category_burnt_area = sdm_fire_classes_int$Area_poly,
                    Burn_Category_burnt_perc = percent_burnt_classes_class)
           
