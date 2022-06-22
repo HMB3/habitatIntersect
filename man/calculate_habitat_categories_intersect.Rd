@@ -11,6 +11,7 @@ calculate_habitat_categories_intersect(
   output_path,
   thresh_path,
   category_layer,
+  numeric_col,
   template_raster,
   poly_path,
   epsg
@@ -28,6 +29,8 @@ calculate_habitat_categories_intersect(
 \item{thresh_path}{Character string - The file path to save the function output}
 
 \item{category_layer}{Feature layer    - The file containing categorical features (e.g. fire intensity)}
+
+\item{numeric_col}{Character string - The column for the category layer}
 
 \item{template_raster}{Raster::raster - template raster with study extent and resolution}
 
