@@ -648,7 +648,7 @@ for(taxa in rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon)[25:30]) {
       
       ## Save the % burnt layers
       write.csv(sdm_fire_classes_areas,  
-                paste0(inv_fire_dir, save_name, '_SDM_VEG_intersect_Fire.csv'), row.names = FALSE)
+                paste0(inv_fire_dir, save_name, '_SDM_VEG_intersect_Fire_Classes.csv'), row.names = FALSE)
       gc()
       
       ## Now save the thresh-holded rasters as shapefiles
