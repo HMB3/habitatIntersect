@@ -2701,6 +2701,7 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
 #' @param output_path        Character string - The file path to save the function output
 #' @param thresh_path        Character string - The file path to save the function output
 #' @param category_layer     Feature layer    - The file containing categorical features (e.g. fire intensity)
+#' @param numeric_col        Character string - The column for the category layer
 #' @param template_raster    Raster::raster - template raster with study extent and resolution
 #' @param poly_path          Character string - file path to feature polygon layer
 #' @param epsg               Numeric - ERSP code of coord ref system to be translated into WKT format
@@ -2711,6 +2712,7 @@ calculate_habitat_categories_intersect <- function(taxa_list,
                                                    output_path,
                                                    thresh_path,
                                                    category_layer,
+                                                   numeric_col,
                                                    template_raster,
                                                    poly_path,
                                                    epsg) {

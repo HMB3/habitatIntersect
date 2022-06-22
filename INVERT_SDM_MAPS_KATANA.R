@@ -547,6 +547,7 @@ calculate_habitat_categories_intersect(taxa_list          = rev(INVERT.MAXENT.SP
                                        thresh_path        = inv_thresh_dir,
 
                                        category_layer     = FESM_east_20m_categ,
+                                       numeric_col        = "gridcode",
 
                                        template_raster    = template_raster_250m,
                                        poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
