@@ -2760,7 +2760,7 @@ calculate_habitat_categories_intersect <- function(taxa_list,
       if(!file.exists(sdm_fire_png)) {
         
         ## Read in the SDM threshold
-        sdm_threshold <- st_read(sdm_fire_geo) %>% st_cast(., "POLYGON")
+        sdm_threshold <- st_read(sdm_fire_geo) %>% st_cast(., "POLYGON") %>% repair_geometry()
         extent_dim    <- extent(sdm_threshold)[1]
         
         if(!is.na(extent_dim)) {
@@ -2774,12 +2774,15 @@ calculate_habitat_categories_intersect <- function(taxa_list,
           ## read in the intersect
           layers <- st_layers(dsn = sdm_fire_geo)$name
           
-          ## This takes ages...any way we can speed it up?  
-          message('Cropping categorical Fire layers to the ', taxa)
-          FESM_crop <- st_crop(category_layer, extent(sdm_threshold))
+          message('Intersecting SDM with Grid of categorical Fire layers for ', taxa)
+          grid_net <- st_make_grid(sdm_threshold, n=c(20,20)) %>% 
+            st_cast(., "POLYGON") %>% st_as_sf() 
+          
+          grid_sdm   <- st_intersection(grid_net, sdm_threshold) %>% 
+            st_cast(., "POLYGON") %>% st_as_sf() %>% repair_geometry()
           
           message('Intersecting SDM with categorical Fire layers for ', taxa)
-          sdm_fire_classes_int       <- st_intersection(sdm_threshold, FESM_crop)
+          sdm_fire_classes_int    <- st_intersection(grid_sdm, category_layer)
           gc()
           
           sdm_fire_classes_areas_m2  <- st_area(sdm_fire_classes_int)/million_metres
