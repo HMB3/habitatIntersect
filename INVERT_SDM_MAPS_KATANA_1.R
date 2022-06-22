@@ -591,10 +591,10 @@ for(taxa in rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon)[1:5]) {
       
       message('Intersecting SDM with Grid of categorical Fire layers for ', taxa)
       grid_net <- st_make_grid(sdm_threshold, n=c(20,20)) %>% 
-        st_cast(., "POLYGON") %>% st_as_sf()
+        st_cast(., "POLYGON") %>% st_as_sf() 
       
       grid_sdm   <- st_intersection(grid_net, sdm_threshold) %>% 
-        st_cast(., "POLYGON") %>% st_as_sf()
+        st_cast(., "POLYGON") %>% st_as_sf() %>% repair_geometry()
       
       message('Intersecting SDM with categorical Fire layers for ', taxa)
       sdm_fire_classes_int    <- st_intersection(grid_sdm, FESM_east_20m_categ)
