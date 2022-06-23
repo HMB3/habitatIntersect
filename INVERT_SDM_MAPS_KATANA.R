@@ -537,7 +537,7 @@ gc()
 
 
 ## Calculate Insect habitat within categorical fire layer
-calculate_habitat_categories_intersect(taxa_list          = rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
+calculate_habitat_categories_intersect(taxa_list          = sort(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
                                        targ_maxent_table  = INVERT.MAXENT.SPP.RESULTS,
                                        
                                        target_path        = inv_back_dir,
