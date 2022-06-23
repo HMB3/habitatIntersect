@@ -530,10 +530,7 @@ gc()
 ## How do we add the plant SDMs together for those inverts without records, but with host plants?
 
 
-
-
-
-## 6). ESTIMATE % BURNT OVERALL FOR EACH TAXA =============================================================
+## 6). ESTIMATE % BURNT WITHIN CLASSES FOR EACH TAXA =============================================================
 
 
 ## Try individual reads
@@ -542,14 +539,14 @@ gc()
 ## Calculate Insect habitat within categorical fire layer
 calculate_habitat_categories_intersect(taxa_list          = rev(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
                                        targ_maxent_table  = INVERT.MAXENT.SPP.RESULTS,
-
+                                       
                                        target_path        = inv_back_dir,
                                        output_path        = inv_fire_dir,
                                        thresh_path        = inv_thresh_dir,
-
+                                       
                                        category_layer     = FESM_east_20m_categ,
                                        numeric_col        = "gridcode",
-
+                                       
                                        template_raster    = template_raster_250m,
                                        poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
                                        epsg               = 3577)

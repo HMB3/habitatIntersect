@@ -236,7 +236,13 @@ INVERT.FESM.list    <- list.files(inv_fire_dir,
 INVERT.FESM.VEG.list <- list.files(inv_fire_dir, 
                                    pattern     = 'VEG_intersect_Fire.csv', 
                                    full.names  = TRUE, 
-                                   recursive   = TRUE) 
+                                   recursive   = TRUE)
+
+
+INVERT.FESM.CLASS.list <- list.files(inv_fire_dir, 
+                                     pattern     = 'VEG_intersect_Fire_Categories.csv', 
+                                     full.names  = TRUE, 
+                                     recursive   = TRUE) 
 
 
 ## Now combine the SUA tables for each species into one table 

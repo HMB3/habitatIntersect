@@ -2841,20 +2841,21 @@ calculate_habitat_categories_intersect <- function(taxa_list,
           
           ## Save the % burnt layers
           write.csv(sdm_fire_classes_areas,  
-                    paste0(output_path, save_name, '_SDM_VEG_intersect_Fire_Classes.csv'), row.names = FALSE)
+                    paste0(output_path, save_name, '_SDM_VEG_intersect_Fire_Classes.csv'), 
+                    row.names = FALSE)
           gc()
           
           ## Now save the thresh-holded rasters as shapefiles
-          message('Saving SDM Fire intersect polygons for ', taxa)
-          
-          st_write(sdm_fire_classes_int_att, 
-                   
-                   dsn    = sdm_fire_geo, 
-                   layer  = paste0(save_name, '_sdm_fire_classes_intersect_sub'),
-                   
-                   quiet  = TRUE,
-                   append = FALSE)
-          gc()
+          # message('Saving SDM Fire intersect polygons for ', taxa)
+          # 
+          # st_write(sdm_fire_classes_int_att, 
+          #          
+          #          dsn    = sdm_fire_geo, 
+          #          layer  = paste0(save_name, '_sdm_fire_classes_intersect_sub'),
+          #          
+          #          quiet  = TRUE,
+          #          append = FALSE)
+          # gc()
           
           ## Create rasters for plotting
           t <- raster::raster(template_raster_250m) %>% 
