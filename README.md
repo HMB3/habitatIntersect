@@ -1,16 +1,15 @@
-nenswniche : rapidly estimate habitat suitability for invertebrates and
-plants in NE-NSW
+nenswniche : estimate burnt habitat for invertebrates, plants and
+reptiles in Eastern Australia
 ================
-March 2021
+June 2021
 
   
 
-The text and code below summarises a workflow in R that can be used to
-relatively rapidly assess the environmental range of a species within
+The text and code below summarises an R package that can be used to
+rapidly assess the environmental range of a species within
 Australia, from downloading occurrence records, through to creating maps
-of predicted climatic suitability across Australia at 1km\*1km
-resolution. An example of this work is published in the journal Science
-of the Total Environment -
+of predicted habitat suitability across Australia. An example of this 
+pipeline applied to plants is published in Science of the Total Environment -
 
   
 
@@ -22,7 +21,7 @@ of The Total Environment, 685, 451-462.
 
   
 
-To install, run :
+To install the package, run :
 
 ``` r
 ## Function to load or install packages
@@ -33,11 +32,6 @@ ipak <- function(pkg){
   sapply(pkg, require, character.only = TRUE)
 }
 
-## These packages are not on cran, but are needed
-library(devtools)
-install_github('johnbaums/things')
-install_github('johnbaums/rmaxent')
-install_github('traitecoevo/taxonlookup')
 
 ## Main package 
 devtools::install_github("HMB3/nenswniche")
@@ -54,25 +48,43 @@ ipak(sdmgen_packages)
 
 # Background
 
-This code is being developed at UNSW, to help investigate the impacts of
-the 2019/2020 bush fires on Insects in the Forests of North Eastern New
-South Wales. The aim is to create a pipeline that rapidly assesses the
-habitat suitability of the threatened insect taxa under current
-environmental conditions. There are three key ways to estimate habitat
-suitability for invertebrates:
+This code was developed at UNSW to investigate the impacts of
+the 2019/2020 bush fires on rare Invertebrates in the Forests of Eastern Australia.
+We created a list of 85 priority invertebrate species using NSW State government 
+listings, expert knowledge and estimates of geographic extent.  We then 
+sampled sites affected by the bush fires in November 2021 for these priority 
+taxa. Site data was combined with records from Australian and global databases 
+to estimate the environmental ranges of all species. Habitat suitability Models 
+(HSMs) were calibrated for all taxa, and projected onto baseline environments 
+(1976-2005), including soils and vegetation. HSMs were calculated at the species, 
+genus and family level. We then calculated the % of suitable habitat burnt for all 
+taxa a). across eastern Australia overall b). within each burn intensity category,
+and c). within each major vegetation class. 
 
+
+# Vegetation and Fire data
+
+To assess habitat across eastern Australia, we used a Structural Classification of 
+Australian Vegetation [based on Radar and multi-spectral data, (Scarth et al., 2019)], 
+which gives height and cover estimates matching the Australian National Vegetation Information 
+System (NVIS) at ~30m spatial resolution. We also obtained remotely-sensed estimates 
+for the extent and severity of the 2019-2020 fires [derived from Sentinel imagery, 
+Mackey, Lindenmayer, Norman, Taylor, and Gould (2021)], which gives estimates of 
+burn intensity at ~20m resolution (Fig 1). Given the difference in resolution between 
+our environmental (280m), vegetation (30m) and fire layers (20m), we used feature 
+layers (i.e., polygons) to combine the spatial data across sources, which avoids 
+resampling and loss of information. Our study area is that within a 100km 
+buffer of the Fire extent, from Victoria to south east Queensland (i.e., the habitat 
+analyses do not consider the whole east coast, see Fig. 1).
+
+
+
+Fig 1: Remotely sensed Vegetation classification for eastern Australia [Left panel, 
+Scarth et al. (2019)], and fire severity data for the 2019-2020 fires across eastern 
+Australia [right panel, Mackey et al. (2021)]. 
   
 
--   Habitat Suitability Models using geographic records for each
-    invertebrate taxon
--   Habitat Suitability Models using geographic records of host plants
-    for each invertebrate taxon
--   Intersecting geographic records with vegetation maps (e.g. remote
-    sensed vegetation layers)
-
-  
-
-# Run SDMs Across Australia
+# Habtiat Suitability Modelling
 
   
 
@@ -88,19 +100,23 @@ Once the geographic data for all taxa has been processed and cleaned, we
 can habitat suitability models. The function below runs two habitat
 suitability models: a full maxent model using all variables, and a
 backwards selection maxent. Given a candidate set of predictor
-variables, the backwards selection function identifies a subset of
+variables (e.g. Fig 2, climate, terrain, soils, remotely sensed vegetation), 
+the backwards selection function identifies a subset of
 variables that meets specified multi-collinearity criteria.
 Subsequently, backward step-wise variable selection is used to
 iteratively drop the variable that contributes least to the model, until
 the contribution of each variable meets a specified minimum, or until a
 predetermined minimum number of predictors remains (maxent models are
 run using the dismo package <https://github.com/rspatial/dismo>). Note
-that this step is quite memory heavy, best run with &gt; 32GB of RAM.
+that this step is quite memory heavy, best run with > 64 GB RAM.
 
-  
 
-Note that we are modelling at multiple taxonomic levels : species, genus
-and family
+Fig 2: Geographic Records for Nysisus vinitor (Left Panels), and realized environmental 
+niches for Nysisus vinitor (right panels). Note that the habitat suitably models are 
+calibrated using environmental data from the whole of Australia (small inset left panel), 
+but they are only projected into the extent of the fires (main left panel).  
+
+
 
 ``` r
 ## Read in spatial points data frames of the occurrence data
