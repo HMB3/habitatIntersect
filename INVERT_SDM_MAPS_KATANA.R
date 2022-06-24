@@ -453,7 +453,7 @@ INVERT.RESULTS.HOSTS <- SITES.ALL.MAXENT.RESULTS %>%
 # This will give us the % of suitable habitat in each burn intensity category(0-5).
 
 
-## Calculate Insect habitat within binary fire layer
+## Calculate Insect species habitat that was burnt
 calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
                                      targ_maxent_table  = INVERT.RESULTS.HOSTS,
                                      host_maxent_table  = PLANT.RESULTS.HOSTS,
@@ -477,46 +477,45 @@ calculate_taxa_habitat_host_features(taxa_list          = sort(INVERT.MAXENT.SPP
 gc()
 
 
-# calculate_taxa_habitat_host_features(taxa_list          = rev(INVERT.MAXENT.GEN.RESULTS$searchTaxon),
-#                                      targ_maxent_table  = INVERT.RESULTS.HOSTS,
-#                                      host_maxent_table  = PLANT.RESULTS.HOSTS,
-#                                      
-#                                      target_path        = inv_back_dir,
-#                                      output_path        = inv_fire_dir,
-#                                      intersect_path     = inv_inters_dir,
-#                                      intersect_patt     = '_SDM_VEG_intersection.gpkg',
-#                                      host_path          = plant_thresh_dir,
-#                                      thresh_patt        = '_current_suit_not_novel_above_',
-#                                      
-#                                      int_cols           = intersect_cols,
-#                                      main_int_layer     = FESM_east_20m_binary_split,
-#                                      second_int_layer   = AUS_forest_RS_feat_split,
-#                                      template_raster    = template_raster_250m,
-#                                      poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-#                                      epsg               = 3577)
-# 
-# gc()
+## Calculate Insect genera habitat that was burnt
+calculate_taxa_habitat_fire_features(taxa_list          = sort(INVERT.MAXENT.GEN.RESULTS$searchTaxon),
+                                     analysis_df        = SDM.SPAT.OCC.BG.GDA,
+                                     taxa_level         = 'genus',
+                                     targ_maxent_table  = INVERT.RESULTS.HOSTS,
+                                     
+                                     target_path        = inv_back_dir,
+                                     output_path        = inv_fire_dir,
+                                     thresh_path        = inv_thresh_dir,
+    
+                                     main_int_layer     = FESM_east_20m_binary_split,
+                                     second_int_layer   = AUS_forest_RS_feat_split, 
+                                     template_raster    = template_raster_250m,
+                                     poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
+                                     epsg               = 3577)
 
 
-# calculate_taxa_habitat_host_features(taxa_list          = rev(INVERT.MAXENT.FAM.RESULTS$searchTaxon),
-#                                      targ_maxent_table  = INVERT.RESULTS.HOSTS,
-#                                      host_maxent_table  = PLANT.RESULTS.HOSTS,
-#                                      
-#                                      target_path        = inv_back_dir,
-#                                      output_path        = inv_fire_dir,
-#                                      intersect_path     = inv_inters_dir,
-#                                      intersect_patt     = '_SDM_VEG_intersection.gpkg',
-#                                      host_path          = plant_thresh_dir,
-#                                      thresh_patt        = '_current_suit_not_novel_above_',
-#                                      
-#                                      int_cols           = intersect_cols,
-#                                      main_int_layer     = FESM_east_20m_binary_split,
-#                                      second_int_layer   = AUS_forest_RS_feat_split,
-#                                      template_raster    = template_raster_250m,
-#                                      poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
-#                                      epsg               = 3577)
-# 
-# gc()
+gc()
+
+
+## Calculate Insect family habitat that was burnt
+calculate_taxa_habitat_fire_features(taxa_list          = sort(INVERT.MAXENT.FAM.RESULTS$searchTaxon),
+                                     analysis_df        = SDM.SPAT.OCC.BG.GDA,
+                                     taxa_level         = 'family',
+                                     targ_maxent_table  = INVERT.RESULTS.HOSTS,
+                                     
+                                     target_path        = inv_back_dir,
+                                     output_path        = inv_fire_dir,
+                                     thresh_path        = inv_thresh_dir,
+                                     
+                                     main_int_layer     = FESM_east_20m_binary_split,
+                                     second_int_layer   = AUS_forest_RS_feat_split, 
+                                     template_raster    = template_raster_250m,
+                                     poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
+                                     epsg               = 3577)
+
+
+gc()
+
 
 
 # For each taxa, we create a table of the area in square kilometers of suitable habitat that intersects with each burn 

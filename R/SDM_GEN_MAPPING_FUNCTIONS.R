@@ -2418,7 +2418,6 @@ calculate_taxa_habitat_host_features = function(taxa_list,
 #' @param intersect_path     Character string - The file path containing the intersected layers
 #' @param intersect_patt     Character string - The pattern for the intersected layers
 #' @param output_path        Character string - The file path containing the intersecting layers
-#' @param intersect_name     Character string - The file name for the output intersecting layers
 #' @param main_int_layer     Simple features polygon - The main layer to intersect with the habitat layer (e.g. fire)
 #' @param second_int_layer   Simple features polygon - The 2nd layer to intersect with the habitat layer (e.g. Veg)
 #' @param poly_path          Character string - file path to feature polygon layer
@@ -2433,7 +2432,6 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
                                                 target_path,
                                                 output_path,
                                                 thresh_path,
-                                                intersect_name,
                                                 intersect_path,
                                                 intersect_patt,
                                                 main_int_layer,
@@ -2454,7 +2452,7 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
   taxa_list %>%
     
     ## Loop over just the taxa
-    ## taxa = taxa_list[21]
+    ## taxa = taxa_list[1]
     lapply(function(taxa) {
       
       ## Get the sdm threshold for each inv taxa
@@ -2470,7 +2468,7 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
                                              pattern    = '_current_suit_not_novel_above_', 
                                              recursive  = TRUE,
                                              full.names = TRUE) %>% .[grep(".gpkg", .)] %>% 
-        .[grep(save_name, .)]
+        .[grep(save_name, .)] %>% .[1]
       
       occ                <- readRDS(sprintf('%s/%s/%s_occ.rds', 
                                             target_path, save_name, save_name))
@@ -2483,7 +2481,7 @@ calculate_taxa_habitat_fire_features = function(taxa_list,
         
         ## Read in the current suitability raster :: get the current_not`_novel raster
         ## Get the taxa directory name.
-        sdm_threshold <- st_read(dsn = current_thresh_feat_path)
+        sdm_threshold <- sf:: st_read(dsn = current_thresh_feat_path)
         extent_dim    <- extent(sdm_threshold)[1]
         
         if(!is.na(extent_dim)) {
