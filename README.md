@@ -6,7 +6,7 @@ June 2021
   
 
 The text and code below summarises an R package that can be used to
-rapidly assess the environmental range of a species within
+rapidly assess the environmental range of multiple species within
 Australia, from downloading occurrence records, through to creating maps
 of predicted habitat suitability across Australia. An example of this 
 pipeline applied to plants is published in Science of the Total Environment -
@@ -48,11 +48,11 @@ ipak(sdmgen_packages)
 
 # Background
 
-This code was developed at UNSW to investigate the impacts of
-the 2019/2020 bush fires on rare Invertebrates in the Forests of Eastern Australia.
-We created a list of 85 priority invertebrate species using NSW State government 
-listings, expert knowledge and estimates of geographic extent.  We then 
-sampled sites affected by the bush fires in November 2021 for these priority 
+This code was developed at UNSW to investigate the impacts of the 2019/2020 bush fires on 
+rare Invertebrates in the Forests of Eastern Australia (it could also be applied to any 
+taxonomic group with spatial data). We created a list of 85 priority invertebrate species 
+using NSW State government listings, expert knowledge and estimates of geographic extent.  
+We then sampled sites affected by the bush fires in November 2021 for these priority 
 taxa. Site data was combined with records from Australian and global databases 
 to estimate the environmental ranges of all species. Habitat suitability Models 
 (HSMs) were calibrated for all taxa, and projected onto baseline environments 
@@ -87,35 +87,28 @@ Australia [right panel, Mackey et al. (2021)].
 
 # Habtiat Suitability Modelling
 
-  
 
-Download example data here :
+Download example point data here :
 
-  
 
 <https://cloudstor.aarnet.edu.au/plus/s/6z88YnumBkKVEir>
 
-  
 
-Once the geographic data for all taxa has been processed and cleaned, we
-can habitat suitability models. The function below runs two habitat
-suitability models: a full maxent model using all variables, and a
-backwards selection maxent. Given a candidate set of predictor
-variables (e.g. Fig 2, climate, terrain, soils, remotely sensed vegetation), 
-the backwards selection function identifies a subset of
-variables that meets specified multi-collinearity criteria.
-Subsequently, backward step-wise variable selection is used to
-iteratively drop the variable that contributes least to the model, until
-the contribution of each variable meets a specified minimum, or until a
-predetermined minimum number of predictors remains (maxent models are
-run using the dismo package <https://github.com/rspatial/dismo>). Note
-that this step is quite memory heavy, best run with > 64 GB RAM.
+Once the geographic data for all taxa has been processed and cleaned, we can run habitat suitability models (HSMs). 
+The function below runs two habitat suitability models: a full maxent model using all variables, and a
+backwards selection maxent. Given a candidate set of predictor variables (e.g. Fig 2, climate, terrain, 
+soils, remotely sensed vegetation), the backwards selection function identifies a subset of variables 
+that meets specified multi-collinearity criteria. Subsequently, backward step-wise variable selection 
+is used to iteratively drop the variable that contributes least to the model, until the contribution of 
+each variable meets a specified minimum, or until a predetermined minimum number of predictors remains 
+(maxent models are run using the dismo package <https://github.com/rspatial/dismo>). Note
+this step is needs > 64 GB RAM.
 
 
 ![fig2](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Fig_1_niches.png?raw=true)
 
-Fig 2: Geographic Records for Nysisus vinitor (Left Panels), and realized environmental 
-niches for Nysisus vinitor (right panels). Note that the habitat suitably models are 
+Fig 2: Geographic Records for _Nysisus vinitor_ (Left Panels), and realized environmental 
+niches (right panels). Note that the habitat suitably models are 
 calibrated using environmental data from the whole of Australia (small inset left panel), 
 but they are only projected into the extent of the fires (main left panel).  
 
@@ -124,10 +117,9 @@ but they are only projected into the extent of the fires (main left panel).
 ``` r
 ## Read in spatial points data frames of the occurrence data
 SDM.SPAT.OCC.BG.GDA       = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TARGET_INVERT_TAXA.rds')
-SDM.PLANT.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_HOST_PLANTS.rds')
 
 
-## Run SDMs for a list of taxa - EG 85 Invertebrates
+## Run SDMs for a list of taxa - EG 80 Invertebrate species
 run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.spp),
                          taxa_level              = 'species',
                          maxent_dir              = inv_back_dir,     
@@ -151,19 +143,21 @@ run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.spp),
                          epsg                    = 3577)
 ```
 
-![fig3](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Diorygopyx_asciculifer_bs_predictor_correlation.png?raw=true)
-**Figure 3.** Correlations between the final variables in the backwards selection maxent model.
+![fig3a](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Mutusca_brevicornis_buffer_occ.png?raw=true)
+![fig3b](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Mutusca_brevicornis_bs_predictor_correlation.png?raw=true)
+**Figure 3.** Top : Occurrence points used in the HSM for _Mutusca brevicornis_. Bottom : correlations between the 
+final variables in the used in the backward selected HSM.
 
 
 # Project SDMs across Eastern Australia
 
   
-Next, we take the habitat suitability models, and project them across geographic space. First, we need to S
-extract the SDM results from the models. Each model generates a ‘threshold’ of probability of occurrence,
-which we use to create map of habitat suitability across our study area. The sdm projection function below 
-takes the maxent models created by the sdm function, and projects the models across geographic space - here
-just for Eastern Australia. It uses the rmaxent package <https://github.com/johnbaums/rmaxent>. This step 
-also needs > 64 GB RAM.
+Next we take the HSMs for each taxa, and use the statistical model to predict habitat suitability for all locations 
+across the study area (i.e. all 280m grid cells of the raster layers used for modelling). The sdm 'projection' function 
+below uses the rmaxent package <https://github.com/johnbaums/rmaxent>, and needs > 64 GB RAM. The resulting surface of
+continous habitat suitability (0-1) is converted to a binary layer (0, 1), Using a probabilistic threshold – the 10th 
+percentile training presence logistic threshold – based on the weighting of different model errors (‘commission’ versus 
+‘omission’ errors, Fig 4). 
 
 
 ``` r
@@ -199,38 +193,34 @@ tryCatch(
 ![fig4](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Fig_2_SDM_thresh.png?raw=true)
   
 
-**Figure 4.** Continuous habitat suitability model for Nysisus vinitor (Left, probability of occurrence 0-1), 
+**Figure 4.** Continuous habitat suitability model for _Nysisus vinitor_ (Left, probability of occurrence 0-1), 
 and binary (i.e., thresh holded) HSM for N. vinitor (right, 0,1), where cells > 0.254 (the logistic threshold 
 for this species) are 1, and cells < 0.254 are 0. The binary HSM layers are used for this analysis of habitat loss.
 
   
 
-To use the habitat suitability rasters in area calculations
-(e.g. comparing the area of suitable habitat affected by fire), we need
-to convert the continuous suitability scores (ranging from 0-1) to
-binary values (either 1, or 0). To do this, we need to pick a threshold
-of habitat suitability, below which the taxa is not considered present.
-Here we’ve chosen the 10th% Logistic threshold for each taxa (ref).
+# Estimates of suitable habitat burnt for Invertebrates
+
+To estimate the total area of suitable habitat for our target invert taxa across Eastern Australia that was burnt by 
+the 2019-2020 fires, we intersected feature layers of the HSM models for each taxon with an aggregated feature 
+layer of the Fire extent [see Mackey et al. (2021) Fig 1]. This fire layer has both binary extent (burnt and unbunrt),
+as well as class of burn intensity.
+
+\
+
+Of 80 target species, 38 (~45%) had sufficient data to run HSMs.In general, the most widespread 
+species experienced the least burning of habitat, while the most restricted species experienced larger proportional 
+habitat burns (Fig 5). In particular, _Amphistomus primonactus_, _Diorygopyx incrassatus_ and _Aulacopris maximus_ 
+had > 50% of their suitable habitat burnt by the fires (EG taxa, Table 2). Conversely,  _Nysius vinitor_ and 
+_Onthophagus compositus_ had < 10% of their habitat burnt (Fig. 3). 
 
   
-
-``` r
-## Threshold the invertebrate SDM models to be either 0 or 1
-habitat_threshold(taxa_list     = sort(unique(MAXENT.RESULTS$searchTaxon)),
-                  maxent_table  = MAXENT.RESULTS,
-                  maxent_path   = './output/veg_climate_topo_maxent/back_sel_models/',
-                  cell_factor   = 9,
-                  country_shp   = 'AUS',
-                  country_prj   = CRS("+init=EPSG:3577"),
-                  write_rasters = TRUE)
-```
-
+  
+![fig5a](https://github.com/HMB3/nenswniche/blob/master/output/Figures/A_primonactus_Fire.png?raw=true)  
+![fig5b](https://github.com/HMB3/nenswniche/blob/master/output/Figures/N_vinitor_Fire.png?raw=true) 
   
 
-![fig4](https://github.com/HMB3/nenswniche/blob/master/output/Amphistomus_current_suit_not_novel_above_0.1401.png?raw=true)
 
-**Figure 3.** Example of a thresholded continuous habitat suitability
-map for for the invertebrate Genus Amphistomus under current conditions.
-The Logistic threshold is used here.
 
-  
+On average across all Invert species analysed, the area of habitat burnt was greatest within the (medium and high) 
+burn intensity categories, and within (tall closed forest) and (medium open forest) vegetation categories. 
