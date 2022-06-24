@@ -512,6 +512,18 @@ INVERT.FESM.TABLE.SPP.RANGE <- INVERT.FESM.TABLE.SPP %>%
   dplyr::select(Percent_burnt, Habitat_km2, Habitat_burnt_km2, AOO, EOO, Aus_records, KOP_count)
 
 
+INVERT.FESM.TABLE.SPP.LOG <-
+  
+  INVERT.FESM.TABLE.SPP.RANGE %>% mutate(log_AOO     = log(AOO),
+                                         log_EOO     = log(EOO),
+                                         log_Habit   = log(Habitat_km2),
+                                         log_Burnt   = log(Habitat_burnt_km2),
+                                         log_Records = log(Aus_records)) %>% 
+  
+  dplyr::select(-AOO, -EOO, -Habitat_km2, -Habitat_burnt_km2, -Aus_records) %>% 
+  dplyr::select(Percent_burnt, log_Habit, log_Burnt, log_AOO, log_EOO, log_Records) 
+  
+
 ## Could create a standard graph here :: pairs.panel
 png(paste0(inv_fire_dir, 'fesm_inv_taxa_scatter_plots.png'),
     12, 8, units = 'in', res = 500)
@@ -534,13 +546,13 @@ gc()
 png(paste0(inv_fire_dir, 'fesm_inv_species_scatter_plots.png'),
     12, 8, units = 'in', res = 500)
 
-psych::pairs.panels(INVERT.FESM.TABLE.SPP.RANGE,
+psych::pairs.panels(INVERT.FESM.TABLE.SPP.LOG,
                     method   = "pearson", # correlation method
                     hist.col = "#00AFBB",
                     density  = TRUE,      # show density plots
                     ellipses = FALSE,
                     cex = 1.2,
-                    cex.labels = 1.2,
+                    cex.labels = 0.9,
                     lwd = 2,
                     col = "blue")
 
