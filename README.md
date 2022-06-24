@@ -78,6 +78,7 @@ buffer of the Fire extent, from Victoria to south east Queensland (i.e., the hab
 analyses do not consider the whole east coast, see Fig. 1).
 
 
+![fig1](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Fig_Veg_Fire.png?raw=true)
 
 Fig 1: Remotely sensed Vegetation classification for eastern Australia [Left panel, 
 Scarth et al. (2019)], and fire severity data for the 2019-2020 fires across eastern 
@@ -111,6 +112,8 @@ run using the dismo package <https://github.com/rspatial/dismo>). Note
 that this step is quite memory heavy, best run with > 64 GB RAM.
 
 
+![fig2](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Fig_1_niches.png?raw=true)
+
 Fig 2: Geographic Records for Nysisus vinitor (Left Panels), and realized environmental 
 niches for Nysisus vinitor (right panels). Note that the habitat suitably models are 
 calibrated using environmental data from the whole of Australia (small inset left panel), 
@@ -124,42 +127,34 @@ SDM.SPAT.OCC.BG.GDA       = readRDS('./output/results/SDM_SPAT_OCC_BG_GDA_ALL_TA
 SDM.PLANT.SPAT.OCC.BG.GDA = readRDS('./output/results/SDM_SPAT_OCC_BG_TARGET_HOST_PLANTS.rds')
 
 
-## Run SDMs for a list of taxa
-run_sdm_analysis(taxa_list               = sort(target.insect.families),
-                 taxa_level              = 'family',
-                 maxent_dir              = 'output/veg_climate_topo_maxent/full_models',     
-                 bs_dir                  = 'output/veg_climate_topo_maxent/back_sel_models',
-                 sdm_df                  = SDM.SPAT.OCC.BG.GDA,
-                 sdm_predictors          = names(aus.climate.veg.grids),
-                 
-                 backwards_sel           = TRUE,      
-                 template_raster         = template_raster_1km_mol,
-                 cor_thr                 = 0.8,  
-                 pct_thr                 = 5, 
-                 k_thr                   = 4, 
-                 min_n                   = 10,  
-                 max_bg_size             = 70000,
-                 background_buffer_width = 200000,
-                 shapefiles              = TRUE,
-                 features                = 'lpq',
-                 replicates              = 5,
-                 responsecurves          = TRUE,
-                 country_shp             = AUS,
-                 koppen_crop             = TRUE,
-                 Koppen_zones            = Koppen_zones,
-                 Koppen_raster           = Koppen_1975_1km)
+## Run SDMs for a list of taxa - EG 85 Invertebrates
+run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.spp),
+                         taxa_level              = 'species',
+                         maxent_dir              = inv_back_dir,     
+                         bs_dir                  = inv_back_dir,
+                         sdm_df                  = SDM.SPAT.OCC.BG.GDA,
+                         sdm_predictors          = names(aus.climate.veg.grids.250m),
+                         
+                         backwards_sel           = TRUE,      
+                         template_raster         = template_raster_250m,
+                         cor_thr                 = 0.8,  
+                         pct_thr                 = 5, 
+                         k_thr                   = 4, 
+                         min_n                   = 10,  
+                         max_bg_size             = 100000,
+                         background_buffer_width = 100000,
+                         feat_save               = TRUE,
+                         features                = 'lpq',
+                         replicates              = 5,
+                         responsecurves          = TRUE,
+                         poly_path               = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
+                         epsg                    = 3577)
 ```
 
   
 
-![fig1](https://github.com/HMB3/nenswniche/blob/master/output/Amphistomus_buffer_occ.png?raw=true)
-![fig2](https://github.com/HMB3/nenswniche/blob/master/output/Amphistomus_bs_predictor_correlation.png?raw=true)
+![fig3](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Fig_1_niches.png?raw=true)
 
-<!-- ```{r message=TRUE, echo=TRUE, warning=FALSE, eval=FALSE} -->
-<!-- ## Create a table of maxent results -->
-<!-- plot_grid(https://github.com/HMB3/nenswniche/blob/master/output/Amphistomus_buffer_occ.png?raw=true, -->
-<!--           https://github.com/HMB3/nenswniche/blob/master/Amphistomus_bs_predictor_correlation.png?raw=true) -->
-<!-- ```  -->
 
   
 
