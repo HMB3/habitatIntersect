@@ -151,94 +151,57 @@ run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.spp),
                          epsg                    = 3577)
 ```
 
-  
+![fig3](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Diorygopyx_asciculifer_bs_predictor_correlation.png?raw=true)
+**Figure 3.** Correlations between the final variables in the backwards selection maxent model.
 
-![fig3](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Fig_1_niches.png?raw=true)
 
-
-  
-
-**Figure 1.** Top : occurrence data used in the habitat suitability
-model for the invertebrate Genus Amphistomus (blue points are occurrence
-data, red zone is the 200km buffer around the points, from where
-background points are selected). Bottom : Correlations between the final
-variables in the backwards selection maxent model.
+# Project SDMs across Eastern Australia
 
   
+Next, we take the habitat suitability models, and project them across geographic space. First, we need to S
+extract the SDM results from the models. Each model generates a ‘threshold’ of probability of occurrence,
+which we use to create map of habitat suitability across our study area. The sdm projection function below 
+takes the maxent models created by the sdm function, and projects the models across geographic space - here
+just for Eastern Australia. It uses the rmaxent package <https://github.com/johnbaums/rmaxent>. This step 
+also needs > 64 GB RAM.
 
-# Project SDMs across North-Eastern NSW
-
-  
-
-Next, we take the habitat suitability models, and project them across
-geographic space. First, we need to extract the SDM results from the
-models. Each model generates a ‘threshold’ of probability of occurrence,
-which we use to create map of habitat suitability across Australia.
-
-  
 
 ``` r
-## Create a table of maxent results
-MAXENT.RESULTS = compile_sdm_results(taxa_list    = analysis_taxa,
-                                     results_dir  = 'output/veg_climate_topo_maxent/back_sel_models',
-                                     data_path    = "./output/veg_climate_topo_maxent/Habitat_suitability/",
-                                     sdm_path     = "./output/veg_climate_topo_maxent/back_sel_models/",
-                                     save_data    = FALSE,
-                                     save_run     = "TARG_INSECT_SPP")
-```
 
-  
-
-The sdm projection function below takes the maxent models created by the
-sdm function, and projects the models across geographic space - here
-just for North Eastern NSW. It uses the rmaxent package
-<https://github.com/johnbaums/rmaxent>. This step is also best with &gt;
-32GB of RAM.
-
-  
-
-``` r
-## Create a local projection for mapping : Australian Albers
-aus_albers <- CRS('+proj=aea +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=132 +x_0=0 +y_0=0 
-                   +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs')
-
-## Try and set the raster temp directory to a location not on the partition, to save space
-terraOptions(memfrac = 0.5, 
-             tempdir = 'G:/North_east_NSW_fire_recovery/TEMP')
-
-## Create current sdm map projections
+## Create habitat suitability map under current conditions
 tryCatch(
-  project_maxent_current_grids_mess(country_shp     = AUS, 
-                                    country_prj     = CRS("+init=EPSG:3577"),
-                                    local_prj       = aus_albers,
-                                    
-                                    taxa_list       = map_taxa,    
-                                    maxent_path     = './output/plant_maxent/back_sel_models/',
-                                    
-                                    current_grids   = study.climate.veg.grids,         
-                                    create_mess     = TRUE,
-                                    save_novel_poly = FALSE),
   
-  ## If the species fails, save the error message
+  project_maxent_current_grids_mess(taxa_list       = invert_map_spp,    
+                                    maxent_path     = inv_back_dir,
+                                    current_grids   = east.climate.veg.grids.250m,         
+                                    create_mess     = TRUE,
+                                    mess_layers     = FALSE,
+                                    save_novel_poly = TRUE,
+                                    maxent_table    = INVERT.MAXENT.RESULTS,
+                                    output_path     = paste0(inv_thresh_dir, 'inverts_sdm_novel_combo.gpkg'),
+                                    poly_path       = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
+                                    epsg            = 3577),
+  
+  ## If the species fails, write a fail message to file
   error = function(cond) {
     
     ## This will write the error message inside the text file, but it won't include the species
-    file.create(file.path("output/plant_maxent/back_sel_models/mapping_failed_current.txt"))
-    cat(cond$message, file = file.path("output/veg_climate_topo_maxent/back_sel_models/mapping_failed_current.txt"))
+    file.create(file.path(inv_back_dir, "mapping_failed_current.txt"))
+    cat(cond$message, file = file.path(inv_back_dir, "inv_mapping_failed_current.txt"))
     warning(cond$message)
     
   })
+  
 ```
 
   
 
-![fig3](https://github.com/HMB3/nenswniche/blob/master/output/Amphistomus_mess_panel.png?raw=true)
+![fig4](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Fig_2_SDM_thresh.png?raw=true)
+  
 
-**Figure 2.** Example of a continuous habitat suitability map for for
-the invertebrate Genus Amphistomus under current conditions. Species
-occurrence points are plotted in red on the left panel. The cells in the
-right panel are coded from 0 : no to low suitability, to 1 : highly
-suitable.
+**Figure 4.** Continuous habitat suitability model for Nysisus vinitor (Left, probability of occurrence 0-1), 
+and binary (i.e., thresh holded) HSM for N. vinitor (right, 0,1), where cells > 0.254 (the logistic threshold 
+for this species) are 1, and cells < 0.254 are 0. The binary HSM layers are used for this analysis of habitat loss.
 
   
 
