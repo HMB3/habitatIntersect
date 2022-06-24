@@ -1,17 +1,17 @@
-nenswniche : estimate burnt habitat for invertebrates, plants and
-reptiles in Eastern Australia
+sdmgen : a pacakge for rapidly estimating multiple species ranges and
+habitat suitability
 ================
-June 2021
+June 2022
 
-  
+\
 
 The text and code below summarises an R package that can be used to
 rapidly assess the environmental range of multiple species within
 Australia, from downloading occurrence records, through to creating maps
 of predicted habitat suitability across Australia. An example of this 
-pipeline applied to plants is published in Science of the Total Environment -
+pipeline applied to plants is published in Science of the Total Environment :
 
-  
+\
 
 Burley, H., Beaumont, L.J., Ossola, A., et al.(2019) Substantial
 declines in urban tree habitat predicted under climate change. Science
@@ -19,7 +19,7 @@ of The Total Environment, 685, 451-462.
 
 <https://www.sciencedirect.com/science/article/pii/S0048969719323289#f0030>
 
-  
+\ 
 
 To install the package, run :
 
@@ -42,9 +42,18 @@ data('sdmgen_packages')
 ipak(sdmgen_packages)
 ```
 
-  
+\
 
-# Background
+Download example data here :
+
+
+<https://cloudstor.aarnet.edu.au/plus/s/6z88YnumBkKVEir>
+
+\
+
+# Background <br>
+
+\
 
 This code was developed at UNSW to investigate the impacts of the 2019/2020 bush fires on 
 rare Invertebrates in the Forests of Eastern Australia (it could also be applied to any 
@@ -56,11 +65,13 @@ databases to estimate the environmental ranges of all species. Habitat suitabili
 (HSMs) were calibrated for all taxa, and projected onto baseline environments (1976-2005), 
 including soils and vegetation. HSMs were calculated at the species, genus and family level. 
 We then calculated the % of suitable habitat burnt for all taxa a). across eastern Australia 
-overall b). within each burn intensity category, and c). within each major vegetation class. 
+overall b). within each burn intensity category, and c). within each major vegetation class. <br>
 
 \
 
-# Vegetation and Fire data
+# Vegetation and Fire data <br>
+
+\
 
 To assess habitat across eastern Australia, we used a Structural Classification of 
 Australian Vegetation [based on Radar and multi-spectral data, (Scarth et al., 2019)], 
@@ -73,25 +84,21 @@ our environmental (280m), vegetation (30m) and fire layers (20m), we used featur
 layers (i.e., polygons) to combine the spatial data across sources, which avoids 
 resampling and loss of information. Our study area is that within a 100km 
 buffer of the Fire extent, from Victoria to south east Queensland (i.e., the habitat 
-analyses do not consider the whole east coast, see Fig. 1).
+analyses do not consider the whole east coast, see Fig. 1). <br>
 
+\
 
-![fig1](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Fig_Veg_Fire.png?raw=true)
+![](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Fig_Veg_Fire.png?raw=true)
 
-Fig 1: Remotely sensed Vegetation classification for eastern Australia [Left panel, 
+**Figure 1.** Remotely sensed Vegetation classification for eastern Australia [Left panel, 
 Scarth et al. (2019)], and fire severity data for the 2019-2020 fires across eastern 
-Australia [right panel, Mackey et al. (2021)]. 
+Australia [right panel, Mackey et al. (2021)]. <br>
 
 \  
 
 # Habtiat Suitability Modelling
 
-
-Download example point data here :
-
-
-<https://cloudstor.aarnet.edu.au/plus/s/6z88YnumBkKVEir>
-
+\
 
 Once the geographic data for all taxa has been processed and cleaned, we can run habitat 
 suitability models (HSMs). The function below runs two habitat suitability models: a full 
@@ -105,9 +112,9 @@ dismo package <https://github.com/rspatial/dismo>). Note this step is needs > 64
 
 \
 
-![fig2](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Fig_1_niches.png?raw=true)
+![](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Fig_1_niches.png?raw=true)
 
-Fig 2: Geographic Records for _Nysisus vinitor_ (Left Panels), and realized environmental 
+**Figure 2.** Geographic Records for _Nysisus vinitor_ (Left Panels), and realized environmental 
 niches (right panels). Note that the habitat suitably models are calibrated using environmental 
 data from the whole of Australia (small inset left panel), but they are only projected into the 
 extent of the fires (main left panel).  
@@ -143,8 +150,10 @@ run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.spp),
                          epsg                    = 3577)
 ```
 
-![fig3a](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Mutusca_brevicornis_buffer_occ.png?raw=true)
-![fig3b](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Mutusca_brevicornis_bs_predictor_correlation.png?raw=true)
+\
+
+![](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Mutusca_brevicornis_buffer_occ.png?raw=true)
+![](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Mutusca_brevicornis_bs_predictor_correlation.png?raw=true)
 
 **Figure 3.** Top : Occurrence points used in the HSM for _Mutusca brevicornis_. Bottom : correlations between the 
 final variables in the used in the backward selected HSM.
@@ -191,9 +200,9 @@ tryCatch(
   
 ```
 
-  
+\
 
-![fig4](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Fig_2_SDM_thresh.png?raw=true)
+![](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Fig_2_SDM_thresh.png?raw=true)
   
 **Figure 4.** Continuous habitat suitability model for _Nysisus vinitor_ (Left, probability of occurrence 0-1), 
 and binary (i.e., thresh holded) HSM for N. vinitor (right, 0,1), where cells > 0.254 (the logistic threshold 
@@ -206,29 +215,25 @@ for this species) are 1, and cells < 0.254 are 0. The binary HSM layers are used
 To estimate the total area of suitable habitat for our target invert taxa across Eastern Australia that was burnt by 
 the 2019-2020 fires, we intersected feature layers of the HSM models for each taxon with an aggregated feature 
 layer of the Fire extent [see Mackey et al. (2021) Fig 1]. This fire layer has both binary extent (burnt and unbunrt),
-as well as class of burn intensity.
+as well as class of burn intensity.Of 80 target species, 38 (~45%) had sufficient data to run HSMs. In general, the 
+most widespread species experienced the least burning of habitat, while the most restricted species experienced larger 
+proportional habitat burns (Fig 5). In particular, _Amphistomus primonactus_, _Diorygopyx incrassatus_ and _Aulacopris maximus_ 
+had > 50% of their suitable habitat burnt by the fires (EG taxa, Table 2). Conversely,  _Nysius vinitor_ and 
+_Onthophagus compositus_ had < 10% of their habitat burnt (Fig. 6).
 
 \
 
-Of 80 target species, 38 (~45%) had sufficient data to run HSMs. In general, the most widespread species experienced 
-the least burning of habitat, while the most restricted species experienced larger proportional habitat burns (Fig 5). 
-
-
-![fig5](https://github.com/HMB3/nenswniche/blob/master/output/Figures/fesm_inv_species_scatter_plots.png?raw=true) 
+![](https://github.com/HMB3/nenswniche/blob/master/output/Figures/fesm_inv_species_scatter_plots.png?raw=true) 
 
 **Figure 5.** Scatterplot matrix of the relationship between the % of suitable habitat that was estimated to have
 burnt in the fires, and different measures of the species geographic range (EOO = Extent of Occurrence, AOO = 
 Area of Occupancy).
 
 
-In particular, _Amphistomus primonactus_, _Diorygopyx incrassatus_ and _Aulacopris maximus_ 
-had > 50% of their suitable habitat burnt by the fires (EG taxa, Table 2). Conversely,  
-_Nysius vinitor_ and _Onthophagus compositus_ had < 10% of their habitat burnt (Fig. 6). 
-
 \  
   
-![fig6a](https://github.com/HMB3/nenswniche/blob/master/output/Figures/A_primonactus_Fire.png?raw=true)  
-![fig6b](https://github.com/HMB3/nenswniche/blob/master/output/Figures/N_vinitor_Fire.png?raw=true) 
+![](https://github.com/HMB3/nenswniche/blob/master/output/Figures/A_primonactus_Fire.png?raw=true)  
+![](https://github.com/HMB3/nenswniche/blob/master/output/Figures/N_vinitor_Fire.png?raw=true) 
 
 **Figure 6.** Suitable habitat for invertebrate species (orange), with the fires extent overlaid 
 (hatched area) and HSM occurrence points in blue. Top panels: _A. primonactus_ lost among the largest 
@@ -238,19 +243,19 @@ lost among the smallest proportion (7.2%) of habitat in the fires.
 \
 
 On average across all Invert species analysed, the area of habitat burnt was greatest within the _low_ 
-and _moderate_ severity burn intensity category, and within the _low_ and _extremely tall_ open forest 
+and _moderate_ severity burn intensity categories, and within the _low_ and _extremely tall_ open forest 
 vegetation types (Fig 5). When considering the different types of invertebrates, Snails were estimated
 to have had the greatest proportion of their suitable burnt in the low and extremely tall open forest 
 types, while Beetles are estimated to have had the smallest proportion of habitat burnt in tall open 
 forest and very tall closed forest (Fig 7). Similar patterns were observed in the burn severity classes,
 with Bugs having the most suitable habitat burnt in the high burn severity class.
 
+\
 
 ![](https://github.com/HMB3/nenswniche/blob/master/output/Figures/sdm_invert_combined_barplots.png?raw=true) 
 **Figure 7.** Summary of the percentage of suitable habitat that was burnt across all 38 Invertebrate species
 analysed, within : Vegetation types (top left), burn classes (top right), Vegetation and invert type (bottom left
 burn class and invert type (bottom right).
-
 
 \
 
@@ -272,4 +277,14 @@ opportunities for spatially targeted sampling of priority taxa for future analys
 We can now develop clear maps of which invert taxa have the best and worst sampling in which regions of relatively 
 data rich countries such as Australia, and begin to plug the data and analysis gaps between bugs and the rest of 
 the tree of life.
+
+\
+\
+\
+\
+
+# TBC...
+
+\
+\
 
