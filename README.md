@@ -13,7 +13,7 @@ pipeline applied to plants is published in Science of the Total Environment -
 
   
 
-Burley, H., Beaumont, L.J., Ossola, A., et al. (2019) Substantial
+Burley, H., Beaumont, L.J., Ossola, A., et al.(2019) Substantial
 declines in urban tree habitat predicted under climate change. Science
 of The Total Environment, 685, 451-462.
 
@@ -246,7 +246,7 @@ forest and very tall closed forest (Fig 7). Similar patterns were observed in th
 with Bugs having the most suitable habitat burnt in the high burn severity class.
 
 
-![fig7](https://github.com/HMB3/nenswniche/blob/master/output/Figures/sdm_invert_combined_barplots?raw=true) 
+![](https://github.com/HMB3/nenswniche/blob/master/output/Figures/sdm_invert_combined_barplots.png?raw=true) 
 **Figure 7.** Summary of the percentage of suitable habitat that was burnt across all 38 Invertebrate species
 analysed, within : Vegetation types (top left), burn classes (top right), Vegetation and invert type (bottom left
 burn class and invert type (bottom right).
@@ -254,7 +254,9 @@ burn class and invert type (bottom right).
 
 \
 
-# Invertebrate spatial sampling - Research Implications
+# Invertebrate spatial sampling 
+
+\
 
 The methods used here have largely been developed for macro-organisms (e.g. trees, mammals, birds), and 
 are difficult to apply to invertebrates. To say the least, it is challenging to assess the environmental 
