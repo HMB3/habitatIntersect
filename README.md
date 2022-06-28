@@ -1,5 +1,4 @@
-sdmgen : a pacakge for rapidly estimating multiple species ranges and
-habitat suitability
+nenswniche : a pacakge for rapidly estimating habitat loss from fires
 ================
 June 2022
 
