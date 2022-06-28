@@ -1,24 +1,12 @@
-nenswniche : a pacakge for rapidly estimating habitat loss from fires
+nenswniche : a pacakge for rapidly estimating burnt habitat
 ================
 June 2022
 
 
 
 The text and code below summarises an R package that can be used to
-rapidly assess the environmental range of multiple species within
-Australia, from downloading occurrence records, through to creating maps
-of predicted habitat suitability across Australia. An example of this 
-pipeline applied to plants is published in Science of the Total Environment :
-
-
-
-Burley, H., Beaumont, L.J., Ossola, A., et al.(2019) Substantial
-declines in urban tree habitat predicted under climate change. Science
-of The Total Environment, 685, 451-462.
-
-<https://www.sciencedirect.com/science/article/pii/S0048969719323289#f0030>
-
- 
+rapidly assess how much of the suitable habitat for multiple species 
+has been burnt across Eastern Australia by the 2020 bushfires.
 
 To install the package, run :
 
