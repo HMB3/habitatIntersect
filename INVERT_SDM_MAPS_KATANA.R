@@ -478,7 +478,7 @@ gc()
 
 
 ## Calculate Insect genera habitat that was burnt
-calculate_taxa_habitat_fire_features(taxa_list          = sort(INVERT.MAXENT.GEN.RESULTS$searchTaxon),
+calculate_taxa_habitat_fire_features(taxa_list          = rev(INVERT.MAXENT.GEN.RESULTS$searchTaxon),
                                      analysis_df        = SDM.SPAT.OCC.BG.GDA,
                                      taxa_level         = 'genus',
                                      targ_maxent_table  = INVERT.RESULTS.HOSTS,
@@ -537,6 +537,23 @@ gc()
 
 ## Calculate Insect habitat within categorical fire layer
 calculate_habitat_categories_intersect(taxa_list          = sort(INVERT.MAXENT.SPP.RESULTS$searchTaxon),
+                                       targ_maxent_table  = INVERT.MAXENT.SPP.RESULTS,
+                                       
+                                       target_path        = inv_back_dir,
+                                       output_path        = inv_fire_dir,
+                                       thresh_path        = inv_thresh_dir,
+                                       
+                                       category_layer     = FESM_east_20m_categ,
+                                       numeric_col        = "gridcode",
+                                       
+                                       template_raster    = template_raster_250m,
+                                       poly_path          = 'data/Feature_layers/Boundaries/AUS_2016_AUST.shp',
+                                       epsg               = 3577)
+
+gc()
+
+
+calculate_habitat_categories_intersect(taxa_list          = rev(INVERT.MAXENT.GEN.RESULTS$searchTaxon),
                                        targ_maxent_table  = INVERT.MAXENT.SPP.RESULTS,
                                        
                                        target_path        = inv_back_dir,
