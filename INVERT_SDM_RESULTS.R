@@ -80,6 +80,37 @@ site_cols <- c("genus",
                "institutionCode", 
                "basisOfRecord")
 
+taxa_qc    <- read_excel(paste0(inv_results_dir, 'SDM_target_species.xlsx'),
+                         sheet = 'Invert_QA_check')
+
+sdm_taxa   <- read_excel(paste0(inv_results_dir, 'INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
+                         sheet = 'Outstanding_taxa')
+
+invert_LUT <- read_excel(paste0(inv_results_dir, 'INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
+                         sheet = 'TABLE 3') %>% dplyr::select("searchTaxon",       
+                                                              "Aus_records",       
+                                                              "AOO",               
+                                                              "EOO",               
+                                                              "KOP_count",         
+                                                              "Type") %>% rename(Taxa = searchTaxon)
+
+table(invert_LUT$Type)
+
+species_remain <- taxa_qc %>% 
+  filter(grepl("Missing", Note)) %>%
+  filter(is.na(Morpho)) %>%
+  dplyr::select(Binomial) %>% 
+  .$Binomial %>% sort()
+
+
+taxa_remain <- sdm_taxa %>% 
+  dplyr::select(Taxa) %>% 
+  .$Taxa %>% sort() %>% gsub('_', ' ', .,)
+
+taxa_difference <- c(taxa_remain, species_remain) %>% unique() %>% sort()
+intersect(analysis_taxa, taxa_difference) %>% sort()
+
+
 
 invert_LUT <- read_excel(paste0(inv_results_dir, 'INVERTS_FIRE_SPATIAL_DATA_LUT_JUNE_2022.xlsm'),
                          sheet = 'TABLE 3') %>% dplyr::select("searchTaxon",       
@@ -412,7 +443,7 @@ SDM_ALL_INVERT_TAXA_ALA_PBI    <- paste0(inv_results_dir, 'SDM_ALL_INVERT_TAXA_A
 st_write(ALL_INVERT_TAXA_ALA_PBI_NICHES, 
          
          dsn    = SDM_ALL_INVERT_TAXA_ALA_PBI, 
-         layer  = 'INVERT_TAXA_NICHES_ALA_PBI',
+         layer  = 'INVERT_TAXA_NICHES_ALA_PBI_SITES',
          
          quiet  = TRUE,
          append = TRUE)
@@ -421,7 +452,7 @@ st_write(ALL_INVERT_TAXA_ALA_PBI_NICHES,
 st_write(SITES.ALL.MAXENT.RESULTS, 
          
          dsn    = SDM_ALL_INVERT_TAXA_ALA_PBI, 
-         layer  = 'INVERT_TAXA_MAXENT_RESULTS_ALA_PBI',
+         layer  = 'INVERT_TAXA_MAXENT_RESULTS_ALA_PBI_SITES',
          
          quiet  = TRUE,
          append = TRUE)
@@ -430,7 +461,7 @@ st_write(SITES.ALL.MAXENT.RESULTS,
 st_write(INVERT.FESM.TABLE, 
          
          dsn    = SDM_ALL_INVERT_TAXA_ALA_PBI, 
-         layer  = 'INVERT_TAXA_SDM_intersect_Fire_ALA_PBI',
+         layer  = 'INVERT_TAXA_SDM_intersect_Fire_ALA_PBI_SITES',
          
          quiet  = TRUE,
          append = TRUE)
@@ -439,7 +470,7 @@ st_write(INVERT.FESM.TABLE,
 st_write(INVERT.FESM.VEG.TABLE, 
          
          dsn    = SDM_ALL_INVERT_TAXA_ALA_PBI, 
-         layer  = 'INVERT_TAXA_SDM_intersect_Veg_Fire_ALA_PBI',
+         layer  = 'INVERT_TAXA_SDM_intersect_Veg_Fire_ALA_PBI_SITES',
          
          quiet  = TRUE,
          append = FALSE)
