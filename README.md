@@ -34,7 +34,7 @@ ipak(sdmgen_packages)
 Download example data here :
 
 
-<https://cloudstor.aarnet.edu.au/plus/s/6z88YnumBkKVEir>
+https://cloudstor.aarnet.edu.au/plus/s/w49lgd5Iln4RX2Z
 
 
 
