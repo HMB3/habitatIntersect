@@ -1,13 +1,13 @@
-Package: nenswniche
-Title: Rapidly estimate species ranges and habit sutiability
+Package: habitatIntersect
+Title: Rapidly estimate species ranges and intersect with other layers
 Version: 1.0
 Authors@R: person("Hugh", "Burley", email = "hugh.burley@gmail.com", role = c("aut", "cre"))
 Description: This package provides a simple workflow for estimating the habitat suitability 
-  of a given list of species. It combines functions from various packages to download species 
-  occurrence data and clean it, estimating geographic and environmental ranges. It also contains 
-  functions for running multiple global species distribution models using maxent, projecting 
-  these models under multiple climate scenarios for Australia, and aggregating the results within 
-  spatial units (e.g. Urban areas)
+  of a given list of species, and intersecting habitat with other layers. It combines functions 
+  from various packages to download species occurrence data and clean it, estimating geographic 
+  and environmental ranges. It also contains functions for running multiple species distribution 
+  models using maxent, projecting these models under multiple climate scenarios for Australia, 
+  and aggregating the results within other layers (e.g. Fire)
 Depends: R (>= 3.5.2)
 License: CC Share Alike (SA)
 Encoding: UTF-8
@@ -128,6 +128,6 @@ Remotes:
     johnbaums/rmaxent,
     johnbaums/things,
     traitecoevo/taxonlookup
-URL: https://github.com/HMB3/North_east_NSW_fire_recovery
+URL: https://github.com/HMB3/habitatIntersect
 RoxygenNote: 7.2.0
 VignetteBuilder: knitr
