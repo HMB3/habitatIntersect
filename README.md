@@ -6,7 +6,7 @@ June 2022
 
 The text and code below summarises an R package that can be used to
 rapidly assess how much of the suitable habitat for multiple species 
-has been burnt across Eastern Australia by the 2020 bushfires.
+has been burnt (e.g. across Eastern Australia, by the 2020 bushfires).
 
 To install the package, run :
 
