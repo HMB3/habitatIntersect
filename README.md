@@ -24,7 +24,7 @@ ipak <- function(pkg){
 devtools::install_github("HMB3/habitatIntersect")
 
 ## Load packages 
-library(nenswniche)
+library(habitatIntersect)
 data('sdmgen_packages')
 ipak(sdmgen_packages)
 ```
