@@ -143,7 +143,7 @@ run_sdm_analysis_no_crop(taxa_list               = sort(target.insect.spp),
 ![](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Mutusca_brevicornis_bs_predictor_correlation.png?raw=true)
 
 **Figure 3.** Top : Occurrence points used in the HSM for _Mutusca brevicornis_. Bottom : correlations between the 
-final variables in the used in the backward selected HSM.
+final variables used in the backward selected HSM.
 
 
 
@@ -177,7 +177,7 @@ tryCatch(
   ## If the species fails, write a fail message to file
   error = function(cond) {
     
-    ## This will write the error message inside the text file, but it won't include the species
+    ## This will write the error message inside the text file
     file.create(file.path(inv_back_dir, "mapping_failed_current.txt"))
     cat(cond$message, file = file.path(inv_back_dir, "inv_mapping_failed_current.txt"))
     warning(cond$message)
@@ -191,7 +191,7 @@ tryCatch(
 ![](https://github.com/HMB3/nenswniche/blob/master/output/Figures/Fig_2_SDM_thresh.png?raw=true)
   
 **Figure 4.** Continuous habitat suitability model for _Nysisus vinitor_ (Left, probability of occurrence 0-1), 
-and binary (i.e., thresh holded) HSM for N. vinitor (right, 0,1), where cells > 0.254 (the logistic threshold 
+and binary (i.e., thresh holded) HSM for _N. vinitor_ (right, 0,1), where cells > 0.254 (the logistic threshold 
 for this species) are 1, and cells < 0.254 are 0. The binary HSM layers are used for this analysis of habitat loss.
 
  
@@ -201,7 +201,7 @@ for this species) are 1, and cells < 0.254 are 0. The binary HSM layers are used
 To estimate the total area of suitable habitat for our target invert taxa across Eastern Australia that was burnt by 
 the 2019-2020 fires, we intersected feature layers of the HSM models for each taxon with an aggregated feature 
 layer of the Fire extent [see Mackey et al. (2021) Fig 1]. This fire layer has both binary extent (burnt and unbunrt),
-as well as class of burn intensity.Of 80 target species, 38 (~45%) had sufficient data to run HSMs. In general, the 
+as well as class of burn intensity. Of 80 target species, 38 (~45%) had sufficient data to run HSMs. In general, the 
 most widespread species experienced the least burning of habitat, while the most restricted species experienced larger 
 proportional habitat burns (Fig 5). In particular, _Amphistomus primonactus_, _Diorygopyx incrassatus_ and _Aulacopris maximus_ 
 had > 50% of their suitable habitat burnt by the fires (EG taxa, Table 2). Conversely,  _Nysius vinitor_ and 
