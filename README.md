@@ -1,4 +1,4 @@
-nenswniche : a pacakge for rapidly estimating burnt habitat
+habitatIntersect : a pacakge for rapidly estimating burnt habitat
 ================
 June 2022
 
@@ -21,7 +21,7 @@ ipak <- function(pkg){
 
 
 ## Main package 
-devtools::install_github("HMB3/nenswniche")
+devtools::install_github("HMB3/habitatIntersect")
 
 ## Load packages 
 library(nenswniche)
