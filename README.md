@@ -1,4 +1,4 @@
-habitatIntersect : a pacakge for rapidly estimating burnt habitat
+habitatIntersect : a package for rapidly estimating burnt habitat
 ================
 June 2022
 
