@@ -5,7 +5,7 @@
 
 # \
 # 
-# This code prepares all the data and code needed for the analysis of inverts habitat after the 2019-2020 fires ::
+# This code prepares all the data and code needed to analyse of inverts habitat after the 2019-2020 fires ::
 #   
 #   
 #   \
