@@ -39,7 +39,7 @@ ipak(sdmgen_packages)
 inv_rs_dir           <- './output/invert_maxent_pbi_ala_site/'
 inv_back_dir         <- './output/invert_maxent_pbi_ala_site/back_sel_models/'
 inv_results_dir      <- './output/invert_maxent_pbi_ala_site/results/'
-inv_fire_dir         <- './output/invert_maxent_pbi_ala_site/Habitat_suitability/FESM_SDM_intersect/'
+inv_fire_dir         <- './output/invert_maxent_pbi_ala_site/Habitat_suitability/FThanESM_SDM_intersect/'
 
 
 

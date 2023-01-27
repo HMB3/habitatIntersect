@@ -750,8 +750,6 @@ dev.off()
 
 
 ## Arrange all plots into one graph
-
-
 grid_plot <- plot_grid(all_sdm_fire_veg_plot,
                        all_sdm_fire_class_plot,
                        all_sdm_fire_veg_type,
